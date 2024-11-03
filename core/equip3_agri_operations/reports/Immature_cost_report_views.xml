@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_agriculture_immature_cost_report_pivot" model="ir.ui.view">
+         <field name="name">agriculture.immature.cost.report.pivot</field>
+         <field name="model">agriculture.immature.cost.report</field>
+         <field name="arch" type="xml">
+             <pivot string="Immature Cost Report" sample="1">
+             </pivot>
+         </field>
+    </record>
+
+    <record id="view_agriculture_immature_cost_report_search" model="ir.ui.view">
+            <field name="name">agriculture.immature.cost.report.search</field>
+            <field name="model">agriculture.immature.cost.report</field>
+            <field name="arch" type="xml">
+                <search string="Immature Cost Report">
+                    <field name="group_id"/>
+                    <field name="activity_id"/>
+
+                    <filter name="filter_norm_date" string="Date" date="norm_date"/>
+
+                    <group expand="0" string="Group By...">
+                        <filter name="groupby_norm_date" string="Date" domain="[]" context="{'group_by': 'norm_date:month'}"/>
+                        <filter name="groupby_group_id" string="Activity Group" domain="[]" context="{'group_by': 'group_id'}"/>
+                    </group>
+
+                    <searchpanel>
+                        <field name="year"/>
+                        <field name="month"/>
+                        <field name="group_id"/>
+                    </searchpanel>
+                </search>
+            </field>
+    </record>
+
+    <record id="view_agriculture_immature_cost_report_graph" model="ir.ui.view">
+        <field name="name">agriculture.immature.cost.report.graph</field>
+        <field name="model">agriculture.immature.cost.report</field>
+        <field name="arch" type="xml">
+            <graph string="Immature Cost Report" sample="1">
+                <field name="activity_id"/>
+                <field name="planned_cost" type="measure"/>
+                <field name="actual_cost" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_agriculture_immature_cost_report_tree" model="ir.ui.view">
+        <field name="name">agriculture.immature.cost.report.tree</field>
+        <field name="model">agriculture.immature.cost.report</field>
+        <field name="arch" type="xml">
+            <tree string="Immature Cost Report" default_order="norm_date" js_class="list_view_report" create="0" edit="0" delete="0" export_xlsx="0">
+                <field name="norm_date" invisible="1"/>
+                <field name="year" invisible="1"/>
+                <field name="month" invisible="1"/>
+                <field name="group_id" invisible="1"/>
+                <field name="activity_id"/>
+                <field name="planned_cost"/>
+                <field name="actual_cost"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_agriculture_immature_cost_report" model="ir.actions.act_window">
+        <field name="name">Immature Cost Report</field>
+        <field name="res_model">agriculture.immature.cost.report</field>
+        <field name="view_mode">tree,pivot,graph</field>
+        <field name="search_view_id" ref="view_agriculture_immature_cost_report_search"/>
+        <field name="context">{'search_default_groupby_group_id': 1, 'search_default_groupby_norm_date': 1}</field>
+        <field name="help">This report performs analysis on your Immature Cost.</field>
+    </record>
+
+    <template id="equip3_agri_operations.agriculture_immature_cost_report">
+
+        <t t-call="web.html_container">
+            <t t-call="web.internal_layout">
+                <div class="page">
+
+                    <div class="oe_structure"/>
+
+                    <h3><span t-esc="company.name"/>: Immature Cost Report</h3>
+
+                    <br></br>
+
+                    <table class="table table-sm table-reports table-immature-cost-report">
+                        <thead>
+                            <tr>
+                                <th class="font-weight-bold">Activity</th>
+                                <th class="font-weight-bold text-right">Planned</th>
+                                <th class="font-weight-bold text-right">Actual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="lines" t-as="line">
+                                
+                                <t t-set="td_style" t-value="''"/>
+                                <t t-if="line['type'] in ('list', 'total')">
+                                    <t t-set="td_style" t-value="td_style + 'font-weight: bold;'"/>
+                                    <t t-if="line['type'] == 'list'">
+                                        <t t-set="td_style" t-value="td_style + 'background-color: #dee2e6;'"/>
+                                    </t>
+                                </t>
+
+                                <t t-set="padding" t-value="'padding-left: %spx;' % (5 + (line['level'] * 20))"/>
+                                
+                                <tr>
+                                    <td t-att-style="padding + td_style"><t t-esc="line['activity_id']"/></td>
+                                    <td t-att-style="td_style" class="text-right"><t t-esc="'{0:,.2f}'.format(line['planned_cost'])"/></td>
+                                    <td t-att-style="td_style" class="text-right"><t t-esc="'{0:,.2f}'.format(line['actual_cost'])"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                    <div class="oe_structure"/>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="paperformat_agriculture_immature_cost_report" model="report.paperformat">
+        <field name="name">Immature Cost Report Paper</field>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">20</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">10</field>
+        <field name="dpi">96</field>
+    </record>
+
+    <record id="action_print_agriculture_immature_cost_report" model="ir.actions.report">
+        <field name="name">Immature Cost Report</field>
+        <field name="model">agriculture.immature.cost.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_agri_operations.agriculture_immature_cost_report</field>
+        <field name="report_file">equip3_agri_operations.agriculture_immature_cost_report</field>
+        <field name="print_report_name">'Immature Cost Report'</field>
+        <field name="binding_model_id" ref="model_agriculture_immature_cost_report"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="equip3_agri_operations.paperformat_agriculture_immature_cost_report"/>
+    </record>
+</odoo>

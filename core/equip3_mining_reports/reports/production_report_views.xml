@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_mining_production_report" model="ir.actions.client">
+        <field name="name">Production Report</field>
+        <field name="tag">mining_production_report</field>
+    </record>
+
+    <template id="mining_production_report_document">
+        <t t-call="web.internal_layout">
+            <div class="page">
+
+                <div class="oe_structure"/>
+
+                <h3><span t-esc="doc.company_id.name"/>: Production Report</h3>
+                <br></br>
+
+                <t t-foreach="data['children']" t-as="site">
+                    <table class="table o_table_production_report">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" class="o_title"><t t-esc="site['name']"/></th>
+                                <t t-foreach="months" t-as="month">
+                                    <th colspan="4" class="o_month"><t t-esc="month"/></th>
+                                </t>
+                                <th colspan="4" class="o_month">Total</th>
+                            </tr>
+                            <tr>
+                                <t t-foreach="months" t-as="m">
+                                    <th class="o_value o_left_border">Planned</th>
+                                    <th class="o_value">Actual</th>
+                                    <th class="o_value">Ach. (%)</th>
+                                    <th class="o_value">UoM</th>
+                                </t>
+                                <th class="o_value o_left_border">Planned</th>
+                                <th class="o_value">Actual</th>
+                                <th class="o_value">Ach. (%)</th>
+                                <th class="o_value">UoM</th>
+                            </tr>
+                        </thead>
+        
+                        <t t-foreach="site['children']" t-as="operation">
+                            <tbody class="o_row">
+                                <tr>
+                                    <td>
+                                        <span class="fa fa-caret-down" role="img" aria-label="Unfolded" title="Unfolded"></span>
+                                        <t t-esc="operation['name']"/>
+                                    </td>
+
+                                    <t t-set="total_operation_planned" t-value="0.0"/>
+                                    <t t-set="total_operation_actual" t-value="0.0"/>
+                                    <t t-foreach="operation['months']" t-as="operation_month">
+                                        <td class="o_value o_left_border"><t t-esc="'{0:,.2f}'.format(operation_month_value['planned'])"/></td>
+                                        <td class="o_value"><t t-esc="'{0:,.2f}'.format(operation_month_value['actual'])"/></td>
+                                        <td class="o_value"><t t-esc="'{0:,.2f}'.format(operation_month_value['achievement'])"/></td>
+                                        <td class="o_value"><t t-esc="operation['uom_name']"/></td>
+
+                                        <t t-set="total_operation_planned" t-value="total_operation_planned + operation_month_value['planned']"/>
+                                        <t t-set="total_operation_actual" t-value="total_operation_actual + operation_month_value['actual']"/>
+                                    </t>
+                                    <td class="o_value o_total o_left_border"><t t-esc="'{0:,.2f}'.format(total_operation_planned)"/></td>
+                                    <td class="o_value o_total"><t t-esc="'{0:,.2f}'.format(total_operation_actual)"/></td>
+                                    <td t-if="total_operation_planned > 0.0" class="o_value o_total"><t t-esc="'{0:,.2f}'.format((total_operation_actual / total_operation_planned) / 100)"/></td>
+                                    <td t-else="" class="o_value o_total"><t t-esc="'{0:,.2f}'.format(0.0)"/></td>
+                                    <td class="o_value o_total"><t t-esc="operation['uom_name']"/></td>
+                                </tr>
+                            </tbody>
+                            <tbody>
+                                <t t-foreach="operation['children']" t-as="act">
+                                    <tr>
+                                        <td class="o_act"><t t-esc="act['name']"/></td>
+
+                                        <t t-set="total_act_planned" t-value="0.0"/>
+                                        <t t-set="total_act_actual" t-value="0.0"/>
+                                        <t t-foreach="act['months']" t-as="act_month">
+                                            <td class="o_value o_left_border"><t t-esc="'{0:,.2f}'.format(act_month_value['planned'])"/></td>
+                                            <td class="o_value"><t t-esc="'{0:,.2f}'.format(act_month_value['actual'])"/></td>
+                                            <td class="o_value"><t t-esc="'{0:,.2f}'.format(act_month_value['achievement'])"/></td>
+                                            <td class="o_value"><t t-esc="act['uom_name']"/></td>
+
+                                            <t t-set="total_act_planned" t-value="total_act_planned + act_month_value['planned']"/>
+                                            <t t-set="total_act_actual" t-value="total_act_actual + act_month_value['actual']"/>
+                                        </t>
+                                        <td class="o_value o_total o_left_border"><t t-esc="'{0:,.2f}'.format(total_act_planned)"/></td>
+                                        <td class="o_value o_total"><t t-esc="'{0:,.2f}'.format(total_act_actual)"/></td>
+                                        <td t-if="total_act_planned > 0.0" class="o_value o_total"><t t-esc="'{0:,.2f}'.format((total_act_actual / total_act_planned) * 100)"/></td>
+                                        <td t-else="" class="o_value o_total"><t t-esc="'{0:,.2f}'.format(0.0)"/></td>
+                                        <td class="o_value o_total"><t t-esc="act['uom_name']"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </t>
+                    </table>
+                </t>
+            </div>
+
+            <div class="oe_structure"/>
+        </t>
+    </template>
+
+   <template id="mining_production_report">
+       <t t-call="web.html_container">
+           <t t-foreach="docs" t-as="doc">
+               <t t-set="filters" t-value="doc.get_filters()"/>
+               <t t-set="values" t-value="doc.get_production_values()"/>
+               <t t-set="data" t-value="values['data']"/>
+               <t t-set="months" t-value="values['months']"/>
+               <t t-call="equip3_mining_reports.mining_production_report_document"/>
+           </t>
+       </t>
+   </template>
+
+    <record id="paperformat_mining_production_report" model="report.paperformat">
+        <field name="name">Mining Production Report Paper</field>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">20</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">10</field>
+        <field name="dpi">110</field>
+    </record>
+
+    <record id="action_print_mining_production_report" model="ir.actions.report">
+        <field name="name">Mining Production Report</field>
+        <field name="model">mining.production.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_mining_reports.mining_production_report</field>
+        <field name="report_file">equip3_mining_reports.mining_production_report</field>
+        <field name="print_report_name">'Mining Production Report'</field>
+        <field name="binding_model_id" ref="model_mining_production_report"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="equip3_mining_reports.paperformat_mining_production_report"/>
+    </record>
+</odoo>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="report_invoice_receipts_document">
+            <t t-call="general_template.exclusive_external_layout">
+                <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+                <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+                <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+                <t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+                <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+                <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+                <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+                <t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+                <div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+                    <div class="oe_structure"/>
+                    <t t-call="general_template.template_watermark"/>
+                    <div>
+                        <div style="padding:100px 20px 20px 20px; margin:0; background:#fff;">
+                            <div>
+                                <table>
+                                    <tr>
+                                        <td><strong>Date</strong></td>
+                                        <td style="padding:0 2px 0 10px;">:</td>
+                                        <td style="padding:2px;">.............................................</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Vendors</strong></td>
+                                        <td style="padding:0 2px 0 10px;">:</td>
+                                        <td style="padding:2px;"><span t-field="o.company_id"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td>&#160;</td>
+                                        <td style="padding:0 2px 0 10px;">&#160;</td>
+                                        <td style="padding:2px;">&#160;</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Invoice Recipient</strong></td>
+                                        <td style="padding:0 2px 0 10px;">:</td>
+                                        <td style="padding:2px;"><span t-field="o.partner_id"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Invoice No.</strong></td>
+                                        <td style="padding:0 2px 0 10px;">:</td>
+                                        <td style="padding:2px;"><span t-field="o.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Amount</strong></td>
+                                        <td style="padding:0 2px 0 10px;">:</td>
+                                        <td style="padding:2px;"><span t-field="o.amount_total"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <br />
+                            <div class="row" style="margin-left:100px;">
+                                <div>
+                                    <strong>Handed over by &#160;</strong>
+
+                                    <div style="text-align:center;margin-top:80px;">
+                                        <span t-field="o.company_id"/>
+                                    </div>
+                                </div>
+                                <div style="margin-left: 150px;">
+                                    <strong>Received by</strong>
+
+                                    <div style="text-align:center;margin-top:100px;">
+                                        <span t-field="o.partner_id"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <template id="report_invoice_receipts">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-set="lang" t-value="o.invoice_user_id.sudo().lang if o.move_type in ('in_invoice', 'in_refund') else o.partner_id.lang"/>
+                    <t t-if="o._get_name_invoice_report() == 'account.report_invoice_document'"
+                        t-call="equip3_accounting_reports.report_invoice_receipts_document" t-lang="lang"/>
+                </t>
+            </t>
+        </template>
+
+        <record id="account_invoices_receipts" model="ir.actions.report">
+            <field name="name">Invoices Receipts</field>
+            <field name="model">account.move</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">equip3_accounting_reports.report_invoice_receipts</field>
+            <field name="report_file">equip3_accounting_reports.report_invoice_receipts</field>
+            <field name="print_report_name">(object._get_report_base_filename())</field>
+            <field name="attachment">(object.state == 'posted') and ((object.name or 'INV').replace('/','_')+'.pdf')</field>
+            <field name="binding_model_id" ref="model_account_move"/>
+            <field name="binding_type">report</field>
+        </record>
+
+    </data>
+</odoo>

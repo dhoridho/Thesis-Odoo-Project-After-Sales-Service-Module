@@ -1,0 +1,134 @@
+<odoo>
+    <data>
+        <record id="add_fields_project_task_form_engineering" model="ir.ui.view">
+            <field name="name">add.fields.project.task.form.engineering</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='stage_new']" position="after">
+                    <field name="is_engineering" invisible="1" force_save="1"/>
+                    <field name="production_id" force_save="1" attrs="{'invisible': [('is_engineering', '=', False)], 'readonly': [('state', 'in', ('inprogress', 'pending', 'complete', 'cancel'))]}"/>
+                </xpath>
+
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button name="action_mrp_order_cons" type="object" class="oe_stat_button" icon="o-hm-smart-all-manufacture-order"
+                            attrs="{'invisible' : [('production_id', '=', False)]}">
+                        <div class="o_form_field o_stat_info">
+                            <span class="o_stat_text">Production<br/>Order</span>
+                        </div>
+                    </button>
+                    <button name="action_production_record"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="o-hm-smart-construction-recorded"
+                            attrs="{'invisible': [('total_production_record', '=', 0)]}">
+                        <field name="total_production_record" widget="statinfo" string="Record"/>
+                    </button>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="add2_fields_project_task_form_engineering" model="ir.ui.view">
+            <field name="name">add2.fields.project.task.form.engineering</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="equip3_construction_operation.add2_fields_project_task_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='date_deadline']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', '|', ('is_closed', '=', True), ('is_subtask','=', True), ('production_id', '!=', False)]}</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="add_fields_project_task_form_inherit_from_operation_engineering" model="ir.ui.view">
+            <field name="name">add.fields.project.task.form.engineering</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="equip3_construction_operation.add_fields_project_task_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_inprogress']" position="attributes">
+                    <attribute name="attrs">{'invisible':['|', ('state','in',['inprogress','pending','complete','cancel']), ('production_id', '!=', False)]}</attribute>                                                  
+                </xpath>
+                <xpath expr="//button[@name='action_pending']" position="attributes">
+                    <attribute name="attrs">{'invisible':['|', ('state','in',['draft','pending','complete','cancel']), ('production_id', '!=', False)]}</attribute>                                                  
+                </xpath>
+                <xpath expr="//button[@name='action_complete']" position="attributes">
+                    <attribute name="attrs">{'invisible':['|', ('state','in',['draft','pending','complete','cancel']), ('production_id', '!=', False)]}</attribute>                                                  
+                </xpath>
+                <xpath expr="//button[@name='create_subtask']" position="attributes">
+                    <attribute name="attrs">{'invisible':['|', '|', ('state','in',['pending','complete','cancel']), ('allow_subtasks', '=', False), ('production_id', '!=', False)]}</attribute>                                                  
+                </xpath>
+                <xpath expr="//button[@name='product_usage']" position="attributes">
+                    <attribute name="attrs">{'invisible':['|', ('state','in',['draft','pending','complete','cancel']), ('production_id', '!=', False)]}</attribute>                                                  
+                </xpath>
+                <xpath expr="//button[@name='create_progress_history']" position="attributes">
+                    <attribute name="attrs">{'invisible':['|', ('state','in',['draft','pending','cancel','complete']), ('production_id', '!=', False)]}</attribute>                                                  
+                </xpath>
+                <xpath expr="//notebook/page[@name='consumed_product']" position="attributes">
+                    <attribute name="attrs">{'invisible':['|', ('is_subcon','=', True), ('production_id', '!=', False)]}</attribute>                                                  
+                </xpath>
+
+                <xpath expr="//field[@name='progress_history_ids']/form/sheet/group[@name='main']" position="before">
+                    <div name="button_box" class="oe_button_box">
+                        <button name="action_production_record_cons" type="object" class="oe_stat_button" icon="o-hm-smart-construction-recorded"
+                                attrs="{'invisible' : [('record_id', '=', False)]}">
+                            <div class="o_form_field o_stat_info">
+                                <span class="o_stat_text">Production<br/>Record</span>
+                            </div>
+                        </button>
+                    </div>
+                </xpath>
+                
+                <xpath expr="//field[@name='progress_history_ids']/form/sheet/group[@name='main']/group[1]/field[@name='progress_start_date']" position="before">
+                    <field name="production_id" attrs="{'invisible' : [('production_id', '=', False)]}" force_save="1"/>
+                    <field name="workorder_id" attrs="{'invisible' : [('production_id', '=', False)]}" force_save="1"/>
+                    <field name="record_id" attrs="{'invisible' : [('production_id', '=', False)]}" force_save="1"/>
+                </xpath>
+
+                <xpath expr="//field[@name='progress_history_ids']/form/sheet/group[@name='main']/group[1]/field[@name='progress_start_date']" position="attributes">
+                    <attribute name="attrs">{'invisible':[('production_id', '!=', False)]}</attribute>                                                  
+                </xpath> 
+                <xpath expr="//field[@name='progress_history_ids']/form/sheet/group[@name='main']/group[1]/field[@name='progress_end_date']" position="attributes">
+                    <attribute name="attrs">{'invisible':[('production_id', '!=', False)]}</attribute> 
+                </xpath>
+                <xpath expr="//field[@name='progress_history_ids']/form/sheet/notebook[1]" position="attributes">
+                    <attribute name="attrs">{'invisible':[('production_id', '!=', False)]}</attribute> 
+                </xpath>     
+            </field>
+        </record>
+
+        <record id="edit_view_task_form2_inherited_engineering" model="ir.ui.view">
+            <field name="name">project.task.form.engineering</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="equip3_construction_operation.edit_view_task_form2_inherited"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_product_usage']" position='attributes'>
+                    <attribute name="attrs">{'invisible':[('production_id', '!=', False)]}</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_task_form2_inherited2_engineering" model="ir.ui.view">
+            <field name="name">edit.button.action.complete.engineering</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="equip3_construction_operation.view_task_form2_inherited2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='set_to_draft']" position="attributes">
+                    <attribute name="attrs">{'invisible':['|', ('state','in',['draft','complete']), ('production_id', '!=', False)]}</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_task_form2_engineering" model="ir.ui.view">
+            <field name="name">project.task.form.engineering</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[@name='description_page']" position="attributes">
+                    <attribute name="attrs">{'invisible':[('production_id', '!=', False)]}</attribute>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>
+    

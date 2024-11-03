@@ -1,0 +1,169 @@
+<odoo>
+    <data>
+        <!-- product.template inherit tree view -->
+        <record id="product_template" model="ir.ui.view">
+            <field name="name">product.template.inherit.view.tree</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='company_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='activity_exception_decoration']" position="after">
+                    <field name="company_ids" widget="many2many_tags" optional="hide"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_product_template_tab_form_new" model="ir.ui.view">
+            <field name="name">Product Template Form</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="equip3_general_features.view_product_template_form_inherited"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form//sheet//notebook//page[@name='variants']" position="before">
+                    <page name="general_information_new" string="General Information">
+                        <group col="3">
+                            <group name="group_general">
+                                <field name="active" invisible="1"/>
+                                <field name="type"/>
+                                <field name="categ_id" string="Product Category" domain="[('stock_type','=', type)]"/>
+                                <field name="product_prefix" attrs="{'invisible' : ['|', ('is_generate_product', '=', False),'&amp;', ('is_generate_product', '=', True), ('category_prefix_preference', '=', 'all_products_in_this_category_will_have_same_prefix')], 'required': [('is_generate_product', '=', True), ('category_prefix_preference', '=', 'each_product_will_have_different_prefix')]}"/>
+                                <field name ="product_brand_ids" widget="many2many_tags" attrs="{'invisible' : [('brand_setting', '=', 'without')], 'required' : [('brand_setting', '=', 'mandatory')]}" />
+                                <field name ="brand_setting" invisible="1"/>
+                                <field name ="brand_attribute_id" invisible="1"/>
+                                <field name="asset_entry_perqty" attrs="{'invisible': [('type', '!=', 'asset')]}"/>
+                                <field name="asset_category_id" attrs="{'invisible': [('type', '!=', 'asset')], 'required': [('type', '=', 'asset')]}"/>
+                                <field name="brand_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="create_date" groups="base.group_no_one"/>
+                                <field name="create_uid" groups="base.group_no_one"/>
+                                <field name="company_id" options="{'no_create': True}" invisible="1"/>
+                                <field name="company_ids" widget="many2many_tags" domain="company_id_domain"/>
+                                <field name="company_id_domain" invisible="1"/>
+                            </group>
+                            <group name="standard_price">
+                                <label for="list_price"/>
+                                <div name="pricing">
+                                    <field name="list_price" class="oe_inline" widget="monetary"
+                                           options="{'currency_field': 'currency_id', 'field_digits': True}"/>
+                                    <button name="open_pricelist_rules" icon="fa-arrow-right" type="object"
+                                            groups="product.group_product_pricelist" class="oe_inline">
+                                        <field name="pricelist_item_count"
+                                               attrs="{'invisible': [('pricelist_item_count', '=', 0)]}"/>
+                                        <span attrs="{'invisible': [('pricelist_item_count', '=', 1)]}">
+                                            Extra Prices
+                                        </span>
+                                        <span attrs="{'invisible': [('pricelist_item_count', '!=', 1)]}">
+                                            Extra Price
+                                        </span>
+                                    </button>
+                                </div>
+                                <label for="standard_price" groups="base.group_user" attrs="{'invisible': ['|', ('is_invisible_standard_price', '=', True), '&amp;', ('product_variant_count', '&gt;', 1), ('is_product_variant', '=', False)]}"/>
+                                <div name="standard_price_uom" groups="base.group_user" attrs="{'invisible': ['|', ('is_invisible_standard_price', '=', True), '&amp;', ('product_variant_count', '&gt;', 1), ('is_product_variant', '=', False)]}" class="o_row">
+                                    <field name="standard_price" widget='monetary' options="{'currency_field': 'cost_currency_id', 'field_digits': True}" attrs="{
+                                        'invisible': [('is_invisible_standard_price', '=', True)],
+                                        'readonly': [('is_readonly_standard_price', '=', True)]
+                                    }"/>
+                                    <span groups="uom.group_uom" class="oe_read_only">per
+                                        <field name="uom_name"/>
+                                    </span>
+                                </div>
+                                <!-- <field name='bundling_price' widget="monetary"/> -->
+                                <field name="taxes_id" widget="many2many_tags"
+                                       context="{'default_type_tax_use':'sale', 'search_default_sale': 1, 'search_default_service': type == 'service', 'search_default_goods': type == 'consu'}"/>
+                                <field name="uom_id" groups="uom.group_uom" options="{'no_create': True}"/>
+                                <field name="domain_uom_id" invisible="1"/>
+                                <field name="uom_po_id" groups="uom.group_uom" options="{'no_create': True}" domain="domain_uom_id"/>
+                                <field name="secondary_uom_id" domain="domain_uom_id"/>
+                            </group>
+                            <group name="bar_code">
+                                <field name="is_variants" invisible="1"/>
+                                <field name="barcode_dup" invisible="1"/>
+                                <field name="branch_id" options="{'no_create':True,'no_create_edit':True}"/>
+                                <field name="barcode_type" invisible="0"/>
+                                <field name="barcode" string="Barcode / QR Code"
+                                       attrs="{'invisible' : ['|',('multi_barcode', '=', True), ('hide', '=', True)]}"/>
+                                <field name="barcode_ean13_value" invisible="1"/>
+                                <field name="hide" invisible="1"/>
+                                <field name="barcode_line_vals" invisible="1"/>
+                                <field name="sh_qr_code" invisible="1"/>
+                                <field name="sh_qr_code_img" widget="image" class="oe_avatar float-left"/>
+                                <!-- <field name="rfid_label"/> -->
+                                <field name="multi_barcode" attrs="{'invisible' : [('is_variants', '=', True)]}"/>
+                            </group>
+                            <group name="internal_notes" string="Internal Notes">
+                                <field name="description" nolabel="1"
+                                       placeholder="This note is only for internal purposes."/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+                <xpath expr="//form//sheet//notebook//page[@name='general_information']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//form//sheet//notebook//group[@name='group_lots_and_weight']//label[@for='weight']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//form//sheet//notebook//group[@name='group_lots_and_weight']//div[@name='weight']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//form//sheet//notebook//group[@name='group_lots_and_weight']//label[@for='volume']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//form//sheet//notebook//group[@name='group_lots_and_weight']//div[@name='volume']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='hs_code']" position="after">
+                    <field name="product_limit"/>
+                    <field name="min_val" attrs="{'invisible': [('product_limit', 'in', ['no_limit','str_rule',False])]}"/>
+                    <field name="max_val" attrs="{'invisible': [('product_limit', 'in', ['no_limit','str_rule',False])]}"/>
+                    <field name="delivery_limit"/>
+                    <field name="delivery_limit_min_val" attrs="{'invisible': [('delivery_limit', 'in', ['no_limit','str_rule',False])]}"/>
+                    <field name="delivery_limit_max_val" attrs="{'invisible': [('delivery_limit', 'in', ['no_limit','str_rule',False])]}"/>
+                </xpath>
+                <xpath expr="//group[@name='inventory']" position="attributes">
+                    <attribute name="col">3</attribute>
+<!--                    <attribute name="colspan">2</attribute>-->
+                </xpath>
+                <xpath expr="//group[@name='group_lots_and_weight']" position="after">
+                    <group string='&#160;&#160;' name='lot_weight'>
+                    <!-- style='margin-top:4%; margin-down:20%;' -->
+                       <label for="weight"/>
+                        <div class="o_row">
+                            <field name="weight"/>
+                            <span><field name="weight_uom_name"/></span>
+                        </div>
+                        <field name="volume_calculation"/>
+<!--                        <xpath expr="//div[@name='volume']//field[@name='volume']" position="attributes">-->
+<!--                            <attribute name="attrs">{'readonly': [('volume_calculation', '=', True)]}</attribute>-->
+<!--                            <attribute name="force_save">1</attribute>-->
+<!--                        </xpath>-->
+                        <field name="volume_formula" attrs="{'invisible': [('volume_calculation', '=', False)]}"/>
+
+                        <label for="volume" attrs="{'invisible':[('product_variant_count', '>', 1), ('is_product_variant', '=', False)]}"/>
+                        <div class="o_row" name="volume" attrs="{'invisible':[('product_variant_count', '>', 1), ('is_product_variant', '=', False)]}">
+                            <field name="volume" string="Volume"/>
+                            <span><field name="volume_uom_name"/></span>
+                        </div>
+                        <label for="length" attrs="{'invisible':[('product_variant_count', '&gt;', 1), ('is_product_variant', '=', False)]}"/>
+                        <div class="o_row" name="length" attrs="{'invisible':[('product_variant_count', '&gt;', 1), ('is_product_variant', '=', False)]}">
+                            <field name="length" string="Length"/> cm
+                        </div>
+                        <label for="width" attrs="{'invisible':[('product_variant_count', '&gt;', 1), ('is_product_variant', '=', False)]}"/>
+                        <div class="o_row" name="width" attrs="{'invisible':[('product_variant_count', '&gt;', 1), ('is_product_variant', '=', False)]}">
+                            <field name="width" string="Width"/> cm
+                        </div>
+                        <label for="height" attrs="{'invisible':[('product_variant_count', '&gt;', 1), ('is_product_variant', '=', False)]}"/>
+                        <div class="o_row" name="height" attrs="{'invisible':[('product_variant_count', '&gt;', 1), ('is_product_variant', '=', False)]}">
+                            <field name="height" string="Height"/> cm
+                        </div>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

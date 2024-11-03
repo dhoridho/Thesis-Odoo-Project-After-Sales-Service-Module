@@ -1,0 +1,226 @@
+<odoo>
+	
+	<template id="av_external_layout">
+        <t t-if="not o" t-set="o" t-value="doc"/>
+
+        <t t-if="not company">
+            <t t-if="company_id">
+                <t t-set="company" t-value="company_id"/>
+            </t>
+            <t t-elif="o and 'company_id' in o">
+                <t t-set="company" t-value="o.company_id.sudo()"/>
+            </t>
+            <t t-else="else">
+                <t t-set="company" t-value="res_company"/>
+            </t>
+        </t>
+
+        <t t-if="company.external_report_layout_id" t-call="{{company.external_report_layout_id.key}}"><t t-raw="0"/></t>
+        <t t-call="aos_account_voucher.av_external_layout_standard"><t t-raw="0"/></t>
+
+    </template>
+    
+    <template id="av_external_layout_standard">
+        <div class="header">
+            <div class="row">
+                <div class="col-3 mb4">
+                    <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="max-height: 45px;" alt="Logo"/>
+                </div>
+                <div class="col-9 text-right" style="margin-top:22px;" t-field="company.report_header" name="moto"/>
+            </div>
+            <div t-if="company.logo or company.report_header" class="row zero_min_height">
+                <div class="col-12">
+                    <div style="border-bottom: 1px solid black;"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6" name="company_address">
+                    <div t-field="company.partner_id"
+                        t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'
+                    />
+                </div>
+            </div>
+        </div>
+
+        <div class="article o_report_layout_background"  t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+            <t t-call="web.address_layout"/>
+            <t t-raw="0"/>
+        </div>
+
+        <div class="footer o_standard_footer">
+        	<div class="text-center" style="border-bottom: 1px solid black;">
+                <div class="col-12 text-center float-left">
+					<div t-attf-class="col-3 float-left mt18">
+						<div align="center" t-attf-style="font-weight:bold;">Dibuat Oleh:</div>
+						<div align="center" t-attf-style="height:100px;"></div>
+						<div align="center" t-attf-style="border-bottom:1px solid;">
+							Nama Jelas (Stempel)
+						</div>
+					</div>
+					<div t-attf-class="col-3 float-left mt18 text-left">
+						<div align="center" t-attf-style="font-weight:bold;">Diperiksa Oleh:</div>
+						<div align="center" t-attf-style="height:100px;"></div>
+						<div align="center" t-attf-style="border-bottom:1px solid;">
+							Nama Jelas (Stempel)
+						</div>
+					</div>
+					<div t-attf-class="col-3 float-left mt18 text-left">
+						<div align="center" t-attf-style="font-weight:bold;">Dikirim Oleh:</div>
+						<div align="center" t-attf-style="height:100px;"></div>
+						<div align="center" t-attf-style="border-bottom:1px solid;">
+							Nama Jelas (Stempel)
+						</div>
+					</div>
+					<div t-attf-class="col-3 float-left mt18 text-left">
+						<div align="center" t-attf-style="font-weight:bold;">Diterima Oleh:</div>
+						<div align="center" t-attf-style="height:100px;"></div>
+						<div align="center" t-attf-style="border-bottom:1px solid;">
+							Nama Jelas (Stempel)
+						</div>
+					</div>
+				</div>
+            </div>
+            <br/><br/>
+            <div class="text-center" style="border-top: 1px solid black;">
+                <ul class="list-inline mb4">
+                    <li t-if="company.phone" class="list-inline-item">Phone: <span t-field="company.phone"/></li>
+                    <li t-if="company.email" class="list-inline-item">Email: <span t-field="company.email"/></li>
+                    <li t-if="company.website" class="list-inline-item">Web: <span t-field="company.website"/></li>
+                    <li t-if="company.vat" class="list-inline-item"><t t-esc="company.country_id.vat_label or 'Tax ID'"/>: <span t-field="company.vat"/></li>
+                </ul>
+
+                <div name="financial_infos">
+                    <span t-field="company.report_footer"/>
+                </div>
+
+                <div t-if="report_type == 'pdf'" class="text-muted">
+                    Page: <span class="page"/> / <span class="topage"/>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+	<template id="qweb_report_account_voucher">
+           <t t-call="web.html_container">
+               <t t-foreach="docs" t-as="o">
+                   <t t-call="web.external_layout">
+                       <div class="page">
+                           <div class="row">
+                               <div class="col-6">                                   
+                               </div>
+                               <div class="col-5 offset-1">
+                                   <div t-if="o.partner_id">
+                                       <span><strong>Partner Address:</strong></span>
+                                   </div>
+                                   <div t-if="o.partner_id" name="partner_header">
+                                       <div t-field="o.partner_id"
+                                          t-options='{"widget": "contact", "fields": ["name", "address", "phone"], "no_marker": True, "phone_icons": True}'/>
+                                       <p t-if="o.sudo().partner_id.vat"><t t-esc="o.company_id.country_id.vat_label or 'Tax ID'"/>: <span t-field="o.sudo().partner_id.vat"/></p>
+                                   </div>
+                               </div>
+                           </div>
+                           <br/>
+                           <h1 t-field="o.number" class="mt0 float-left"/>
+                           <div class="clearfix"/>
+                           <table class="table table-sm">
+                           <thead>
+                               <tr>
+									<th t-if="o.voucher_type">
+										<span><strong>Voucher Type</strong></span>
+									</th>
+									<th t-if="o.pay_now">
+										<span><strong>Payment Type</strong></span>
+									</th>
+									<th t-if="o.journal_id">
+										<span><strong>Journal</strong></span>
+									</th>
+									<th t-if="o.date">
+										<span><strong>Bill Date</strong></span>
+									</th>
+									<th t-if="o.name">
+										<span><strong>Payment Memo</strong></span>
+									</th>
+                               </tr>
+                           </thead>
+                           <tbody>
+                               <tr>
+						            <td t-if="o.voucher_type">						                
+                                       <t t-if="o.voucher_type == 'sale'">
+	                                        Receipt
+	                                   </t>
+	                                   <t t-if="o.voucher_type == 'purchase'">
+	                                        Payment
+	                                   </t>
+						            </td>
+									<td t-if="o.pay_now">
+										<t t-if="o.pay_now == 'sale'">
+	                                        Pay Directly
+	                                   </t>
+	                                   <t t-if="o.pay_now == 'purchase'">
+	                                        Pay Later
+	                                   </t>
+									</td>
+									<td t-if="o.journal_id">
+										<span t-field="o.journal_id"/>
+									</td>
+									<td t-if="o.date">
+										<span t-field="o.date"/>
+									</td>
+									<td t-if="o.name">
+										<span t-field="o.name"/>
+									</td>
+                               </tr>
+                           </tbody>
+                           </table>
+                           <table class="table table-sm" t-if="o.line_ids">
+                               <thead>
+                                   <tr>
+                                       <th><strong>Description</strong></th>
+                                       <th><strong>Quantity</strong></th>
+                                       <th><strong>Unit Price</strong></th>
+                                       <th><strong>Amount</strong></th>
+                                   </tr>
+                               </thead>
+                               <tbody>
+                                   <t t-foreach="o.line_ids" t-as="ml">
+                                       <tr>
+                                           <td>
+                                               <span t-field="ml.name"/>
+                                           </td>
+                                           <td>
+                                               <span t-field="ml.quantity"/>
+                                           </td>
+                                           <td>
+                                               <span t-field="ml.price_unit"/>
+                                           </td>
+                                           <td>
+                                               <span t-field="ml.price_subtotal"/>
+                                           </td>
+                                       </tr>
+                                   </t>
+                                 </tbody>
+                           </table>
+                           <div class="clearfix">
+		                        <div id="total" class="row">
+		                            <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+		                                <table class="table table-sm">
+		                                    <tr class="border-black o_total">
+		                                        <td><strong>Total</strong></td>
+		                                        <td class="text-right">
+		                                            <span t-field="o.amount"/>
+		                                        </td>
+		                                    </tr>
+		                                </table>
+		                            </div>
+		                        </div>
+		                    </div>
+                           <p t-if="o.narration"><i class="fa fa-exclamation-triangle" />
+                               Notes
+                           </p>
+                           <p t-field="o.narration"/>
+                       </div>
+                   </t>
+               </t>
+           </t>
+       </template>
+</odoo>

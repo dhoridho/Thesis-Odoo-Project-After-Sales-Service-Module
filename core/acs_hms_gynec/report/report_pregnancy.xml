@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="report_acs_pregnancy_document">
+        <t t-call="web.external_layout">
+            <t t-set="doc" t-value="doc.with_context({'lang':doc.patient_id.lang})"/>
+            <div class="page">
+                <div class="mt64 text-center">
+                    <h3>
+                        <strong>Pregnancy</strong>
+                    </h3>
+                </div>
+
+                <div class="row mt32 mb16" id="informations">
+                    <div t-if="doc.patient_id" class="col-3 mb-2">
+                        <strong>Patient</strong>
+                        <p class="m-0" t-field="doc.patient_id"/>
+                    </div>
+                    <div t-if="doc.age" class="col-3 mb-2">
+                        <strong>Age</strong>
+                        <p class="m-0" t-field="doc.age"/>
+                    </div>
+                    <div t-if="doc.physician_id" class="col-3 mb-2">
+                        <strong>Doctor</strong>
+                        <p class="m-0" t-field="doc.physician_id"/>
+                    </div>
+                    <div t-if="doc.lmp" class="col-3 mb-2">
+                        <strong>LMP</strong>
+                        <p class="m-0" t-field="doc.lmp"/>
+                    </div>
+                </div>
+                <div class="row mb16" id="informations2">
+                    <div t-if="doc.pdd" class="col-3 mb-2">
+                        <strong>Pregnancy Due Date</strong>
+                        <p class="m-0" t-field="doc.pdd"/>
+                    </div>
+                    <div t-if="doc.fetus" class="col-3 mb-2" id="fetus">
+                        <strong>Fetus</strong>
+                        <p class="m-0" t-field="doc.fetus"/>
+                    </div>
+                    <div t-if="doc.pregnancy_end_date" class="col-3 mb-2">
+                        <strong>End of Pregnancy</strong>
+                        <p class="m-0" t-field="doc.pregnancy_end_date"/>
+                    </div>
+                    <div t-if="doc.pregnancy_end_result" class="col-3 mb-2">
+                        <strong>Result</strong>
+                        <p class="m-0" t-field="doc.pregnancy_end_result"/>
+                    </div>
+                </div>
+
+                <div class="row mt8 mt8" id="patint_data">
+                    <div class="col-4">
+                        <ul>
+                            <li>HB: <span t-field="doc.patient_id.hb"/></li>
+                            <li>Screatinine: <span t-field="doc.patient_id.screatinine"/></li>
+                        </ul>
+                    </div>
+                    <div class="col-4">
+                        <ul>
+                            <li>Urine: <span t-field="doc.patient_id.urine"/></li>
+                            <li>HIV: <span t-field="doc.patient_id.hiv"/></li>
+                        </ul>
+                    </div>
+                    <div class="col-4">
+                        <ul>
+                            <li>RBS: <span t-field="doc.patient_id.rbs"/></li>
+                            <li>HBSAG: <span t-field="doc.patient_id.hbsag"/></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div t-if="doc.prenatal_evaluation_ids" class="mt16 mb16 text-center">
+                    <h5>
+                        <strong>Prenatal Evaluations</strong>
+                    </h5>
+                </div>
+                <div t-if="doc.prenatal_evaluation_ids" class="col-12 mb16">
+                    <table class="table table-sm o_main_table">
+                        <thead>
+                            <tr>
+                                <th>Sr.No</th>
+                                <th>Weight</th>
+                                <th>BP</th>
+                                <th>Fundal Height</th>
+                                <th>Fetus heart rate</th>
+                                <th id="th_gestational_weeks">Gestational Weeks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="doc.prenatal_evaluation_ids" t-as="line"  t-value="1">
+                                <tr>
+                                    <td>
+                                        <span t-esc="line_index + 1"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="line.mother_weight"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="line.systolic_bp"/>/<span t-field="line.diastolic_bp"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="line.fundal_height"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="line.fetus_heart_rate"/>
+                                    </td>
+                                    <td id="td_gestational_weeks">
+                                        <span t-field="line.gestational_weeks"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+
+                <br/><br/>
+                <div class="col-12 mb32 mt64" t-if="doc.physician_id and doc.physician_id.signature">
+                    <span>
+                        <u><b>Doctor's Stamp/Signature</b></u>
+                        <br/>
+                        <t t-if="doc.physician_id and doc.physician_id.signature">
+                            <span t-field="doc.physician_id.signature" t-options="{'widget': 'image', 'class': 'img-rounded', 'style':'max-height: 100px !important'}"/>
+                        </t>
+                    </span>
+                </div>
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_acs_pregnancy">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms_gynec.report_acs_pregnancy_document" t-lang="doc.patient_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_acs_pregnancy" model="ir.actions.report">
+        <field name="name">Medical Advice</field>
+        <field name="model">hms.patient.pregnancy</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms_gynec.report_acs_pregnancy</field>
+        <field name="report_file">acs_hms_gynec.report_acs_pregnancy</field>
+        <field name="binding_model_id" ref="model_hms_patient_pregnancy"/>
+        <field name="groups_id" eval="[(4, ref('acs_hms.group_hms_receptionist'))]"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

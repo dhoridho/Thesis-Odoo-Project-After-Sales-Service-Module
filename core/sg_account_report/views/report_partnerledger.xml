@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_partnerledger">
+        <t t-call="web.html_container">
+            <t t-set="data_report_margin_top" t-value="12"/>
+            <t t-set="data_report_header_spacing" t-value="9"/>
+            <t t-set="data_report_dpi" t-value="110"/>
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.internal_layout">
+                    <div class="page">
+                        <br/>
+                        <h4>Partner Ledger</h4>
+                        <table style="margin-top:10px;" width="100%">
+                            <tr>
+                                <td width="40%">
+                                  <strong style="font-size:14px;">Company:</strong>
+                                  <p style="font-size:12px;" t-esc="res_company.name"/>
+                                </td>
+                                <td width="30%">
+                                    <t t-if="data['form']['date_from'] or data['form']['date_to']">
+                                        <t t-if="data['form']['date_from']"><strong style="font-size:14px;">Date from :</strong> <span style="font-size:12px;" t-esc="data['form']['date_from']"/><br/></t>
+                                        <t t-if="data['form']['date_to']"><strong style="font-size:14px;">Date to :</strong> <span style="font-size:12px;" t-esc="data['form']['date_to']"/></t>
+                                    </t>
+                                    <t t-if="not data['form']['date_from'] and not data['form']['date_to']">
+                                        <strong style="font-size:14px;">Target Moves:</strong>
+                                        <p style="font-size:12px;" t-if="data['form']['target_move'] == 'all'">All Entries</p>
+                                        <p style="font-size:12px;" t-if="data['form']['target_move'] == 'posted'">All Posted Entries</p>
+                                    </t>
+                                </td>
+                                <td class="text-center" width="30%">
+                                    <t t-if="data['form']['date_from'] or data['form']['date_to']">
+                                        <strong style="font-size:14px;">Target Moves:</strong>
+                                        <p style="font-size:12px;" t-if="data['form']['target_move'] == 'all'">All Entries</p>
+                                        <p style="font-size:12px;" t-if="data['form']['target_move'] == 'posted'">All Posted Entries</p>
+                                    </t>
+                                </td>
+                            </tr>
+                        </table>
+                        <table class="table table-sm" style="margin-top:10px;" width="100%">
+                            <thead>
+                                <tr style="font-size:14px;">
+                                    <th width="10%">Date</th>
+                                    <th width="5%">JRNL</th>
+                                    <th width="10%">Account</th>
+                                    <th width="28%">Ref</th>
+                                    <th width="13%" class="text-right">Debit</th>
+                                    <th width="13%" class="text-right">Credit</th>
+                                    <th width="13%" class="text-right">Balance</th>
+                                    <th width="8%" t-if="data['form']['amount_currency']">Currency</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="font-size:14px;">
+                                    <td colspan="4" width="53%">
+                                      <strong t-esc="o.ref"/>
+                                      - <strong t-esc="o.name"/>
+                                    </td>
+                                    <td width="13%" class="text-right">
+                                        <strong t-esc="sum_partner(data, o, 'debit')" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td width="13%" class="text-right">
+                                        <strong t-esc="sum_partner(data, o, 'credit')" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td width="13%" class="text-right">
+                                        <strong t-esc="sum_partner(data, o, 'debit - credit')" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td width="8%" t-if="data['form']['amount_currency']">
+                                        <span></span>
+                                    </td>
+                                </tr>
+                                <tr style="font-size:13px;" t-foreach="lines(data, o)" t-as="line">
+                                    <td width="10%">
+                                        <span t-esc="line['date']"/>
+                                    </td>
+                                    <td width="5%">
+                                        <span t-esc="line['code']"/>
+                                    </td>
+                                    <td width="10%">
+                                        <span t-esc="line['a_code']"/>
+                                    </td>
+                                    <td width="28%">
+                                        <span t-esc="line['displayed_name']"/>
+                                    </td>
+                                    <td class="text-right" width="13%">
+                                        <span t-esc="line['debit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td class="text-right" width="13%">
+                                        <span t-esc="line['credit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td class="text-right" width="13%">
+                                        <span t-esc="line['progress']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td class="text-right" t-if="data['form']['amount_currency']" width="8%">
+                                        <t t-if="line['currency_id']">
+                                          <span t-esc="line['amount_currency']" t-options="{'widget': 'monetary', 'display_currency': line['currency_id']}"/>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

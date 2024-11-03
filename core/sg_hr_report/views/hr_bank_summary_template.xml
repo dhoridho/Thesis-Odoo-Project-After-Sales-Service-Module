@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="hr_bank_summary_report_tmp">
+    <t t-call="web.html_container">
+        <t t-call="sg_hr_report.external_layout">
+            <t t-foreach="docs" t-as="o">
+                <div class="page">
+                    <style>
+                        .padding {
+                        padding-top:3px;
+                        padding-bottom:3px;
+                        padding-left:3px;
+                        padding-right:3px;
+                        }
+                    </style>
+                    <div>
+                        <br/><br/>
+                        <table width="100%">
+                            <tr>
+                                <td width="50%" align="right">
+                                    <strong> By Bank</strong>
+                                    <span />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="50%" class="text-left padding">
+                                    <strong> Periods :</strong>
+                                    <span
+                                        t-esc="o.start_date.strftime('%d-%m-%Y')" />
+                                    to
+                                    <span
+                                        t-esc="o.end_date.strftime('%d-%m-%Y')" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="50%" class="text-left padding">
+                                    <b>
+                                        Total Records :
+                                        <t t-esc="get_totalrecord" />
+                                    </b>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br />
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th class="text-center">
+                                    Employee Name
+                                </th>
+                                <th class="text-center">
+                                    Employee Login
+                                </th>
+                                <th class="text-center">
+                                    Name Of Bank
+                                </th>
+                                <th class="text-center">
+                                    Account Number
+                                </th>
+                                <th class="text-center">
+                                    Amount
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="get_info" t-as="payslip_data">
+                                <t t-set="dept_total" t-value='0'/>
+                                <tr t-foreach="get_info[payslip_data]" t-as="emp">
+                                    <t t-set="line" t-value="get_info[payslip_data][emp]"/>
+                                    <t t-set="dept_total" t-value="dept_total + float(line.get('amount'))"/>
+
+                                    <td class="text-center">
+                                        <span t-esc="emp"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line.get('login', False)"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line.get('bank_name', False)"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-esc="line.get('acc_number', False)"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-esc="float(line.get('amount')) or 0.00" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <b>
+                                            <span t-esc="payslip_data" />
+                                        </b>
+                                    </td>
+                                    <td colspan="2" class="text-right">
+                                        <b>
+                                            <span t-esc="dept_total"
+                                                t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}" />
+                                        </b>
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr>
+                                <td class="text-left">
+                                    <b>Overall Total</b>
+                                </td>
+                                <td>
+                                </td>
+                                <td class="hide_border_bottom">
+                                </td>
+                                <td class="hide_border_bottom">
+                                </td>
+                                <td class="hide_border_bottom">
+                                </td>
+                            </tr>
+                            <t t-foreach="get_info" t-as="payslip_data">
+                                <tr>
+                                <t t-set="dept_total" t-value="sum([float(get_info[payslip_data][emp]['amount']) for emp in get_info[payslip_data]])"/>
+                                    <td class="text-left">
+                                        <b>
+                                            <t t-esc="payslip_data" />
+                                        </b>
+                                    </td>
+                                    <td class="text-right">
+                                        <b>
+                                            <t t-esc="dept_total"
+                                                t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}" />
+                                        </b>
+                                    </td>
+                                    <td class="hide_border_bottom">
+                                    </td>
+                                    <td class="hide_border_bottom">
+                                    </td>
+                                    <td class="hide_border_bottom">
+                                    </td>
+                                </tr>
+                            </t>
+                            <tr>
+                                <td class="text-left">
+                                    <b>ALL</b>
+                                </td>
+                                <td class="text-right">
+                                    <b>
+                                        <t t-esc="get_total or 0.00"
+                                            t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}" />
+                                    </b>
+                                </td>
+                                <td class="hide_border_bottom">
+                                </td>
+                                <td class="hide_border_bottom">
+                                </td>
+                                <td class="hide_border_bottom">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_tree_internal_transfer_outlet" model="ir.ui.view">
+        <field name="name">view.tree.internal.transfer.outlet</field>
+        <field name="model">internal.transfer</field>
+        <field name="inherit_id" ref="equip3_inventory_operation.view_tree_internal_transfer"/>
+        <field name="mode">primary</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='source_warehouse_id']" position="attributes">
+                <attribute name="string">Kitchen Warehouse</attribute>
+            </xpath>
+            <xpath expr="//field[@name='destination_warehouse_id']" position="attributes">
+                <attribute name="string">Outlet Warehouse</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_form_internal_transfer_outlet" model="ir.ui.view">
+        <field name="name">view.form.internal.transfer.outlet</field>
+        <field name="model">internal.transfer</field>
+        <field name="inherit_id" ref="equip3_inventory_operation.view_form_internal_transfer"/>
+        <field name="mode">primary</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <field name="is_outlet_order" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='source_warehouse_id']" position="attributes">
+                <attribute name="string">Kitchen Warehouse</attribute>
+            </xpath>
+            <xpath expr="//field[@name='destination_warehouse_id']" position="attributes">
+                <attribute name="string">Outlet Warehouse</attribute>
+            </xpath>
+            <xpath expr="//field[@name='source_location_id']" position="attributes">
+                <attribute name="string">Kitchen Location</attribute>
+            </xpath>
+            <xpath expr="//field[@name='destination_location_id']" position="attributes">
+                <attribute name="string">Outlet Location</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_internal_transfer_request_outlet_order" model="ir.actions.act_window">
+        <field name="name">Outlet Order</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">internal.transfer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_form_internal_transfer_outlet"/>
+        <field name="context">{
+            'default_is_outlet_order': True    
+        }</field>
+        <field name="domain">[('is_outlet_order', '=', True)]</field>
+        <field name="help" type="html">
+          <p class="oe_views_nocontent_create">
+           Click to add a new test object.
+          </p>
+        </field>
+   </record>
+
+    <record id="action_outlet_order_tree_view2" model="ir.actions.act_window.view">
+        <field eval="1" name="sequence"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="equip3_kitchen_operations.view_tree_internal_transfer_outlet"/>
+        <field name="act_window_id" ref="action_internal_transfer_request_outlet_order"/>
+    </record>
+
+    <record id="action_outlet_order_form_view2" model="ir.actions.act_window.view">
+        <field eval="2" name="sequence"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="equip3_kitchen_operations.view_form_internal_transfer_outlet"/>
+        <field name="act_window_id" ref="action_internal_transfer_request_outlet_order"/>
+    </record>
+
+    <record id="action_set_is_not_outlet_order" model="ir.actions.server">
+        <field name="name">Set Is Not Outlet Order</field>
+        <field name="model_id" ref="equip3_inventory_operation.model_internal_transfer"/>
+        <field name="binding_model_id" ref="equip3_inventory_operation.model_internal_transfer"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">records.write({'is_outlet_order': False})</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Ambulance Service -->
+    <record id="acs_acs_ambulance_service_form" model="ir.ui.view">
+        <field name="name">acs.ambulance.service.form</field>
+        <field name="model">acs.ambulance.service</field>
+        <field name="arch" type="xml">
+            <form string="Ambulance Service">
+                <header>
+                    <button name="action_confirm" states="draft" class="oe_highlight" string="Confirm" type="object"/>
+                    <button name="action_done" states="confirm" class="oe_highlight" string="Done" type="object"/>
+                    <button name="action_create_invoice" string="Create Invoice" type="object" states="to_invoice" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="view_invoice" string="View Invoice" type="object" attrs="{'invisible': [('invoice_id','=',False)]}" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_cancel" states="draft" string="Cancel" type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm,done" statusbar_colors='{"draft":"blue","cancel":"red"}'/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <label for="date"/>
+                            <div name="date">
+                                <div>
+                                    <field name="date" class="oe_inline"/>-<field name="date_to" class="oe_inline"/>
+                                </div>
+                            </div>
+                            <field name="user_id"/>
+                            <field name="invoice_id" invisible="1"/>
+                            <field name="acs_ambulance_invoicing" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="pick_location"/>
+                            <field name="drop_location"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <separator string="Vehicle"/>
+                    <group>
+                        <group>
+                            <field name="vehicle_id"/>
+                            <field name="odometer_start"/>
+                        </group>
+                        <group>
+                            <field name="driver_id"/>
+                            <field name="odometer_stop"/>
+                        </group>
+                    </group>
+
+                    <separator string="Service Charge" attrs="{'invisible': [('acs_ambulance_invoicing','=',False)]}"/>
+                    <group attrs="{'invisible': [('acs_ambulance_invoicing','=',False)]}">
+                        <group>
+                            <field name="service_product_id"/>
+                            <field name="no_invoice" groups="acs_hms_base.group_acs_invoice_exemption"/>
+                        </group>
+                        <group>
+                            <field name="price" attrs="{'invisible': [('no_invoice','=',True)]}"/>
+                        </group>
+                    </group>
+                    <field name="remark" nolabel="1" placeholder="Notes..."
+                       />
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="acs_acs_ambulance_service_tree" model="ir.ui.view">
+        <field name="name">acs.ambulance.service.tree</field>
+        <field name="model">acs.ambulance.service</field>
+        <field name="arch" type="xml">
+            <tree string="Ambulance Service">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="acs_acs_ambulance_service_calendar" model="ir.ui.view">
+        <field name="name">acs.ambulance.service.calendar</field>
+        <field name="model">acs.ambulance.service</field>
+        <field name="type">calendar</field>
+        <field name="arch" type="xml">
+            <calendar string="Ambulance Service" color="driver_id" date_start="date" date_stop="date_to">
+                <field name="driver_id"/>
+                <field name="user_id"/>
+                <field name="patient_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="acs_acs_ambulance_service_pivot" model="ir.ui.view">
+        <field name="name">acs.ambulance.service.pivot</field>
+        <field name="model">acs.ambulance.service</field>
+        <field name="arch" type="xml">
+            <pivot string="Ambulance Service">
+                <field name="date" type="row"/>
+                <field name="driver_id" type="row"/>
+                <field name="user_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="acs_acs_amvulance_service_search" model="ir.ui.view">
+        <field name="name">acs.ambulance.service.search</field>
+        <field name="model">acs.ambulance.service</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="vehicle_id"/>
+                <field name="company_id"/>
+                <field name="pick_location"/>
+                <field name="drop_location"/>
+                <field name="driver_id"/>
+                <group expand="0" string="Group By...">
+                    <filter string="Company" name="company_group" domain="[]" context="{'group_by':'company_id'}"/>
+                    <filter string="Driver" name="driver_group" domain="[]" context="{'group_by':'driver_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_acs_ambulance_service" model="ir.actions.act_window">
+        <field name="name">Ambulance Service</field>
+        <field name="res_model">acs.ambulance.service</field>
+        <field name="view_mode">tree,form,calendar,pivot,search</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add a Ambulance Service.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="vendor_deposite_inherit_view_form_new" model="ir.ui.view">
+        <field name="model">vendor.deposit</field>
+        <field name="inherit_id" ref="equip3_accounting_cash_advance.vendor_deposite_inherit_view_form_new"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/field[@name='state']" position="attributes">
+                <attribute name="attrs">
+                    {'invisible': [('is_cash_advance_approval_matrix', '=', True), ('state', '!=', 'open')]}
+                </attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='deposit_reconcile_journal_id']" position="attributes">
+                <attribute name='readonly'>0</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='deposit_account_id']" position="attributes">
+                <attribute name='readonly'>0</attribute>
+            </xpath>
+
+            <button name="action_pay_cash_advance" position="attributes">
+                <attribute name="attrs">{'invisible': ['|',('is_cash_advance_approval_matrix', '=', True)]}</attribute>
+            </button> 
+
+            <xpath expr="//header" position="inside">
+                <field name="state1" widget="statusbar" statusbar_visible="draft,to_approve,post,converted" readonly="1"
+                       attrs="{'invisible' : ['|', ('is_cash_advance_approval_matrix', '=', False), ('state', '=', 'rejected')]}"/>
+                <field name="state2" widget="statusbar"
+                       statusbar_visible="draft,reject"
+                       attrs="{'invisible' : [('state', '!=', 'rejected')]}"/>
+
+                <button string="Request For Approval" name="action_request_approval_cash_advance" type="object" class="oe_highlight"
+                attrs="{'invisible' : ['|', '|', ('is_cash_advance_approval_matrix', '=', False), ('approval_matrix_id', '=', False), ('state', 'not in', ('draft'))]}"/>
+                <button string="Approve" name="action_approve_cash_advance" type="object" class="oe_highlight"
+                attrs="{'invisible' : ['|', ('state', '!=', 'to_approve'), ('is_approve_button', '=', False)]}"
+                />
+                <button string="Reject" name="action_reject_cash_advance" type="object" class="oe_highlight"
+                attrs="{'invisible' : ['|', ('state', '!=', 'to_approve'), ('is_approve_button', '=', False)]}"/>
+            </xpath>
+            <field name="branch_id" position="replace">
+                <field name="branch_id" attrs="{'readonly': [('state', '!=', 'draft')]}"  required="1" options="{'no_create': True, 'no_create_edit': True}"/>
+            </field>
+
+            <field name="branch_id" position="after">
+                <field name="approval_matrix_id" attrs="{'invisible': [('is_cash_advance_approval_matrix', '=', False)]}"/>
+                <field name="is_cash_advance_approval_matrix" invisible="1"/>
+                <field name="is_approve_button" invisible="1"/>
+            </field>
+
+            <field name="remaining_amount" position="after">
+                <field name="account_tag_ids" widget="many2many_tags" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+            </field>
+
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="Approval Matrix Line" name="approved_matrix_ids"
+                      attrs="{'invisible' : [('approval_matrix_id', '=', False)]}">
+                        <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}">
+                            <tree editable="bottom">
+                                <field name="sequence"/>
+                                <field name="user_ids" widget="many2many_tags"/>
+                                <field name="minimum_approver"/>
+                                <field name="state_char"/>
+                                <field name="time_stamp"/>
+                                <field name="feedback"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="member_card_format_qr" model="report.paperformat">
+        <field name="name">Member Card QR</field>
+        <field name="default" eval="True" />
+        <field name="format">custom</field>
+        <field name="page_height">87</field>
+        <field name="page_width">110</field>
+        <field name="margin_top">7</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False" />
+        <field name="orientation">Portrait</field>
+        <field name="header_spacing">10</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="member_card_format_barcode" model="report.paperformat">
+        <field name="name">Member Card Barcode</field>
+        <field name="default" eval="True" />
+        <field name="format">custom</field>
+        <field name="page_height">87</field>
+        <field name="page_width">110</field>
+        <field name="margin_top">7</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False" />
+        <field name="orientation">Portrait</field>
+        <field name="header_spacing">10</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="member_card_with_barcode_action" model="ir.actions.report">
+        <field name="name">Member Card with Barcode</field>
+        <field name="model">res.partner</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_pos_membership.member_card_with_barcode_report</field>
+        <field name="report_file">equip3_pos_membership.member_card_with_barcode_report</field>
+        <field name="print_report_name">'Card - %s' % (object.name).replace('/', '')</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="equip3_pos_membership.member_card_format_barcode"/>
+    </record>
+
+    <record id="member_card_with_qrcode_action" model="ir.actions.report">
+        <field name="name">Member Card with QR code</field>
+        <field name="model">res.partner</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_pos_membership.member_card_with_qrcode_report</field>
+        <field name="report_file">equip3_pos_membership.member_card_with_qrcode_report</field>
+        <field name="print_report_name">'Card - %s' % (object.name).replace('/', '')</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="equip3_pos_membership.member_card_format_qr"/>
+    </record>
+
+    <template id="member_card_with_barcode_report">
+        <t t-call="web.basic_layout">
+            <div class="page">
+                <style type="text/css">
+                    .membership-card {
+                        position: relative;
+                        height: 265px;
+                        width: 410px;
+                        overflow: hidden;
+                        float: left;
+                        margin-bottom: 30px;
+                    }
+                    .row > div > .membership-card:first-child{ 
+                        margin-right: 15px;
+                    }
+                    .row > div > .membership-card:nth-child(2){ 
+                        float: right;
+                    }
+                    .member-card-barcode{
+                        position: relative;
+                        overflow: hidden;
+                        display: block;
+                        width: 643px;
+                        height: 415px;
+                        border: none;
+                        background-repeat: no-repeat;
+                        background-position: center;
+                        background-size: 100% 100%;
+
+                        -webkit-transform: scale(0.635);
+                        -ms-transform: scale(0.635);
+                        transform: scale(0.635);
+                        -webkit-transform-origin: top left;
+                        -ms-transform-origin: top left; 
+                        transform-origin: top left;
+                    }
+                    .member-card-barcode .member-card-name{
+                        z-index: 5;
+                        position: absolute;
+                        bottom: 49%;
+                        left: 47px;
+                        color: white;
+                        font-size: 30px;
+                        text-transform: uppercase;
+                        width: 86%;
+                        display: block;
+                        word-break: break-all;
+                        line-height: 1;
+                        font-family: sans-serif;
+                        font-weight: bold;
+                    }
+                    .member-card-barcode .member-card-code{
+                        z-index: 2;
+                        position: absolute;
+                        bottom: 65px;
+                        right: 0;
+                        color: black;
+                        height: 94px;
+                        width: 100%;
+                    }
+                    .member-card-barcode .member-card-name-b{
+                        z-index: 5;
+                        position: absolute;
+                        bottom: 49%;
+                        left: 47px;
+                        color: black;
+                        font-size: 30px;
+                        text-transform: uppercase;
+                        width: 86%;
+                        display: block;
+                        word-break: break-all;
+                        line-height: 1;
+                        font-family: sans-serif;
+                        font-weight: bold;
+                    }
+                    .member-card-barcode .member-card-code img{
+                        display: block;
+                        width: auto;
+                        height: 100%;
+                        margin: auto;
+                    }
+                </style>
+
+                <t t-set="count" t-value="0"/>
+                <t t-set="datas" t-value="docs.get_selected_group_member_to_print()"/>
+                <t t-foreach="datas" t-as="data">
+
+                    <t t-set="partner1" t-value="data[0]"/>
+                    <t t-set="partner2" t-value="len(data)==2 and data[1] or False"/>
+
+                    <div class="row">
+                        <div class="col-md-12"> 
+                            <div class="membership-card">
+                                <t t-set="no_bg_bar" t-value="partner1['no_bg_bar']"/>
+                                <t t-if="no_bg_bar == True">
+                                    <div class="member-card member-card-barcode" 
+                                        t-attf-style="background-image: url(#{partner1['barcode_background_url']})">
+                                        <div class="member-card-name-b">
+                                            <span><t t-esc="partner1['name']"/></span>
+                                        </div>
+                                        <div class="member-card-code">
+                                            <img t-attf-src="#{partner1['barcode_url']}"/>
+                                        </div>
+                                    </div>
+                                </t>
+                                <t t-if="no_bg_bar == False">
+                                    <div class="member-card member-card-barcode" 
+                                        t-attf-style="background-image: url(#{partner1['barcode_background_url']})">
+                                        <div class="member-card-name">
+                                            <span><t t-esc="partner1['name']"/></span>
+                                        </div>
+                                        <div class="member-card-code">
+                                            <img t-attf-src="#{partner1['barcode_url']}"/>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div> 
+                            <t t-if="partner2">
+                                <div class="membership-card">  
+                                    <t t-set="no_bg_bar" t-value="partner2['no_bg_bar']"/>
+                                    <t t-if="no_bg_bar == True">
+                                        <div class="member-card member-card-barcode" 
+                                            t-attf-style="background-image: url(#{partner2['barcode_background_url']})">
+                                            <div class="member-card-name-b">
+                                                <span><t t-esc="partner2['name']"/></span>
+                                            </div>
+                                            <div class="member-card-code">
+                                                <img t-attf-src="#{partner2['barcode_url']}"/>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    <t t-if="no_bg_bar == False">
+                                        <div class="member-card member-card-barcode" 
+                                            t-attf-style="background-image: url(#{partner2['barcode_background_url']})">
+                                            <div class="member-card-name">
+                                                <span><t t-esc="partner2['name']"/></span>
+                                            </div>
+                                            <div class="member-card-code">
+                                                <img t-attf-src="#{partner2['barcode_url']}"/>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t> 
+                        </div>
+                    </div>
+                    <t t-set="count" t-value="count + 1"/>
+                    <t t-if="count == 4">
+                        <t t-set="count" t-value="0"/>
+                        <p style="page-break-before:always;"> </p>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="member_card_with_qrcode_report">
+        <t t-call="web.basic_layout">
+            <div class="page">
+                <style type="text/css">
+                    .membership-card {
+                        position: relative;
+                        height: 265px;
+                        width: 410px;
+                        overflow: hidden;
+                        float: left;
+                        margin-bottom: 30px;
+                    }
+                    .row > div > .membership-card:first-child{ 
+                        margin-right: 15px;
+                    }
+                    .row > div > .membership-card:nth-child(2){ 
+                        float: right;
+                    }
+                    
+                    .member-card-qrcode{
+                        position: relative;
+                        overflow: hidden;
+                        display: block;
+                        width: 643px;
+                        height: 415px;
+                        border: none;
+                        background-position: center;
+                        background-size: 100% 100%;
+
+                        -webkit-transform: scale(0.635);
+                        -ms-transform: scale(0.635);
+                        transform: scale(0.635);
+                        -webkit-transform-origin: top left;
+                        -ms-transform-origin: top left; 
+                        transform-origin: top left;
+                    }
+                    .member-card-qrcode .member-card-name{
+                        z-index: 5;
+                        position: absolute;
+                        bottom: 47px;
+                        left: 43px;
+                        color: white;
+                        font-size: 30px;
+                        font-weight: bold;
+                        text-transform: uppercase;
+                        width: 55%;
+                        display: block;
+                        text-overflow: ellipsis;
+                        word-break: break-all;
+                        line-height: 1;
+                        font-family: sans-serif;
+                    }
+                    .member-card-qrcode .member-card-name-b{
+                        z-index: 5;
+                        position: absolute;
+                        bottom: 47px;
+                        left: 43px;
+                        color: black;
+                        font-size: 30px;
+                        font-weight: bold;
+                        text-transform: uppercase;
+                        width: 55%;
+                        display: block;
+                        text-overflow: ellipsis;
+                        word-break: break-all;
+                        line-height: 1;
+                        font-family: sans-serif;
+                    }
+                    .member-card-qrcode .member-card-code{
+                        z-index: 2;
+                        position: absolute;
+                        bottom: 81px;
+                        right: 59.5px;
+                        color: black;
+                        height: 160px;
+                        width: 160px;
+                    }
+                    .member-card-qrcode .member-card-code img{
+                        display: block;
+                        width: auto;
+                        height: 100%;
+                        margin: auto;
+                    }
+                </style>
+
+                <t t-set="count" t-value="0"/>
+                <t t-set="datas" t-value="docs.get_selected_group_member_to_print()"/>
+                <t t-foreach="datas" t-as="data">
+
+                    <t t-set="partner1" t-value="data[0]"/>
+                    <t t-set="partner2" t-value="len(data)==2 and data[1] or False"/>
+
+                    <div class="row">
+                        <div class="col-md-12">  
+                            <div class="membership-card">
+                                <t t-set="no_bg_qr" t-value="partner1['no_bg_qr']"/>
+                                <t t-if="no_bg_qr == True">
+                                    <div class="member-card member-card-qrcode" t-attf-style="background-image: url(#{partner1['qrcode_background_url']})">
+                                        <div class="member-card-name-b">
+                                            <span><t t-esc="partner1['name']"/></span><br/>
+                                            <span><t t-esc="partner1['barcode']"/></span>
+                                        </div>
+                                        <div class="member-card-code">
+                                            <img t-att-src="partner1['qrcode_url']"/>
+                                        </div>
+                                    </div>
+                                </t>
+
+                                <t t-if="no_bg_qr == False">
+                                    <div class="member-card member-card-qrcode" t-attf-style="background-image: url(#{partner1['qrcode_background_url']})">
+                                        <div class="member-card-name">
+                                            <span><t t-esc="partner1['name']"/></span><br/>
+                                            <span><t t-esc="partner1['barcode']"/></span>
+                                        </div>
+                                        <div class="member-card-code">
+                                            <img t-att-src="partner1['qrcode_url']"/>
+                                        </div>
+                                    </div>
+                                </t>
+
+
+
+                            </div> 
+
+                            <t t-if="partner2">
+                                <div class="membership-card">
+                                    <t t-set="no_bg_qr" t-value="partner2['no_bg_qr']"/>
+                                    <t t-if="no_bg_qr == True">
+                                        <div class="member-card member-card-qrcode" 
+                                        t-attf-style="background-image: url(#{partner2['qrcode_background_url']})">
+                                            <div class="member-card-name-b">
+                                                <span><t t-esc="partner2['name']"/></span><br/>
+                                                <span><t t-esc="partner2['barcode']"/></span>
+                                            </div>
+                                            <div class="member-card-code">
+                                                <img t-att-src="partner2['qrcode_url']"/>
+                                            </div>
+                                        </div>
+                                    </t>
+
+                                    <t t-if="no_bg_qr == False">
+                                        <div class="member-card member-card-qrcode" 
+                                        t-attf-style="background-image: url(#{partner2['qrcode_background_url']})">
+                                            <div class="member-card-name">
+                                                <span><t t-esc="partner2['name']"/></span><br/>
+                                                <span><t t-esc="partner2['barcode']"/></span>
+                                            </div>
+                                            <div class="member-card-code">
+                                                <img t-att-src="partner2['qrcode_url']"/>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div> 
+                            </t>
+
+                        </div>
+                    </div>
+                    <t t-set="count" t-value="count + 1"/>
+                    <t t-if="count == 4">
+                        <t t-set="count" t-value="0"/>
+                        <p style="page-break-before:always;"> </p>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+</odoo>

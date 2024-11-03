@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    
+    <template id="report_lab_result_table">
+        <table class="table table-sm o_main_table mt16">
+            <thead>
+                <tr>
+                    <th>Test Name</th>
+                    <th>Normal Range</th>
+                    <th>Result</th>
+                    <th>Remark</th>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-foreach="lab_test.critearea_ids" t-as="line">
+                    <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else ''">
+                        <t t-if="not line.display_type">
+                            <td t-attf-class="text-#{line.result_type} #{'text-danger' if line.result_type in ['high','low'] else ''}">
+                                <span t-esc="line.name"/>
+                            </td>
+                            <td t-attf-class="text-#{line.result_type} #{'text-danger' if line.result_type in ['high','low'] else ''}">
+                                <span t-esc="line.normal_range"/>
+                                <span t-if="line.lab_uom_id" t-field="line.lab_uom_id"/>
+                            </td>
+                            <td t-attf-class="text-#{line.result_type} #{'text-danger' if line.result_type in ['high','low'] else ''}">
+                                <span t-esc="line.result"/>
+                            </td>
+                            <td t-attf-class="text-#{line.result_type} #{'text-danger' if line.result_type in ['high','low'] else ''}">
+                                <span t-esc="line.remark"/>
+                            </td>
+                        </t>
+                        <t t-if="line.display_type == 'line_section'">
+                            <td colspan="99">
+                                <span t-field="line.name"/>
+                            </td>
+                        </t>
+                    </tr>
+                </t>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="report_acs_lab_test_document">
+        <!-- Just for Portal Isuse -->
+        <t t-set="doc" t-value="doc.sudo()"/>
+        <t t-call="web.external_layout">
+            <t t-set="doc" t-value="doc.with_context({'lang':doc.patient_id.lang})"/>
+            <div class="page">
+                <div class="oe_structure"/>
+                <h2 class="text-center mt32">Investigation</h2>
+                <div class="row mt32 mb32" id="informations">
+                    <div t-if="doc.patient_id" class="col-auto col-3 mw-100 mb-2">
+                        <strong>Patient:</strong>
+                        <p class="m-0" t-field="doc.patient_id"/>
+                    </div>
+                    <div t-if="doc.test_id" class="col-auto col-3 mw-100 mb-2">
+                        <strong>Test Name:</strong>
+                        <p class="m-0" t-field="doc.test_id"/>
+                    </div>
+                    <div t-if="doc.user_id" class="col-auto col-3 mw-100 mb-2">
+                        <strong>Responsible:</strong>
+                        <p class="m-0" t-field="doc.user_id"/>
+                    </div>
+                    
+                    <div t-if="doc.name" class="col-auto col-3 mw-100 mb-2">
+                        <strong>Reference:</strong>
+                        <p class="m-0" t-field="doc.name"/>
+                    </div>
+                    <div t-if="doc.date_analysis" class="col-auto col-3 mw-100 mb-2">
+                        <strong>Date:</strong>
+                        <p class="m-0" t-field="doc.date_analysis"/>
+                    </div>
+                </div>
+                <div class="row mt32 mb32" id="informations">
+                    <div t-if="doc.physician_id" class="col-auto col-3 mw-100 mb-2">
+                        <strong>Prescribing Doctor:</strong>
+                        <p class="m-0" t-field="doc.physician_id"/>
+                    </div>
+                    <div t-if="doc.laboratory_id" class="col-auto col-3 mw-100 mb-2">
+                        <strong>Laboratory:</strong>
+                        <p class="m-0" t-field="doc.laboratory_id"/>
+                    </div>
+                    <div t-if="doc.collection_center_id" class="col-auto col-3 mw-100 mb-2">
+                        <strong>Collection Center:</strong>
+                        <p class="m-0" t-field="doc.collection_center_id.name"/>
+                    </div>
+                </div>
+
+                <t t-call="acs_laboratory.report_lab_result_table">
+                    <t t-set="lab_test" t-value="doc"/>
+                </t>
+
+                <div class="row" t-if="doc.sudo().company_id.acs_labresult_qrcode">
+                    <div class="col-12 pull-right">
+                        <img t-if="doc.qr_image" t-att-src="image_data_uri(doc.qr_image)" alt="LAB Result QR" style="width: 100px;height: 100px" class="float-right"/>
+                    </div>
+                </div>
+                
+                <p class="mt64">
+                    <b>Comment(If Any):</b>
+                    <br/>
+                    <span t-esc="doc.note"/>
+                </p>
+                <p class="mt16">
+                    <b>Doctor’s Stamp/Signature</b>
+                    <br/>
+                    <t t-if="doc.physician_id and doc.physician_id.signature">
+                        <span t-field="doc.physician_id.signature" t-options="{'widget': 'image', 'class': 'img-rounded', 'style':'max-height: 100px !important'}"/>
+                    </t>
+                </p>
+                <p t-if="doc.disclaimer" class="mt64">
+                    <b>Disclaimer: </b>
+                    <span t-field="doc.disclaimer"/>
+                </p>
+                
+            </div>
+        </t>
+    </template>
+
+    <template id="report_acs_lab_test">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_laboratory.report_acs_lab_test_document" t-lang="doc.patient_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_acs_lab_test" model="ir.actions.report">
+        <field name="name">Lab Report</field>
+        <field name="model">patient.laboratory.test</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_laboratory.report_acs_lab_test</field>
+        <field name="report_file">acs_laboratory.report_acs_lab_test</field>
+        <field name="print_report_name">(object.name or 'LabReport').replace('/','_') + '_LabReport'</field>
+        <field name="binding_model_id" ref="model_patient_laboratory_test"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

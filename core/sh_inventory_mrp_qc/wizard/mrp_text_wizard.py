@@ -1,0 +1,95 @@
+# -*- coding: utf-8 -*-
+# Part of Softhealer Technologies.
+from odoo import models, fields, api
+
+
+class MrpTextWizard(models.TransientModel):
+    _name = 'sh.mrp.text'
+    _description = 'Mrp Quality Measurement Text'
+
+    product_id = fields.Many2one('product.product', 'Product', readonly=True)
+    sh_message = fields.Text('Measurement Message', readonly=True)
+    mrp_quality_point_id = fields.Many2one(
+        'sh.qc.point', 'Mrp Quality Control Point')
+    mrp_id = fields.Many2one('mrp.production', 'Manufacturing')
+    workorder_id = fields.Many2one('mrp.workorder', 'Work Order')
+    text_message = fields.Text("Enter QC details..")
+
+    @api.model
+    def default_get(self, fields):
+        res = super(MrpTextWizard, self).default_get(fields)
+        context = self._context
+        if context.get('active_model') == 'mrp.workorder':
+            workorder = self.env['mrp.workorder'].sudo().search(
+                [('id', '=', context.get('active_id'))], limit=1)
+            if workorder and workorder.sh_workorder_quality_point_id:
+                res.update({
+                    'product_id': workorder.sh_workorder_quality_point_id.product_id.id,
+                    'mrp_quality_point_id': workorder.sh_workorder_quality_point_id.id,
+                    'sh_message': workorder.sh_workorder_quality_point_id.sh_instruction,
+                    'workorder_id': workorder.id
+                })
+            return res
+        else:
+            mrps = self.env['mrp.production'].sudo().search(
+                [('id', '=', context.get('active_id'))], limit=1)
+            if mrps and mrps.sh_mrp_quality_point_id:
+                res.update({
+                    'product_id': mrps.sh_mrp_quality_point_id.product_id.id,
+                    'mrp_quality_point_id': mrps.sh_mrp_quality_point_id.id,
+                    'sh_message': mrps.sh_mrp_quality_point_id.sh_instruction,
+                    'mrp_id': mrps.id
+                })
+            return res
+
+    def action_pass(self):
+        if self.workorder_id:
+            self.env['sh.mrp.quality.check'].sudo().create({
+                'product_id': self.product_id.id,
+                'sh_workorder_id': self.workorder_id.id,
+                'sh_control_point': self.mrp_quality_point_id.name,
+                'control_point_id': self.mrp_quality_point_id.id,
+                'sh_date': fields.Datetime.now(),
+                'sh_norm': 0.0,
+                'state': 'pass',
+                'qc_type': 'type4',
+                'text_message': self.text_message
+            })
+        if self.mrp_id:
+            self.env['sh.mrp.quality.check'].sudo().create({
+                'product_id': self.product_id.id,
+                'sh_mrp': self.mrp_id.id,
+                'sh_control_point': self.mrp_quality_point_id.name,
+                'control_point_id': self.mrp_quality_point_id.id,
+                'sh_date': fields.Datetime.now(),
+                'sh_norm': 0.0,
+                'state': 'pass',
+                'qc_type': 'type4',
+                'text_message': self.text_message
+            })
+
+    def action_fail(self):
+        if self.workorder_id:
+            self.env['sh.mrp.quality.check'].sudo().create({
+                'product_id': self.product_id.id,
+                'sh_workorder_id': self.workorder_id.id,
+                'sh_control_point': self.mrp_quality_point_id.name,
+                'control_point_id': self.mrp_quality_point_id.id,
+                'sh_date': fields.Datetime.now(),
+                'sh_norm': 0.0,
+                'state': 'fail',
+                'qc_type': 'type4',
+                'text_message': self.text_message
+            })
+        if self.mrp_id:
+            self.env['sh.mrp.quality.check'].sudo().create({
+                'product_id': self.product_id.id,
+                'sh_mrp': self.mrp_id.id,
+                'sh_control_point': self.mrp_quality_point_id.name,
+                'control_point_id': self.mrp_quality_point_id.id,
+                'sh_date': fields.Datetime.now(),
+                'sh_norm': 0.0,
+                'state': 'fail',
+                'qc_type': 'type4',
+                'text_message': self.text_message
+            })

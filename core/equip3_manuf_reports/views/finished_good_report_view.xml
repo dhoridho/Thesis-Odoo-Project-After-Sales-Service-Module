@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_finished_good_report_pivot" model="ir.ui.view">
+         <field name="name">finished.good.report.pivot</field>
+         <field name="model">finished.good.report</field>
+         <field name="arch" type="xml">
+             <pivot string="Finished Goods Report" disable_linking="True">
+                 <field name="plan_id" string="Production Plan"/>
+                 <field name="consumption_id"/>
+                 <field name="company_id"/>
+                 <field name="branch_id"/>
+                 <field name="create_date" interval="month" type="row"/>
+                 <field name="warehouse_id" type="row"/>
+                 <field name="create_uid"/>
+                 <field name="product_id" type="row"/>
+                 <field name="production_id" string="Production Order" type="row"/>
+                 <field name="workorder_id" string="Production Work Order"/>
+                 <field name="product_uom"/>
+                 <field name="to_produce" type="measure"/>
+                 <field name="produced" type="measure"/>
+                 <field name="difference" type="measure"/>
+                 <field name="value" type="measure"/>
+             </pivot>
+         </field>
+    </record>
+
+    <record id="view_finished_good_report_search" model="ir.ui.view">
+            <field name="name">finished.good.report.search</field>
+            <field name="model">finished.good.report</field>
+            <field name="arch" type="xml">
+                <search string="Finished Goods Report">
+                    <field name="product_id"/>
+                    <field name="plan_id" string="Production Plan"/>
+                    <field name="production_id" string="Production Order"/>
+                    <field name="workorder_id" string="Production Work Order"/>
+                    <field name="consumption_id"/>
+
+                    <filter string="Last 30 days" name="last_30_days" domain="[('create_date','&lt;=',context_today().strftime('%Y-%m-%d')), ('create_date','&gt;',(context_today()-relativedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="This Month" name="current_month" domain="[('create_date','&lt;',(context_today()+relativedelta(months=1)).strftime('%%Y-%%m-01')), ('create_date','&gt;=',time.strftime('%%Y-%%m-01'))]"/>
+                    <filter string="This Year" name="current_year" domain="[('create_date','&lt;',(context_today()+relativedelta(years=1)).strftime('%%Y-01-01')), ('create_date','&gt;=',time.strftime('%%Y-01-01'))]"/>
+                    <filter string="Last Month" name="last_month" domain="[('create_date','&lt;',time.strftime('%%Y-%%m-01')), ('create_date','&gt;=',(context_today()-relativedelta(months=1)).strftime('%%Y-%%m-01'))]"/>
+                    <filter string="Last Year" name="last_year" domain="[('create_date','&lt;',time.strftime('%%Y-01-01')), ('create_date','&gt;=',(context_today()-relativedelta(years=1)).strftime('%%Y-01-01'))]"/>
+                    <group expand="0" string="Group By...">
+                        <filter string="Product" name="product_id" domain="[]" context="{'group_by': 'product_id'}"/>
+                        <filter string="Production Plan" name="plan_id" domain="[]" context="{'group_by': 'plan_id'}"/>
+                        <filter string="Production Order" name="production_id" domain="[]" context="{'group_by': 'production_id'}"/>
+                        <filter string="Production Work Order" name="workorder_id" domain="[]" context="{'group_by': 'workorder_id'}"/>
+                        <filter string="Production Record" name="consumption_id" domain="[]" context="{'group_by': 'consumption_id'}"/>
+                        <filter string="Warehouse" name="groupby_warehouse_id" domain="[]" context="{'group_by': 'warehouse_id'}"/>
+                    </group>
+                </search>
+            </field>
+    </record>
+
+    <record id="view_finished_good_report_graph" model="ir.ui.view">
+        <field name="name">finished.good.report</field>
+        <field name="model">finished.good.report</field>
+        <field name="arch" type="xml">
+            <graph string="Finished Goods Report" sample="1">
+                <field name="product_id"/>
+                <field name="produced" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_finished_good_report" model="ir.actions.act_window">
+        <field name="name">Finished Goods Report</field>
+        <field name="res_model">finished.good.report</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="search_view_id" ref="view_finished_good_report_search"/>
+        <field name="context">{'search_default_current_month': 1}</field>
+        <field name="view_id"></field>  <!-- force empty -->
+        <field name="help">This report performs analysis on your Finished Good data.</field>
+    </record>
+
+    <record id="action_sleep" model="ir.actions.server">
+        <field name="name">Sleep</field>
+        <field name="model_id" ref="mrp.model_mrp_production"/>
+        <field name="binding_model_id" ref="mrp.model_mrp_production"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+            model._sleep()
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="report_acs_evaluation_document">
+        <t t-call="web.external_layout">
+            <t t-set="doc" t-value="doc.with_context({'lang':doc.patient_id.lang})"/>
+            <div class="page">
+                <div class="mt64 text-center">
+                    <h3>
+                        <strong>Patient Evaluation</strong>
+                    </h3>
+                </div>
+
+                <div class="col-12 mt32 mb8" id="informations">
+                    <table class="table" style="margin-top:30px !important">
+                        <tr>
+                            <td style="border: none;">
+                                <strong>Patient: </strong>
+                                <span t-field="doc.patient_id.name"/>
+                            </td>
+                            <td style="border: none;">
+                                <strong>Age: </strong>
+                                <span t-field="doc.age"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;">
+                                <strong>Physician: </strong><span t-field="doc.physician_id"/>
+                            </td>
+                            <td style="border: none;">
+                                <strong>Date: </strong>
+                                <span t-field="doc.date"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="row mt8 mb16">
+                    <div class="col-6">
+                        <ul>
+                            <li>Weight: <span t-field="doc.weight"/> <span style="margin-left:5px;" t-field="doc.acs_weight_name"/></li>
+                            <li>Height: <span t-field="doc.height"/> <span style="margin-left:5px;" t-field="doc.acs_height_name"/></li>
+                            <li>Temp: <span t-field="doc.temp"/> <span style="margin-left:5px;" t-field="doc.acs_temp_name"/></li>
+                            <li>HR: <span t-field="doc.hr"/></li>
+                        </ul>
+                    </div>
+                    <div class="col-6">
+                        <ul>
+                            <li>RR: <span t-field="doc.rr"/></li>
+                            <li>BP: <span t-field="doc.systolic_bp"/>/<span t-field="doc.diastolic_bp"/>
+                            </li>
+                            <li>SpO2: <span t-field="doc.spo2"/> <span style="margin-left:5px;" t-field="doc.acs_spo2_name"/></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="row mt32 mb16">
+                    <div class="col-6">
+                        <ul>
+                            <li>Body Mass Index: <span t-field="doc.bmi"/></li>
+                        </ul>
+                    </div>
+                    <div class="col-6">
+                        <ul>
+                            <li>BMI State: <span t-field="doc.bmi_state"/></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_acs_evaluation">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms.report_acs_evaluation_document" t-lang="doc.patient_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_acs_evaluation" model="ir.actions.report">
+        <field name="name">Evaluation</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms.report_acs_evaluation</field>
+        <field name="report_file">acs_hms.report_acs_evaluation</field>
+        <field name="print_report_name">(object.name or 'Evaluation').replace('/','_')+'_Evalution'</field>
+        <field name="binding_model_id" ref="model_acs_patient_evaluation"/>
+        <field name="groups_id" eval="[(4, ref('acs_hms.group_hms_receptionist'))]"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

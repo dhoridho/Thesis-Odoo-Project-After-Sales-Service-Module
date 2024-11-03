@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="stock_valuation_layer_form_inherit" model="ir.ui.view">
+        <field name="name">stock.valuation.layer.form.inherit</field>
+        <field name="model">stock.valuation.layer</field>
+        <field name="inherit_id" ref="stock_account.stock_valuation_layer_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//page[@name='other_info']/group[1]" position="after">
+                <group name="production" string="Production">
+                    <field name="mrp_plan_id" attrs="{'invisible': [('mrp_plan_id', '=', False)]}"/>
+                    <field name="mrp_production_id" attrs="{'invisible': [('mrp_production_id', '=', False)]}"/>
+                    <field name="mrp_workorder_id" attrs="{'invisible': [('mrp_workorder_id', '=', False)]}"/>
+                    <field name="mrp_consumption_id" attrs="{'invisible': [('mrp_consumption_id', '=', False)]}"/>
+                    <field name="type" attrs="{'invisible': [('type', '=', False)]}"/>
+                    <field name="mca_id" string="Actualization" attrs="{'invisible': [('mca_id', '=', False)]}"/>
+                    <field name="mca_operation_ids" string="Actualization Operations" widget="many2many_tags" 
+                        attrs="{'invisible': ['|', ('mca_id', '=', False), ('mca_operation_ids', '=', [])]}"/>
+                    <field name="mca_labor_ids" string="Actualization Labors" widget="many2many_tags" 
+                        attrs="{'invisible': ['|', ('mca_id', '=', False), ('mca_labor_ids', '=', [])]}"/>
+                </group>
+        	</xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Cost Actualizations" name="mca_production_ids" attrs="{'invisible': [('mca_production_ids', '=', [])]}">
+                    <field name="mca_production_ids">
+                        <tree string="Cost Actualizations">
+                            <field name="mrp_cost_actualization_id"/>
+                            <field name="production_id" string="Production Order"/>
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                            <field name="product_uom_id"/>
+                            <field name="former_cost"/>
+                            <field name="total_material"/>
+                            <field name="total_overhead"/>
+                            <field name="total_labor"/>
+                            <field name="total"/>
+                            <field name="new_cost"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+    
+    <record id="view_inventory_valuation_search" model="ir.ui.view">
+        <field name="name">stock.valuation.layer.tree</field>
+        <field name="model">stock.valuation.layer</field>
+        <field name="inherit_id" ref="equip3_inventory_base.view_inventory_valuation_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_tmpl_id']" position="after">
+                <field name="mrp_production_id" string="Production Order"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_by_location_id']" position="after">
+                <filter name="group_by_production_order" context="{'group_by': 'mrp_production_id'}" string="Production Order"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

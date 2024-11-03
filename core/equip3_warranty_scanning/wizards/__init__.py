@@ -1,0 +1,1 @@
+from . import sh_product_barcode_mobile

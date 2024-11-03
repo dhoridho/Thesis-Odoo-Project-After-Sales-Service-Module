@@ -1,0 +1,200 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+
+        <record id="agreement_form_inherit" model="ir.ui.view">
+            <field name="name">model.name.view.form</field>
+            <field name="model">agreement</field>
+            <field name="inherit_id" ref="agreement_legal.partner_agreement_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='create_new_version']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='create_new_version']" position="after">
+                    <field name="is_expired" invisible="1"/>
+                    <button name="renew_contract" string="Renew Contract" type="object" class="oe_highlight btn-success" attrs="{'invisible': [('is_expired', '!=', True)]}"/>
+                </xpath>
+                <button name="%(agreement_legal.partner_agreement_contract_document_preview)d" position="replace">
+                    <button
+                        name="%(agreement_legal.partner_agreement_contract_document_preview)d"
+                        string="Preview"
+                        type="action"
+                        class="btn-info"
+                        style="margin:5px; background-color: #ffc107; border-color: #ffc107; color: black;"
+                    />
+                </button>
+                <button name="%(agreement_legal.partner_agreement_contract_document)d" position="replace">
+                    <button
+                        name="%(agreement_legal.partner_agreement_contract_document)d"
+                        string="Print"
+                        type="action"
+                        class="btn-info"
+                        style="margin:5px; background-color: #ffc107; border-color: #ffc107; color: black;"
+                    />
+                </button>
+                <xpath expr="//div[@class='oe_button_box']" position="inside">
+                    <button name="expense_link" type="object" class="oe_stat_button" icon="fa-list">
+                        <field string="Expenses" name="expense_count" widget="statinfo"/>
+                    </button>
+                    <button name="action_renewal_contract" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
+                        <field string="Renewal" name="renewal_contract_count" widget="statinfo"/>
+                    </button>
+                    <button name="invoice_link" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
+                        <field string="Invoice" name="invoice_count" widget="statinfo"/>
+                    </button>
+                </xpath>
+                <field name="name" position="after">
+                    <field name="is_editable" invisible="1"/>
+                    <field name="is_new_version" invisible="1"/>
+                    <field name="is_recurring_invoice" invisible="1"/>
+                    <field name="invoice_id" invisible="1"/>
+                </field>
+                <field name="name" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+                <field name="parent_agreement_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+                <field name="template_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+                <field name="expected_revenue" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+                <field name="expected_cost" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+                <field name="agreement_type_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+                <field name="agreement_subtype_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <xpath expr="//field[@name='assigned_user_id']" position="after">
+                    <field name="next_invoice" readonly="1" attrs="{'invisible': [('invoice_type', '=', 'non_recurring')]}"/>
+                    <field name="is_non_recurring_invoice" invisible="1"/>
+                    <field name="invoice_type" widget="selection" attrs="{'readonly': ['|', ('is_recurring_invoice', '=', True), ('is_non_recurring_invoice', '=', True)]}"/>
+                    <field name="payment_type" attrs="{'invisible':[('invoice_type', '!=', 'recurring')], 'required': [('invoice_type', '=', 'recurring')]}"/>
+                </xpath>
+
+                <field name="use_parties_content" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="partner_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="partner_contact_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="company_contact_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="company_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="signature_date" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="start_date" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)], 'required': [('is_template', '=', True)]}</attribute>
+                </field>
+
+                <xpath expr="//field[@name='start_date']" position="after">
+                    <field name="duration_daily" attrs="{'invisible':[('payment_type', '!=', 'daily')], 'required': [('payment_type', '=', 'daily')]}"/>
+                    <field name="duration_monthly" attrs="{'invisible':[('payment_type', '!=', 'monthly')], 'required': [('payment_type', '=', 'monthly')]}"/>
+                    <field name="duration_yearly" attrs="{'invisible':[('payment_type', '!=', 'yearly')], 'required': [('payment_type', '=', 'yearly')]}"/>
+                </xpath>
+
+                <field name="end_date" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('invoice_type', '=', 'recurring'),('is_editable', '!=', True)], 'required': [('is_template', '!=', True)]}</attribute>
+                    <attribute name="force_save">True</attribute>
+                </field>
+
+                <xpath expr="//field[@name='end_date']" position="after">
+                    <field name="expired_date" invisible="1"/> 
+                    <field name="recurring_invoice_id" attrs="{'required': [('invoice_type', '=', 'recurring')], 'readonly': [('is_editable', '!=', True)], 'invisible': [('invoice_type', '=', 'non_recurring')]}" widget="many2one" domain="[('recurring_type', '=', payment_type)]"/> 
+                </xpath>
+
+                <field name="expiration_notice" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="change_notice" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="notification_address_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="termination_requested" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="termination_date" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="special_terms" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="recital_ids" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="sections_ids" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="clauses_ids" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="appendix_ids" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="partner_signed_user_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="company_signed_user_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="partner_signed_date" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="company_signed_date" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="signed_contract" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="line_ids" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="child_agreements_ids" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+
+                <field name="previous_version_agreements_ids" position="attributes">
+                    <attribute name="attrs">{'readonly': [('is_editable', '!=', True)]}</attribute>
+                </field>
+            </field>
+        </record>
+    </data>
+
+</odoo>

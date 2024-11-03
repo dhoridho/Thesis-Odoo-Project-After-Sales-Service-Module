@@ -1,0 +1,1 @@
+Please follow this tutorial for more guides: https://www.hashmicro.com/documentation/master/reference/translations.html

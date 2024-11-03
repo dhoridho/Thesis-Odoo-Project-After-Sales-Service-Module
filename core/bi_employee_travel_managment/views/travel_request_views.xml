@@ -1,0 +1,235 @@
+<?xml version="1.0"  encoding="utf-8"?>
+<odoo>
+    <record id="view_travel_req_tree" model="ir.ui.view">
+        <field name="name">travel.request.tree</field>
+        <field name="model">travel.request</field>
+        <field name="priority">2</field>
+        <field name="arch" type="xml">
+            <tree string="Employee Travel Request">
+
+                <field name="employee_id"/>
+
+                <field name="department_manager_id"/>
+                <field name="department_id"/>
+                <field name="job_id"/>
+
+                <field name="currency_id"/>
+                <field name="request_by"/>
+                <field name="confirm_by"/>
+                <field name="approve_by"/>
+
+
+            </tree>
+        </field>
+    </record>
+
+    <record id="seq_idea" model="ir.sequence">
+        <field name="name">travel_sequencer</field>
+        <field name="code">travel.request</field>
+        <field name="prefix">TR/</field>
+        <field name="padding">4</field>
+    </record>
+
+    <record id="view_travel_req_form" model="ir.ui.view">
+        <field name="name">travel.request.form</field>
+        <field name="model">travel.request</field>
+        <field name="arch" type="xml">
+            <form string="Employee Travel Request">
+                <header>
+
+                    <button name="action_confirm" string="Confirm"
+                            type="object" states="draft" class="btn-primary"/>
+                    <button name="action_approve" string="Approve"
+                            type="object" states="confirmed" class="btn-primary"
+							groups="equip3_hr_employee_access_right_setting.group_hr_travel_manager"/>
+                    <button name="action_reject" string="Reject"
+                            type="object" states="confirmed" class="btn-primary"
+                            groups="equip3_hr_employee_access_right_setting.group_hr_travel_manager"/>
+
+                    <button name="return_from_trip" string="Return"
+                            type="object" states="approved"/>
+                    <button name="action_create_expence" string="Create Expenses"
+                            type="object" states="returned"/>
+                    <button name="action_draft" string="Reset To Draft"
+                            type="object" states="returned,submitted"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,approved,returned"/>
+                </header>
+                <sheet>
+                    <h2>
+                        <field name="name"/>
+                    </h2>
+                    <div class="oe_button_box">
+                        <button name="action_expence_sheet" type="object" class="oe_stat_button" icon="fa-archive"
+                                attrs="{'invisible':[('state','!=','submitted')]}">
+                            <strong>Expense</strong>
+                        </button>
+                    </div>
+                    <group>
+
+                        <group>
+                            <field name="employee_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="department_manager_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="department_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="job_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="currency_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="request_by"/>
+                            <field name="confirm_by"/>
+                            <field name="approve_by"/>
+                        </group>
+                        <group>
+                            <field name="req_date"/>
+                            <field name="confirm_date"/>
+                            <field name="approve_date"/>
+                            <field name="expence_sheet_id"/>
+                        </group>
+
+                    </group>
+                    <notebook>
+                        <page string="Travel Request information">
+                            <group>
+                                <group>
+                                    <field name="travel_purpose" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                    <field name="project_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                    <field name="account_analytic_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                </group>
+                            </group>
+                            <group string="Travel Details">
+                                <group>
+
+                                    <label for="from_city" string="From"/>
+                                    <div class="o_address_format">
+
+                                        <field name="from_city" placeholder="City" class="o_address_city"
+                                               attrs="{'readonly':[('state','!=','draft')]}"/>
+                                        <field name="from_state_id" class="o_address_state" placeholder="State"
+                                               options="{&quot;no_open&quot;: True}"
+                                               attrs="{'readonly':[('state','!=','draft')]}"/>
+
+                                        <field name="from_country_id" placeholder="Country" class="o_address_country"
+                                               options="{&quot;no_open&quot;: True}"
+                                               attrs="{'readonly':[('state','!=','draft')]}"/>
+                                    </div>
+                                </group>
+
+
+                                <group>
+
+                                    <label for="to_street" string="To"/>
+                                    <div class="o_address_format">
+                                        <field name="to_street" placeholder="Street..." class="o_address_street"
+                                               attrs="{'readonly':[('state','!=','draft')]}"/>
+                                        <field name="to_street_2" placeholder="Street 2..." class="o_address_street"
+                                               attrs="{'readonly':[('state','!=','draft')]}"/>
+                                        <field name="to_city" placeholder="City" class="o_address_city"
+                                               attrs="{'readonly':[('state','!=','draft')]}"/>
+                                        <field name="to_state_id" class="o_address_state" placeholder="State"
+                                               options="{'no_open': True}"
+                                               attrs="{'readonly':[('state','!=','draft')]}"/>
+                                        <field name="to_zip_code" placeholder="ZIP" class="o_address_zip"
+                                               attrs="{'readonly':[('state','!=','draft')]}"/>
+                                        <field name="to_country_id" placeholder="Country" class="o_address_country"
+											   options="{'no_open': True}"
+                                               attrs="{'readonly':[('state','!=','draft')]}"/>
+                                    </div>
+
+                                </group>
+
+
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="req_departure_date" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                    <field name="req_return_date" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                    <field name="req_travel_mode_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                    <field name="days"/>
+                                </group>
+                                <group>
+
+                                    <field name="phone_no" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                    <field name="email" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Other Info">
+                            <group>
+                                <group>
+                                    <field name="available_departure_date"
+                                           attrs="{'readonly':[('state','in',('approved','returned'))]}"/>
+                                    <field name="departure_mode_travel_id"
+                                           attrs="{'readonly':[('state','in',('approved','returned'))]}"/>
+                                    <field name="visa_agent_id"
+                                           attrs="{'readonly':[('state','in',('approved','returned'))]}"/>
+
+                                </group>
+                                <group>
+                                    <field name="available_return_date"
+                                           attrs="{'readonly':[('state','in',('approved','returned'))]}"/>
+                                    <field name="return_mode_travel_id"
+                                           attrs="{'readonly':[('state','in',('approved','returned'))]}"/>
+                                    <field name="ticket_booking_agent_id"
+                                           attrs="{'readonly':[('state','in',('approved','returned'))]}"/>
+                                </group>
+
+                            </group>
+                            <group string="Accounting Info">
+                                <group>
+                                    <field name="bank_id"/>
+                                    <field name="cheque_number"/>
+                                </group>
+                                <group></group>
+                            </group>
+
+
+                        </page>
+                        <page string="Advance Payment">
+                            <field name="advance_payment_ids">
+                            </field>
+                        </page>
+                        <page string="Expenses" attrs="{'invisible':[('state','not in',['submitted','returned'])]}">
+                            <field name="expense_ids">
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="action_travel_req" model="ir.actions.act_window">
+        <field name="name">Employee Travel Request</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">travel.request</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create"></p>
+            <p></p>
+        </field>
+    </record>
+
+
+    <menuitem id="travel_main_menu" name="Travel" sequence="22"/>
+    <menuitem id="travel_sub_menu" name="Travel Request" sequence="2" parent="travel_main_menu"/>
+    <menuitem action="action_travel_req" id="menu_travel_request" parent="travel_sub_menu"
+              name="Employee Travel Request" sequence="2"/>
+
+
+    <record id="action_travel_req_hr" model="ir.actions.act_window">
+        <field name="name">Travel Request To Approve</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">travel.request</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="domain">[('state','in',['confirmed','approved','rejected'])]</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create"></p>
+            <p></p>
+        </field>
+    </record>
+
+    <menuitem action="action_travel_req_hr" id="menu_travel_request_approve" parent="travel_sub_menu"
+              name="Travel Request To Approve" sequence="3" groups="equip3_hr_employee_access_right_setting.group_hr_travel_manager"/>
+</odoo>

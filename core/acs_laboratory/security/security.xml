@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="group_hms_lab_user" model="res.groups">
+            <field name="name">Lab Technician</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms"/>
+            <field name="implied_ids" eval="[(4, ref('acs_hms_base.group_hms_user'))]"/>
+        </record>
+
+        <record id="group_hms_lab_manager" model="res.groups">
+            <field name="name">Lab Manager</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms"/>
+            <field name="implied_ids" eval="[(4, ref('group_hms_lab_user'))]"/>
+        </record>
+
+        <record id ="group_manage_collection_center" model="res.groups">
+            <field name="name">Manage Collection Center</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms_extra"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <record id="base.user_admin" model="res.users">
+            <field name="groups_id" eval="[(4, ref('acs_laboratory.group_hms_lab_manager'))]"/>
+        </record>
+
+        <record id="acs_hms_base.group_hms_manager" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('acs_laboratory.group_hms_lab_manager'))]"/>
+        </record>
+
+    </data>
+    <data noupdate="1">
+
+        <!-- Lab Req Rules-->
+        <!-- See own lab Req -->
+        <record id="hms_laboratory_request_rule" model="ir.rule">
+            <field name="name">Patient's Own Lab Req</field>
+            <field name="model_id" ref="model_acs_laboratory_request"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[('patient_id.user_id.id','=',user.id)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms_base.group_hms_user'))]"/>
+        </record>
+        <!-- See All Lab Req -->
+        <record id="all_hms_laboratory_request_rule" model="ir.rule">
+            <field name="name">All Lab Requests</field>
+            <field name="model_id" ref="model_acs_laboratory_request"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_hms_lab_user'))]"/>
+        </record>
+
+        <!-- Lab Result Rules-->
+        <!-- See own lab result -->
+        <record id="patient_laboratory_test_rule" model="ir.rule">
+            <field name="name">Patient's Own Lab Result</field>
+            <field name="model_id" ref="model_patient_laboratory_test"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[('patient_id.user_id.id','=',user.id)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms_base.group_hms_user'))]"/>
+        </record>
+        <!-- See All Lab Req -->
+        <record id="all_patient_laboratory_test_rule" model="ir.rule">
+            <field name="name">All Lab Result</field>
+            <field name="model_id" ref="model_patient_laboratory_test"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_hms_lab_user'))]"/>
+        </record>
+        <record model="ir.rule" id="lab_req_cal_comp_rule">
+            <field name="name">Lab Request multi-company</field>
+            <field name="model_id" ref="model_acs_laboratory_request"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+        </record>
+        <record model="ir.rule" id="lab_test_comp_rule">
+            <field name="name">Patient Lab Test multi-company</field>
+            <field name="model_id" ref="model_patient_laboratory_test"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+        </record>
+        <record model="ir.rule" id="lab_comp_rule">
+            <field name="name">Lab Test multi-company</field>
+            <field name="model_id" ref="model_acs_lab_test"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record model="ir.rule" id="acs_laboratory_comp_rule">
+            <field name="name">Laboratory multi-company</field>
+            <field name="model_id" ref="model_acs_laboratory"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <!-- Portal -->
+        <record id="hms_laboratory_request_portal_rule_1" model="ir.rule">
+            <field name="name">Portal Patient's Own Lab Req</field>
+            <field name="model_id" ref="acs_laboratory.model_acs_laboratory_request"/>
+            <field name="domain_force">[('patient_id.partner_id','=',user.commercial_partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_create" eval="False"/>
+        </record>
+
+        <record id="hms_laboratory_test_portal_rule_1" model="ir.rule">
+            <field name="name">Portal Patient's Own Lab test</field>
+            <field name="model_id" ref="acs_laboratory.model_patient_laboratory_test"/>
+            <field name="domain_force">[('patient_id.partner_id','=',user.commercial_partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_create" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

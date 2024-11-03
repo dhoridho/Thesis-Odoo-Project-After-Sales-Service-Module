@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="form_view_crossovered_budget_transfer" model="ir.ui.view">
+        <field name="name">form.view.budget.transfer</field>
+        <field name="model">crossovered.budget.transfer</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'draft')]}" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1 class="mt0">
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group id="header_left_group">
+                            <field name="budget_transfer_name" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="source_budget_id" domain="[('state','in',['validate','done']),('amount_remaining','>',0)]" attrs="{'readonly':[('state','!=','draft')]}" />
+                            <field name="destination_budget_id" domain="[('state','=','validate')]" attrs="{'readonly':[('state','!=','draft')]}" />
+                            
+                        </group>
+                        <group id="header_right_group">
+                            <field name="create_uid"/>
+                            <field name="company_id" />
+                            <field name="branch_id" attrs="{'readonly':[('state','!=','draft')]}" />
+                            <!-- <field name="confirm_date" /> -->
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Budget Transfer">
+                            <field name="budget_transfer_line_ids" context="{'budget_transfer_line_ids': budget_transfer_line_ids}" attrs="{'readonly':[('state','!=','draft')]}">
+                                <tree editable="bottom">
+                                    <field name="source_budget_id"/>
+                                    <field name="source_general_budget_id" domain="source_general_budget_id_domain"/>
+                                    <field name="source_general_budget_id_domain" invisible="1"/>
+                                    <field name="source_remaining_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}"/>
+                                    <field name="destination_budget_id"/>
+                                    <field name="destination_general_budget_id" domain="destination_general_budget_id_domain"/>
+                                    <field name="destination_general_budget_id_domain" invisible="1"/>
+                                    <field name="destination_remaining_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}"/>
+                                    <field name="transfer_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}"/>
+                                    <field name="current_remaining_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}"/>
+                                    <field name="currency_company_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="tree_view_crossoveredbudget_transfer" model="ir.ui.view">
+        <field name="name">tree.view.crossovered.budget.transfer</field>
+        <field name="model">crossovered.budget.transfer</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="budget_transfer_name" />
+                <field name="source_budget_id"/>
+                <field name="destination_budget_id"/>
+                <field name="total_transfer_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}"/>
+                <field name="currency_company_id" invisible="1"/>
+                <field name="company_id"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'confirm'" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_crossovered_budget_transfer" model="ir.actions.act_window">
+        <field name="name">Budget Transfer</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">crossovered.budget.transfer</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	
+<templates id="categ_reports_template" inherit_id="point_of_sale.template" xml:space="preserve">
+
+	<t t-name="ReportCategoryButtonWidget"  owl="1">
+		<div class="control-button category_summary">
+			<div>
+				<i class="fa fa-shopping-cart"></i>
+				<span>Category Summary</span>
+			</div>
+		</div>
+	</t>
+
+	<t t-name="PopupCategoryWidget" owl="1">
+		<div role="dialog" class="modal-dialog" >
+			<Draggable>
+				<div class="popup popup-confirm" >
+					<header class="title drag-handle">
+						Category Summary
+					</header>
+					<main class="body">
+						<div >
+							<div id="categ_dt_strt" class="alert" style="color: #ec1010; font-size: inherit; margin: 5px; text-align: center;">
+								<span class="closebtn"></span>  
+								Please fill Start Date.
+							</div>
+							<div id="categ_dt_end" class="alert" style="color: #ec1010; font-size: inherit; margin: 5px; text-align: center;">
+								<span class="closebtn"></span>  
+								Please fill End Date.
+							</div>
+							<div class="form-group" id="form1">  
+								<input id="categ_crnt_ssn" class="categ_crnt_ssn" type="checkbox" 
+								t-on-click="clickCurrentSession"  
+									style="min-height: 15px !important;width: 25px !important;box-shadow: none !important;"/>
+								<label for="categ_crnt_ssn">Current Session</label>
+							</div>
+							<div class="left_pane" id="ct_st_dt" style="width: 49%;display:inline-block;">
+								<p class="text-center">Start Date</p>
+								<input type="date" name="st_date" id="categ_st_date"/>
+							</div>
+							<div class="right_pane" id="ct_end_dt" style="width: 50%;display:inline-block;">
+								<p class="text-center">End Date</p>
+								<input type="date" name="ed_date" id="categ_ed_date"/>
+							</div>
+						</div>
+					</main>
+					<footer class="footer">
+						<div class="button confirm odoo-theme-button" t-on-click="print_category_summary">
+							Print
+						</div>
+						<div class="button cancel odoo-theme-button" t-on-click="back">
+							Close
+						</div>
+					</footer>
+		 		</div>
+		 	</Draggable>
+		</div>
+	</t>
+
+	<t t-name="CategoryReceiptWidget" owl="1">
+		<div class="receipt-screen screen">
+			<div class="screen-content">
+				<div class="top-content">
+					<span class="button back" t-on-click="back">
+						<i class="fa fa-angle-double-left"></i>
+						<span> </span>
+						<span>Back</span>
+					</span>
+					<div class="top-content-center">
+						<h1> Category Summary</h1>
+					</div>
+				</div>
+				<div class="centered-content">
+					<div class="button print" t-on-click="printReceipt">
+						<i class="fa fa-print"></i>
+						<span> </span>
+						<span>Print</span>
+					</div>
+					<div class="pos-receipt-container">
+						<XMLPosCategorySummaryReceipt order="category_receipt_data"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</t>
+
+	<t t-name="XMLPosCategorySummaryReceipt" owl="1">
+		<div class="pos-receipt">
+			<t t-set="obj" t-value="props.order"/>
+			<img class="pos-receipt-logo" t-att-src='env.pos.company_logo_base64' alt="Logo"/>
+			<br/>
+			<div class="pos-receipt-contact">
+				<t t-if='env.pos.company.contact_address'>
+					<div><t t-esc='env.pos.company.contact_address' /></div>
+				</t>
+				<t t-if='env.pos.company.phone'>
+					<div>Tel:<t t-esc='env.pos.company.phone' /></div>
+				</t>
+				<t t-if='env.pos.company.vat'>
+					<div>VAT:<t t-esc='env.pos.company.vat' /></div>
+				</t>
+				<t t-if='env.pos.company.email'>
+					<div><t t-esc='env.pos.company.email' /></div>
+				</t>
+				<t t-if='env.pos.company.website'>
+					<div><t t-esc='env.pos.company.website' /></div>
+				</t>
+				<br/>
+				
+				<t t-if='env.pos.get_cashier()'>
+					<div class='cashier'>
+						<div>--------------------------------</div>
+						<div>Served by <t t-esc='env.pos.get_cashier().name' /></div>
+					</div>
+				</t>
+			</div>
+			<br />
+			<t t-if="!obj.categ_current_session">
+				<div class="receipt-periods">
+					Start Date: <span style="float:right;" t-esc="obj.st_date_categ"/>
+				</div>
+				<div class="receipt-periods">
+					End Date: <span style="float:right;" t-esc="obj.ed_date_categ"/>
+				</div>
+			</t>
+
+			<t t-if="!obj.categ_current_session">
+				<br/>
+				<div class="receipt-periods-month">
+					<span><strong>Month : </strong></span>
+					<t t-if="obj.st_month_categ">
+						<strong><t t-esc="obj.st_month_categ"/></strong>
+					</t>
+					<t t-if="obj.ed_month_categ">
+						<t t-if="obj.ed_month_categ != obj.st_month_categ">
+							<strong>To</strong>
+							<strong><t t-esc="obj.ed_month_categ"/></strong>
+						</t>
+					</t>
+				</div>
+			</t>
+			<br/>
+			<div>
+				<table class='receipt-orderlines' style="margin: 0px auto;margin-top:32px;" >
+					<colgroup>
+						<col width='33%' />
+						<col width='33%' />
+						<col width='33%' />
+					</colgroup>
+					<thead style="border-bottom:2px solid black;padding-bottom:5px;">
+						<th class="text-center">Category</th>
+						<th class="pos-right-align">Quantity</th>
+						<th class="pos-right-align">Total</th>
+					</thead>
+					<tbody>
+						<tr t-foreach="obj.cate_summary" t-as="category_data">
+							<td style="padding:5px 0;">
+								<span t-esc="category_data.name"/>
+							</td>
+							<td class="pos-center-align">
+								<span t-esc="category_data.total"/>
+							</td>
+							<td class="pos-right-align">
+								<span t-esc="env.pos.format_currency(category_data.sum)"/>
+							</td>
+						</tr>
+						<tr t-if="obj.final_total" style="border-top:2px solid black;">
+							<td style="padding:5px 0;">
+								<strong>Total</strong>
+							</td>
+							<td style="padding:5px 0;">
+								<p/>
+							</td>
+							<td class="pos-right-align">
+								<value t-att-value-decimals='env.pos.currency.decimals'><span t-esc="env.pos.format_currency(obj.final_total)"/></value>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<br/>
+		</div>
+	</t>
+	
+</templates>

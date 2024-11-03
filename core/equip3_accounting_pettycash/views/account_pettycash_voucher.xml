@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="account_petty_cash_voucher_line_form" model="ir.ui.view">
+        <field name="name">account.pettycash.voucher.wizard.line.form</field>
+        <field name="model">account.pettycash.voucher.wizard.line</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group id="header_left_group">
+                            <field name="line_id" />
+                            <field name="name" />
+                            <field name="quantity" />
+                            <field name="tax_ids" />
+                            <field name="price_total" widget="monetary"/>
+                            <field name="currency_id" />
+                            <field name="partner_id" />
+                            <field name="date" />
+                            <field name="analytic_group_ids" widget="many2many_tags" />
+                        </group>
+                        <group id="header_right_group">
+                            <field name="product_id"/>
+                            <field name="expense_account"/>
+                            <field name="price_unit" widget="monetary"/>
+                            <field name="taxes" widget="monetary"/>
+                            <field name="amount" widget="monetary"/>
+                            <field name="expense_budget" />
+                        </group>
+                    </group>
+                </sheet>
+           </form>
+        </field>
+    </record>
+
+    <record id="account_petty_cash_voucher_form" model="ir.ui.view">
+        <field name="name">account.pettycash.voucher.wizard.form</field>
+        <field name="model">account.pettycash.voucher.wizard</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button string="Approve" name="action_approved" states="waiting_for_approval" type="object" class="oe_highlight"/>
+                    <button string="Reject" name="action_rejected" states="waiting_for_approval" type="object" class="oe_highlight"/>
+                    <button string="Request for Approval" name="action_request_for_approval" attrs="{'invisible': [('state','!=','draft')]}" type="object" class="oe_highlight"/>
+                    <button string="Cancel" name="action_cancel" states="approved" type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,waiting_for_approval,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1 class="mt0">
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group id="header_left_group">
+                            <field name="fund" required="1" force_save="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="partner_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="ba_ca_journal_id"/>
+                            <field name="payment_reference" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="submitter_id" readonly="1" force_save="1"/>
+                        </group>
+                        <group id="header_right_group">
+                            <field name="date" string='Voucher Date' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="attachment" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="tax_amount" invisible="1"/>
+                            <field name="total" invisible="1"/>
+                            <field name="currency_id"/>
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page id="voucher_tab" string="Voucher Lines">
+                            <field name="voucher_line" widget="section_and_note_one2many" mode="tree,kanban" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                                <tree editable="bottom" string="Voucher Lines">
+                                    <field name="product_id"/>
+                                    <field name="name"/>
+                                    <field name="analytic_group_ids" widget="many2many_tags" domain="analytic_group_ids_domain"/>
+                                    <field name="analytic_group_ids_domain" invisible="1"/>
+                                    <field name="expense_account" required="1" />
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="expense_budget"/>
+                                    <field name="crossovered_budget_line_id" invisible="1"/>
+                                    <field name="price_total" force_save='1' optional="hide"/>
+                                    <field name="tax_ids"/>                                        
+                                    <field name="taxes"  force_save='1' optional="hide"/>
+                                    <field name="amount" force_save='1'/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+           </form>
+        </field>
+    </record>
+
+    <record id="account_petty_cash_voucher_tree" model="ir.ui.view">
+        <field name="name">account.pettycash.voucher.wizard.tree</field>
+        <field name="model">account.pettycash.voucher.wizard</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="date" string='Bill Date'/>
+                <field name="partner_id" />
+                <field name="submitter_id"/>
+                <field name="tax_amount" invisible="1"/>
+                <field name="fund"/>
+                <field name="ba_ca_journal_id"/>
+                <field name="payment_reference"/>
+                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-success2="state == 'approved'" decoration-muted="state == 'draft'" decoration-danger3="state == 'cancelled'" decoration-danger="state == 'rejected'" decoration-warning3="state == 'waiting_for_approval'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_petty_cash_voucher" model="ir.actions.act_window">
+        <field name="name">Petty Cash Voucher</field>
+        <field name="res_model">account.pettycash.voucher.wizard</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Generate Customer Details
+            </p>
+        </field>
+     </record>
+
+     <record model="ir.actions.act_window.view" id="action_account_pettycash_voucher_tree">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="account_petty_cash_voucher_tree"/>
+        <field name="act_window_id" ref="action_petty_cash_voucher"/>
+     </record>
+
+     <record model="ir.actions.act_window.view" id="action_account_pettycash_voucher_form">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="account_petty_cash_voucher_form"/>
+        <field name="act_window_id" ref="action_petty_cash_voucher"/>
+     </record>
+
+    <!-- MENUS -->
+    <menuitem id="menu_petty_cash"
+            name="Petty Cash"
+            web_icon="equip3_accounting_pettycash,static/description/petty-cash.png"
+            sequence="40"/>
+            
+    <menuitem id="menu_petty_cash_voucher"
+        name="Petty Cash Voucher"
+        parent="menu_petty_cash"
+        action="action_petty_cash_voucher"
+        sequence="4"/>
+
+    <menuitem action="action_account_pettycash" id="menu_action_account_pettycash"
+                  parent="menu_petty_cash" sequence="3"/>
+    <record id="menu_action_account_pettycash" model="ir.ui.menu">
+        <field name="groups_id" eval="[(5, 0, 0), (6,0, [ref('equip3_accounting_accessright_setting.group_voucher_manager_petty')])]" />
+    </record>
+    
+
+    
+
+
+</odoo>

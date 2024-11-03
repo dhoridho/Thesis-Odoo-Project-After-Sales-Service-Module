@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    <record id="generate_next_academic_year_view_tree" model="ir.ui.view">
+        <field name="name">generate.academic.view.tree</field>
+        <field name="model">generate.academic</field>
+        <field name="arch" type="xml">
+            <tree string="">
+                <field name="academic_year_id"/>
+                <field name="term_id"/>
+                <field name="intake"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="generate_next_academic_year_view_form" model="ir.ui.view">
+        <field name="name">generate.academic.view.form</field>
+        <field name="model">generate.academic</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <header>
+                    <button string="Move" name="button_move" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'moved')]}"/>
+                    <field name="state" widget="statusbar" clickable="False"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="academic_year_id" attrs="{'readonly':[('state','=','moved')]}"/>
+                            <field name="term_id" attrs="{'readonly':[('state','=','moved')]}"/>
+                            <field name="school_id" attrs="{'readonly':[('state','=','moved')]}" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="program_id" attrs="{'readonly':[('state','=','moved')]}"/>
+                            <field name="intake" attrs="{'readonly':[('state','=','moved')]}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Students">
+                            <field name="student_ids">
+                                <tree editable='bottom' create="0" delete="0">
+                                    <field name="intake_id" invisible="1"/>
+                                    <field name='student_id' required="1" readonly="1" force_save="1"/>
+                                    <field name="failed_intake_id" attrs="{'readonly': [('status', '=', 'pass')], 'required': [('status', '=', 'fail')]}"/>
+                                    <field name="program_id" invisible="1"/>
+                                    <field name="status" required="1"/>
+                                    <button string="View" name="subject_details" type="object" class="oe_highlight" attrs="{'invisible': [('status', '=', 'pass')]}"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_generate_next_academic_year" model="ir.actions.act_window">
+        <field name="name">Generate Next Academic Year</field>
+        <field name="res_model">generate.academic</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id='school.menu_academic_year_form' model="ir.ui.menu">
+        <field name="equip_icon_class">o-hm-v2-sub-school-academic-year</field>
+    </record>
+
+    <menuitem id="movement_management" name="Movement Management" parent="school.menu_ems" sequence="12" groups="base.group_user" />
+
+    <record id='movement_management' model="ir.ui.menu">
+        <field name="equip_icon_class">o-hm-sidebar-main-events-events</field>
+    </record>
+    
+    <menuitem id="menu_generate_next_academic_year_form"
+              name="Generate Next Academic Year"
+              parent="movement_management"
+              action="action_generate_next_academic_year"
+              sequence="10"/>
+    </data>
+</odoo>

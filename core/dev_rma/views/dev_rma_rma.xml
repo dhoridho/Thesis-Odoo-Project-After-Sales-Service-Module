@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2015 DevIntelle Consulting Service Pvt.Ltd (<http://www.devintellecs.com>).
+
+For Module Support : devintelle@gmail.com  or Skype : devintelle 
+ -->
+<odoo>
+    <record id="view_dev_rma_rma_form" model="ir.ui.view">
+        <field name="name">view.dev.rma.rma.form</field>
+        <field name="model">dev.rma.rma</field>
+        <field name="arch" type="xml">
+            <form string="RMA">
+                 <header>
+                    <button name="action_confirm" string='Confirm RMA' type="object" states='draft' class="btn-primary" />
+<!--                    <button name='action_draft' string='Set to Draft' type="object" states='confirm' />-->
+                    <button name='action_process' string='Process RMA' type="object" states='confirm' class="btn-primary" />
+                    <button name='%(dev_rma.action_reject_rma_reason)d' string='Reject RMA' type="action" states='confirm' class="btn-primary" />
+                    <button name='action_close' string='Close RMA' type="object" states='process' class="btn-primary" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm,process,close"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <field name="incoming_id" invisible="1"/>
+                        <field name="delivery_id" invisible="1"/>
+                        <field name="new_sale_id" invisible="1"/>
+                        <field name="invoice_id" invisible="1"/>
+                        <button name="action_view_shipment" type="object" class="oe_stat_button" icon="o-hm-smart-all-receipt" attrs="{'invisible': [('incoming_id', '=', False)]}">
+                            Receipt
+                        </button>
+                        <button name="action_view_delivery" type="object" class="oe_stat_button" icon="o-hm-smart-all-on-time" attrs="{'invisible': [('delivery_id', '=', False)]}">
+                            Delivery Order
+                        </button>
+                        <button name="action_view_sale_order" type="object" class="oe_stat_button" icon="fa-usd" attrs="{'invisible': [('new_sale_id', '=', False)]}">
+                            Sale Order
+                        </button>
+                        
+                        <button name="action_view_invoice" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': [('invoice_id', '=', False)]}">
+                            Credit Note
+                        </button>
+                        
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="subject" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </h1>
+                        <h3>
+                            <field name="name" readonly="1"/>
+                        </h3>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sale_id" domain="[('picking_ids', '!=', False), ('is_process_rma','!=',True),('company_id','=',company_id)]" options="{'no_quick_create': True, 'no_create_edit' : True}" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="picking_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="picking_id" domain="[('id','in',picking_ids)]" options="{'no_quick_create': True, 'no_create_edit' : True}" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="date" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="deadline_date"/>
+                            <field name="company_id" readonly="1"/>
+                            <field name="user_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="team_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="tags" widget="many2many_tags" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="priority" widget="priority"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="partner_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="email" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="phone" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string='RMA Lines' name="rma_lines">
+                            <field name="rma_lines" attrs="{'readonly':[('state','!=','draft')]}">
+                                <tree editable="bottom" create="false">
+                                    <field name="move_id" invisible="1"/>
+                                    <field name="product_id" force_save="1" readonly="1"/>
+                                    <field name="replace_product_id" string="Replace Product" force_save="1" readonly="1"/>
+                                    <field name="delivered_qty" force_save="1" readonly="1"/>
+                                    <field name="return_qty"/>
+                                    <field name="replace_qty" string="Replace Qty" force_save="1" readonly="1"/>
+                                    <field name="action" required="1"/>
+                                    <button type="action" name="%(dev_rma.action_replace_product)d" icon="fa-cog" attrs="{'invisible':[('action','!=','replace')]}" context="{'default_product_id':product_id,'default_replace_qty':return_qty,'default_replace_product_id':replace_product_id}"/>
+                                </tree>
+                            </field>
+                            <field name="notes"/>
+                        </page>
+                        <page string='Reject Reason' name='reject_reason' attrs="{'invisible':[('reject_reason','=',False)]}">
+                            <br/>
+                            <field name="reject_reason"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+			        <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+			        <field name="message_ids" widget="mail_thread"/>
+			    </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dev_rma_rma_tree" model="ir.ui.view">
+        <field name="name">view.dev.rma.rma.tree</field>
+        <field name="model">dev.rma.rma</field>
+        <field name="arch" type="xml">
+            <tree string="RMA" decoration-danger="is_rma_due">
+                <field name="name"/>
+                <field name="sale_id"/>
+                <field name="picking_id"/>
+                <field name="date"/>
+                <field name="deadline_date"/>
+                <field name="partner_id"/>
+                <field name="email"/>
+                <field name="phone"/>
+                <field name="state" invisible="1"/>
+                <field name="is_rma_due" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="action_dev_rma_rma" model="ir.actions.act_window">
+        <field name="name">RMA</field>
+        <field name="res_model">dev.rma.rma</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+	<!--  Menu Items-->
+    <menuitem name="RMA" id="menu_dev_rma_rma_main" parent="sale.sale_menu_root" sequence="2"/>
+    
+    <menuitem name="RMA" id="manu_dev_rma_rma" parent="menu_dev_rma_rma_main" action="action_dev_rma_rma" sequence="2"/>
+</odoo>

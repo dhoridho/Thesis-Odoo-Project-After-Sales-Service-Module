@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<template id="pos_product_view" xml:space="preserve" inherit_id ="point_of_sale.template">
+	<t t-name="ChromeInherit" t-inherit="point_of_sale.Chrome" t-inherit-mode="extension" owl="1">
+		<xpath expr="//div[hasclass('pos-rightheader')]/div[hasclass('search-bar-portal')]" position="after">
+			<div class="view-bar-portal" />
+		</xpath>
+	</t>
+
+	<t t-name="ProductsWidgetInherit" t-inherit="point_of_sale.ProductsWidget" t-inherit-mode="extension" owl="1">
+		<xpath expr="//div[hasclass('products-widget')]" position="inside">
+			<ProductGridWidget products="productsToDisplay" style="display:none;"/>
+		</xpath>
+	</t>
+
+	<t t-name="ProductsWidgetControlPanelInherit" t-inherit="point_of_sale.ProductsWidgetControlPanel" t-inherit-mode="extension" owl="1">
+		<xpath expr="//div[hasclass('products-widget-control')]" position="inside">
+			<t t-if="env.pos.config.is_product_grid_view">
+				<Portal target="'.pos .view-bar-portal'">
+					<div class="product_view" style="position: absolute;top: 10px;">
+						<span class="btn js-product-list-view" style="cursor:pointer;" t-on-click="listView()">
+							<i class="fa fa-list" style="font-size: xx-large; margin-right:10px; color:#fff"></i>
+						</span>
+						<span class="btn js-product-grid-view" style="cursor:pointer;" t-on-click="gridView()">
+							<i class="fa fa-th js-product-grid" style="font-size: xx-large; margin-right:120px; color:#fff"></i>
+						</span>
+					</div>
+				</Portal>
+			</t>
+		</xpath>
+	</t>
+	<t t-name="ProductGridWidget" owl="1">
+		<div class='product-list-grid-container scrollable-y product-list-container product-list'>
+			<table class="product-tree">
+				<thead>
+					<tr>
+						<th>Image</th>
+						<th>Name</th>
+						<th>Code</th>
+						<th>UoM</th>
+						<th>Sale Price</th>
+						<th>Cost</th>
+					</tr>
+				</thead>
+				<tbody class=''>
+					<t t-if="props.products.length != 0" class="">
+						<t t-foreach="props.products" t-as="product" t-key="product.id">
+							<ProductListLine product="product" />
+						</t>
+					</t>
+				</tbody>
+		   </table>
+		</div>
+	</t>
+	<t t-name="ProductListLine" owl="1">
+		<tr class='client-line' t-on-click="trigger('click-product', props.product)" t-att-data-product-id="props.product.id" tabindex="0" t-attf-aria-labelledby="article_product_#{props.product.id}">
+			<td class="product-img">
+				<img t-att-src='imageUrl' height='30px'/>
+			</td>
+			<td class="product-name text-left">
+				<t t-esc="props.product.display_name"/>
+			</td>
+			<td class="text-left">
+				<t t-if="props.product.default_code != ' '">
+					<t t-esc="props.product.default_code"/>
+				</t>
+				<t t-else="">
+					<span>N/A</span>
+				</t>
+			</td>
+			<td class="text-left">
+				<t t-esc="env.pos.units_by_id[props.product.uom_id[0]].name"/>
+			</td>
+			<td class="text-right">
+				<span class="price-tag text-right">
+					<t t-esc="env.pos.format_currency(props.product.lst_price,'Product Price')"/>
+				</span>
+			</td>
+			<td class="text-center">
+				<t t-esc="env.pos.format_currency(props.product.standard_price,'Product Price')"/>
+			</td>
+		</tr>
+	</t>   
+</template>

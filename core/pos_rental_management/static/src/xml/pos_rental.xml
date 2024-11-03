@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<templates id="template" xml:space="preserve">
+
+    <t t-name="ProductItem" t-inherit="point_of_sale.ProductItem" t-inherit-mode="extension" owl="1">
+        <xpath expr="//span[hasclass('price-tag')]" position="replace">
+            <t t-if="props.product.available_for_rent">
+                <span class="price-tag" style="font-size: 12px;background: #156abfbf;color: khaki;font-family: 'Roboto';font-style: italic;font-weight: 500;">
+                    <span >Available For Rent</span>
+                </span>
+            </t>
+            <t t-else="">
+                <span class="price-tag">
+                    <t t-esc="price" />
+                </span>
+            </t>
+        </xpath>
+    </t>
+
+    <t t-name="PaymentScreen" t-inherit="point_of_sale.PaymentScreen" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('payment-buttons')]" position="inside">
+            <t t-if="env.pos.config.partial_payment">
+                <div class="invoice-description-area">
+                    <textarea id="partial_payment_description" t-on-focus="focus_in_description" t-on-blur="focus_out_description" t-on-keyup="keyup_description" placeholder="Invoice Remark" cols="" rows="" class="partial-payment-remark"></textarea>
+                </div>
+            </t>
+        </xpath>
+    </t>
+
+    <t t-name="TextWarningPopUp" owl="1">
+        <div class="modal-dialog">
+            <div class="popup popup-textinput" style="height: 203px !important;width: 580px !important;margin-top: 188px;">
+                <p class="title">
+                    <t t-esc=" props.title || 'Confirm ?' " />
+                </p>
+                <p class="body">
+                    <t t-esc="  props.body || '' "/>
+                </p>
+                <div class="footer">
+                    <div class="button cancel" t-on-click="confirm">
+                        OK
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="Orderline" t-inherit="point_of_sale.Orderline" t-inherit-mode="extension" owl="1">
+        <xpath expr='//ul[hasclass("info-list")]' position='inside'>
+            <div style="display:flex;flex-wrap:wrap;width:100%;">
+                <t t-if="props.line.is_rental_product">
+                    <div class="wk_question_on_orderline" t-on-click="open_rental_popup(props.line)" style='font-weight:bold;'>
+                        <i t-att-data-id="props.line.cid" class="fa fa-info-circle wkorderline" style="font-size:20px"></i>
+                    </div>
+                </t>
+                <t t-if="props.line.selected_tenure_string">
+                    <t t-foreach="props.line.selected_tenure_string.split(',')" t-as='tenure_string' t-key="tenure_string">
+                        <div class="pos-receipt-left-padding" style="padding:0 7px;width:fit-content;color:white;font-weight:bold;background: #6EC89B;border-radius: 13px 13px;">
+                            <t t-esc="tenure_string"/>
+                        </div>
+                    </t>
+                </t>
+                <t t-if="props.line.related_product_name">
+                    <div class="pos-receipt-left-padding" style="padding:0 7px;width:fit-content;color:white;font-weight:bold;background: #6EC89B;border-radius: 13px 13px;">
+                        <t t-esc="props.line.related_product_name"/>
+                    </div>
+                </t>
+
+            </div>
+        </xpath>
+    </t>
+
+    <t t-name="WrappedProductNameLines" t-inherit="point_of_sale.WrappedProductNameLines" t-inherit-mode="extension" owl="1">
+        <xpath expr="span" position="inside">
+            <t t-if="props.line.related_product_name">
+                <div class="pos-receipt-left-padding" style="font-style:italic;font-size:12px;">
+                    <t t-esc="props.line.related_product_name"/>
+                </div>
+            </t>
+            <t t-if="props.line.selected_tenure_string">
+                <t t-foreach="props.line.selected_tenure_string.split(',')" t-as='tenure_string' t-key="tenure_string">
+                    <div class="pos-receipt-left-padding" style="font-style:italic;font-size:12px;">
+                        <t t-esc="tenure_string"/>
+                    </div>
+                </t>
+            </t>
+        </xpath>
+    </t>
+
+</templates>

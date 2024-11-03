@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="vendor_deposite_inherit_view_form_new" model="ir.ui.view">
+        <field name="name">vendor.deposit.inherit.view.form</field>
+        <field name="model">vendor.deposit</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <form string="Cash Advance">
+                <header>
+                    <button string="Pay Cash Advance" name="action_pay_cash_advance" type="object" class="oe_highlight" states="draft"/>
+                    <button string="Convert to Expense" name="action_convert_expense" type="object" class="oe_highlight" states="post"/>
+                    <button string="Return Cash Advance" class="oe_highlight" states="post" type="action" name="%(equip3_accounting_cash_advance.action_account_cash_advance_return_deposit)d"/>
+                    <button string="Cancel" name="action_cancel_cash_advance" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('is_show_cancel', '=', False), ('state', 'in', ('draft', 'cancelled'))]}" groups="equip3_accounting_accessright_setting.group_cash_advance_manager"/>
+                    <button string="Set to Draft" name="action_set_draft" type="object" class="oe_highlight" states="canceled"/>
+                    <field name="is_show_cancel" invisible="1"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,post,returned,converted,cancelled"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="is_cash_advance" invisible="1"/>
+                            <field name="employee_id" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="amount" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="remaining_amount" readonly="1" force_save="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="communication" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="move_id" readonly="1" force_save="1" attrs="{'readonly': [('state', '!=', 'draft')]}" groups="equip3_accounting_accessright_setting.group_cash_advance_manager"/>
+                            <field name="return_cash_advance_ids" widget="many2many_tags" string="Return Cash Advance" readonly="1" force_save="1" groups="equip3_accounting_accessright_setting.group_cash_advance_manager"/>
+                            <field name="create_uid" string="Created By" readonly="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="create_date" string="Created Date" readonly="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="payment_date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="deposit_reconcile_journal_id" attrs="{'readonly': [('state', '!=', 'draft')]}"  string="Reconcile Journal" readonly="1" force_save="1" required="0" groups="equip3_accounting_accessright_setting.group_cash_advance_manager"/>
+                            <field name="journal_id"  attrs="{'readonly': [('state', '!=', 'draft')]}" required="0" groups="equip3_accounting_accessright_setting.group_cash_advance_manager"/>
+                            <field name="filter_deposit_account_ids" invisible="1"/>
+                            <field name="deposit_account_id"  attrs="{'readonly': [('state', '!=', 'draft')]}" string="Cash Advance Account" domain="[('id', 'in', filter_deposit_account_ids)]" required="0" force_save="1" readonly="1" groups="equip3_accounting_accessright_setting.group_cash_advance_manager"/>
+                            <field name="currency_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="company_id" readonly="1" force_save="1"/>
+                            <field name="filter_branch_ids" invisible="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="branch_id" domain="[('id', 'in', filter_branch_ids)]" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="vendor_deposite_view_form" model="ir.ui.view">
+        <field name="name">vendor.deposit.inherit.view.form</field>
+        <field name="model">vendor.deposit</field>
+        <field name="inherit_id" ref="equip3_accounting_deposit.vendor_deposite_view_form"/>
+        <field name="arch" type="xml"> 
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="vendor_deposite_convert_revenue_wizard_form" model="ir.ui.view">
+        <field name="name">vendor.deposit.convert.revenue.wizard.inherit.view.form</field>
+        <field name="model">convert.revenue</field>
+        <field name="inherit_id" ref="equip3_accounting_deposit.view_convert_to_revenue"/>
+        <field name="arch" type="xml"> 
+            <xpath expr="//field[@name='revenue_account_id']" position="attributes">
+                <attribute name="required">0</attribute>
+                <attribute name="attrs">{'invisible': [('deposit_type', 'not in', ('customer_deposit', 'vendor_deposit'))], 'required': [('deposit_type', 'in', ('customer_deposit', 'vendor_deposit'))]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='revenue_account_id']" position="before">
+                <field name="expenses_account_id" attrs="{'invisible': [('deposit_type', 'in', ('customer_deposit', 'vendor_deposit'))], 'required': [('deposit_type', '=', 'cash_expense')]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="vendor_deposite_inherit_view_tree" model="ir.ui.view">
+        <field name="name">vendor.deposit.inherit.view.tree</field>
+        <field name="model">vendor.deposit</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="communication"/>
+                <field name="employee_id" />
+                <field name="payment_date" string="Date"/>
+                <field name="amount"/>
+                <field name="state" optional="show" widget="badge" decoration-success="state == 'post'"
+                    decoration-primary="state =='cleared'" decoration-warning2="state == 'converted'" 
+                    decoration-muted="state == 'draft'" decoration-danger3="state == 'canceled'"
+                    decoration-danger="state == 'rejected'" decoration-warning3="state == 'to_approve'"/>
+
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_account_cash_advance" model="ir.actions.act_window">
+        <field name="name">Cash Advance</field>
+        <field name="res_model">vendor.deposit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'default_is_cash_advance': True}</field>
+        <field name="domain">[('is_cash_advance', '=', True)]</field>
+        <field name="help" type="html">
+            <p>Create a new Cash Advance</p>
+        </field>
+    </record>
+
+    <record id="equip3_accounting_deposit.action_vendor_deposit" model="ir.actions.act_window">
+        <field name="domain">[('is_cash_advance', '=', False)]</field>
+    </record>
+
+    <record id="action_cash_advance_tree_view2" model="ir.actions.act_window.view">
+        <field eval="1" name="sequence"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="equip3_accounting_cash_advance.vendor_deposite_inherit_view_tree"/>
+        <field name="act_window_id" ref="action_account_cash_advance"/>
+    </record>
+
+    <record id="action_cash_advance_form_view2" model="ir.actions.act_window.view">
+        <field eval="2" name="sequence"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="equip3_accounting_cash_advance.vendor_deposite_inherit_view_form_new"/>
+        <field name="act_window_id" ref="action_account_cash_advance"/>
+    </record> 
+
+    <record id="action_account_cash_advance_config" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module' : 'cash_advanced', 'bin_size': False}</field>
+    </record>
+
+    <menuitem
+        id="menu_action_cash_advance"
+        name="Cash Advance"
+        web_icon="equip3_accounting_cash_advance,static/description/cash-advance.png"
+        sequence="40"
+        />
+
+    <menuitem
+        name="Cash Advance"
+        id="menu_action_cash_advance_vendor"
+        action="action_account_cash_advance"
+        parent="menu_action_cash_advance"
+        groups = "equip3_accounting_accessright_setting.group_cash_advance_user,equip3_accounting_accessright_setting.group_cash_advance_manager"
+        sequence="1"
+        />
+
+    <menuitem
+        name="Configuration"
+        id="menu_action_cash_advance_configuration"
+        parent="menu_action_cash_advance"
+        groups = "equip3_accounting_accessright_setting.group_cash_advance_manager"
+        sequence="2"
+        />
+
+    <menuitem
+        name="Settings"
+        id="menu_action_cash_advance_settings"
+        parent="menu_action_cash_advance_configuration"
+        groups = "equip3_accounting_accessright_setting.group_cash_advance_manager"
+        action="action_account_cash_advance_config"
+        sequence="1"
+        />
+
+</odoo>

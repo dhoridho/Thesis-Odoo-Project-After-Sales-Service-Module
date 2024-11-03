@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<odoo>
+    <!-- <record id="product_bundle_kanban_view" model="ir.ui.view">
+        <field name="name">Product.template.product.kanban</field>
+        <field name="model">product.template</field>
+        <field name="priority" eval="500"/>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="id"/>
+                <field name="product_variant_count"/>
+                <field name="currency_id"/>
+                <field name="activity_state"/>
+                <field name="bi_pack_ids"/>
+                <progressbar field="activity_state" colors='{"planned": "success", "today": "warning", "overdue": "danger"}'/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_vignette oe_semantic_html_override">
+                            <div class="d-flex">
+                                <div class="img_class pull-left">
+                                    <a type="open">
+                                        <img alt="product_id.name" t-att-src="kanban_image('product.template', 'image_128', record.id.value)" class="oe_avatar" style="width: 128px; height: 128px;"/>
+                                    </a>
+                                </div>
+                                <div class="details" style="margin-left: 40px;">
+                                    <span>Sale Price</span>
+                                    <field name="list_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <br/>
+                                    <span>Bundling Cost</span>
+                                    <field name="bundling_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <br/>
+                                    <span>On-hands unit</span>
+                                    <field name="bundling_qty"/>
+                                    <field name="uom_id"/>
+                                </div>
+                            </div>
+                            <div class="ml-3 oe_kanban_details">
+                                <h4>
+                                    <a type="open">
+                                        <field name="name"/>
+                                    </a>
+                                </h4>
+                                <div name="tags"/>
+                            </div>
+                            <div class="ml-3 mt-2">
+                                <t t-set="no" t-value="0"/>
+                                <t t-foreach="record.bi_pack_ids.raw_value" t-as="o">
+                                    <t t-set="no" t-value="no+1"/>
+                                    <t t-if="no &#60;= 3">
+                                        <span t-esc="o.product_id and o.product_id[1] or ''"/>
+                                        <span style="margin-left:20px;" t-esc="o.qty_uom"/>
+                                        <br/>
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record> -->
+
+    <record id="product_bundle_product_form_view_page" model="ir.ui.view">
+        <field name="name">product.template.pack</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="dynamic_product_bundle.product_bundle_product_form_view_page" />
+        <field name="arch" type="xml">
+            <!-- <xpath expr="//field[@name='bi_pack_ids']//tree//field[@name='bi_image']" position="after">
+                <field name='bundling_qty' invisible="1"/>
+            </xpath> -->
+            <xpath expr="//field[@name='bi_pack_ids']//tree//field[@name='product_id']" position="after">
+                <field name="product_template"/>
+                <field name="domain_product_template" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='bi_pack_ids']//tree//field[@name='product_template']" position="attributes">
+                <attribute name="domain">domain_product_template</attribute> 
+            </xpath>
+            <xpath expr="//field[@name='bi_pack_ids']//tree//field[@name='qty_uom']" position="after">
+                <field name="proportion"/>
+            </xpath>
+            <xpath expr="//field[@name='bi_pack_ids']//tree//field[@name='product_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="inv_product_bundle_action" model="ir.actions.act_window">
+        <field name="name">Product Bundling</field>
+        <field name="res_model">product.template</field>
+        <field name="domain">[('is_pack', '=', True)]</field>
+        <field name="context">{'default_is_pack':True}</field>
+        <field name="binding_view_types">form</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="stock.product_template_kanban_stock_view"/>
+    </record>
+
+    <menuitem id="menu_product_bundle_inv" 
+              name="Product Bundle" 
+              action="inv_product_bundle_action" 
+              parent="equip3_inventory_operation.menu_product_in_inventory_control" 
+              sequence="3"/>
+
+
+</odoo>

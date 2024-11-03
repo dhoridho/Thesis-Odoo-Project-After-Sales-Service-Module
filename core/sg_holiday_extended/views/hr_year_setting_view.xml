@@ -1,0 +1,121 @@
+<odoo>
+
+    <!-- HR Year -->
+    <record id="view_hr_year_form" model="ir.ui.view">
+        <field name="name">hr.year.form</field>
+        <field name="model">hr.year</field>
+        <field name="arch" type='xml'>
+            <form string="HR year">
+                <header>
+                    <button name="create_period" states="draft" string="Create Monthly Periods" type="object" class="oe_highlight"/>
+                    <button name="close_period" states="draft,open" string="Close Periods" type="object" class="oe_highlight" groups="hr.group_hr_manager"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,open" nolabel="1" />
+                </header>
+                <group>
+                    <group>
+                        <field name="name" attrs="{'readonly':[('state','=','done')]}"/>
+                        <field name="code" attrs="{'readonly':[('state','=','done')]}"/>
+                    </group>
+                    <group>
+                        <field name="date_start" attrs="{'readonly':[('state','=','done')]}"/>
+                        <field name="date_stop" attrs="{'readonly':[('state','=','done')]}"/>
+                    </group>
+                </group>
+                <field colspan="4" name="period_ids" nolabel="1" widget="one2many_list" readonly="1">
+                    <form string="Period">
+                        <group col="4">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="date_start"/>
+                            <field name="date_stop"/>
+                            <field name="state" invisible="1"/>
+                        </group>
+                    </form>
+                </field>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_year_tree" model="ir.ui.view">
+        <field name="name">hr.year.tree</field>
+        <field name="model">hr.year</field>
+        <field name="arch" type="xml">
+            <tree string="HR Year">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_hr_year_configuration" model="ir.actions.act_window">
+        <field name="name">HR Years</field>
+        <field name="res_model">hr.year</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="action_hr_year_configuration_menu" name="HR Years" groups="hr.group_hr_manager"
+        parent="hr_holidays.menu_hr_holidays_configuration" action="action_hr_year_configuration" sequence="1"/>
+
+    <!-- HR period -->
+    <record id="view_hr_period_form" model="ir.ui.view">
+        <field name="name">hr.period.form</field>
+        <field name="model">hr.period</field>
+        <field name="arch" type="xml">
+            <form string="HR Period">
+                <header>
+                    <field name="state" widget="statusbar" nolabel="1" />
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="hr_year_id" widget="selection"/>
+                            <label for="date_start" string="Duration"/>
+                            <div>
+                                <field name="date_start" class="oe_inline" nolabel="1"/> -
+                                <field name="date_stop" nolabel="1" class="oe_inline"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="code"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_period_tree" model="ir.ui.view">
+        <field name="name">hr.period.tree</field>
+        <field name="model">hr.period</field>
+        <field name="arch" type="xml">
+          <tree string="Period">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="date_start"/>
+                <field name="date_stop"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hr_period_search" model="ir.ui.view">
+        <field name="name">hr.period.search</field>
+        <field name="model">hr.period</field>
+        <field name="arch" type="xml">
+            <search string="Search Period">
+                <field name="state"/>
+                <field name="name" filter_domain="['|', ('name','ilike',self), ('code','ilike',self)]" string="Period"/>
+                <filter string="To Close" name="draft" domain="[('state','=','draft')]" />
+            </search>
+        </field>
+    </record>
+
+    <record id="action_hr_period_configuration" model="ir.actions.act_window">
+        <field name="name">HR period</field>
+        <field name="res_model">hr.period</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

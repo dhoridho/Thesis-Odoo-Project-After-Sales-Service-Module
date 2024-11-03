@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sh_mrp_production_workorder_tree_views" model="ir.ui.view">
+        <field name="name">mrp.production.work.order.tree</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workorder_tree_editable_view" />
+        <field name="arch" type="xml">
+            <field name="consumption" position="after">
+                <field name="is_mandatory" invisible="1" />
+                <field name="qc_pass" invisible="1" />
+            </field>
+            <xpath expr="//tree/button[@name='button_finish']" position="replace">
+                <button name="button_finish" type="object" string="Done" class="btn-success" attrs="{'invisible': ['|', '|', '|',('production_state', 'in', ('draft', 'done')), ('working_state', '=', 'blocked'), ('is_user_working', '=', False), '&amp;',('qc_pass','=',False),('is_mandatory','=',True)]}" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sh_mrp_workorder_tree_inherit" model="ir.ui.view">
+        <field name="name">mrp.workorder.tree.view.inherit</field>
+        <field name="model">mrp.workorder</field>
+        <field name="type">tree</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workorder_tree_view" />
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="need_qc" invisible="1" />
+                <field name="qc_fail" invisible="1" />
+                <field name="qc_pass" invisible="1" />
+                <field name="pending_qc" invisible="1" />
+                <field name="is_mandatory" invisible="1" />
+            </field>
+        </field>
+    </record>
+
+    <record id="sh_mrp_work_order_inherit" model="ir.ui.view">
+        <field name="name">mrp.production.form.view.inherit</field>
+        <field name="model">mrp.workorder</field>
+        <field name="type">tree</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workorder_form_view_inherit" />
+        <field name="arch" type="xml">
+            <xpath expr="/form/header/field[@name='state']" position="before">
+                <button name="workorder_quality_point" type="object" string="Quality Checks" class="oe_highlight" attrs="{'invisible':[('need_qc', '=', False)]}" groups="sh_inventory_mrp_qc.sh_quality_control_user" />
+                <button name="action_quality_alert" type="object" string="Quality Alerts" class="oe_highlight" attrs="{'invisible':[('need_qc', '=', False)]}" groups="sh_inventory_mrp_qc.sh_quality_control_user" />
+            </xpath>
+
+            <xpath expr="//form/div[@name='button_box']" position="inside">
+                <button name="open_quality_check" class="oe_stat_button" icon="fa-check" type="object" attrs="{'invisible':[('need_qc', '=', False)]}" groups="sh_inventory_mrp_qc.sh_quality_control_user">
+                    <field name="qc_count" widget="statinfo" string="Quality Checks" />
+                </button>
+
+                <button name="open_quality_alert" class="oe_stat_button" icon="fa-warning" type="object" attrs="{'invisible':[('need_qc', '=', False)]}" groups="sh_inventory_mrp_qc.sh_quality_control_user">
+                    <field name="qc_alert_count" widget="statinfo" string="Quality Alerts" />
+                </button>
+            </xpath>
+
+            <xpath expr="//form/div[@name='button_box']" position="after">
+                <div class="alert alert-info text-center o_form_header" attrs="{'invisible': ['|','|',('qc_fail','=',True),('qc_pass','=',True),('need_qc', '=', False)]}" role="alert">
+                    <div>
+                        <strong>Product(s) Quality Control Still Pending.</strong>
+                    </div>
+                </div>
+                <div class="alert alert-info text-center o_form_header" style="background: #efd9d9; color: maroon; border: 1px solid #e9b4b4;" attrs="{'invisible': [('qc_fail','=',False)]}" role="alert">
+                    <div>
+                        <strong>Product(s) Quality Control Failed.</strong>
+                    </div>
+                </div>
+                <div class="alert alert-info text-center o_form_header" style="background: #dceddd; color: green; border: 1px solid #b4efb9;" attrs="{'invisible': [('qc_pass','=',False)]}" role="alert">
+                    <div>
+                        <strong>Product(s) Quality Control Successfully Passed</strong>
+                    </div>
+                </div>
+            </xpath>
+
+            <xpath expr="//group/group" position="inside">
+                <field name="need_qc" invisible="1" />
+                <field name="qc_fail" invisible="1" />
+                <field name="qc_pass" invisible="1" />
+                <field name="pending_qc" invisible="1" />
+                <field name="is_mandatory" invisible="1" />
+                <field name="sh_workorder_quality_point_id" invisible="1" />
+            </xpath>
+
+            <xpath expr="//notebook//page[1]" position="after">
+                <page string="Quality Checks" groups="sh_inventory_mrp_qc.sh_quality_control_user" attrs="{'invisible':[('need_qc', '=', False)]}">
+                    <field name="sh_mrp_workorder_quality_check_ids">
+                        <tree decoration-danger="state == 'fail'" decoration-success="state == 'pass'">
+                            <field name="product_id" required="1" />
+                            <field name="sh_date" required="1" />
+                            <field name="sh_control_point" required="1" />
+                            <field name="control_point_id" required="1" />
+                            <field name="qc_type" required="1" />
+                            <field name="state" />
+                            <field name="text_message" attrs="{'invisible':[('qc_type','!=','type4')]}" />
+                            <field name="sh_norm" attrs="{'invisible':[('qc_type','!=','type2')]}" />
+                            <field name="company_id" groups="base.group_multi_company" />
+                        </tree>
+                    </field>
+                    <group>
+                        <group>
+                            <lable for="attachment_ids" />
+                            <field name="attachment_ids" widget="many2many_binary" />
+                        </group>
+                    </group>
+                </page>
+                <page string="Quality Alerts" groups="sh_inventory_mrp_qc.sh_quality_control_user" attrs="{'invisible':[('need_qc', '=', False)]}">
+                    <field name="sh_mrp_workorder_quality_alert_ids" />
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <div t-name="MPSReplenishAction" class="o_action o_mps_replenish_action">
+        <div class="o_content"/>
+    </div>
+
+    <t t-name="equip3_mrp_mps_replenish_wizard">
+        <div class="o_mrp_mps_wizard">
+            <t t-set="periods" t-value="widget.periods"/>
+            <t t-set="state" t-value="widget.state"/>
+            <t t-set="formatFloat" t-value="widget.formatFloat"/>
+            <div class="o_mps_replenish_controller">
+                <button type="button" class='btn btn-primary o_mrp_mps_produce mb-3'>Create Production Draft</button>
+                <button type="button" class='btn btn-primary o_mrp_mps_request mb-3'>Submit Material Request</button>
+
+                <div class="mb-3 o_mrp_mps_replenish_options">
+                    <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="replenishOptions" id="manufacturing_plan" checked="checked"/>
+                    <label class="form-check-label" for="manufacturing_plan">Production Plan</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="replenishOptions" id="manufacturing_order"/>
+                    <label class="form-check-label" for="manufacturing_order">Production Order</label>
+                    </div>
+                </div>
+            </div>
+            <div class="text-nowrap mr0 ml0">
+                <table class="table o_mps_product_table_replenish">
+                    <thead class="thead-light">
+                        <tr>
+                            <th/>
+                            <th class="text-right pr-4" scope="col" t-foreach="periods" t-as="period">
+                                <div><t t-esc="period"/></div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <t t-call="equip3_mrp_mps_production_replenish"/>
+                </table>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="equip3_mrp_mps_production_replenish">
+        <t t-foreach="state" t-as="productionSchedule">
+            <tbody class="o_mps_content_replenish" t-att-data-id="productionSchedule.id" t-att-data-warehouse_id="'warehouse_id' in productionSchedule and productionSchedule.warehouse_id[0]">
+                <tr class="bg-light">
+                    <th scope="col">
+                        <a href="#" class="o_mrp_mps_record_url" t-att-data-res-id="productionSchedule.product_id[0]" t-att-data-model="'product.product'"><t t-esc="productionSchedule.product_id[1]"/></a>
+                        <span t-if="'product_uom_id' in productionSchedule" class="text-muted">(<t t-esc="productionSchedule.product_uom_id[1]"/>)
+                        - <select class="o_mps_select_inline" name="selected_bom" t-att-data-mps_id="productionSchedule.id">
+                            <t t-foreach="productionSchedule.bom_ids" t-as="bom">
+                                <t t-if="bom[0] == productionSchedule.bom_id[0]">
+                                    <option t-att-value="bom[0]" selected="selected"><span t-esc="bom[1]"/></option>
+                                </t>
+                                <t t-else="">
+                                    <option t-att-value="bom[0]"><span t-esc="bom[1]"/></option>
+                                </t>
+                            </t>
+                        </select></span>
+                    </th>
+                </tr>
+                <tr name="to_produce">
+                    <th scope="row">
+                        <span data-toggle="tooltip" data-placement="bottom" title="To Produce.">To Produce</span>
+                    </th>
+                    <t t-foreach="productionSchedule.forecast_ids" t-as="forecast">
+                        <th t-attf-class="text-right pr-4">
+                            <div class="d-flex">
+                                <button t-attf-class="btn btn-sm btn-primary o_5_line_height o_mrp_mps_reset {{ ! forecast.to_replenish_edited and 'o_hidden' or 'mr-2'}}"
+                                        t-att-data-forecast_id="forecast.forecast_at_date_id"
+                                        t-att-data-to_replenish_edited="forecast.to_replenish_edited"
+                                        t-att-data-reset="'to_replenish'">Reset</button>
+                                <input type="text"
+                                       t-att-data-field="'to_replenish'"
+                                       t-att-data-date_index="forecast_index"
+                                       t-attf-class="text-right form-control o_mrp_mps_input_to_replenish o_mps_input_inline"
+                                       t-att-value="formatFloat(forecast.to_replenish_qty, false, {'digits': [false, productionSchedule.precision_digits]})"/>
+                            </div>
+                        </th>
+                    </t>
+                </tr>
+                <tr name="scheduled_date">
+                    <th scope="row">
+                        <span data-toggle="tooltip" data-placement="bottom" title="Suggested Date.">Suggested Date</span>
+                    </th>
+                    <t t-foreach="productionSchedule.forecast_ids" t-as="forecast">
+                        <th t-attf-class="text-right pr-4">
+                            <div class="d-flex">
+                                <button t-attf-class="btn btn-sm btn-primary o_5_line_height o_mrp_mps_reset {{ ! forecast.scheduled_date_edited and 'o_hidden' or 'mr-2'}}"
+                                        t-att-data-forecast_id="forecast.forecast_at_date_id"
+                                        t-att-data-scheduled_date_edited="forecast.scheduled_date_edited"
+                                        t-att-data-reset="'scheduled_date'">Reset</button>
+                                <input type="datetime-local"
+                                       t-att-data-field="'scheduled_date'"
+                                       t-att-data-date_index="forecast_index"
+                                       t-attf-class="text-right form-control o_mrp_mps_input_scheduled_date"
+                                       t-att-value="forecast.scheduled_date"/>
+                            </div>
+                        </th>
+                    </t>
+                </tr>
+                <tr name="estimated_date">
+                    <th scope="row">
+                        <span data-toggle="tooltip" data-placement="bottom" title="Estimated Date.">Estimated Date</span>
+                    </th>
+                    <t t-foreach="productionSchedule.forecast_ids" t-as="forecast">
+                        <th t-attf-class="text-right pr-4">
+                            <div class="d-flex">
+                                <input type="datetime-local"
+                                       t-att-data-field="'estimated_date'"
+                                       t-att-data-date_index="forecast_index"
+                                       t-attf-class="text-right form-control o_mrp_mps_input_estimated_date"
+                                       t-att-value="forecast.estimated_date"
+                                       readonly="readonly"/>
+                            </div>
+                        </th>
+                    </t>
+                </tr>
+                <!-- material rows -->
+                <t t-if="productionSchedule.bom_materials">
+                    <t t-foreach="productionSchedule.bom_materials" t-as="dm">
+                        <t t-foreach="dm" t-as="d">
+                            <t t-foreach="dm[d]" t-as="mat">
+                                <tr name="materials" t-if="d == productionSchedule.bom_id[0]">
+                                    <th scope="row">
+                                        <span data-toggle="tooltip" data-placement="bottom" title="Material Name">
+                                            <t t-esc="mat[0]"/>
+                                            <span t-if="'product_uom_id' in productionSchedule">(<t t-esc="productionSchedule.product_uom_id[1]"/>)</span>
+                                        </span>
+                                    </th>
+                                    <t t-foreach="productionSchedule.forecast_ids" t-as="forecast">
+                                        <th t-attf-class="pr-4">
+                                            <div class='main_qty' style='display:none;'>
+                                                <t t-esc="mat[1]"/>
+                                            </div>
+                                            <div class="text-right">
+                                                <t t-if="forecast.to_replenish_qty">
+                                                    <t t-set="mat_qty" t-value="mat[1] * forecast.to_replenish_qty"/>
+                                                    <span>
+                                                        <t t-esc="formatFloat(mat_qty, false, {'digits': [false, 2]})"/>
+                                                    </span>
+                                                </t>
+                                                <t t-else="">
+                                                        <span>0.00</span>
+                                                </t>
+                                            </div>
+                                        </th>
+                                    </t>
+                                </tr>
+                            </t>
+                        </t>
+                    </t>
+                </t>
+            </tbody>
+        </t>
+    </t>
+</templates>

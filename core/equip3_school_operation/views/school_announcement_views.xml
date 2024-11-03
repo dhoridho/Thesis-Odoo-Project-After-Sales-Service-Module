@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="general_announcement_seq" model="ir.sequence">
+            <field name="name">Announcement</field>
+            <field name="code">school.announcement.general</field>
+            <field name="prefix">GA</field>
+            <field eval="4" name="padding"/>
+        </record>
+
+        <record id="announcement_seq" model="ir.sequence">
+            <field name="name">Announcement</field>
+            <field name="code">school.announcement</field>
+            <field name="prefix">AN</field>
+            <field eval="4" name="padding"/>
+        </record>
+
+        <record id="view_school_announcement_form" model="ir.ui.view">
+            <field name="name">school.announcement.form</field>
+            <field name="model">school.announcement</field>
+            <field name="arch" type="xml">
+                <form string="Announcements">
+                    <header>
+                        <button string="Submit" class="btn-primary" type="object" name="submit" attrs="{'invisible': [('state','not in',('draft'))]}"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,submitted"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1>
+                                <field name="name" class="oe_inline" readonly="1"/>
+                            </h1>
+                            <div name="options_active">
+                                <div>
+                                    <label for="is_announcement" class="oe_inline" string="General Announcement "/>
+                                    <field name="is_announcement" class="oe_inline oe_input_align"
+                                           attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                </div>
+                            </div>
+                        </div>
+                        <group>
+                            <label for="announcement_reason"/>
+                            <div>
+                                <field name="announcement_reason"/>
+                            </div>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="date_start" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="announcement_type"
+                                       attrs="{'invisible': [('is_announcement', '!=', False)], 'readonly': [('state', '!=', 'draft')], 'required': [('is_announcement', '=', False)]}"/>
+                                <field name="attachment_id" widget="many2many_binary" class="oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            </group>
+                            <group>
+                                <field name="date_end" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="program_ids" widget="many2many_tags"
+                                       attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', 'not in', ('teacher', 'program', 'intake', 'group_class'))], 
+                                               'readonly': [('state', '!=', 'draft')], 
+                                               'required': [('is_announcement', '=', False), ('announcement_type', 'in', ('teacher', 'program', 'intake', 'group_class'))]}"/>
+                                <!-- <field name="program_id"
+                                       attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', 'not in', ('intake', 'group_class'))], 
+                                               'readonly': [('state', '!=', 'draft')], 
+                                               'required': [('is_announcement', '=', False), ('announcement_type', 'in', ('intake', 'group_class'))]}"/> -->
+                                <field name="intake_ids" widget="many2many_tags"
+                                       attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', 'not in', ('intake', 'group_class'))], 
+                                               'readonly':[('state', '!=', 'draft')], 
+                                               'required': [('is_announcement', '=', False), ('announcement_type', 'in', ('intake', 'group_class'))]}" />
+                                <!-- <field name="intake_id"
+                                       attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', '!=', 'group_class')], 
+                                               'readonly': [('state', '!=', 'draft')], 
+                                               'required': [('is_announcement', '=', False), ('announcement_type', '=', 'group_class')]}"/> -->
+                                <field name="group_class_ids" widget="many2many_tags"
+                                       attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', '!=', 'group_class')], 
+                                               'readonly': [('state', '!=', 'draft')], 
+                                               'required': [('is_announcement', '=', False), ('announcement_type', '=', 'group_class')]}"/>
+                                <div class="o_td_label">
+                                    <label for="is_select_all" string="Select All Teacher" 
+                                           attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', '!=', 'teacher')]}"/>
+                                    <label for="is_select_all" string="Select All Program"
+                                           attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', '!=', 'program')]}"/>
+                                </div>
+                                <field name="is_select_all" nolabel="1"
+                                       attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', 'not in', ('teacher', 'program'))], 
+                                               'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="requested_date" readonly="1"/>
+                                <field name="company_id" options="{'no_create': True}" groups="base.group_multi_company"/>
+                                <field name="email_employee_ids" widget="many2many_tags" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="announcement" string="Letter">
+                                <field name="announcement"/>
+                            </page>
+                            <page name="users" string="Users">
+                                <field name="employee_ids" attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', '!=', 'employee')], 
+                                                                                                    'readonly': [('state', '!=', 'draft')], 
+                                                                                                    'required': [('is_announcement', '=', False), ('announcement_type', '=', 'employee')]}">
+                                    <tree create="false">
+                                        <field name="name"/>
+                                    </tree>
+                                </field>
+                                <field name="teacher_ids" attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', '!=', 'teacher')], 
+                                                                                                    'readonly': [('state', '!=', 'draft')], 
+                                                                                                    'required': [('is_announcement', '=', False), ('announcement_type', '=', 'teacher')]}">
+                                    <tree create="false">
+                                        <field name="name"/>
+                                    </tree>
+                                </field>
+                                <field name="student_ids" attrs="{'invisible': ['|',('is_announcement', '!=', False), ('announcement_type', 'not in', ('program', 'intake', 'group_class'))], 
+                                                                                                    'readonly': [('state', '!=', 'draft')], 
+                                                                                                    'required': [('is_announcement', '=', False), ('announcement_type', 'in', ('program', 'intake', 'group_class'))]}">
+                                    <tree create="false">
+                                        <field name="name"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="page_options" string="Options">
+                                <group>
+                                    <div>
+                                        <group>
+                                            <field name="recurrency" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        </group>
+                                        <div attrs="{'invisible': [('recurrency', '=', False)]}">
+                                            <group>
+                                                <label for="interval"/>
+                                                <div class="o_row">
+                                                    <field name="interval" attrs="{'required': [('recurrency', '=', True)], 'readonly': [('state', '!=', 'draft')]}"/>
+                                                    <field name="rrule_type" attrs="{'required': [('recurrency', '=', True)], 'readonly': [('state', '!=', 'draft')]}"/>
+                                                </div>
+                                                <label string="Number of repetitions" for="count"/>
+                                                <div class="o_row">
+                                                    <field name="count" attrs="{'required': [('recurrency', '=', True)], 'readonly': [('state', '!=', 'draft')]}"/>
+                                                </div>
+                                            </group>
+                                        </div>
+                                    </div>
+                                    <group></group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_school_announcement_tree" model="ir.ui.view">
+            <field name="name">school.announcement.tree</field>
+            <field name="model">school.announcement</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="announcement_reason"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_school_announcement_search" model="ir.ui.view">
+            <field name="name">school.announcement.search</field>
+            <field name="model">school.announcement</field>
+            <field name="arch" type="xml">
+                <search string="Announcements">
+                    <field name="name" string="Name"/>
+                    <field name="is_announcement" string="Is a General Announcement"/>
+                    <field name="announcement_reason" string="Announcement Reason"/>
+                    <field name="state" string="State"/>
+                    <separator/>
+                    <filter name="submitted_rewards" string="Submitted Letters" domain="[('state', '=', 'submitted')]"/>
+                    <filter name="general_announcements" string="General Announcements"
+                            domain="[('is_announcement', '=',True)]"/>
+                    <filter string="Status" name="Status" domain="[]" context="{'group_by':'state'}"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="view_school_announcement_kanban" model="ir.ui.view">
+            <field name="name">school.announcement.kanban</field>
+            <field name="model">school.announcement</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="announcement_reason"/>
+                    <field name="announcement"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <div t-attf-class="o_kanban_card_header">
+                                    <div class="row o_kanban_card_header_title">
+                                        <div class="col-12 o_primary" style="text-align: center;">
+                                            <strong>
+                                                <field name="announcement_reason"/>
+                                                <br/>
+                                                <span><field name="date_start"/> -
+                                                    <field name="date_end"/>
+                                                </span>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr/>
+                                <div class="container o_kanban_card_content">
+                                    <div class="row o_kanban_card_upper_content">
+                                        <div class="col-12" style="text-align: center;">
+                                            <field name="announcement" widget="html"
+                                                   options="{'style-inline': true}"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="action_school_announcement" model="ir.actions.act_window">
+            <field name="name">Announcements</field>
+            <field name="res_model">school.announcement</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="search_view_id" ref="view_school_announcement_search"/>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to Create a New Record.
+                </p>
+            </field>
+        </record>
+        
+        <menuitem id="ems_announcement_menu"
+                name="Announcements"
+                action="action_school_announcement"
+                parent="school.menu_ems"
+                sequence="1"/>
+
+        <record model="ir.cron" id="school_announcement_expiry_date">
+            <field name="name">School Announcement Expiry Date</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="model_id" ref="model_school_announcement"/>
+            <field name="nextcall" eval="datetime.now() + (datetime.now(pytz.timezone('Asia/Jakarta')).replace(hour=23, minute=59, second=00) - datetime.now(pytz.timezone('Asia/Jakarta'))) % timedelta(hours=24)"/>
+            <field name="state">code</field>
+            <field name="code">model.get_expiry_state()</field>
+        </record>
+
+        <record model="ir.cron" id="school_announcement_runing_date">
+            <field name="name">School Announcement Running Date</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="model_id" ref="model_school_announcement"/>
+            <field name="nextcall" eval="datetime.now() + (datetime.now(pytz.timezone('Asia/Jakarta')).replace(hour=00, minute=1, second=00) - datetime.now(pytz.timezone('Asia/Jakarta'))) % timedelta(hours=24)"/>
+            <field name="state">code</field>
+            <field name="code">model.action_cron_running()</field>
+        </record>
+
+        <record model="ir.cron" id="school_announcement_create_recurrence">
+            <field name="name">School Announcement Create Recurrence</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="model_id" ref="model_school_announcement"/>
+            <field name="nextcall" eval="datetime.now() + (datetime.now(pytz.timezone('Asia/Jakarta')).replace(hour=00, minute=5, second=00) - datetime.now(pytz.timezone('Asia/Jakarta'))) % timedelta(hours=24)"/>
+            <field name="state">code</field>
+            <field name="code">model.action_create_recurrence()</field>
+        </record>
+
+    </data>
+</odoo>

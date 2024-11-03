@@ -1,0 +1,91 @@
+<odoo>
+    <template id="certificate_report_external_layout_standard">
+        <div t-attf-class="header o_company_#{company.id}_layout" t-att-style="report_header_style" style="font-family: 'Garamond' !important;">
+            <div class="row">
+                <div class="col-6 mb4">
+                    <img src="/equip3_hr_training/static/img/hashmicro_logo.png" style="width:8.60cm" alt="Logo"/>
+                </div>
+            </div>
+            <div class="row" style="padding-top:4pt;">
+                <div class="col-6" name="company_address" style="font-size:11px; line-height: 1.5;">
+                    <div>PT. Hashmicro Solusi Indonesia</div>
+                    <div>Neo Soho Podomoro City, Unit 3710,</div>
+                    <div>Jl. Letjen S Parman, Kav. 28, Kota Jakarta Barat, DKI Jakarta 11470</div>
+                </div>
+            </div>
+        </div>
+
+        <div t-attf-class="article o_report_layout_standard o_company_#{company.id}_layout"  t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+            <div class="pt-5">
+                <!-- This div ensures that the address is not cropped by the header. -->
+                <t t-call="web.address_layout"/>
+            </div>
+            <t t-raw="0"/>
+        </div>
+    </template>
+
+    <!-- Public api: layout to t-call from reports -->
+
+    <template id="certificate_report_external_layout">
+        <t t-if="not o" t-set="o" t-value="doc"/>
+
+        <t t-if="not company">
+            <!-- Multicompany -->
+            <t t-if="company_id">
+                <t t-set="company" t-value="company_id"/>
+            </t>
+            <t t-elif="o and 'company_id' in o and o.company_id.sudo()">
+                <t t-set="company" t-value="o.company_id.sudo()"/>
+            </t>
+            <t t-else="else">
+                <t t-set="company" t-value="res_company"/>
+            </t>
+        </t>
+        <t t-call="equip3_hr_training.certificate_report_external_layout_standard"><t t-raw="0"/></t>
+    </template>
+
+	<template id="certificate_template1" >
+        <t t-call="web.html_container">
+            	<t t-foreach="docs" t-as="doc">
+                    <t t-call="equip3_hr_training.certificate_report_external_layout">
+	                <div class="page">
+	                    <div class="row">
+                                <div class="col-12">
+	                        	<div t-raw="doc.get_certificate_template()"/>
+	                        </div>
+	                    </div>
+	                </div>
+	            </t>
+            </t>
+        </t>
+	</template>
+
+    <record id="certificate_custom_paperformat" model="report.paperformat">
+		<field name="name">Certificate</field>
+		<field name="default" eval="True" />
+		<field name="format">A4</field>
+		<field name="orientation">Landscape</field>
+		<field name="margin_top">22</field>
+		<field name="margin_bottom">10</field>
+		<field name="margin_left">15</field>
+		<field name="margin_right">15</field>
+		<field name="header_line" eval="False" />
+		<field name="header_spacing">15</field>
+		<field name="dpi">90</field>
+	</record>
+
+	<record id="equip3_hr_certificate_template" model="ir.actions.report">
+   <field name="name">Certificate1</field>
+   <field name="model">training.conduct.line</field>
+   <field name="report_type">qweb-pdf</field>
+   <field name="report_name">equip3_hr_training.certificate_template1</field>
+   <field name="report_file">equip3_hr_training.certificate_template1</field>
+   <field name="attachment_use">1</field>
+   <field name="paperformat_id" ref="equip3_hr_training.certificate_custom_paperformat" />
+   <field name="print_report_name">'%s_Training Update' % (object.employee_id.name) </field>
+
+</record>
+
+
+
+</odoo>

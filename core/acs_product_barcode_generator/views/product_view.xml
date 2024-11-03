@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Company View -->
+    <record id="view_company_ean_form" model="ir.ui.view">
+        <field name="name">res.company.form</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <field name="vat" position="after">
+                <field name="barcode_sequence_id" domain="[('barcode_sequence', '=', 1)]" context="{'default_name': name and 'Barcode ' + name or 'Barcode', 'default_barcode_sequence': 1}"/>
+                <field name="auto_create_barcode"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Sequence View -->
+    <record id="sequence_add_barcode_sequence_view" model="ir.ui.view">
+        <field name="name">ir.sequence.form</field>
+        <field name="model">ir.sequence</field>
+        <field name="inherit_id" ref="base.sequence_view"/>
+        <field name="arch" type="xml">
+            <field name="implementation" position="after">
+                <field name="barcode_sequence"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Product View -->
+    <record id="product_category_form_view" model="ir.ui.view">
+        <field name="name">product.category.form</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='first']" position="inside">
+                <newline/>
+                <group name="barode" colspan="2">
+                    <field name="barcode_sequence_id" domain="[('barcode_sequence', '=', 1)]" context="{'default_name': name and 'Barcode ' + name or 'Barcode', 'default_barcode_sequence': 1}"/>
+                </group>
+            </xpath> 
+        </field>
+    </record>
+
+    <record id="product_normal_form_view" model="ir.ui.view">
+        <field name="name">product.product.form</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <field name="barcode" position="after">
+                <button string="Generate the Barcode" name="generate_barcode" attrs="{'invisible': [('barcode', '!=', False)]}" type="object" colspan="2"/>
+                <field name="barcode_sequence_id" domain="[('barcode_sequence', '=', 1)]" context="{'default_name': name and 'Barcode ' + name or 'Barcode', 'default_barcode_sequence': 1}" class="oe_edit_only"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="product_normal_form_view" model="ir.ui.view">
+        <field name="name">product.product.form</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+        <field name="arch" type="xml">
+            <field name="barcode" position="after">
+                <button string="Generate the Barcode" name="generate_barcode" attrs="{'invisible': [('barcode', '!=', False)]}" type="object" colspan="2"/>
+                <field name="barcode_sequence_id" domain="[('barcode_sequence', '=', 1)]" context="{'default_name': name and 'Barcode ' + name or 'Barcode', 'default_barcode_sequence': 1}" class="oe_edit_only"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="product_template_only_form_view" model="ir.ui.view">
+        <field name="name">product.template.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <field name="barcode" position="after">
+                <button string="Generate the Barcode" name="generate_barcode" attrs="{'invisible': ['|',('barcode', '!=', False), ('product_variant_count', '>', 1)]}" type="object" colspan="2"/>
+                <field name="barcode_sequence_id" domain="[('barcode_sequence', '=', 1)]" context="{'default_name': name and 'Barcode ' + name or 'Barcode', 'default_barcode_sequence': 1}" attrs="{'invisible': [('product_variant_count', '>', 1)]}"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="generate_barcode_temp_more_item_action" model="ir.actions.server">
+        <field name="name">Generate Barcode</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="state">code</field>
+        <field name="code">records.generate_barcode()</field>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_type">action</field>
+    </record>
+
+    <record id="generate_barcode_prod_more_item_action" model="ir.actions.server">
+        <field name="name">Generate Barcode</field>
+        <field name="model_id" ref="product.model_product_product"/>
+        <field name="state">code</field>
+        <field name="code">records.generate_barcode()</field>
+        <field name="binding_model_id" ref="product.model_product_product"/>
+        <field name="binding_type">action</field>
+    </record>
+
+</odoo>

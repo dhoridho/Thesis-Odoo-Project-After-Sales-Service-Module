@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Employee Loan Pivot View -->
+        <record id="employee_loan_details_view_pivot" model="ir.ui.view">
+            <field name="name">employee.loan.details.pivot</field>
+            <field name="model">employee.loan.details</field>
+            <field name="arch" type="xml">
+                <pivot string="Loan Analysis" sample="1">
+                    <field name="employee_gross" invisible="1"/>
+                    <field name="int_rate" type="measure"/>
+                    <field name="duration" type="measure"/>
+                    <field name="principal_amount" type="measure"/>
+                    <field name="total_interest_amount" type="measure"/>
+                    <field name="final_total" type="measure"/>
+                    <field name="employee_id" type="row"/>
+                    <field name="date_applied" interval="month" type="col"/>
+                    <field name="loan_type" type="col"/>
+                </pivot>
+            </field>
+        </record>
+        <!-- End Employee Loan Pivot View Pivot View -->
+
+        <!-- start Pivot Menu -->
+        <record id="action_employee_loan_details_pivot_report" model="ir.actions.act_window">
+            <field name="name">Loan Analysis</field>
+            <field name="res_model">employee.loan.details</field>
+            <field name="view_mode">pivot,graph</field>
+            <field name="domain">[('state', 'in', ['applied','approved'])]</field>
+        </record>
+        <menuitem
+                name="Reporting"
+                id="menu_employee_loan_details_report"
+                parent="hr_employee_loan.loan_root"
+                sequence="9"
+        />
+        <menuitem
+                name="Loan Analysis"
+                id="menu_employee_loan_details_pivot_report"
+                action="action_employee_loan_details_pivot_report"
+                parent="menu_employee_loan_details_report"
+                groups="equip3_hr_employee_loan_extend.group_loan_finance"
+                sequence="1"
+        />
+        <!-- End Pivot Menu -->
+
+        
+                <!--Start Form view inherit-->
+        <record id="view_loan_tree_inherit" model="ir.ui.view">
+            <field name="name">employee.loan.details.tree.inherit</field>
+            <field name="model">employee.loan.details</field>
+            <field name="inherit_id" ref="hr_employee_loan.view_loan_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='state']" position="attributes">
+                    <attribute name="string">Status</attribute>
+                    <attribute name="widget">badge</attribute>
+                    <attribute name="decoration-success2">state == 'paid'</attribute>
+                    <attribute name="decoration-success3">state == 'disburse'</attribute>
+                    <attribute name="decoration-success">state == 'approved'</attribute>
+                    <attribute name="decoration-primary">state == 'draft'</attribute>
+                    <attribute name="decoration-warning">state == 'applied'</attribute>
+				    <attribute name="decoration-danger">state == 'rejected'</attribute>
+                    <attribute name="decoration-secondary">state == 'cancel'</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <!--Start Form view inherit-->
+        <record id="view_loan_form_inherit" model="ir.ui.view">
+            <field name="name">employee.loan.details.form.inherit</field>
+            <field name="model">employee.loan.details</field>
+            <field name="inherit_id" ref="hr_employee_loan.view_loan_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_cancel']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_disburse']" position="after">
+                    <button name="action_cancel" string="Cancel" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'applied')]}"/>
+                </xpath>
+                <xpath expr="//button[@name='action_approved']" position="replace">
+                    <button name="wizard_approve" string="Approve" type="object"
+                            groups="hr.group_hr_user" class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_approver', '=', False), ('state', '!=', 'applied')]}"/>
+                </xpath>
+                <xpath expr="//button[@name='action_rejected']" position="replace">
+                    <button name="wizard_reject" string="Reject" type="object"
+                            groups="hr.group_hr_user,account.group_account_invoice" class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_approver', '=', False), ('state', '!=', 'applied')]}"/>
+                </xpath>
+                <xpath expr="//button[@name='action_disburse']" position="replace">
+                    <field name="is_computed" invisible="1"/>
+                    <field name="disburse_button_hide" invisible="1"/>
+                    <button name="action_disburse" string="Disburse Loan" type="object"
+                            groups="account.group_account_invoice" class="oe_highlight"
+                            attrs="{'invisible': [('disburse_button_hide', '=', True)]}"/>
+                </xpath>
+                <xpath expr="//button[@name='compute_installments']" position="replace">
+                    <button name="compute_installments" class="oe_highlight" groups="account.group_account_invoice"
+                            colspan="2"
+                            attrs="{'invisible': ['|', ('is_computed', '=', True), ('state', '!=', 'approved')]}"
+                            string="Compute" type="object"
+                            help="Compute Installments or change the state according to the disbursement type for loan request or repayment type in case of installments"/>
+                </xpath>
+                <xpath expr="//field[@name='state']" position="attributes">
+                    <attribute name="attrs">{'invisible': [('is_loan_approval_matrix','=', False)]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='state']" position="after">
+                    <field name="state1" widget="statusbar" statusbar_visible="draft,approved" attrs="{'invisible':[('is_loan_approval_matrix','!=',False)]}"/>
+                </xpath>
+                <xpath expr="//field[@name='loan_type']" position="after">
+                    <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                    <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                    <field name="is_approver" invisible="1"/>
+                    <field name="approved_user_text" invisible="1"/>
+                    <field name="approved_user" invisible="1" readonly="0"/>
+                    <field name="job_id" invisible="1"/>
+                    <field name="department_id" invisible="1"/>
+                    <field name="feedback_parent" invisible="1"/>
+                    <field name="is_readonly" invisible="1"/>
+                    <field name="domain_employee_ids" invisible="1"/>
+                    <field name="disburse_method" invisible="1"/>
+                    <field name="is_loan_approval_matrix" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='employee_id']" position="attributes">
+                    <attribute name="options" >{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True}</attribute>
+                    <attribute name="attrs" >{'readonly':['|',('is_readonly','=',True),('state','not in','draft')]}</attribute>
+                    <attribute name="domain" >[('id','in',domain_employee_ids)]</attribute>
+                </xpath>
+                <xpath expr="//field[@name='company_id']" position="attributes">
+                    <attribute name="readonly">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='date_applied']" position="attributes">
+                    <attribute name="force_save">1</attribute>
+                </xpath>
+
+                <xpath expr="//page[last()]" position="after">
+                    <page string="Approval Matrix Lines" attrs="{'invisible':[('is_loan_approval_matrix','=',False)]}">
+                        <field name="loan_approver_user_ids">
+                            <tree editable="bottom" create="false" delete="false">
+                                <field name="name"/>
+                                <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                <field name="is_delegation_mail_sent" invisible="1"/>
+                                <field name="minimum_approver" readonly="1" force_save="1"/>
+                                <field name="timestamp" invisible="1" force_save="1"/>
+                                <field name="approver_state" invisible="1" force_save="1"/>
+                                <field name="approval_status" readonly="1" force_save="1"/>
+                                <field name="approved_time" readonly="1" force_save="1"/>
+                                <field name="is_approve" invisible="1" force_save="1"/>
+                                <field name="approved_employee_ids" invisible="1"/>
+                                <field name="feedback" readonly="1" force_save="1"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+                <xpath expr="//field[@name='installment_lines']/tree//button[@name='pay_installment']"
+                       position="replace">
+                    <field name="can_approve_installment" invisible="1"/>
+                    <field name="loan_repayment_method" invisible="1"/>
+                    <button name="pay_installment"
+                            confirm="You are trying to create EMI for this loan so make sure loan repayment for this loan type is not from payroll !"
+                            string="Pay" type="object"
+                            help="Pay Installment"
+                            attrs="{'invisible': ['|', '|', ('can_approve_installment', '=', False), ('state', '!=', 'approve'), ('loan_repayment_method', '=', 'payroll')]}"/>
+                </xpath>
+                <xpath expr="//field[@name='installment_lines']/tree//button[@name='book_interest']" position="replace">
+                    <field name="is_book_interest" invisible="1"/>
+                    <button name="book_interest"
+                            attrs="{'invisible':['|', '|', ('can_approve_installment', '=', False), ('is_book_interest', '=', True), ('loan_repayment_method', '=', 'payroll')]}"
+                            type="object"
+                            string="Book Interest"
+                            help="Book Interest"/>
+                </xpath>
+                <xpath expr="//field[@name='installment_lines']/tree//button[@name='action_approve']"
+                       position="replace">
+                    <button name="action_approve" string="Approve Payment"
+                            type="object" help="Approve Payment"
+                            attrs="{'invisible': ['|','|', ('can_approve_installment', '=', False), ('state', '!=', 'unpaid'), ('loan_repayment_method', '=', 'payroll')]}"/>
+                </xpath>
+                <xpath expr="//field[@name='installment_lines']/tree//button[@name='action_reset']" position="replace">
+                    <button name="action_reset" string="Reset To Draft"
+                            type="object" help="Reset To Draft"
+                            attrs="{'invisible': ['|', ('can_approve_installment', '=', False), ('state', '!=', 'approve')]}"/>
+                </xpath>
+                <xpath expr="//field[@name='loan_proof_ids']" position="replace">
+                    <field name="loan_proof_ids">
+                        <tree editable="bottom" create="false" delete="false">
+                            <field name="name" readonly="1" force_save="1"/>
+                            <field name="attachment" widget="binary" filename="attachment_name"/>
+                            <field name="attachment_name" invisible="1"/>
+                            <field name="mandatory" readonly="1" force_save="1"/>
+                        </tree>
+                    </field>
+                </xpath>
+            </field>
+        </record>
+        <!--End Form view inherit-->
+
+                <!--Start Form view inherit-->
+        <record id="view_installment_tree_inherit" model="ir.ui.view">
+            <field name="name">loan.installment.tree.inherit</field>
+            <field name="model">loan.installment.details</field>
+            <field name="inherit_id" ref="hr_employee_loan.view_installment_tree"/>
+            <field name="arch" type="xml">
+                <tree position="attributes">
+                    <attribute name="create">false</attribute>
+                </tree>
+                <xpath expr="//button[@name='pay_installment']"
+                       position="replace">
+                    <field name="loan_repayment_method" invisible="1"/>
+                    <field name="can_approve_installment" invisible="1"/>
+                    <button name="pay_installment"
+                            confirm="You are trying to create EMI for this loan so make sure loan repayment for this loan type is not from payroll !"
+                            string="Pay" type="object"
+                            help="Pay Installment"
+                            colspan="2"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|', '|', ('can_approve_installment', '=', False), ('state', '!=', 'approve'), ('loan_repayment_method', '=', 'payroll')]}"/>
+                </xpath>
+                <xpath expr="//button[@name='book_interest']" position="replace">
+                    <field name="is_book_interest" invisible="1"/>
+                    <field name="is_approver" invisible="1"/>
+                    <field name="is_approved" invisible="1"/>
+<!--                    <button name="book_interest"-->
+<!--                            attrs="{'invisible':['|', ('can_approve_installment', '=', False), ('is_book_interest', '=', True)]}"-->
+<!--                            type="object"-->
+<!--                            string="Book Interest"-->
+<!--                            help="Book Interest"-->
+<!--                            class="oe_highlight"-->
+<!--                            colspan="2"/>-->
+                    <button name="book_interest"
+                            attrs="{'invisible':['|',('is_book_interest', '=', True),('loan_repayment_method', '=', 'payroll')]}"
+                            type="object" string="Book Interest" help="Book Interest" class="oe_highlight" colspan="2"/>
+                </xpath>
+                <xpath expr="//button[@name='action_approve']"
+                       position="replace">
+<!--                    <button name="action_approve" string="Approve Payment"-->
+<!--                            type="object" help="Approve Payment"-->
+<!--                            attrs="{'invisible': ['|', ('can_approve_installment', '=', False), ('state', '!=', 'unpaid')]}"-->
+<!--                            class="oe_highlight"-->
+<!--                            colspan="2"/>-->
+                    <button name="wizard_approve" string="Approve Payment" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|', '|', ('is_approver', '=', False), ('is_approved', '=', True), ('loan_repayment_method', '=', 'payroll')]}"/>
+                    <button string="Reject" name="action_reject" type="object" class="oe_highlight"
+                                attrs="{'invisible': ['|','|', ('is_approver', '=', False), ('is_approved', '=', True), ('loan_repayment_method', '=', 'payroll')]}"/>
+                </xpath>
+                <xpath expr="//button[@name='action_reset']" position="replace">
+                    <button name="action_reset" string="Reset To Draft"
+                            type="object" help="Reset To Draft"
+                            attrs="{'invisible': ['|', ('can_approve_installment', '=', False), ('state', '!=', 'approve')]}"
+                            class="oe_highlight"
+                            colspan="2"/>
+                </xpath>
+                <xpath expr="//field[@name='state']" position="attributes">
+                    <attribute name="string">Status</attribute>
+                    <attribute name="widget">badge</attribute>
+                    <attribute name="decoration-success2">state == 'paid'</attribute>
+                    <attribute name="decoration-success">state == 'approve'</attribute>
+                    <attribute name="decoration-primary">state == 'unpaid'</attribute>
+                    <attribute name="decoration-warning">state == 'to_approve'</attribute>
+				    <attribute name="decoration-danger">state == 'rejected'</attribute>
+                </xpath>
+            </field>
+        </record>
+        <!--Loan installment Form view inherit -->
+        <record id="view_installment_form_inherit" model="ir.ui.view">
+            <field name="name">loan.installment.detail.form.inherit</field>
+            <field name="model">loan.installment.details</field>
+            <field name="inherit_id" ref="hr_employee_loan.view_installment_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="attributes">
+                    <attribute name="create">0</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_approve']" position="replace">
+                    <button name="wizard_approve" string="Approve Payment" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|', '|', ('is_approver', '=', False), ('is_approved', '=', True), ('loan_repayment_method', '=', 'payroll')]}"/>
+                    <button string="Reject" name="action_reject" type="object" class="oe_highlight"
+                                attrs="{'invisible': ['|','|', ('is_approver', '=', False), ('is_approved', '=', True), ('loan_repayment_method', '=', 'payroll')]}"/>
+                </xpath>
+                <xpath expr="//button[@name='book_interest']" position="replace">
+                    <field name="is_book_interest" invisible="1"/>
+                    <field name="can_approve_installment" invisible="1"/>
+                    <button name="book_interest"
+                            attrs="{'invisible':['|',('is_book_interest', '=', True),('loan_repayment_method', '=', 'payroll')]}"
+                            type="object" string="Book Interest" help="Book Interest" class="oe_highlight" colspan="2"/>
+                </xpath>
+                <xpath expr="//sheet/group[1]" position="after">
+                    <group col="4">
+                    <field name="job_id" invisible="1"/>
+                    <field name="department_id" invisible="1"/>
+                    <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                    <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                    <field name="is_approver" invisible="1"/>
+                    <field name="is_approved" invisible="1"/>
+                    <field name="approved_user_text" invisible="1"/>
+                    <field name="approved_user" invisible="1" readonly="1"/>
+                    <field name="feedback_parent" invisible="1"/>
+                    </group>
+                </xpath>
+                <xpath expr="//field[@name='int_move_id']" position="attributes">
+                    <attribute name="attrs" >{'invisible':[('loan_repayment_method', '=', 'payroll')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='company_id']" position="attributes">
+                    <attribute name="readonly">1</attribute>
+                </xpath>
+
+                <xpath expr="//page[1]" position="after">
+                    <page string="Approver User" name="approval_matrix">
+                        <field name="loan_installment_approver_user_ids">
+                            <tree editable="bottom" create="false" delete="false">
+                                <field name="name"/>
+                                <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                <field name="minimum_approver" readonly="1" force_save="1"/>
+                                <field name="timestamp" invisible="1" force_save="1"/>
+                                <field name="approver_state" invisible="1" force_save="1"/>
+                                <field name="approval_status" readonly="1" force_save="1"/>
+                                <field name="approved_time" readonly="1" force_save="1"/>
+                                <field name="is_approve" invisible="1" force_save="1"/>
+                                <field name="approved_employee_ids" invisible="1"/>
+                                <field name="feedback" readonly="1" force_save="1"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <!--Loan Filter view inherit-->
+        <record id="view_loan_filter_inherit" model="ir.ui.view">
+            <field name="name">loan.list.select.inherit</field>
+            <field name="model">employee.loan.details</field>
+            <field name="inherit_id" ref="hr_employee_loan.view_loan_filter"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='toapprove']" position="after">
+                    <filter string="Pending My Approval" name="pending_my_approval" domain="[('state','=','applied'),('approvers_ids', 'in', uid),('approved_user_ids','not in',uid)]"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!--Action Loan Requests to Approve inherit-->
+        <record id="hr_employee_loan.action_loan_toapprove" model="ir.actions.act_window">
+			<field name="name">Loan Requests To Approve</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">employee.loan.details</field>
+			<field name="view_mode">tree,form,calendar,graph</field>
+			<field name="context">{'search_default_pending_my_approval': 1}</field>
+			<field name="domain">[('state', 'not in', ['cancel'])]</field>
+			<field name="search_view_id" ref="hr_employee_loan.view_loan_filter" />
+			<field name="help">This is the view where you can approve the loan
+				pending for approval</field>
+		</record>
+    </data>
+</odoo>

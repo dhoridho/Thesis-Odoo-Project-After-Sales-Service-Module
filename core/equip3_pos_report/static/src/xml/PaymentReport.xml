@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	
+<templates id="payment_reports_template" inherit_id="point_of_sale.template" xml:space="preserve">
+
+	<t t-name="ReportPaymentButtonWidget"  owl="1">
+		<div class="control-button payment_summary">
+			<div>
+				<i class="fa fa-shopping-cart"></i>
+				<span>Payment Summary</span>
+			</div>
+		</div>
+	</t>
+
+	<t t-name="PopupPaymentWidget" owl="1">
+		<div role="dialog" class="modal-dialog" >
+			<Draggable>
+				<div class="popup popup-confirm" >
+					<header class="title drag-handle">
+						Payment Summary
+					</header>
+					<main class="body">
+						<div class="body">
+							<div id="dt_strt" class="alert" style="color: #ec1010; font-size: inherit; margin: 5px; text-align: center;">
+								<span class="closebtn"></span>  
+								Please fill Start Date.
+							</div>
+							<div id="dt_end" class="alert" style="color: #ec1010; font-size: inherit; margin: 5px; text-align: center;">
+								<span class="closebtn"></span>  
+								Please fill End Date.
+							</div>
+							<div class="form-group" id="form1">  
+								<input id="pymnt_crnt_ssn" class="pymnt_crnt_ssn" type="checkbox" 
+								t-on-click="clickCurrentSession"  
+									style="min-height: 15px !important;width: 25px !important;box-shadow: none !important;"/>
+								<label for="pymnt_crnt_ssn">Current Session</label>
+							</div>
+							<div class="left_pane" id="strt_dt" style="width: 49%;display:inline-block;">
+								<p class="text-center">Start Date</p>
+								<input type="date" name="st_date" id="pay_st_date" required="1"/>
+							</div>
+							<div class="right_pane" id="end_dt" style="width: 50%;display:inline-block;">
+								<p class="text-center">End Date</p>
+								<input type="date" name="ed_date" id="pay_ed_date" required="1"/>
+							</div>
+							<div class="full_bottom" style="margin-top: 30px;">
+								<span class="label">Summary</span>&#160;&#160;
+								<select class="smry" id="smry_payment">
+									<option>Salespersons</option>
+									<option>Journals</option>
+								</select>
+							</div>
+						</div>
+					</main>
+				  	<footer class="footer">
+						<div class="button confirm odoo-theme-button" t-on-click="render_payment_summary">
+							Print
+						</div>
+						<div class="button cancel odoo-theme-button" t-on-click="go_back_screen">
+							Close
+						</div>
+					</footer>
+				</div>
+			</Draggable>
+		</div>
+	</t>
+
+	<t t-name="PaymentReceiptWidget" owl="1">
+		<div class="receipt-screen screen">
+			<div class="screen-content">
+				<div class="top-content">
+					<span class="button back" t-on-click="back">
+						<i class="fa fa-angle-double-left"></i>
+						<span> </span>
+						<span>Back</span>
+					</span>
+					<div class="top-content-center">
+						<h1> Payment Summary</h1>
+					</div>
+				</div>
+				<div class="centered-content">
+					<div class="button print" t-on-click="printReceipt">
+						<i class="fa fa-print"></i>
+						<span> </span>
+						<span>Print</span>
+					</div>
+					<div class="pos-receipt-container">
+						<XMLPosPaymentSummaryReceipt order="payment_receipt_data"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</t>
+
+	<t t-name="XMLPosPaymentSummaryReceipt" owl="1">
+		<div class="pos-receipt">
+			<t t-set="obj" t-value="props.order"/>
+
+ 			<img class="pos-receipt-logo" t-att-src='env.pos.company_logo_base64' alt="Logo"/>
+			<br/>
+			<div class="pos-receipt-contact">
+				<t t-if='env.pos.company.phone'>
+					<div><t t-esc='env.pos.company.phone' /></div>
+				</t>
+				<t t-if='env.pos.company.phone'>
+					<div>Tel:<t t-esc='env.pos.company.phone' /></div>
+				</t>
+				<t t-if='env.pos.company.vat'>
+					<div>VAT:<t t-esc='env.pos.company.vat' /></div>
+				</t>
+				<t t-if='env.pos.company.email'>
+					<div><t t-esc='env.pos.company.email' /></div>
+				</t>
+				<t t-if='env.pos.company.website'>
+					<div><t t-esc='env.pos.company.website' /></div>
+				</t>
+				<br/>
+				
+				<t t-if='obj.pos.get_cashier()'>
+					<div class='cashier'>
+						
+						<div>Served by <t t-esc='obj.pos.get_cashier().name' /></div>
+					</div>
+				</t>
+			</div>
+			<br />
+			<t t-if="!obj.is_current_session">
+				<div class="receipt-periods">
+					Start Date: <span style="float:right;" t-esc="obj.st_date_pay"/>
+				</div>
+				<div class="receipt-periods">
+					End Date: <span style="float:right;" t-esc="obj.ed_date_pay"/>
+				</div>
+			</t>
+			<br/>
+			<t t-if="obj.smry_payment == 'Salespersons'">
+				<span style="text-align: center;"><h3>Payment Summary </h3></span>
+				<span style="text-align: center;"><h4>Salesperson:<t t-esc="obj.pos.get_cashier().name"/></h4></span>
+			</t>
+			<t t-if="obj.smry_payment == 'Journals'">
+				<span style="text-align: center;"><h3>Journal Summary </h3></span>
+			</t>
+			<t t-foreach="obj.pay_summary" t-as="pay" >
+				<div class="receipt-periods-month">
+					<t t-if="pay">
+						<div style="text-align: center;">
+							<strong>Month: <span  t-esc="pay[0]"/></strong>
+						</div>
+					</t>
+					<table class='receipt-orderlines' style="margin: 0px auto;margin-top:15px;min-width: 80%;">
+						<colgroup>
+							<col width='50%' />
+							<col width='50%' />
+						</colgroup>
+						<thead style="border-bottom:2px solid black;padding-bottom:5px;">
+							<th class="text-center">Journal</th>
+							<th class="pos-right-align">Amount</th>
+						</thead>
+						<tbody>
+							<t t-set="total" t-value="0"/>
+							<t t-foreach="pay[1]" t-as="lines">
+								<t t-foreach="lines" t-as="jrnl">
+									<tr>
+										<td style="padding:5px 0;">
+											<span t-esc="jrnl"/>
+										</td>
+										<td class="pos-right-align">
+											<span t-esc="obj.pos.format_currency(lines[jrnl])"/>
+											<t t-set="total" t-value="total + lines[jrnl]"/>
+										</td>
+									</tr>
+								</t>
+							</t>
+							<tr t-if="obj.final_total" style="border-top:2px solid black;">
+								<td style="padding:5px 0;">
+									<strong>Total</strong>
+								</td>
+								<td class="pos-right-align">
+									<value t-att-value-decimals='obj.pos.currency.decimals'><span t-esc="obj.pos.format_currency(total)"/></value>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				<br/><br/>
+				</div>
+			</t>
+			<span style="text-align: center;"><h3>Total Summary </h3></span>
+			<table  class='receipt-orderlines' style="margin: 0px auto;margin-top:15px;min-width: 80%;">
+				<colgroup>
+					<col width='50%' />
+					<col width='50%' />
+				</colgroup>
+				<thead style="border-bottom:2px solid black;padding-bottom:5px;">
+					<th class="text-center">Journal</th>
+					<th class="pos-right-align">Amount</th>
+				</thead>
+				<tbody>
+					<t t-set="fn_total" t-value="0"/>
+					<tr t-foreach='obj.payments' t-as='payment'>
+						<td style="padding:5px 0;"><t t-esc="payment['name']" /></td>
+						<td class="pos-right-align">
+							<value t-att-value-decimals='obj.pos.currency.decimals'><span t-esc="obj.pos.format_currency(payment['total'])"/></value>
+						</td>
+						<t t-set="fn_total" t-value="fn_total + payment['total']"/>
+					</tr>
+					<tr style="border-top:2px solid black;">
+						<td style="padding:5px 0;"></td>
+						<td class="pos-right-align">
+							<value t-att-value-decimals='env.pos.currency.decimals'><span t-esc="env.pos.format_currency(fn_total)"/></value>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</t>
+
+
+</templates>

@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="crossovered_budget_view_tree_equip3_inherit">
+        <field name="name">crossovered.budget.view.tree.equip3.inherit</field>
+        <field name="model">crossovered.budget</field>
+        <field name="inherit_id" ref="om_account_budget.crossovered_budget_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="branch_id" />
+            </field>
+            <field name="state" position="before">
+                <field name="currency_company_id" invisible="1"/>
+                <field name="budget_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" />
+                <field name="reserve_amount_2" widget="monetary" options="{'currency_field': 'currency_company_id'}" />
+                <field name="total_pr_reserved_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" />
+                <field name="amount_practical" widget="monetary" options="{'currency_field': 'currency_company_id'}"/>
+                <!-- <field name="amount_practical_temp" invisible="1"/> -->
+                <field name="total_purchased_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}"/>
+                <field name="amount_remaining" widget="monetary" options="{'currency_field': 'currency_company_id'}"/>
+                <!-- <field name="amount_remaining_temp" invisible="1"/> -->
+                <field name="parent_id"/>
+            </field>
+            <field name="user_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+             <field name="company_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="state" position="attributes">
+                <attribute name="widget">badge</attribute>
+                <attribute name="decoration-success">state in ('done', 'confirm')</attribute>
+                <attribute name="decoration-success2">state == 'validate'</attribute>
+                <attribute name="decoration-muted">state == 'draft'</attribute>
+                <attribute name="decoration-danger3">state == 'cancel'</attribute>
+                <attribute name="decoration-danger">state == 'rejected'</attribute>
+                <attribute name="decoration-warning3">state == 'to_approve'</attribute>
+            </field>
+            <field name="name" position="replace">
+                <field name="complete_name" string="Budget Name"/>
+            </field>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="crossovered_budget_view_form_equip3_inherit">
+        <field name="name">crossovered.budget.view.form.equip3.inherit</field>
+        <field name="model">crossovered.budget</field>
+        <field name="inherit_id" ref="om_account_budget.crossovered_budget_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_budget_confirm']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|',('is_allowed_to_approval_matrix', '!=', False)]}</attribute>
+            </xpath>
+            <field name="state" position="attributes">
+                <attribute name="statusbar_visible">draft,validate,done</attribute>
+                <attribute name="attrs">{'invisible': [('is_allowed_to_approval_matrix', '=', True)]}</attribute>
+            </field>
+            <xpath expr="//header" position="inside">
+                <button name="action_request_for_approval" string="Request For Approval" type="object"
+                        class="oe_highlight"
+                        attrs="{'invisible': ['|',('is_allowed_to_approval_matrix', '=', False), ('state', '!=', 'draft')]}"
+                />
+                <button name="action_approve" string="Approve" type="object" class="oe_highlight"
+                        attrs="{'invisible': ['|', '|', ('is_allowed_to_approval_matrix', '=', False), ('is_approve_button', '=', False), ('state', '!=', 'to_approve')]}"/>
+                <button name="action_reject" string="Reject" type="object" class="oe_highlight"
+                        attrs="{'invisible': ['|', '|', ('is_allowed_to_approval_matrix', '=', False), ('is_approve_button', '=', False), ('state', '!=', 'to_approve')]}"/>
+                <!-- <button string="Undone" name="action_budget_undone" type="object"
+                            class="oe_highlight" attrs="{'invisible': [('state', '!=', 'done')]}"/> -->
+                <field name="state1" widget="statusbar" statusbar_visible="draft,to_approve,validate,done" 
+                        attrs="{'invisible': [
+                        '|',
+                        ('is_allowed_to_approval_matrix', '=', False), ('state', '=', 'rejected')]}"/>
+                <field name="state2" widget="statusbar" statusbar_visible="draft,rejected" 
+                        attrs="{'invisible': [
+                        '|',
+                        ('state', '!=', 'rejected'),
+                        ('is_allowed_to_approval_matrix', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//button[@name='action_budget_done']" position="replace">
+                 <button string="Done" name="action_budget_done" type="object" class="oe_highlight" confirm="Are you sure? There are child budget(s) linked to this budget. Both budgets will Done and will not updated after Done." attrs="{'invisible': ['|',('child_budget_ids','=',[]),('state','!=','validate')]}"/>
+                 <button string="Done" name="action_budget_done" type="object" class="oe_highlight" confirm="Are you sure? Budget will not update after Done" attrs="{'invisible': ['|',('child_budget_ids','!=',[]),('state','!=','validate')]}"/>
+            </xpath>
+            <xpath expr="//button[@name='action_budget_cancel']" position="replace">
+                <button string="Cancel Budget" name="action_budget_cancel" type="object" confirm="Are you sure? There is child budget linked to this budget. Both budgets will be Canceled." attrs="{'invisible': ['|','|',('child_budget_ids','=',[]),('state','not in',['confirm','validate']),('amount_practical','!=',0)]}"/>
+                <button string="Cancel Budget" name="action_budget_cancel" type="object" attrs="{'invisible': ['|','|',('child_budget_ids','=',[]),('state','not in',['confirm','validate']),('amount_practical','=',0)]}"/>
+                <button string="Cancel Budget" name="action_budget_cancel" type="object" attrs="{'invisible': ['|',('child_budget_ids','!=',[]),('state','not in',['confirm','validate'])]}"/>
+            </xpath>
+            <!-- <xpath expr="//sheet" position="inside">
+                <notebook
+                        attrs="{'invisible': ['|', ('approval_matrix', '=', False), ('is_allowed_to_approval_matrix', '=', False)]}">
+                    <page string="Approval Matrix Line" name="approved_matrix_ids">
+                        <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}"
+                               force_save="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="sequence"/>
+                                <field name="user_ids" widget="many2many_tags"/>
+                                <field name="minimum_approver"/>
+                                <field name="state_char"/>
+                                <field name="time_stamp" invisible="1"/>
+                                <field name="feedback"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath> -->
+            <xpath expr="//group/group" position="inside">
+                <field name="parent_id" attrs="{'readonly':[('state','!=','draft')]}" domain="[('is_parent_budget','=',True),('state1','=','validate')]"/>
+                <field name="account_tag_ids" widget="many2many_tags" attrs="{'invisible': [('is_parent_budget', '!=', False)], 'readonly':[('state','!=','draft')], 'required':[('is_parent_budget','!=', True)]}"/>
+                <field name="amount_practical" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='analytic_account_id']"
+                   position="before">
+                <field name="is_parent_budget" invisible="1"/>
+                <field name="account_tag_ids" attrs="{'invisible': [('is_parent_budget', '!=', False)], 'required':[('is_parent_budget','!=', True)]}" widget="many2many_tags"/>
+                <!-- <field name="account_tag_ids"  widget="many2many_tags" attrs="{'invisible': [('is_parent_budget', '=', True)]}"/> -->
+                <field name="filtered_budget_line" invisible="1" widget="many2many_tags"/>
+                <field name="parent_analytic_account_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']//tree/field[@name='general_budget_id']" position="attributes">
+                <attribute name="domain">[('id', 'in', filtered_budget_line)]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='analytic_account_id']"
+                   position="attributes">
+                   <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='general_budget_id']"
+                   position="attributes">
+                   <attribute name="required">1</attribute>
+            </xpath>
+
+
+            <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='planned_amount']" position="after">
+                <field name="currency_company_id" invisible="1"/>
+                <field name="carry_over_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Carry Over" readonly="1"/>
+                <field name="transfer_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Transfer" readonly="1"/>
+                <field name="change_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Change" readonly="1"/>
+                <field name="budget_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Budget" readonly="1"/>
+                <field name="available_to_child_amount" options="{'currency_field': 'currency_company_id'}" attrs="{'column_invisible': [('parent.is_parent_budget','=',False)]}" sum="Total" />
+                <field name="reserve_amount" options="{'currency_field': 'currency_company_id'}" attrs="{'column_invisible': [('parent.is_parent_budget','=',False)]}" sum="Total Child"/>
+                <field name="available_child_purchase_amount" options="{'currency_field': 'currency_company_id'}" attrs="{'column_invisible': [('parent.is_parent_budget','=',True)]}" sum="Total"/>
+                <field name="child_purchase_amount" options="{'currency_field': 'currency_company_id'}" attrs="{'column_invisible': [('parent.is_parent_budget','=',True)]}" sum="Total"/>
+                <field name="reserve_amount_2" options="{'currency_field': 'currency_company_id'}" sum="Total Reserve"/>
+                <field name="pr_reserved_amount" options="{'currency_field': 'currency_company_id'}" sum="Total"/>
+                <field name="practical_budget_amount" sum="Total Practical"/>
+                <field name="practical_temp_budget" invisible="1"/>
+                <field name="purchased_amount" options="{'currency_field': 'currency_company_id'}" sum="Total"/>
+                <field name="remaining_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Remaining"/>
+                <field name="theoritical_amount_2" attrs="{'column_invisible': [('parent.is_use_theoretical_achievement', '!=', True)]}" sum="Total Theoritical"/>
+                <field name="percentage_2" widget="percentage" attrs="{'column_invisible': [('parent.is_use_theoretical_achievement', '!=', True)]}"/>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='practical_amount']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='theoritical_amount']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='percentage']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="Budget History" name="budget_transfer">
+                    <group string="Budget Carry In">
+                        <field name="child_budget_carry_over_line_ids" nolabel="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="budget_carry_over_name"/>
+                                <field name="crossover_budget_id"/>
+                                <field name="general_budget_id"/>
+                                <field name="planned_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Planned"/>
+                                <field name="carry_over_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Carry Over"/>
+                                <field name="final_planned_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Final"/>
+                                <field name="currency_id" invisible="1"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Budget Carry Out" attrs="{'invisible': [('state','!=','done')]}">
+                        <field name="child_budget_carry_out_line_ids" nolabel="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="budget_carry_over_id" string="New Budget Name"/>
+                                <field name="general_budget_id"/>
+                                <field name="new_crossovered_budget_line_account_tag_ids" widget="many2many_tags"/>
+                                <field name="new_crossovered_budget_line_date_from" />
+                                <field name="new_crossovered_budget_line_date_to" />
+                                <field name="carry_over_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Carry Over" />
+                                <field name="new_crossovered_budget_id_state" widget="badge" string="State" />
+                                <field name="currency_id" invisible="1"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Budget Received">
+                        <field name="child_destination_budget_transfer_line_ids" nolabel="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="budget_parent_number"/>
+                                <field name="budget_parent_name"/>
+                                <field name="source_budget_id"/>
+                                <field name="source_general_budget_id" domain="source_general_budget_id_domain"/>
+                                <field name="source_general_budget_id_domain" invisible="1"/>
+                                <field name="destination_budget_id"/>
+                                <field name="destination_general_budget_id" domain="destination_general_budget_id_domain"/>
+                                <field name="destination_general_budget_id_domain" invisible="1"/>
+                                <field name="transfer_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" string="Budget Received" sum="Total Received"/>
+                                <field name="currency_company_id" invisible="1"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Budget Transferred">
+                        <field name="child_source_budget_transfer_line_ids" nolabel="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="budget_parent_number"/>
+                                <field name="budget_parent_name"/>
+                                <field name="source_budget_id"/>
+                                <field name="source_general_budget_id" domain="source_general_budget_id_domain"/>
+                                <field name="source_general_budget_id_domain" invisible="1"/>
+                                <field name="destination_budget_id"/>
+                                <field name="destination_general_budget_id" domain="destination_general_budget_id_domain"/>
+                                <field name="destination_general_budget_id_domain" invisible="1"/>
+                                <field name="transfer_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" string="Budget Transferred" sum="Total Transfer"/>
+                                <field name="currency_company_id" invisible="1"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Budget Change Request">
+                        <field name="child_budget_change_req_line_ids" nolabel="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="budget_change_req_name"/>
+                                <field name="account_tag_ids" widget="many2many_tags"/>
+                                <field name="date_from" />
+                                <field name="date_to" />
+                                <field name="budget_std_id"/>
+                                <field name="budgetary_position_id"/>
+                                <field name="planned_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Planned"/>
+                                <field name="new_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total New"/>
+                                <field name="currency_id" invisible="1"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+                <page string="Actualization History" name="transaction_history">
+                    <group string="Petty Cash Voucher">
+                        <field name="pettycash_voucher_line_ids" nolabel="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="line_id" string="Number"/>
+                                <field name="date" string="Date"/>
+                                <field name="general_budget_id"/>
+                                <field name="expense_account" string="Account"/>
+                                <field name="analytic_group_ids" widget="many2many_tags"/>
+                                <field name="price_total" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Amount" string="Amount"/>
+                                <field name="state" widget="badge" decoration-success="state == 'closed'" decoration-muted="state == 'draft'" decoration-warning="state == 'open'" string="State"/>
+                                <field name="currency_id" invisible="1" />
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Other Expense">
+                        <field name="account_voucher_line_ids" nolabel="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="voucher_id" string="Number"/>
+                                <field name="account_date" string="Date"/>
+                                <field name="budgetary_position_id"/>
+                                <field name="account_id"/>
+                                <field name="analytic_tag_ids" widget="many2many_tags" string="Analytic Group"/>
+                                <field name="price_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Amount" string="Amount"/>
+                                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-primary="state =='proforma'" decoration-warning2="state == 'approved'" decoration-muted="state == 'draft'" decoration-danger3="state == 'cancel'" decoration-danger="state == 'rejected'" decoration-warning3="state == 'to_approve'" string="State"/>
+                                <field name="currency_id" invisible="1" />
+                            </tree>
+                        </field>
+                    </group>
+                    <!-- <group string="Sales Discount">
+                        <field name="account_move_line_ids" nolabel="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="move_id" string="Number"/>
+                                <field name="date" string="Date"/>
+                                <field name="general_budget_id"/>
+                                <field name="account_id"/>
+                                <field name="analytic_tag_ids" widget="many2many_tags" string="Analytic Group"/>
+                                <field name="amount_currency" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Amount" string="Amount"/>
+                                <field name="parent_state" widget="badge" decoration-danger="parent_state == 'rejected'" decoration-warning2="parent_state == 'approved'" decoration-success="parent_state == 'posted'" decoration-warning3="parent_state == 'to_approve'" decoration-muted="parent_state == 'draft'" decoration-danger3="parent_state == 'cancelled'" decoration-danger2="parent_state == 'failed'" string="State"/>
+                                <field name="currency_id" invisible="1" />
+                            </tree>
+                        </field>
+                    </group> -->
+                    <group string="Cash Advance">
+                        <field name="vendor_deposit_ids" nolabel="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="name" string="Number"/>
+                                <field name="payment_date" string="Date"/>
+                                <field name="general_budget_id"/>
+                                <field name="deposit_account_id"/>
+                                <field name="account_tag_ids" widget="many2many_tags" string="Analytic Group"/>
+                                <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total Amount" string="Amount"/>
+                                <field name="state" widget="badge" string="State"/>
+                                <field name="currency_id" invisible="1" />
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+                <page string="Child Budget" invisible="1">
+                    <!-- <p> Test </p> -->
+                    <field name="child_budget_ids" nolabel="1">
+                        <tree string="Child Budget" create="0" edit="0" delete="0">
+                            <field name="currency_company_id" invisible="1"/>
+                            <field name="name"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="amount_planned" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Planned"/>
+                            <field name="amount_practical" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Practical"/>
+                            <field name="amount_remaining" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Remaining"/>
+                            <field name="state"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Child Budget" attrs="{'invisible': [('is_parent_budget', '=', False)]}">
+                    <group string="Budget">
+                        <field name="child_budget_line_ids" nolabel="1">
+                            <tree string="Child Budget Lines" create="0" edit="0" delete="0">
+                                <field name="currency_company_id" invisible="1"/>
+                                <field name="budget_name"/>
+                                <field name="general_budget_id"/>
+                                <field name="account_tag_ids" widget="many2many_tags"/>
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                                <field name="budget_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Budget"/>
+                                <field name="reserve_amount_2" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Reserve"/>
+                                <field name="pr_reserved_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total"/>
+                                <field name="practical_budget_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Used"/>
+                                <field name="purchased_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total" string="Purchase Budget"/>
+                                <field name="remaining_amount" widget="monetary" options="{'currency_field': 'currency_company_id'}" sum="Total Remaining"/>
+                                <field name="state" widget="badge" decoration-success="state in ('done', 'confirm')" decoration-success2="state == 'validate'" decoration-muted="state == 'draft'" decoration-danger3="state == 'cancel'" decoration-danger="state == 'rejected'" decoration-warning3="state == 'to_approve'"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+                <page string="Child Purchase" attrs="{'invisible': [('is_parent_budget', '=', True)]}">
+                    <group string="Purchase Budget">
+                        <field name="child_budget_purchase_line_ids" nolabel="1">
+                            <tree string="Child Purchase Budget Lines" create="0" edit="0" delete="0">
+                                <field name="currency_id" invisible="1"/>
+                                <field name="purchase_budget_id" string="Purchase Budget Name"/>
+                                <field name="product_budget" />
+                                <field name="group_product_id" string="GoP" />
+                                <field name="product_id" />
+                                <field name="account_tag_ids" widget="many2many_tags"/>
+                                <field name="date_from" />
+                                <field name="date_to" />
+                                <field name="planned_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total"/>
+                                <field name="avail_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total"/>
+                                <field name="reserve_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total"/>
+                                <field name="practical_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total"/>
+                                <field name="remaining_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total"/>
+                                <field name="purchase_budget_state" string="Status" widget="badge"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+                <page string="Approval Matrix Line" name="approved_matrix_ids" attrs="{'invisible': ['|', ('approval_matrix', '=', False), ('is_allowed_to_approval_matrix', '=', False)]}">
+                    <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}"
+                           force_save="1">
+                        <tree create="0" edit="0" delete="0">
+                            <field name="sequence"/>
+                            <field name="user_ids" widget="many2many_tags"/>
+                            <field name="minimum_approver"/>
+                            <field name="state_char"/>
+                            <field name="time_stamp" invisible="1"/>
+                            <field name="feedback"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+            <xpath expr="//sheet/group/group/field[@name='company_id']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//sheet/group/group/field[@name='company_id']" position="after">
+                <!-- <field name="branch_id" readonly='0' attrs="{'readonly':[('state','!=','draft')]}"/> -->
+                <field name="branch_id" attrs="{'readonly': [('state', '!=', 'draft')]}"  required="1" options="{'no_create': True, 'no_create_edit': True}"/>
+            </xpath>
+            <field name="branch_id" position="after">
+                <field name="approval_matrix"
+                       attrs="{'invisible': [('is_allowed_to_approval_matrix', '=', False)], 'required': [('is_allowed_to_approval_matrix', '=', True)]}"/>
+                <field name="is_allowed_to_approval_matrix" invisible="1"/>
+                <field name="is_approve_button" invisible="1"/>
+                <field name="is_use_theoretical_achievement" invisible="1"/>
+            </field>
+            <xpath expr="//field[@name='user_id']" position="before">
+                <field name="is_parent_budget" attrs="{'readonly':[('state','!=','draft')]}"/>
+                <field name="date_today" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']/tree/button[@name='action_open_budget_entries']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.is_parent_budget', '!=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='account_tag_ids']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.is_parent_budget', '!=', False)], 'required': [('parent.is_parent_budget', '=', False)]}</attribute>
+                <attribute name="domain">[('id', 'in', parent.account_tag_ids)]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']/tree/field[@name='paid_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='crossovered_budget_line']" position="attributes">
+                <attribute name="context">{'default_date_from': date_from,'default_date_to': date_to, 'default_account_tag_ids': account_tag_ids}</attribute>
+            </xpath>
+            <xpath expr="/form" position="inside">
+                <style>
+                    th.o_column_sortable[data-name='general_budget_id']{
+                        max-width: 280px !important;
+                    }
+                    th.o_column_sortable[data-name='date_from'], th.o_column_sortable[data-name='date_to']{
+                        min-width: 90px !important;
+                    }
+                    th.o_list_button[data-name='button_group_0']{
+                        max-width: 120px !important;
+                    }
+                </style>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_crossovered_budget_line_form_inherit">
+        <field name="name">crossovered.budget.lines.view.form.inherit</field>
+        <field name="model">crossovered.budget.lines</field>
+        <field name="inherit_id" ref="om_account_budget.view_crossovered_budget_line_form"/>
+        <field name="arch" type="xml">
+        
+            <xpath expr="//field[@name='analytic_account_id']" position="replace">
+                <field name="account_tag_ids" widget="many2many_tags" attrs="{'readonly':[('crossovered_budget_state','!=','draft')]}"/>
+            </xpath>
+            <xpath expr="//field[@name='practical_amount']" position="replace">
+                <field name="practical_budget_amount" attrs="{'readonly':[('crossovered_budget_state','!=','draft')]}"/>
+            </xpath>
+            <xpath expr="//field[@name='theoritical_amount']" position="replace">
+                <field name="theoritical_amount_2" attrs="{'readonly':[('crossovered_budget_state','!=','draft')]}"/>
+            </xpath>
+            <xpath expr="//field[@name='percentage']" position="replace">
+                <field name="percentage_2" attrs="{'readonly':[('crossovered_budget_state','!=','draft')]}" widget="percentage"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="crossovered_budget_lines_view_form_equip3_inherit">
+        <field name="name">crossovered.budget.lines.view.tree.equip3.inherit</field>
+        <field name="model">crossovered.budget.lines</field>
+        <field name="inherit_id" ref="om_account_budget.view_crossovered_budget_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='practical_amount']" position="replace">
+                <field name="practical_budget_amount"/>
+            </xpath>
+            <xpath expr="//tree/field[@name='theoritical_amount']" position="replace">
+                <field name="theoritical_amount_2"/>
+            </xpath>
+            <xpath expr="//tree/field[@name='percentage']" position="replace">
+                <field name="percentage_2" widget="percentage"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="crossovered_budget_lines_tree_view">
+        <field name="name">crossovered.budget.line.tree</field>
+        <field name="model">crossovered.budget.lines</field>
+        <field name="arch" type="xml">
+            <tree string="Budget Lines" create="0">
+                <field name="currency_id" invisible="1"/>
+                <field name="crossovered_budget_id" invisible="1"/>
+                <field name="general_budget_id" />
+                <field name="analytic_account_id" groups="analytic.group_analytic_accounting"  />
+                <field name="date_from"  />
+                <field name="date_to"  />
+                <field name="budget_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="reserve_amount_2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="pr_reserved_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="practical_budget_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="purchased_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="theoritical_amount_2" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="percentage_2" widget="percentage"/>
+                <field name="remaining_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="om_account_budget.act_crossovered_budget_lines_view">
+        <field name="name">Budgets Analysis</field>
+        <field name="res_model">crossovered.budget.lines</field>
+        <field name="view_mode">tree,form,pivot,graph</field>
+        <field name="view_id" eval="False"/>
+        <field name="context">{
+            'search_default_group_crossevered_budgdet_id': True, 
+            'search_default_filter_not_cancelled':True,
+            'tree_view_ref': 'equip3_accounting_budget.crossovered_budget_lines_tree_view',
+            }</field>
+    </record>
+    
+</odoo>

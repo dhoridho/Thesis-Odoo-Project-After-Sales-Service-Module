@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id='product_pricelist_view_tree' model='ir.ui.view'>
+        <field name='name'>product_pricelist_view_tree</field>
+        <field name='model'>product.pricelist</field>
+        <field name='inherit_id' ref='product.product_pricelist_view_tree'/>
+        <field name='arch' type='xml'>
+            <xpath expr="//tree" position="attributes">
+                <attribute name="js_class">product_pricelist_list</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_pricelist_view_kanban" model="ir.ui.view">
+        <field name="name">product.pricelist.kanban</field>
+        <field name="model">product.pricelist</field>
+        <field name='inherit_id' ref='product.product_pricelist_view_kanban'/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="js_class">product_pricelist_kanban</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_pricelist_view_form_inherit_new" model="ir.ui.view">
+        <field name="name">product.pricelist.history.form.inherit</field>
+        <field name="model">product.pricelist</field>
+        <field name="inherit_id" ref="product.product_pricelist_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">product_pricelist_form</attribute>
+            </xpath>
+            <xpath expr="//group/group/field[@name='company_id']" position="after">
+                <field name="customer_category"/>
+            </xpath>
+            <xpath expr="//notebook/page[@name='pricelist_config']" position="after">
+                <page name="pricelist_history" string="Pricelist History">
+                    <group>
+                        <div>
+                            <label for="from_date" class="oe_edit_only"/>
+                            <field name="from_date" class="oe_inline"/>   -
+                            <label for="to_date" class="oe_edit_only"/>
+                            <field name="to_date" class="oe_inline"/>
+                            <button style="margin-left: 20px" name="action_filter_history" string="Filter" type="object" class="oe_highlight oe_edit_only"/>
+                        </div>
+                    </group>
+                    <field name="pricelist_history_ids">
+                        <tree create="0" edit="0" string="Pricelist History">
+                            <field name="logdate" readonly="True"/>
+                            <field name="user_id" readonly="True"/>
+                            <field name="name" readonly="True"/>
+                            <field name="method" readonly="True"/>
+                            <field name="description" readonly="True"/>
+                            <field name="old_value_text" readonly="True"/>
+                            <field name="new_value_text" readonly="True"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_pricelist_view_inherit" model="ir.ui.view">
+        <field name="model">product.pricelist</field>
+        <field name="inherit_id" ref="product.product_pricelist_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='item_ids']/tree/field[@name='name']" position="after">
+                <field name="pricelist_uom_id" string="UoM"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <record id="product_pricelist_item_form_view" model="ir.ui.view">
+        <field name="model">product.pricelist.item</field>
+        <field name="inherit_id" ref="product.product_pricelist_item_form_view"/>
+        <field name="arch" type="xml">
+            <field name="product_id" position="after">
+                <field name="pricelist_uom_id" attrs="{'invisible': [('applied_on','not in',('1_product','0_product_variant'))]}"/>
+            </field>
+            <xpath expr="//group[@name='pricelist_rule_advanced']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='pricelist_rule_advanced']" position="before">
+                <group string="New Price" name="pricelist_rule_advanced" col="6" attrs="{'invisible':[('compute_price', '!=', 'formula')]}" groups="product.group_sale_pricelist">
+                    <div width="300px">
+                        <label for="base" string="Sales Price" class="d-block font-weight-bold oe_inline oe_edit_only" style="color: black;margin-top:-35px;" attrs="{'invisible':[('base', '!=', 'list_price')]}"/>
+                        <label for="base" string="Sales Price" class="d-block font-weight-bold oe_inline oe_read_only" style="color: black;margin-top:-35px;" attrs="{'invisible':[('base', '!=', 'list_price')]}"/>
+                        <label for="base" string="Cost" class="d-block font-weight-bold oe_inline oe_edit_only" style="color: black;margin-top:-35px;" attrs="{'invisible':[('base', '!=', 'standard_price')]}"/>
+                        <label for="base" string="Cost" class="d-block font-weight-bold oe_inline oe_read_only" style="color: black;margin-top:-35px;" attrs="{'invisible':[('base', '!=', 'standard_price')]}"/>
+                        <label for="base" string="Other Pricelist" class="d-block font-weight-bold oe_inline oe_edit_only" style="color: black;margin-top:0px;" attrs="{'invisible':[('base', '!=', 'pricelist')]}"/>
+                        <label for="base" string="Other Pricelist" class="d-block font-weight-bold oe_inline oe_read_only" style="color: black;margin-top:-35px;" attrs="{'invisible':[('base', '!=', 'pricelist')]}"/>
+                        <div class="o_row">
+                            <div>
+                                <field name="base_price_info" attrs="{'invisible':[('applied_on', 'not in', ('1_product','0_product_variant'))]}" style="font-size: 15px"/>
+                            </div>
+                            <div>
+                                <span class="d-block font-weight-bold oe_edit_only" style="font-size: 15px;margin-left:100px">+</span>
+                                <span class="d-block font-weight-bold oe_read_only" style="font-size: 15px;margin-left:180px">+</span>
+                            </div>
+                        </div>
+                    </div>
+                    <label string="Surcharge" for="price_surcharge" style="margin-top:10px;"/>
+                    <div class="o_col">
+                        <div class="o_row">
+                            <field name="price_surcharge" nolabel="1"/>
+                            <field name="type_surcharge" nolabel="0" class="oe_edit_only"/>
+                            <span attrs="{'invisible':[('type_surcharge', '!=', 'percentage')]}" class="oe_read_only">%</span>
+                        </div>
+                        <div class="oe_grey">
+                            <p>Enter a negative number to get a discount on the new price</p>
+                        </div>
+                    </div>
+                    <field name="price_round" string="Rounding Method" invisible="1"/>
+                    <field name="price_min_margin" string="Min. Margin"/>
+                    <field name="price_max_margin" string="Max. Margin"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

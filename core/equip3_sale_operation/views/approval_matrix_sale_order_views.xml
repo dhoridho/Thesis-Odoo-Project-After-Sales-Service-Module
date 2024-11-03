@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_form_approval_matrix_sale_order" model="ir.ui.view">
+        <field name="name">approval.matrix.sale.order.form</field>
+        <field name="model">approval.matrix.sale.order</field>
+        <field name="arch" type="xml">   
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="company_id" />
+                            <field name="branch_id" domain="filter_branch"/>
+                            <field name="currency_id"/>
+                            <field name="filter_branch" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="create_uid"/>
+                            <label for="config"/>
+                            <div>
+                                <field name="config"/>
+                                <field name="description" nolabel="1" class="text-muted" attrs="{'invisible': [('config', '!=', 'margin_amt')]}"/>
+                            </div>
+                            <field name="minimum_amt"/>
+                            <field name="maximum_amt"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Approver Line">
+                            <field name="approver_matrix_line_ids" context="{'approver_matrix_line_ids' : approver_matrix_line_ids}">
+                                <tree editable="bottom" class="class_container_approver_matrix">
+                                    <field name="sequence" widget="handle" />
+                                    <field name="sequence2" force_save="1" readonly="1" class="approver_matrix_sequence"/>
+                                    <field name="approval_type" invisible="1"/>
+                                    <field name="user_name_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                                    <field name="minimum_approver" />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_form_approval_matrix_sale_order_tree" model="ir.ui.view">
+        <field name="name">Approval Matrix Sale Order</field>
+        <field name="model">approval.matrix.sale.order</field>
+        <field name="arch" type="xml">
+            <tree string="Lines">
+                <field name="name"/>
+                <field name="currency_id"/>
+                <field name="config"/>
+                <field name="minimum_amt"/>
+                <field name="maximum_amt"/>
+                <field name="branch_id" />
+                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_approval_matrix_sale_order" model="ir.actions.act_window">
+        <field name="name">Sales Approval Matrix</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">approval.matrix.sale.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="target">current</field>
+            
+    </record>
+
+    <!-- Change parent="sale.menu_sale_config"  sequence="2" -->
+    <menuitem id="menu_approval_matrix_sale_order"
+        name="Approval Matrix"
+        parent="equip3_sale_masterdata.menu_sale_config_config"
+        sequence="4"/>
+    
+    <menuitem id="approving_matrix_sale_order"
+        name="Sales Approval Matrix"
+        parent="menu_approval_matrix_sale_order"
+        action="action_approval_matrix_sale_order"
+        sequence="1"/>
+
+    <menuitem id="menu_action_view_product_pricelist_approval_matrix"
+        name="Pricelists Request Approval Matrix"
+        parent="menu_approval_matrix_sale_order"
+        action="equip3_sale_masterdata.action_view_product_pricelist_approval_matrix"
+        groups="equip3_sale_accessright_setting.group_sale_pricelist_approval"
+        sequence="2"/>
+
+
+</odoo>

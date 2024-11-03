@@ -1,0 +1,21 @@
+{
+    'name': 'Delivery Acknowledgement',
+    'version': '1.1.1',
+    'author': 'Pragmatic TechSoft Pvt Ltd.',
+    'website': 'http://www.pragtech.co.in',
+    'category': 'Stock',
+    'summary': '',
+    'description': """ """,
+    'depends': ['pragmatic_odoo_delivery_boy','delivery_cash_wallet'],
+    'data': [
+        'views/picking_order_view.xml',
+        'data/mail_template.xml',
+        'views/delivery_boy_web_view.xml',
+        'data/website_menus_view.xml',
+        'views/broadcast_order_template.xml',
+        'views/template.xml',
+    ],
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+}

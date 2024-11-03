@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+	<record id="product_template_form_view_inherit" model="ir.ui.view">
+        <field name="name">product.template.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="equip3_pos_masterdata.equip3_pos_masterdata_product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='qty_warning_out_stock']" position="after">
+                <field name="is_combo_product_new" string="Combo Product"/>
+            </xpath>
+            <xpath expr="//group[@name='combo']" position="before">
+                <group name="combo_product" string="Combo Options" 
+                    attrs="{ 'invisible': [('is_combo_product_new','!=',True)] }">
+                    <field name="pos_combo_ids" nolabel="1">
+                        <tree>
+                            <field name="product_tmpl_id" invisible="1"/>
+                            <field name="name"/>
+                            <field name="maximum_pick"/>
+                            <field name="required"/>
+                            <field name="option_ids" widget="many2many_tags"
+                                attrs="{'invisible': [('show_details_visible','=',False)] }"/>
+
+                            <field name="show_details_visible" invisible="1"/>
+                            <button name="action_show_details" 
+                                type="object" 
+                                width="0.1" 
+                                class="oe_highlight oe_read_only"
+                                string="Details" 
+                                attrs="{'invisible': [('show_details_visible', '=', False)]}" options="{&quot;warn&quot;: true}"/>
+                        </tree>
+                        <form> 
+                            <sheet>
+                                <group>
+                                    <group>
+                                        <field name="product_tmpl_id" invisible="1"/>
+                                        <field name="name"/>
+                                        <field name="maximum_pick"/>
+                                    </group>
+                                    <group>
+                                        <field name="required"/>
+                                    </group>
+                                </group>
+                                <group string="Options">
+                                    <field name="option_ids" 
+                                        nolabel="1"
+                                        context="{ 
+                                            'tree_view_ref': 'equip3_pos_masterdata_fnb.pos_combo_option_tree_view',
+                                            'form_view_ref': 'equip3_pos_masterdata_fnb.pos_combo_option_form_view',
+                                        }"/>
+                                </group>
+                            </sheet>
+                        </form>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="combo_product_product_template_action" model="ir.actions.act_window">
+        <field name="name">Combo Products</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.template</field>
+        <field name="domain">[('is_combo_product_new','=',True)]</field>
+        <field name="view_mode">kanban,tree,form,activity</field>
+        <field name="context">{ 'default_is_combo_product_new': True, 'default_available_in_pos': True }</field>
+    </record>
+
+    <menuitem id="combo_product_product_template_menu"
+        name="Combo Products"
+        sequence="17"
+        action="combo_product_product_template_action"
+        groups="equip3_pos_masterdata.group_pos_supervisor,equip3_pos_masterdata.group_pos_manager,equip3_pos_masterdata.group_pos_staff"
+		parent="point_of_sale.pos_config_menu_catalog"/>
+
+</odoo>

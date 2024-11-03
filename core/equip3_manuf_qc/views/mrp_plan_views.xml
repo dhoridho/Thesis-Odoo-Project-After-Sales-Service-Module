@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="mrp_plan_form_view" model="ir.ui.view">
+        <field name="name">mrp.plan.form.view</field>
+        <field name="model">mrp.plan</field>
+        <field name="inherit_id" ref="equip3_manuf_operations.mrp_plan_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="button_quality_check" string="Self Check" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('need_qc', '=', False), ('show_check_button', '=', False), ('state', '!=', 'confirm')]}"/>
+                <button name="button_quality_alert" string="Send Alert" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('need_qc', '=', False), ('show_alert_button', '=', False), ('state', '!=', 'confirm')]}"/>
+            </xpath>
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <field name="need_qc" invisible="1"/>
+                <field name="qc_fail" invisible="1"/>
+                <field name="qc_pass" invisible="1"/>
+                <field name="pending_qc" invisible="1"/>
+                <field name="need_alert" invisible="1"/>
+                <field name="show_check_button" invisible="1"/>
+                <field name="show_alert_button" invisible="1"/>
+                <field name="any_qc_mandatory_left" invisible="1"/>
+
+                <button name="action_view_quality_check" class="oe_stat_button" icon="fa-check" type="object" attrs="{'invisible': ['|', ('need_qc', '=', False), ('state', 'not in', ('confirm', 'progress', 'to_close', 'done'))]}">
+                    <field name="qc_count" widget="statinfo" string="Quality Checks"/>
+                </button>
+                <button name="action_view_quality_alert" class="oe_stat_button" icon="fa-warning" type="object" attrs="{'invisible': ['|', '|', ('need_qc', '=', False), ('show_alert_button', '=', False), ('state', 'not in', ('confirm', 'progress', 'to_close', 'done'))]}">
+                    <field name="qc_alert_count" widget="statinfo" string="Quality Alerts" />
+                </button>
+            </xpath>
+
+            <xpath expr="//page[@name='assign_ids']" position="after">
+                <page name="sh_mrp_quality_check_ids" string="Quality Checks" groups="sh_inventory_mrp_qc.sh_quality_control_user" attrs="{'invisible': ['|', ('need_qc', '=', False), ('state', 'not in', ('confirm', 'progress', 'to_close', 'done'))]}" readonly="1">
+                    <field name="sh_mrp_quality_check_ids">
+                        <tree string="Quality Checks">
+                            <field name="sh_control_point" string="Reference" invisible="1"/>
+                            <field name="control_point_id" string="Name"/>
+                            <field name="product_id"/>
+                            <field name="product_type"/>
+                            <field name="type_of_qc" string="QC Type"/>
+                            <field name="state" widget="badge" decoration-danger="state == 'fail'" decoration-success="state == 'pass'"/>
+                        </tree>
+                    </field>
+                    <group>
+                        <group>
+                            <lable for="attachment_ids" />
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </group>
+                    </group>
+                </page>
+                <page name="sh_mrp_quality_alert_ids" string="Quality Alerts" groups="sh_inventory_mrp_qc.sh_quality_control_user" attrs="{'invisible': ['|', '|', ('need_qc', '=', False), ('show_alert_button', '=', False), ('state', 'not in', ('confirm', 'progress', 'to_close', 'done'))]}">
+                    <field name="sh_mrp_quality_alert_ids">
+                        <tree string="Quality Alerts">
+                            <field name="name" string="Reference"/>
+                            <field name="control_point_id" string="Name"/>
+                            <field name="product_id"/>
+                            <field name="team_id"/>
+                            <field name="user_id"/>
+                            <field name="tag_ids" widget="many2many_tags"/>
+                            <field name="stage_name" invisible="1"/>
+                            <field name="stage_id" widget="badge" decoration-info="stage_name == 'WAITING'" decoration-success="stage_name == 'DONE'"/>
+                        </tree>
+                    </field>
+                </page>
+                <page name="move_point" string="Move Points" invisible="1">
+                    <field name="move_point_ids">
+                        <tree string="Move Points">
+                            <field name="production_id" optional="hide"/>
+                            <field name="workorder_id" optional="hide"/>
+                            <field name="consumption_id" optional="hide"/>
+                            <field name="move_type"/>
+                            <field name="move_id"/>
+                            <field name="point_id"/>
+                            <field name="remaining_check"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- product.product form view -->
+        <record id="property_transaction_view_form" model="ir.ui.view">
+            <field name="name">product.product.view.form</field>
+            <field name="model">product.product</field>
+            <field name="arch" type="xml">
+                <form string="Property Transaction" create="false">
+                    <header>
+                        <field name="is_property" invisible="1"/>
+                        <button name="button_confirm" string="Confirm Property" type="object" class="oe_highlight" icon="fa-check" states="draft" groups="property_rental_mgt_app.group_manager"/>
+                        <!-- <button name="reserve_property" string="Reserve Rent Property" type="object" class="oe_highlight" icon="fa-home" states="rent"/> -->
+                        <button name="reserve_property_contract" string="Reserve Rent Property" type="object" class="oe_highlight" icon="fa-home" states="rent"/>
+                        <button name="buy_now_property_" string="Buy Now Property" type="object" class="oe_highlight" icon="fa-shopping-cart" states="sale" />
+                        <button type="object" name="button_set_to_draft" string=" Set to Draft" icon="fa-edit" states="rent,sale" groups="property_rental_mgt_app.group_manager"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,rent,sale,reserve,sold"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button" name="action_view_invoice" type="object" icon="fa-pencil-square-o" help="#Invoice of sold Property" attrs="{'invisible':[ ('invoice_count', '=', 0)]}">
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="invoice_count" widget="statinfo" nolabel="1" class="mr4"/>
+                                    </span>
+                                    <span class="o_stat_text">Invoices</span>
+                                </div>
+                            </button>
+                            <button class="oe_stat_button" name="view_contract_action" type="object" icon="fa-book" help="#Contract of Rent Property">
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="contract_count" widget="statinfo" nolabel="1" class="mr4"/>
+                                    </span>
+                                    <span class="o_stat_text">Contracts</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_128'}"/>
+                        <div class="oe_title">
+                            <label for="name" string="Property Name"/>
+                            <h1>
+                                <field name="name" attrs="{'invisible': [('name','=','/')]}" placeholder="Property Name"/>
+                            </h1>
+
+                        </div>
+                        <group name="first_group">
+                            <group name="second_group">
+                                <field name="default_code" string="Property Code"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="property" string="Property Information" autofocus="autofocus" attrs="{'invisible':[('is_property','=',False)]}">
+                                <group name="property_info">
+                                    <group string="Basic Information">
+                                        <field name="type" string="Property Type" readonly="1"/>
+                                        <field name="categ_id" string="Property Category" required="1" readonly="0"/>
+                                        <field name="property_book_for" string="Property Transaction" attrs="{'required': [('is_property', '=',True)],'readonly': [('state', '!=', 'draft')]}" />
+                                        <field name="property_pricelist_id" attrs="{'required':[('property_book_for', '=', 'rent')], 'invisible':[('property_book_for', '!=', 'rent')]}"/>
+                                        <field name="property_price" attrs="{'invisible': [('property_book_for', '!=', 'sale')], 'required': [('property_book_for', '=', 'sale')],'readonly': [('state', '!=', 'draft')]}"/>
+                                        <label for="reasonable_price" attrs="{'invisible': [('property_book_for', '!=', 'sale')]}"/>
+                                        <div attrs="{'invisible': [('property_book_for', '!=', 'sale')]}" class="o_row">
+                                            <field name="reasonable_price" class="oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                            <span attrs="{'invisible': [('reasonable_price', '=', False)]}">Discount in (%)                                                                                                                                                 <![CDATA[&nbsp;]]>
+                                            </span>
+                                            <field name="reasonable_price_per" class="oe_inline" attrs="{'invisible': [('reasonable_price', '=', False)],'readonly': [('state', '!=', 'draft')],'required': [('reasonable_price', '=', True)],}"/>
+                                        </div>
+                                        <field name="discounted_price" class="oe_inline" attrs="{'invisible': [('property_book_for', '!=', 'sale')], 'required': [('property_book_for', '=', 'sale')],'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="rent_price" string="Yearly Rent" attrs="{'invisible': [('property_book_for', '!=', 'rent')], 'required': [('property_book_for', '=', 'rent')]}" force_save="1" readonly="1"/>
+
+
+                                        <!-- <label for="reasonable_rent" attrs="{'invisible': [('property_book_for', '!=', 'rent')]}"/>
+                                        <div attrs="{'invisible': [('property_book_for', '!=', 'rent')]}" class="o_row">
+                                            <field name="reasonable_rent" class="oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                            <span attrs="{'invisible': [('reasonable_rent', '=', False)]}">Discount in (%)                                                                                                                                                <![CDATA[&nbsp;]]>
+                                            </span>
+                                            <field name="reasonable_percent" class="oe_inline" attrs="{'invisible': [('reasonable_rent', '=', False)],'readonly': [('state', '!=', 'draft')], 'required': [('reasonable_rent', '=', True)],}"/>
+                                        </div> -->
+                                        <field name="deposite" attrs="{'invisible': [('property_book_for', '!=', 'rent')], 'required': [('property_book_for', '=', 'rent')]}" force_save="1" readonly="1"/>
+                                        <!-- <label for="reasonable_rent_daily" attrs="{'invisible': [('property_book_for', '!=', 'rent')]}"/>
+                                        <div attrs="{'invisible': [('property_book_for', '!=', 'rent')]}" class="o_row">
+                                            <field name="reasonable_rent_daily" class="oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                            <span attrs="{'invisible': [('reasonable_rent_daily', '=', False)]}">Discount in (%)                                                <![CDATA[&nbsp;]]>
+                                            </span>
+                                            <field name="reasonable_percent_daily" class="oe_inline" attrs="{'invisible': [('reasonable_rent_daily', '=', False)],'readonly': [('state', '!=', 'draft')], 'required': [('reasonable_rent_daily', '=', True)],}"/>
+                                        </div>   -->
+                                        <field name="daily_rent" attrs="{'invisible': [('property_book_for', '!=', 'rent')], 'required': [('property_book_for', '=', 'rent')]}" force_save="1" readonly="1"/>
+                                        <!-- <field name="owner_id" widget="many2many_tags" attrs="{'required': ['|',('property_book_for', '=', 'sale'),('property_book_for', '=', 'rent')],'readonly': [('state', '!=', 'draft')]}" options="{'no_create_edit': True}"/> -->
+                                        <field name="property_owner_id" attrs="{'required': ['|',('property_book_for', '=', 'sale'),('property_book_for', '=', 'rent')],'readonly': [('state', '!=', 'draft')]}" options="{'no_create_edit': True}"/>
+                                        <field name="salesperson_id" options="{'no_create_edit': True}" required="1"/>
+
+                                        <field name="property_avl_from" attrs="{'invisible':[('property_book_for', '!=', 'rent')],'required': [('property_book_for', '=', 'rent')],'readonly': [('state', '!=', 'draft')]}"/>
+                                        <label for="age" attrs="{'invisible': [('property_book_for', '!=', 'rent')],'readonly': [('state', '!=', 'draft')]}"/>
+                                        <div attrs="{'invisible': [('property_book_for', '!=', 'rent')],'readonly': [('state', '!=', 'draft')]}">
+                                            <field name="age" class="oe_inline" attrs="{'invisible': [('age', '=', 0)],'readonly': [('state', '!=', 'draft')]}"/>
+                                            <span class="ml8" attrs="{'invisible': [('age', '=', 0)],'readonly': [('state', '!=', 'draft')]}">Years </span>
+                                            <field name="months" class="oe_inline" attrs="{'invisible': [('months', '=', 0)],'readonly': [('state', '!=', 'draft')]}"/>
+                                            <span class="ml8" attrs="{'invisible': [('months', '=', 0)]}">Months </span>
+                                        </div>
+                                        <field name="construction_status" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                                    </group>
+                                    <group string="Available Facility &amp; Services" name="facility">
+                                        <label for="maintain_charge" attrs="{'invisible': [('property_book_for', '!=', 'rent')]}"/>
+                                        <div attrs="{'invisible': [('property_book_for', '!=', 'rent')]}">
+                                            <div class="o_row">
+                                                <field name="maintain_charge" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                                <span><![CDATA[&nbsp;]]></span>
+                                                <field name="rent_unit" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                            </div>
+                                        </div>
+
+                                        <field name="partial_payment_ids" widget="many2many_tags" attrs="{'invisible': [('property_book_for', '!=', 'sale')], 'readonly': [('state', '!=', 'draft')]}" options="{'no_create_edit': True}"/>
+                                        <field name="facility_ids" widget="many2many_checkboxes" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    </group>
+                                    <group string="Location Details" name="area_details">
+                                        <field name="street" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="location" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="city" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="zipcode" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="state_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="country_id" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="phone" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                                    </group>
+                                    <group string="Other Information" name="other">
+                                        <field name="property_type" options="{'no_create_edit': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="property_floor" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="build_area" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="carpet_area" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="bedrooms" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="balconies" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                        <field name="washroom" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    </group>
+                                </group>
+                                <group string="More Description">
+                                    <field name="more_details" nolabel="1" placeholder="Property details." attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    <field name="is_reserved" invisible="1"/>
+                                    <field name="is_sold" invisible="1"/>
+                                    <field name="user_id" invisible="1"/>
+                                </group>
+                            </page>
+                            <page name="rent_payer" string="Renter Contract Details" attrs="{'invisible': ['|',('property_book_for', '!=', 'rent'),('is_property','=',False)]}" groups="property_rental_mgt_app.group_manager,property_rental_mgt_app.group_rent_payer">
+                                <field name="renter_history_ids" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                                    <tree create="false" edit="false">
+                                        <field name="reference" string="Contract Name"/>
+                                        <field name="renter_id"/>
+                                        <field name="date"/>
+                                        <field name="from_date" string="Start Date"/>
+                                        <field name="to_date" string="Expired  Date"/>
+                                        <field name="rent_price" />
+                                        <field name="contract_month"/>
+                                        <field name="deposite"/>
+                                        <field name="invoice_id"/>
+                                        <field name="state"/>
+                                        <field name="is_invoice" invisible="1"/>
+                                        <field name="contract_id" invisible="1"/>
+                                        <button string="Create Invoice" class="oe_highlight" name="create_rent_invoice" type="object" attrs="{'invisible': [('is_invoice','=',True)]}"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="commission" string="Commission Details" groups="property_rental_mgt_app.group_manager" attrs="{'invisible':[('is_property','=',False)]}">
+                                <field name="user_commission_ids" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                                    <tree editable="bottom">
+                                        <field name="user_id" required="1"/>
+                                        <field name="percentage" string="Commission in Percentage(%)"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="purchase_detail" string="Purchase Detail" attrs="{'invisible':[ ('is_sold', '=', False)]}">
+                                <group>
+                                    <group>
+                                        <field name="user_id" string="Purchaser Name" readonly="1"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page name="rent_detail" string="Renter Detail" attrs="{'invisible':[ ('is_reserved', '=', False)]}">
+                                <group>
+                                    <group>
+                                        <field name="user_id" string="Renter Name" readonly="1"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- property_transaction kanban view -->
+        <record id="property_transaction_view_kanban" model="ir.ui.view">
+            <field name="name">property_transaction.view.kanban</field>
+            <field name="model">product.product</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state" class="o_kanban_small_column o_opportunity_kanban" create="false" records_draggable="0">
+                    <field name="id"/>
+                    <field name="lst_price"/>
+                    <field name="activity_state"/>
+                    <field name="property_book_for"/>
+                    <field name="property_price"/>
+                    <field name="rent_price"/>
+                    <field name="state"/>
+                    <field name="is_sold"/>
+                    <field name="is_reserved"/>
+                    <progressbar field="activity_state" colors="{&quot;planned&quot;: &quot;success&quot;, &quot;today&quot;: &quot;warning&quot;, &quot;overdue&quot;: &quot;danger&quot;}"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click">
+                                <div class="o_kanban_image">
+                                    <img t-att-src="kanban_image('product.product', 'image_128', record.id.raw_value)" alt="Product" class="o_image_64_contain"/>
+                                </div>
+                                <div class="oe_kanban_details">
+                                    <strong class="o_kanban_record_title"><h3><field name="name"/></h3></strong>
+                                    <div class="o_kanban_tags_section">
+                                        <field name="product_template_attribute_value_ids" groups="product.group_product_variant"/>
+                                    </div>
+                                    <t t-if="record.property_book_for.raw_value == 'sale'">
+                                        <strong>Property Price : <field name="property_price"/></strong>
+                                    </t>
+                                    <br/>
+                                    <t t-if="record.property_book_for.raw_value == 'rent'">
+                                        <strong>Yearly Rent : <field name="rent_price"/></strong>
+                                    </t>
+                                    <ul>
+                                        <li><strong>Property Type : <field name="property_book_for"/></strong></li>
+                                        <li attrs="{'invisible':[ ('is_sold', '=', False)]}"><strong>Purchaser : <field name="user_id"/></strong></li>
+                                        <li attrs="{'invisible':[ ('is_reserved', '=', False)]}"><strong>Renter : <field name="user_id"/></strong></li>
+                                        <li><strong>Owner : <field name="property_owner_id"/></strong></li>
+                                        <li><strong>Status : <field name="state"/></strong></li>
+                                    </ul>
+                                    <div name="tags"/>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+<!-- product.product action window -->
+<record id="property_transaction_action" model="ir.actions.act_window">
+<field name="name">Property Transaction</field>
+<field name="type">ir.actions.act_window</field>
+<field name="res_model">product.product</field>
+<field name="view_mode">kanban,tree,form</field>
+<field name="domain">[('is_property', '=', True),('type', '=', 'property')]</field>
+<field name="context">{'default_is_property': 1, 'default_state': 'draft', 'default_type': 'property'}</field>
+<field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('property_transaction_view_kanban')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('property_transaction_view_form')})]"/>
+</record>
+
+
+<!-- Menu Item -->
+<menuitem id="property_transaction_menu" parent="equip3_property_masterdata.property_operation_menu" name="Property Transaction" action="property_transaction_action" sequence="5"/>
+
+</data>
+</odoo>

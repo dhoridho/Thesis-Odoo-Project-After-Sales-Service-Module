@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="purchase_order_view_form_inherit2" model="ir.ui.view">
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="equip3_purchase_other_operation.purchase_order_view_form_inherit"></field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='incoterm_id']" position="before">
+                <field name="client_order_ref" invisible="1"/>
+                <field name="is_sale_order" invisible="1"/>
+            </xpath>
+            <xpath expr="//group/group[2]" position="inside">
+                <!-- Add your fields here -->
+                <label for="is_dropship" string="Delivery Type" attrs="{'invisible':[('is_dropship','!=',True)]}"/>
+                <div class="o_row" name="is_dropship" attrs="{'invisible':[('is_dropship','!=',True)]}">
+                    <field name="is_dropship" nolabel="1"/>
+                    <span>Dropship</span>
+                </div>
+                <field name="customer_location_partner_id" attrs="{'invisible':[('is_dropship','!=',True)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- purchase.order inherit form view -->
+    <record id="purchase_order_view_form_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.inherit.view.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="equip3_purchase_other_operation.purchase_order_view_form_inherit"/>
+        <field name="arch" type="xml">
+            
+            <xpath expr="//label[@for='destination_warehouse_id']" position="attributes">
+                <!-- Add your fields here -->
+                <attribute name="attrs">{'invisible': ['|',('is_dropship','=',True),('is_single_delivery_destination', '!=', True)]}</attribute>
+            </xpath>
+            <field name="destination_warehouse_id" position="attributes">
+                <attribute name="attrs">{'readonly': ['|', ('state', 'in', ['purchase', 'done', 'cancel', 'rfq_approved', 'waiting_for_approve', 'retreat']), ('is_editable', '=', True)], 'invisible': ['|',('is_dropship','=',True),('is_single_delivery_destination', '!=', True)], 'required': [('is_single_delivery_destination', '=', True),('is_dropship','!=',True)]}</attribute>
+                <attribute name="domain">filter_destination_warehouse</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_tree_view_inherit_po2" model="ir.ui.view">
+        <field name="name">purchase.form.view.inherit</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="branch_id" position="before">
+                <field name="client_order_ref" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_tree_view_inherit_rfq" model="ir.ui.view">
+        <field name="name">purchase.form.view.inherit</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_kpis_tree"/>
+        <field name="arch" type="xml">
+            <field name="branch_id" position="before">
+                <field name="client_order_ref" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_order_form_sale_inherit" model="ir.ui.view">
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form" />
+        <field name="arch" type="xml">
+            <field name="partner_id" position="attributes">
+                <attribute name="widget">selection</attribute>
+            </field>
+            <field name="branch_id" position="attributes">
+                <attribute name="widget">selection</attribute>
+            </field>
+            <xpath expr="//field[@name='sh_sale_order_id']" position="attributes">
+                <attribute name="attrs">{'invisible': [('is_sale_order', '!=', True)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- <record id="sale_order_const_view_tree_inherit" model="ir.ui.view">
+            <field name="name">sale.order.const.view.tree.inherit</field>
+            <field name="model">sale.order.const</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_order_const_view_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree/field[@name='state']" position="attributes">
+                    <attribute name="decoration-secondary">"state == 'draft'"</attribute>
+                    <attribute name="decoration-warning3">"state == 'waiting_for_over_limit_approval' or state == 'waiting_for_approval'"</attribute>
+                    <attribute name="decoration-success2">"state == 'over_limit_approved' or state == 'quotation_approved'"</attribute>
+                    <attribute name="decoration-danger">"state == 'reject' or state == 'over_limit_reject'"</attribute>
+                    <attribute name="decoration-primary3">"state == 'sent'"</attribute>
+                    <attribute name="decoration-success">"state == 'sale'"</attribute>
+                    <attribute name="decoration-success3">"state == 'done'"</attribute>
+                    <attribute name="decoration-danger2">"state == 'cancel'"</attribute>
+                    <attribute name="decoration-warning">"state == 'on_hold'"</attribute>
+                    <attribute name="decoration-danger3">"state == 'block'"</attribute>
+                </xpath>
+            </field>
+        </record> -->
+
+        <record id="sale_order_const_form_view_inherit_sale_operation" model="ir.ui.view">
+            <field name="name">sale.order.const.form.view.inherit.from.sale.operation</field>
+            <field name="model">sale.order.const</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_order_const_view_form"/>
+            <field name="arch" type="xml">
+                <field name="is_customer_approval_matrix_const">
+                    <field name="is_over_limit_validation" invisible="1"/>
+                </field>
+            </field>
+        </record>
+        
+        <record id="inherit_sale_order_form_view_from_sale_operation_const" model="ir.ui.view">
+            <field name="name">sale.orer.form.view.inherit.from.sale.operation.const</field>
+            <field name="model">sale.order.const</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_order_const_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='approval_matrix_line_id']" position="after">
+                    <field name="is_limit_matrix_filled" invisible="1"/>
+                    <field name="is_direct_confirm" invisible="1"/>
+                    <field name="is_over_limit_validation" invisible="1"/>
+                    <field name="limit_approval_matrix_line_id" invisible="1"/>
+                    <field name="is_limit_matrix_filled" invisible="1"/>
+                    <field name="is_approve_button_limit" invisible="1"/>
+                </xpath>
+                <xpath expr="//notebook" position="inside">
+                    <page string="Over Limit Approval Matrix Line" attrs="{'invisible': [('is_limit_matrix_filled', '=', False)]}">
+                        <group>
+                            <group >
+                                <field name="approving_matrix_limit_id" widget="many2many_tags" force_save="1" readonly="1" attrs="{'invisible': [('is_limit_matrix_filled', '=', False)]}"/>
+                            </group>
+                        </group>
+                        <field name="approved_matrix_limit_ids" context="{'approved_matrix_limit_ids': approved_matrix_limit_ids}">
+                            <tree editable="bottom">
+                                <field name="sequence" />
+                                <field name="user_name_ids" widget="many2many_tags"/>
+                                <field name="approval_type"/>
+                                <field name="minimum_approver" />
+                                <field name="state_char" />
+                                <field name="time_stamp" />
+                                <field name="feedback" />
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+                <xpath expr="//button[@name='button_cancel']" position="attributes">
+                    <attribute name="attrs">{'invisible': [('state', 'not in', ('over_limit_approved', 'quotation_approved'))]}</attribute>
+                </xpath>
+                <xpath expr="//header[1]" position="inside">
+                    <field name="limit_matrix_state_const" widget="statusbar" statusbar_visible="draft,waiting_for_over_limit_approval,sale" 
+                        attrs="{'invisible': ['|', '|', ('is_over_limit_validation', '=', False), ('is_customer_approval_matrix_const', '=', True), ('state', '!=', 'waiting_for_over_limit_approval')]}"/>
+                    
+                    <field name="limit_matrix_state_2_const" widget="statusbar" statusbar_visible="draft,over_limit_approved,sale" 
+                        attrs="{'invisible': ['|', '|', '|', 
+                        ('is_direct_confirm', '=', True),
+                        ('is_over_limit_validation', '=', False), ('is_customer_approval_matrix_const', '=', True), ('state', 'not in', ('over_limit_approved', 'sale'))]}"/>
+                    <field name="limit_matrix_state_1_const" widget="statusbar" statusbar_visible="draft,over_limit_reject" attrs="{'invisible': [('state', '!=', 'over_limit_reject')]}"/>
+
+                    <field name="sale_limit_state_const" widget="statusbar" statusbar_visible="draft,waiting_for_over_limit_approval,to_approve,sale" attrs="{'invisible': ['|', '|', '|', ('state', '!=', 'waiting_for_over_limit_approval'), ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', False), ('is_approval_matrix_filled', '=', False)]}"/>
+
+                    <field name="sale_limit_state_1_const" widget="statusbar" statusbar_visible="draft,over_limit_approved,to_approve,sale" attrs="{'invisible': ['|', '|', '|', '|', ('is_direct_confirm', '=', True), ('state', 'not in', ('over_limit_approved', 'to_approve')), ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', False),('is_approval_matrix_filled', '=', False)]}"/>
+
+                    <field name="sale_limit_state_2_const" widget="statusbar" statusbar_visible="draft,waiting_for_over_limit_approval,quotation_approved,sale" attrs="{'invisible': ['|', '|', '|', ('state', '!=', 'waiting_for_over_limit_approval'), ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', False), ('is_approval_matrix_filled', '=', True)]}"/>
+
+                    <field name="sale_limit_state_3_const" widget="statusbar" statusbar_visible="draft,over_limit_approved,quotation_approved,sale" attrs="{'invisible': ['|', '|', '|', '|', ('is_direct_confirm', '=', True), ('state', 'not in', ('over_limit_approved', 'quotation_approved', 'to_approve', 'sale')), ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', False),('is_approval_matrix_filled', '=', True)]}"/>
+
+                    <field name="approval_matrix_state_7_const" widget="statusbar" statusbar_visible="draft,quotation_approved,sale" attrs="{'invisible': ['|', '|', '|', '|', ('is_direct_confirm', '=', False), ('state', 'not in', ('over_limit_approved', 'quotation_approved', 'to_approve', 'sale')), ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', False),('is_approval_matrix_filled', '=', True)]}"/>
+
+                    <field name="sale_limit_state_4_const" widget="statusbar" statusbar_visible="draft,sale,done" attrs="{'invisible': ['|', '|', ('is_customer_approval_matrix_const', '=', True), 
+                    ('state', 'in', ('waiting_for_over_limit_approval', 'to_approve', 'reject', 'over_limit_reject', 'over_limit_approved',  'cancel','sale','block')),
+                    ('is_over_limit_validation', '=', False)]}"/>
+                </xpath>
+
+                <xpath expr="//button[@id='button_confirm_2']" position="after">
+                    <button name="action_request_for_approving_limit" type="object" string="Confirm Order" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_customer_approval_matrix_const', '=', True), ('is_over_limit_validation', '=', False), ('state', 'in', ('waiting_for_over_limit_approval','over_limit_reject','sale','cancel','block'))]}"/>
+                    <button name="action_confirm_new" type="object" string="Confirm Order" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', True), ('state', '!=', 'quotation_approved')]}"/>
+                    <button name="action_request_for_approval_limit" type="object" string="Request For Approval" states="over_limit_approved" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_customer_approval_matrix_const', '=', False), ('is_approval_matrix_filled', '=', False)]}"/>
+                    <button name="action_request_for_approval_limit" type="object" string="Approve" states="over_limit_approved" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_customer_approval_matrix_const', '=', False), ('is_approval_matrix_filled', '=', True)]}"/>
+                    <button name="action_confirm_approving_limit_matrix" type="object" string="Approve Over Limit" class="oe_highlight" attrs="{'invisible': ['|', '|', '|', ('is_over_limit_validation', '=', False), ('state', '!=', 'waiting_for_over_limit_approval'), ('is_limit_matrix_filled', '=', False), ('is_approve_button_limit', '=', False)]}"/>
+                    <button name="action_reject_limit_approving_matrix" type="object" string="Reject Over Limit" attrs="{'invisible': ['|', '|', '|', ('is_over_limit_validation', '=', False), ('state', '!=', 'waiting_for_over_limit_approval'), ('is_limit_matrix_filled', '=', False), ('is_approve_button_limit', '=', False)]}"/>
+                </xpath>
+
+                <xpath expr="//button[@id='button_confirm']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', '|', ('state', 'in', ('sale','cancel','block')), ('is_customer_approval_matrix_const', '=', True), ('is_over_limit_validation', '=', True)]}</attribute>
+                </xpath>
+
+                <xpath expr="//button[@id='button_confirm_2']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', '|', ('state', '!=', 'quotation_approved'), ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', False)]}</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='state']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', '|', ('state', 'in', ('cancel','block')), ('is_customer_approval_matrix_const', '=', True), ('is_over_limit_validation', '=', True)]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='state_done']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', '|', ('state', '!=', 'done'), ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', False)]}</attribute>
+                </xpath>
+                 <xpath expr="//field[@name='state_cancel']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', '|', ('state', '!=', 'cancel'), ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', False)]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='state_cancel']" position="after">
+                    <field name="state_cancel_1" widget="statusbar" statusbar_visible="draft,sale,cancel" attrs="{'invisible': ['|', '|', ('state', '!=', 'cancel'), ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', True)]}"/>
+                    <field name="state_cancel_2" widget="statusbar" statusbar_visible="draft,sale,cancel" attrs="{'invisible': ['|', '|', ('state', '!=', 'cancel'), ('is_customer_approval_matrix_const', '=', True), ('is_over_limit_validation', '=', False)]}"/>
+                </xpath>
+
+                <field name="approval_matrix_state" position="attributes">
+                    <attribute name="attrs">
+                        {'invisible': ['|', '|', 
+                        ('is_customer_approval_matrix_const', '=', False),
+                        ('is_over_limit_validation', '=', True),
+                        ('state', 'in', ('reject', 'cancel','block'))]}
+                    </attribute>
+                </field>
+
+                <field name="approval_matrix_state" position="after">
+                    <field name="approval_matrix_state_2_const" widget="statusbar" statusbar_visible="draft,sent,sale" 
+                        attrs="{'invisible': ['|', '|', '|', 
+                        ('is_direct_confirm', '=', False),
+                        ('is_over_limit_validation', '=', False), ('is_customer_approval_matrix_const', '=', True), ('state', 'not in', ('over_limit_approved', 'sale'))]}"/>
+                    
+                    <field name="approval_matrix_state_3_const" widget="statusbar" statusbar_visible="draft,to_approve,sale" attrs="{'invisible': ['|', '|', '|', '|', ('is_direct_confirm', '=', False), ('state', 'not in', ('over_limit_approved', 'to_approve')), ('is_customer_approval_matrix_const', '=', False), ('is_over_limit_validation', '=', False),('is_approval_matrix_filled', '=', False)]}"/>
+
+                    <field name="approval_matrix_state_4_const" widget="statusbar" statusbar_visible="draft,quotation_approved,sale" attrs="{'invisible': ['|', '|', ('is_over_limit_validation', '=', False), 
+                    ('is_customer_approval_matrix_const', '=', False),
+                    ('state', '!=', 'draft'),
+                    ]}"/>
+                    <field name="approval_matrix_state_5_const" widget="statusbar" statusbar_visible="draft,over_limit_approved,quotation_approved,sale" attrs="{'invisible': ['|', '|', '|', '|', '|', 
+                    ('is_direct_confirm', '=', True), ('is_over_limit_validation', '=', False), 
+                    ('is_customer_approval_matrix_const', '=', False),
+                    ('state', 'not in', ('quotation_approved', 'sale')),
+                    ('is_approval_matrix_filled', '=', False),
+                    '&amp;', ('is_limit_matrix_filled', '=', False),
+                    ('is_approval_matrix_filled', '=', False)
+                    ]}"/>
+                    <field name="approval_matrix_state_8_const" widget="statusbar" statusbar_visible="draft,over_limit_approved,quotation_approved,sent,sale" attrs="{'invisible': ['|', '|',
+                    ('is_over_limit_validation', '=', False), 
+                    ('is_customer_approval_matrix_const', '=', False),
+                    ('state', '!=', 'sent'),
+                    '&amp;', ('is_limit_matrix_filled', '=', False),
+                    ]}"/>
+                    <field name="approval_matrix_state_6_const" widget="statusbar" statusbar_visible="draft,quotation_approved,sale" attrs="{'invisible': ['|', '|', '|', '|', '|', 
+                    ('is_direct_confirm', '=', False),
+                    ('is_over_limit_validation', '=', False), 
+                    ('is_customer_approval_matrix_const', '=', False),
+                    ('state', 'not in', ('quotation_approved', 'sale')),
+                    ('is_approval_matrix_filled', '=', False),
+                    '&amp;', ('is_limit_matrix_filled', '=', False),
+                    ('is_approval_matrix_filled', '=', False)
+                    ]}"/>
+                </field>
+            </field>
+        </record>
+    
+    </data>
+</odoo>

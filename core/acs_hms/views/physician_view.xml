@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="physician_kanban_view">
+        <field name="name">physician.kanban</field>
+        <field name="model">hms.physician</field>
+        <field name="inherit_id" ref="acs_hms_base.physician_kanban_view"/>
+        <field name="type">kanban</field>
+        <field name="arch" type="xml">
+            <field name="degree_ids" position="after">
+                <field name="department_ids"/>
+                <field name="hr_presence_state"/>
+            </field>
+
+            <xpath expr="//ul[@id='code_ul']" position="after">
+                <field name="department_ids" widget="many2many_tags"/>
+            </xpath>
+
+            <xpath expr="//div[@id='dr_heading']" position="inside">
+                <strong class="o_kanban_record_title">
+                    <div class="float-right" t-if="record.hr_presence_state.raw_value == 'present'">
+                        <span class="fa fa-circle text-success" role="img" aria-label="Present" title="Present" name="presence_present"/>
+                    </div>
+                    <div class="float-right" t-if="record.hr_presence_state.raw_value == 'absent'">
+                        <span class="fa fa-circle text-danger" role="img" aria-label="Absent" title="Absent" name="presence_absent"/>
+                    </div>
+                    <div class="float-right" t-if="record.hr_presence_state.raw_value == 'to_define'">
+                        <span class="fa fa-circle text-warning" role="img" aria-label="To define" title="To define" name="presence_to_define"/>
+                    </div>
+                </strong>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="view_physician_form" model="ir.ui.view">
+        <field name="name">physician.form</field>
+        <field name="model">hms.physician</field>
+        <field name="inherit_id" ref="acs_hms_base.view_physician_form"/>
+        <field name="arch" type="xml">
+
+            <div name="button_box" position="inside">
+                <button name="action_treatment" groups="acs_hms.group_hms_jr_doctor" type="object" class="oe_stat_button" icon="fa-user-md">
+                    <field string="Treatments" name="treatment_count" widget="statinfo"/>
+                </button>
+
+                <button name="action_appointment" groups="acs_hms.group_hms_jr_doctor" type="object" class="oe_stat_button" icon="fa-stethoscope">
+                    <field string="Appointment" name="appointment_count" widget="statinfo"/>
+                </button>
+
+                <button name="action_prescription" groups="acs_hms.group_hms_jr_doctor" type="object" class="oe_stat_button" icon="fa-wpforms">
+                    <field string="Prescriptions" name="prescription_count" widget="statinfo"/>
+                </button>
+            </div>
+
+            <field name="user_id" position="after">
+                <field name="consultaion_service_id" domain="[('type','=','service'), ('sale_ok','=',True)]" context="{'default_type':'service', 'default_hospital_product_type':'consultation'}"/>
+                <field name="followup_service_id" domain="[('type','=','service'),('sale_ok','=',True)]" context="{'default_type':'service','default_hospital_product_type':'consultation'}"/>
+                <field name="appointment_duration" widget="float_time"/>
+                <field name="is_primary_surgeon"/>
+            </field>
+
+            <field name="specialty_id" position="after">
+                <field name="department_ids" widget="many2many_tags" groups="acs_hms.group_allow_multi_department"/>
+                <field name="employee_id"/>
+            </field>
+
+            <page name="gneral_info" position="after">
+                <page string="Personal Information" groups="acs_hms_base.group_hms_manager">
+                    <separator string="Signature"/>
+                    <field name="signature" widget="signature"/>
+                </page>
+            </page>
+        </field>
+    </record>
+
+    <record id="view_physician_search" model="ir.ui.view">
+        <field name="name">ACS Physician Barcode</field>
+        <field name="model">hms.physician</field>
+        <field name="inherit_id" ref="acs_hms_base.view_physician_search"/>
+        <field name="arch" type="xml">
+            <search>
+                <separator/>
+                <filter string="Primary Surgeon" name="is_primary_surgeon" domain="[('is_primary_surgeon','=',1)]"/>
+            </search>
+        </field>
+    </record>
+         
+
+</odoo>

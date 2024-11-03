@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data noupdate="0">
+		<record id="email_template_bo_expiry_reminder" model="mail.template">
+			<field name="name">Blanket Order: Expiry Reminder - On Expired</field>
+			<field name="model_id" ref="equip3_sale_other_operation_cont.model_saleblanket_saleblanket"/>
+			<field name="email_from">${(object.company_id.email) |safe}</field>
+			<field name="subject">${object.company_id.name} Blanket Order (Ref ${object.name or 'n/a' })</field>
+			<field name="email_to" >${object.user_id.email}</field>
+			<field name="body_html" type="html">
+				<div style="margin: 0px; padding: 0px;">
+					<p style="margin: 0px; padding: 0px; font-size: 13px;">
+						Dear ${object.user_id.name}
+						<br/><br/>
+						Here is information that the purchase request <strong>${object.name}</strong>
+						has been expired since
+						% if object.expiry_date:
+						<strong>${object.expiry_date}</strong>.
+						% else:
+						<strong>undefined</strong>.
+						% endif
+						<br/><br/>
+					</p>
+				</div>
+			</field>
+		</record>
+
+		<record id="email_template_bo_befor_expiry_reminder" model="mail.template">
+			<field name="name">Blanket Order: Expiry Reminder - Before</field>
+			<field name="model_id" ref="equip3_sale_other_operation_cont.model_saleblanket_saleblanket"/>
+			<field name="email_from">${(object.company_id.email) |safe}</field>
+			<field name="subject">${object.company_id.name} Blanket Order (Ref ${object.name or 'n/a' })</field>
+			<field name="email_to" >${object.user_id.email}</field>
+			<field name="body_html" type="html">
+				<div style="margin: 0px; padding: 0px;">
+					<p style="margin: 0px; padding: 0px; font-size: 13px;">
+						Dear ${object.user_id.name}
+						<br/><br/>
+						Here is reminder that the Blanket Order <strong>${object.name}</strong>
+						will be expired in
+						% if object.expiry_date:
+						<strong>${object.expiry_date}</strong>.
+						% else:
+						<strong>undefined</strong>.
+						% endif
+						it’s
+						% if object.days_left:
+						<strong>${object.days_left}</strong>
+						% else:
+						<strong>undefined</strong>.
+						% endif
+						days left.
+						Please click link below to go to the Blanket Order
+						<br/><br/>
+					</p>
+				</div></field>
+		</record>
+
+		<template id="mail_notification_confirm" inherit_id="mail.mail_notification_paynow" name="Saleblanket: Confirmation mail notification template">
+			<xpath expr="//a[@t-att-href='access_url']" position="replace">
+				<t t-if="record._name == 'saleblanket.saleblanket'">
+					<t t-if="record.days_left &gt; 0">
+<!--						<div style="display: inline-block; margin: 15px 0px; text-align: center;">-->
+<!--							<a href="${record.get_full_url()}" target="_blank" style="padding: 5px 10px; color: #ffffff; text-decoration: none; background-color: #875a7b; border: 1px solid #875a7b; border-radius: 3px;">-->
+<!--								Yes-->
+<!--							</a>-->
+<!--						</div>-->
+<!--						<div style="display: inline-block; margin: 15px 0px; text-align: center;">-->
+<!--							<a href="${record.get_full_url()}" target="_blank" style="padding: 5px 10px; color: #ffffff; text-decoration: none; background-color: #875a7b; border: 1px solid #875a7b; border-radius: 3px;">-->
+<!--								No, Update Date-->
+<!--							</a>-->
+<!--						</div>-->
+						<a t-att-href="record.get_full_url()"
+								style="margin-right: 10px; background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
+							View Blanket Order
+						</a>
+<!--						<a t-att-href="record.get_full_url()"
+								style="margin-left: 10px; background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
+							No, Update Dates
+						</a>-->
+						<div>&amp;nbsp;</div>
+						<div style="margin: 0px; padding: 0px; font-size:13px; text-align: left;">
+							If you have any questions, please do not hesitate to contact us.
+							<div>&amp;nbsp;</div>
+							Best regards,
+						</div>
+					</t>
+					<t t-else="">
+						<a t-att-href="record.get_full_url()"
+								style="margin-right: 10px; background-color: #875A7B; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;">
+							<t t-esc="record.name" />
+						</a>
+
+						<div>&amp;nbsp;</div>
+						<div style="margin: 0px; padding: 0px; font-size:13px; text-align: left;">
+							If you have any questions, please do not hesitate to contact us.
+							<div>&amp;nbsp;</div>
+							Best regards,
+						</div>
+					</t>
+				</t>
+			</xpath>
+		</template>
+<!--		Email Notification Templates -->
+		<record id="email_template_bo_approval_email_notification" model="mail.template">
+			<field name="name">Blanket Order: Email Notification for Approval</field>
+			<field name="model_id" ref="equip3_sale_other_operation_cont.model_saleblanket_saleblanket"/>
+			<field name="email_from">${(object.company_id.email) |safe}</field>
+			<field name="subject">Reminder for Blanket Order Approval</field>
+			<field name="email_to"><![CDATA[${ctx.get('email_to')}]]></field>
+			<field name="auto_delete" eval="True"/>
+        	<field name="body_html"><![CDATA[
+				<div style="margin: 0px; padding: 0px;">
+					<p style="margin: 0px; padding: 0px; font-size: 13px;">
+						Date: ${ctx.get('date')}
+						<br/>
+						Dear ${ctx.get('approver_name')}
+						<br/>
+						Based on the Blanket Order Approval Request ${object.name}. You have approval pending that need
+your decision to approve or reject the Blanket Order Approval request from ${object.user_id.partner_id.name}.
+						% if ctx.get('last_approved'):
+						For the Information, the previous approver was ${ctx.get('last_approved')}.
+						% endif
+						<br/>
+						You can approve or reject the Blanket Order Approval request by clicking this button:
+						<br/>
+						<div style="display: inline-block; margin: 15px 0px; text-align: center;">
+							<a href=${ctx.get('url')} style="padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none !important; font-weight: 400; background-color: #875A7B; border: 0px solid #875A7B; border-radius:3px">
+								${object.name}
+							</a>
+						</div>
+						<br/>
+						If you have any questions, please don’t hestitate to contact us.
+						<br/>
+						Thank you.
+					</p>
+				</div>
+				]]>
+			</field>
+		</record>
+
+		<record id="email_template_bo_approval_has_been_approved" model="mail.template">
+			<field name="name">Blanket Order: Approval has been Approved</field>
+			<field name="model_id" ref="equip3_sale_other_operation_cont.model_saleblanket_saleblanket"/>
+			<field name="email_from">${(object.company_id.email) |safe}</field>
+			<field name="subject">Reminder for Blanket Order Approval has been Approved</field>
+			<field name="email_to"><![CDATA[${ctx.get('email_to')}]]></field>
+			<field name="auto_delete" eval="True"/>
+        	<field name="body_html"><![CDATA[
+				<div style="margin: 0px; padding: 0px;">
+					<p style="margin: 0px; padding: 0px; font-size: 13px;">
+						Date: ${ctx.get('date')}
+						<br/>
+						Dear ${ctx.get('requester_name')}
+						<br/>
+						Based on the Blanket Order Approval Request ${object.name}. Your Blanket Order approval request
+has been Approved.
+						<br/>
+						You can check the Quotation by clicking this button:
+						<br/>
+						<div style="display: inline-block; margin: 15px 0px; text-align: center;">
+							<a href=${ctx.get('url')} style="padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none !important; font-weight: 400; background-color: #875A7B; border: 0px solid #875A7B; border-radius:3px">
+								${object.name}
+							</a>
+						</div>
+						<br/>
+						If you have any questions, please don’t hestitate to contact us.
+						<br/>
+						Thank you.
+					</p>
+				</div>
+				]]>
+			</field>
+		</record>
+		<record id="email_template_bo_approval_has_been_rejected" model="mail.template">
+			<field name="name">Blanket Order: Approval has been Rejected</field>
+			<field name="model_id" ref="equip3_sale_other_operation_cont.model_saleblanket_saleblanket"/>
+			<field name="email_from">${(object.company_id.email) |safe}</field>
+			<field name="subject">Reminder for Blanket Order Approval has been Rejected</field>
+			<field name="email_to"><![CDATA[${ctx.get('email_to')}]]></field>
+			<field name="auto_delete" eval="True"/>
+        	<field name="body_html"><![CDATA[
+				<div style="margin: 0px; padding: 0px;">
+					<p style="margin: 0px; padding: 0px; font-size: 13px;">
+						Date: ${ctx.get('date')}
+						<br/>
+						Dear ${ctx.get('requester_name')}
+						<br/>
+						Based on the Blanket Order Approval Request ${object.name}. Your Blanket Order approval request
+has been Rejected.
+						<br/>
+						You can check the Blanket Order by clicking this button:
+						<br/>
+						<div style="display: inline-block; margin: 15px 0px; text-align: center;">
+							<a href=${ctx.get('url')} style="padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none !important; font-weight: 400; background-color: #875A7B; border: 0px solid #875A7B; border-radius:3px">
+								${object.name}
+							</a>
+						</div>
+						<br/>
+						If you have any questions, please don’t hestitate to contact us.
+						<br/>
+						Thank you.
+					</p>
+				</div>
+				]]>
+			</field>
+		</record>
+<!--		Whatsapp Notification Templates -->
+		<record id="email_template_bo_approval_email_notification_wa" model="mail.template">
+			<field name="name">Blanket Order: Email Notification for Approval</field>
+			<field name="model_id" ref="equip3_sale_other_operation_cont.model_saleblanket_saleblanket"/>
+			<field name="email_from">${(object.company_id.email) |safe}</field>
+			<field name="subject">Reminder for Blanket Order Approval</field>
+			<field name="email_to"><![CDATA[${ctx.get('email_to')}]]></field>
+			<field name="auto_delete" eval="True"/>
+<!--        	<field name="body_html"><![CDATA[-->
+<!--				Date: ${date}-->
+<!--				Subject: <strong>${subject}</strong>${br}-->
+<!--				Dear ${approver_name},-->
+<!--				Based on the Blanket Order Approval Request ${name}. You have approval pending that need your decision to approve or reject the Blanket Order Approval request from ${partner_name}. ${last_approved}-->
+<!--				You can approve or reject the Blanket Order Approval request by clicking this link:-->
+<!--				${url}${br}-->
+<!--				Thank you.-->
+<!--				]]>-->
+<!--			</field>-->
+<!--        	<field name="body_html"><![CDATA[-->
+<!--				Date: ${date}-->
+<!--				Subject: <strong>${subject}</strong>-->
+<!--				Dear ${approver_name},${br}Based on the Blanket Order Approval Request ${name}. You have approval pending that need your decision to approve or reject the Blanket Order Approval request from ${partner_name}. ${last_approved}${br}You can approve or reject the Blanket Order Approval request by clicking this link: ${url}-->
+<!--				]]>-->
+<!--			</field>-->
+        	<field name="body_html"><![CDATA[
+				Dear ${approver_name},${br}Based on the Blanket Order Approval Request ${name}. You have approval pending that need your decision to approve or reject the Blanket Order Approval request from ${partner_name}. ${last_approved}${br}You can approve or reject the Blanket Order Approval request by clicking this link: ${url}
+				]]>
+			</field>
+		</record>
+
+		<record id="email_template_bo_approval_has_been_approved_wa" model="mail.template">
+			<field name="name">Blanket Order: Approval has been Approved</field>
+			<field name="model_id" ref="equip3_sale_other_operation_cont.model_saleblanket_saleblanket"/>
+			<field name="email_from">${(object.company_id.email) |safe}</field>
+			<field name="subject">Reminder for Blanket Order Approval has been Approved</field>
+			<field name="email_to"><![CDATA[${ctx.get('email_to')}]]></field>
+			<field name="auto_delete" eval="True"/>
+<!--        	<field name="body_html"><![CDATA[-->
+<!--				Date: ${date}-->
+<!--				Subject: <strong>${subject}</strong>${br}-->
+<!--				Dear ${partner_name},-->
+<!--				Based on the Blanket Order Approval Request ${name}. Your Blanket Order approval request has been Approved.${br}-->
+<!--				You can check the Blanket Order by clicking this link :-->
+<!--				${url}${br}-->
+<!--				Thank you.-->
+<!--				]]>-->
+<!--			</field>-->
+        	<field name="body_html"><![CDATA[
+				Dear ${partner_name},${br}Based on the Blanket Order Approval Request ${name}. Your Blanket Order approval request has been Approved.${br}You can check the Blanket Order by clicking this link : ${url}
+				]]>
+			</field>
+		</record>
+		<record id="email_template_bo_approval_has_been_rejected_wa" model="mail.template">
+			<field name="name">Blanket Order: Approval has been Rejected</field>
+			<field name="model_id" ref="equip3_sale_other_operation_cont.model_saleblanket_saleblanket"/>
+			<field name="email_from">${(object.company_id.email) |safe}</field>
+			<field name="subject">Reminder for Blanket Order Approval has been Rejected</field>
+			<field name="email_to"><![CDATA[${ctx.get('email_to')}]]></field>
+			<field name="auto_delete" eval="True"/>
+<!--        	<field name="body_html"><![CDATA[-->
+<!--				Date: ${date}-->
+<!--				Subject: <strong>${subject}</strong>${br}-->
+<!--				Dear ${partner_name},-->
+<!--				Based on the Blanket Order Approval Request ${name}. Your Blanket Order approval request has been Rejected.${br}-->
+<!--				You can check the Quotation by clicking this link :-->
+<!--				${url}${br}-->
+<!--				Thank you.-->
+<!--				]]>-->
+<!--			</field>-->
+        	<field name="body_html"><![CDATA[
+				Dear ${partner_name},${br}Based on the Blanket Order Approval Request ${name}. Your Blanket Order approval request has been Rejected.${br}You can check the Quotation by clicking this link : ${url}
+				]]>
+			</field>
+		</record>
+	</data>
+</odoo>

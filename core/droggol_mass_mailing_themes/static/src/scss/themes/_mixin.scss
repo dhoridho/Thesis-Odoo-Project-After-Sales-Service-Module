@@ -1,0 +1,141 @@
+$d-color-map: (
+    'o-color-1': $o-mm-prime-color-primary,
+    'o-color-2': $o-mm-prime-color-secondary,
+    'o-color-3': $o-mm-prime-color-info,
+    'o-color-4': $o-mm-prime-color-warning,
+    'o-color-5': $o-mm-prime-color-danger,
+    'header': $o-mm-prime-color-header,
+    'content': $o-mm-prime-color-content,
+);
+
+
+// Text Colors
+@mixin d-text-color-mixin($color) {
+    color: $color !important;
+}
+
+// Background Colors
+@mixin d-bg-mixin($background, $color) {
+    background-color: $background !important;
+    color: $color !important;
+    .fa:not([class*="text-"]), .blockquote-text small, a:not(.btn),a.btn-link, p, h1, h2, h3, h4, h5, h6, div, small, span {
+        color: $color !important;
+    }
+    // theme-colors dropdown hover
+    &.d_dropdown_item, &[data-color] {
+        &:hover,&:focus {
+            background-color: darken($background, 10%) !important;
+        }
+    }
+}
+
+// Buttons Colors
+@mixin d-btn-outline-color($btn-color) {
+    color: $btn-color;
+    background-color: transparent;
+    background-image: none;
+    border-color: $btn-color;
+}
+@mixin d-btn-color($btn-color, $content-color) {
+    background-color: $btn-color;
+    color: $content-color;
+    border-radius: 0px;
+}
+
+
+// BG and Background Contrast text color mixins
+$yiq-text-light: #fff;
+$yiq-text-dark: rgba(0,0,0,0.6);
+$body-bg: #fff;
+$yiq-contrasted-threshold: 200 !default;
+
+@function luma($color) {
+    @return ((red($color) * .299) + (green($color) * .587) + (blue($color) * .114)) / 255 * 100%;
+}
+
+@function o-get-most-contrast($color, $c1, $c2, $background: #FFFFFF, $threshold: false, $cross-mix: true) {
+    $background: if($background == null, #FFFFFF, $background);
+
+    $real-color: mix(rgba($color, 1.0), $background, percentage(alpha($color)));
+    $luma: luma($real-color);
+
+    $cross-color: if($cross-mix, $real-color, $background);
+
+    $real-c1: mix(rgba($c1, 1.0), $cross-color, percentage(alpha($c1)));
+    $luma-c1: luma($real-c1);
+
+    $real-c2: mix(rgba($c2, 1.0), $cross-color, percentage(alpha($c2)));
+    $luma-c2: luma($real-c2);
+
+    $-dark: if($luma-c1 <= $luma-c2, $c1, $c2);
+    $-light: if($luma-c1 > $luma-c2, $c1, $c2);
+
+    @if $threshold == false {
+        $threshold: ($luma-c1 + $luma-c2) * 0.515; // 150 / 145.63 * 0.5 would be the BS value
+    }
+
+    @return if($luma > $threshold, $-dark, $-light);
+}
+
+@function color-yiq($color, $background: $body-bg, $cross-mix: true) {
+    $threshold: if($yiq-contrasted-threshold != false, $yiq-contrasted-threshold / 255 * 100%, false);
+    @return o-get-most-contrast($color, $yiq-text-light, $yiq-text-dark, $background, $threshold, $cross-mix);
+}
+
+@mixin d-color-variant($name, $alt-name, $content-color) {
+    .text-#{$name}, .text-#{$alt-name} {
+        @include d-text-color-mixin(map-get($d-color-map, $name));
+    }
+    $bg-txt-color: color-yiq(map-get($d-color-map, $name));
+
+    .bg-#{$name}, .bg-#{$alt-name} {
+        @include d-bg-mixin(map-get($d-color-map, $name), $bg-txt-color);
+
+        .btn.btn-#{$name}, .btn.btn-#{$alt-name}{
+            @include d-btn-color($content-color, map-get($d-color-map, $name));
+        }
+    }
+
+    .btn.btn-#{$name}, .btn.btn-#{$alt-name}, .btn.btn-fill-#{$name}, .btn.btn-fill-#{$alt-name}{
+        @include d-btn-color(map-get($d-color-map, $name), $bg-txt-color);
+        // :active bcoz sometimes on focus(Click) on button is applying default BS4 css.
+        &:active {
+            @include d-btn-color(map-get($d-color-map, $name), $bg-txt-color);
+        }
+    }
+
+    .border-#{$name}, .border-#{$alt-name}{
+        border-color: map-get($d-color-map, $name) !important;
+    }
+
+    .btn.btn-outline-#{$name}, .btn.btn-outline-#{$alt-name} {
+        @include d-btn-outline-color(map-get($d-color-map, $name));
+        // :active bcoz sometimes on focus(Click) on button is applying default BS4 css.
+        &:active {
+            @include d-btn-outline-color(map-get($d-color-map, $name));
+        }
+    }
+
+}
+
+// Border mixins
+@mixin d-border-size-mixin {
+    @for $i from 1 through 5 {
+        .d-border-#{$i}px {
+            border: $i * 1px;
+            border-style: solid;
+        }
+    }
+}
+
+.d_border_option.border-0 {
+    border: none;
+}
+
+@mixin d-border-style-mixin {
+    @each $i in solid, dotted, dashed, double {
+        .d-border-#{$i} {
+            border-style: $i;
+        }
+    }
+}

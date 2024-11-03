@@ -1,0 +1,728 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <template id="wishlist_frontend" inherit_id="web.assets_frontend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/aspl_vehicle_rental/static/src/js/main.js"/>
+                <script type="text/javascript" src="/aspl_vehicle_rental/static/src/js/customer_feedback.js"/>
+                <link rel="stylesheet" href="/aspl_vehicle_rental/static/src/css/index.css"/>
+                <link rel="stylesheet" href="/aspl_vehicle_rental/static/src/css/customer_feedback.css"/>
+                <link rel="profile" href="http://gmpg.org/xfn/11"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+                <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css"/>
+                <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"/>
+            </xpath>
+        </template>
+
+        <template id="assets_backend" name="aspl_delivery_sign assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/aspl_vehicle_rental/static/src/js/fabric.min.js"/>
+                <script type="text/javascript" src="/aspl_vehicle_rental/static/src/js/vehicle_contract_sign.js"/>
+                <link rel="stylesheet" href="/aspl_vehicle_rental/static/src/css/backend.css" id="pos-stylesheet"/>
+            </xpath>
+        </template>
+
+        <template id="fullcalender_assests_backend" name="aspl_fullcalender" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/aspl_vehicle_rental/static/src/css/fullcalendar.css"/>
+                <link rel="stylesheet" href="/aspl_vehicle_rental/static/src/css/scheduler.css"/>
+                <link rel="stylesheet" href="/aspl_vehicle_rental/static/src/css/scheduler.min.css"/>
+
+                <script type="text/javascript" src="/aspl_vehicle_rental/static/src/js/lib/fullcalendar.js"/>
+                <script type="text/javascript" src="/aspl_vehicle_rental/static/src/js/lib/scheduler.js"/>
+                <script type="text/javascript" src="/aspl_vehicle_rental/static/src/js/calender_vehicle_booking.js"/>
+            </xpath>
+        </template>
+
+        <template id="vehicle_search" name="Vehicle Search">
+            <t t-set="no_footer">1</t>
+            <t t-call="website.layout">
+
+                <t t-if="error">
+                    <input type="hidden" t-att-value="error" id="error"/>
+                    <div class="modal fade" id="myModal" role="dialog">
+                        <div class="modal-dialog">
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal"></button>
+                                    <h4 class="modal-title"></h4>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Please Search Again.this type of vehicle not available right Now</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+                <div id="wrap" class="oe_structure oe_empty">
+                    <div id="myCarousel1513682046664" class="carousel slide s_banner" data-interval="1000000"
+                         style="height: 400px;">
+                        <ol class="carousel-indicators">
+                        </ol>
+                        <div class="carousel-inner">
+                            <div class="item bg-alpha oe_img_bg"
+                                 style="background-image: url(&quot;/aspl_vehicle_rental/static/src/images/car_rental.jpg&quot;);">
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-xs-12">
+                                            <form class="form" name="bookingform" id="bookingform"
+                                                  action="/booking_form" method="post">
+                                                <input type="hidden" name="csrf_token"
+                                                       t-att-value="request.csrf_token()"/>
+
+                                                <input type="hidden" name="lang" value="en"/>
+                                                <div class="search-box">
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <div class="col-md-6">
+                                                                <lable>From Date</lable>
+                                                                <input id="date_from" class="form-control"
+                                                                       placeholder="dd/mm/yyyy"
+                                                                       name="date_from" type="text" size="20"
+                                                                       required="1"/>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <lable>To Date</lable>
+                                                                <!--<input type='text' class="form-control" id='datetimepicker2' name="date_to"/>-->
+                                                                <input id="date_to" class="form-control"
+                                                                       placeholder="dd/mm/yyyy"
+                                                                       name="date_to" type="text" size="20"
+                                                                       required="1"/>
+                                                            </div>
+                                                        </div>
+                                                        <br/>
+                                                        <div class="col-md-12">
+                                                            <div class="col-md-6">
+                                                                <lable>Type</lable>
+                                                                <t t-set="class_type"
+                                                                   t-value="request.env['vehicle.class'].sudo().search([])"/>
+                                                                <select class="form-control" id='class_type'
+                                                                        name='class_type' required="1">
+                                                                    <option value="">-----Select Vehicle
+                                                                        Type-----</option>
+                                                                    <t t-foreach="class_type" t-as="class_type">
+                                                                        <option t-att-value='class_type.id'>
+                                                                            <t t-esc="class_type.vehicle_class"/>
+                                                                        </option>
+                                                                    </t>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <lable>Vehicle Type</lable>
+                                                                <t t-set="vehicle_type"
+                                                                   t-value="vehicle_type_datas"/>
+                                                                <select class="form-control" id='vehicle_type_data'
+                                                                        name='vehicle_type' required="1">
+                                                                    <!-- option value from js main.js-->
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-12">
+                                                            <div class="col-md-6">
+                                                                <lable>Fuel Type</lable>
+                                                                <t t-set="fuel_type"
+                                                                   t-value="request.env['fuel.type'].sudo().search([])"/>
+                                                                <select name="fuel_type" id="fuel_type"
+                                                                        class="form-control full-width" required="1">
+                                                                    <t t-foreach="fuel_type" t-as="fuel_type">
+                                                                        <option t-att-value='fuel_type.id'>
+                                                                            <t t-esc="fuel_type.name"/>
+                                                                        </option>
+                                                                    </t>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                            </div>
+                                                            <div class="col-md-3">
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb30 col-md-offset-10 col-md-6"
+                                                             style="margin-top:10px;">
+                                                            <button class="btn btn-lg"
+                                                                    id="search_button" name="search_button"
+                                                                    style="margin-left:85px;background-color: #008CBA;border-color: #008CBA;">
+                                                                Search
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="vc_row wpb_column vc_column_container vc_col-sm-12 wpb_wrapper wpb_row vc_row-fluid vc_custom_1448532088457">
+                    <div class="wpb_column vc_column_container vc_col-sm-12 vc_column-inner">
+                        <div class="wpb_wrapper">
+                            <t t-if="vehicle_id">
+                                <div class="special-offers">
+                                    <div class="title heading-font" style="margin-top: 40px">
+                                        <p style="color: #000">Select Your Vehicle</p>
+                                    </div>
+                                    <div id="result_div" class="listing-car-items col vc_custom_1448532088457"
+                                         align="center">
+                                        <t t-foreach="vehicle_id" t-as="vehicle_id">
+                                            <div class="col">
+                                                <form class="myre" name="qutation_create"
+                                                      t-att-id="vehicle_id.id"
+                                                      t-att-action="'/booking_form/create_quotation/%s' % slug(vehicle_id)"
+                                                      method="post">
+                                                    <input type="hidden" name="csrf_token"
+                                                           t-att-value="request.csrf_token()"/>
+                                                    <input type="hidden" t-att-value="vehicle_id.id"
+                                                           name="vehicle_id_text"
+                                                           class="vehicle_id_text"/>
+                                                    <div class="row dp-in listing-car-item listing-car-item-inner"
+                                                         style="margin-bottom: 20px;" id="result_vehicle_details">
+                                                        <div class="listing-car-item-meta row">
+                                                            <div class="row" style="margin-left:10px">
+                                                                <div class="image dp-in col-md-5"
+                                                                     style="margin-top:10px">
+                                                                    <span t-field="vehicle_id.image_128"
+                                                                          t-options="{'widget': 'image', 'style':'width: 250px;height:75px;border-radius:38px;'}"/>
+                                                                </div>
+                                                                <div class="car-title">
+                                                                    <t t-esc="vehicle_id.model_id.brand_id.name"/>
+                                                                    /
+                                                                    <t t-esc="vehicle_id.model_id.name"/>
+                                                                </div>
+                                                            </div>
+                                                            <div class="car-meta-bottom">
+                                                                <ul>
+                                                                    <li style="margin-top:40px;">
+                                                                        <span>
+                                                                            <b>Rate Per Day-
+                                                                            </b>
+                                                                        </span>
+                                                                        <t t-esc="vehicle_id.rate_as_per_day"/>
+                                                                    </li>
+                                                                    <li style="margin-top:40px;">
+                                                                        <span>
+                                                                            <b>Rate Per KM-</b>
+                                                                        </span>
+                                                                        <t t-esc="vehicle_id.rate_as_per_km"/>
+                                                                    </li>
+                                                                    <li style="margin-top:40px;">
+                                                                        <span>
+                                                                            <b>Seats-</b>
+                                                                        </span>
+                                                                        <t t-esc="vehicle_id.seats"/>
+                                                                        <t t-if="vehicle_id.is_ac">
+                                                                            <span>
+                                                                                <b>Ac</b>
+                                                                            </span>
+                                                                        </t>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                            <div style="margin-top: 32px;">
+                                                                <i class="fa fa-automobile"
+                                                                   style="margin-top:6px;margin-right:10px;font-size:17px;color:white"/>
+                                                                <button class="btn book_now" type="submit"
+                                                                        name="book_now"
+                                                                        style="float:right;color: white;margin-top: -5px;">
+                                                                    Add
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <br/>
+                                                </form>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <template id="vehicle" name="vehicle">
+            <t t-call="website.layout">
+                <div class="row">
+                    <div class="col-sm-4">
+                    </div>
+                    <div class="col-sm-3 mb8">
+                    </div>
+                    <div class="col-sm-3">
+                    </div>
+                    <div class="col-sm-2 text-right">
+                    </div>
+                </div>
+                <input type="hidden" t-att-value="vehicle_id.id" class="vehicle_id"/>
+
+                <div class="row">
+                    <div class="col-sm-2">
+                    </div>
+                    <div class="col-sm-3 col-lg-4 col-lg-offset-1" id="vehicle_details">
+                        <form action="/vehicle_cart_update" class="js_add_cart_variants" method="POST">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" t-att-value="vehicle_id.id" class="vehicle_id_cart"
+                                   name="vehicle_id_cart"/>
+                            <input type="hidden" name="date_from" t-att-value="request.session['date_from']"/>
+                            <input type="hidden" name="date_to" t-att-value="request.session['date_to']"/>
+                            <div>
+                                <t t-placeholder="select">
+                                    <input type="hidden" class="product_id" name="vehicle_id"/>
+                                </t>
+                                <table style="width:150%;">
+                                    <tbody class="font-color">
+                                        <tr>
+                                            <td>
+                                                <span itemprop="image" t-field="vehicle_id.image_128"
+                                                      t-options="{'widget': 'image', 'class': 'product_detail_img', 'alt-field': 'name', 'zoom': 'image'}"/>
+                                            </td>
+                                            <td>
+                                                <h3 itemprop="name" t-field="vehicle_id.name">Vehicle Name</h3>
+                                            </td>
+                                        </tr>
+                                        <tr style="height:70px;">
+                                            <td>Date From</td>
+                                            <td class='date_from'><t t-esc="request.session['date_from']"/></td>
+                                            <td>Date To</td>
+                                            <td class='date_to'><t t-esc="request.session['date_to']"/></td>
+                                        </tr>
+                                        <tr style="height:70px;">
+                                            <td>Select Type</td>
+                                            <td class="price_based">
+                                                <select class="form-control select rate_option">
+                                                    <option value="">
+                                                        Select Price Based On
+                                                    </option>
+                                                    <option value="per_km">Per
+                                                        KM
+                                                    </option>
+                                                    <option value="per_day">Per
+                                                        Day
+                                                    </option>
+                                                </select>
+                                            </td>
+                                            <td class="total_km">Enter KM</td>
+                                            <td class="total_km">
+                                                <input class='form-control kilometer enter_km'
+                                                       type="text" name="enter_km"/>
+                                            </td>
+                                            <td class="total_days">Total Days</td>
+                                            <td class="total_day" name="total_day">
+
+
+                                            </td>
+                                        </tr>
+                                        <tr style="height:70px;">
+                                            <td class="none_of_this">Selected Value Rate</td>
+                                            <td class="none_of_this" style="height:30px;">
+                                                <t t-esc="request.env.user.company_id.currency_id.symbol"/>
+                                            </td>
+                                            <td class="total_days">Rate Per Day</td>
+                                            <td class="total_days" style="height:30px;">
+                                                <lable class="cls_per_day_amount"><t
+                                                        t-esc="request.env.user.company_id.currency_id.symbol"/> <t
+                                                        t-esc="vehicle_id.rate_as_per_day"/></lable>
+                                                <input class="form-control total_day" type="hidden"
+                                                       name="enter_days" value=""/>
+                                            </td>
+                                            <td class="total_km">Rate Per Km</td>
+                                            <td class="rate_total_km" style="height:30px;">
+                                                <t t-esc="request.env.user.company_id.currency_id.symbol"/> <lable
+                                                    class="cls_per_day_amount"><t
+                                                    t-esc="vehicle_id.rate_as_per_km"/></lable>
+                                            </td>
+                                        </tr>
+                                        <tr style="height:70px;">
+                                            <td>Total Amount</td>
+                                            <td><t t-esc="request.env.user.company_id.currency_id.symbol"/> <span
+                                                    class="calculate_total"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <t t-if=" not request.env.user._is_public()">
+                                    <button class="btn btn-primary btn-lg mt8 js_check_product a-submit" type="submit"
+                                            name="update_cart">Add To Cart
+                                    </button>
+                                </t>
+                                <t t-if="request.env.user._is_public()">
+                                    <a class="btn btn-primary" t-att-href="'/web/login?redirect=/booking_form/create_quotation/%s' % slug(vehicle_id)">
+                                        Sign in</a>
+                                </t>
+
+                            </div>
+                        </form>
+                        <div class="o_not_editable">
+                        </div>
+                        <hr/>
+                        <p class="text-muted">
+                            30-day money-back guarantee
+                            <br/>
+                            <br/>
+                        </p>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <template id="rental_order" name="Rental Cart Lines">
+            <t t-call="portal.portal_layout">
+                <t t-set="breadcrumbs_searchbar" t-value="True"/>
+                <t t-call="portal.portal_searchbar">
+                    <t t-set="title">Rental Order</t>
+                </t>
+                <div id="wrap">
+                    <div class="container oe_website_sale">
+                        <div class="row">
+                            <div class="col-md-8 col-md-offset-2 oe_cart">
+                                <table class="table table-striped table-condensed js_cart_lines" id="cart_vehicle"
+                                       style="margin-top:35px;">
+                                    <thead style="background: lavender;">
+                                        <tr>
+                                            <th>Order Number</th>
+                                            <th>From Date</th>
+                                            <th>To Date</th>
+                                            <th>State</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="order_id" t-as="order">
+                                            <form name="Rental Order Form" id="rental_order_form" action="/view_cart"
+                                                  method="post">
+                                                <input type="hidden" name="csrf_token"
+                                                       t-att-value="request.csrf_token()"/>
+                                                <tr>
+                                                    <td t-if="order.res_number">
+                                                        <div>
+                                                            <strong t-esc="order.res_number"/>
+                                                        </div>
+                                                    </td>
+                                                    <td t-if="order.from_date">
+                                                        <div>
+                                                            <strong t-esc="order.from_date"/>
+                                                        </div>
+                                                    </td>
+                                                    <td t-if="order.to_date">
+                                                        <div>
+                                                            <strong t-esc="order.to_date"/>
+                                                        </div>
+                                                    </td>
+                                                    <td t-if="order.state">
+                                                        <div>
+                                                            <strong t-esc="order.state"/>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <input type="submit" name="View Cart" value="View Cart"
+                                                               class="btn-info"/>
+                                                    </td>
+                                                    <input type="hidden" t-att-value="order.id" name="rental_order"
+                                                           class="order"/>
+                                                </tr>
+                                            </form>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <template id="checkout_process" name="Checkout Process">
+            <t t-call="website.layout">
+                <div id="wrap">
+                    <div class="container oe_website_sale" style="height: 450px;">
+                        <div class="main_content" style="position: relative;margin-top:50px;">
+                            <div style="float:left;width:70%;padding: 10px;">
+                                <t t-call="aspl_vehicle_rental.payment"/>
+                            </div>
+                            <div style="float:left;width:30%;margin-top:50px;">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Vehicle</th>
+                                            <th>Total Days/Km</th>
+                                            <th>Sub Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="website_rental_order.vehicle_order_lines_ids" t-as="vehicle_line">
+                                            <tr>
+                                                <td>
+                                                    <span t-esc="vehicle_line.vehicle_id.name"/>
+                                                </td>
+                                                <td>
+                                                    <t t-if="vehicle_line.price_based == 'per_day'">
+                                                        <span t-esc="vehicle_line.enter_days"/>
+                                                    </t>
+                                                    <t t-if="vehicle_line.price_based == 'per_km'">
+                                                        <span t-esc="vehicle_line.enter_kms"/>
+                                                    </t>
+                                                </td>
+                                                <td>
+                                                    <t t-esc="request.env.user.company_id.currency_id.symbol"/> <span
+                                                        t-esc="vehicle_line.sub_total"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                                <div style="width: 100%;">
+                                    <span style="float:right;">
+                                        <strong>Total:-</strong>
+                                        <t t-esc="request.env.user.company_id.currency_id.symbol"/> <span
+                                            t-esc="website_rental_order.total_amount"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <template id="payment" name="Payment">
+            <t t-set="additional_title">Shop - Select Payment Acquirer</t>
+            <t t-set="no_footer">1</t>
+            <div id="wrap">
+                <div class="container oe_website_sale py-2">
+                    <div class="row">
+                        <div class="col-12" t-if="errors">
+                            <t t-foreach="errors" t-as="error">
+                                <div class="alert alert-danger" t-if="error" role="alert">
+                                    <h4>
+                                        <t t-esc="error[0]"/>
+                                    </h4>
+                                    <t t-esc="error[1]"/>
+                                </div>
+                            </t>
+                        </div>
+                        <div class="col-12 col-xl order-xl-1 oe_cart">
+                            <div id="payment_method" class="mt-3"
+                                 t-if="(acquirers or tokens) and website_rental_order.total_amount">
+                                <h3 class="mb24">Pay with</h3>
+                                <t t-call="payment.payment_tokens_list">
+                                    <t t-set="mode" t-value="'payment'"/>
+                                    <t t-set="submit_txt">Pay Now</t>
+                                    <t t-set="icon_right" t-value="1"/>
+                                    <t t-set="icon_class" t-value="'fa-chevron-right'"/>
+                                    <t t-set="submit_class" t-value="'btn btn-primary'"/>
+                                    <t t-set="pms" t-value="tokens"/>
+                                    <t t-set="form_action" t-value="'/rental/payment/validate'"/>
+                                    <t t-set="prepare_tx_url" t-value="'/rental/payment/transaction/'"/>
+                                    <t t-set="partner_id" t-value="partner"/>
+
+                                    <t t-set="back_button_icon_class" t-value="'fa-chevron-left'"/>
+                                    <t t-set="back_button_txt" t-value="'Return to Cart'"/>
+                                    <t t-set="back_button_class" t-value="'btn btn-secondary'"/>
+                                    <t t-set="back_button_link" t-value="'/view_cart'"/>
+                                </t>
+                            </div>
+                            <div t-if="not acquirers" class="mt-2">
+                                <a role="button" class="btn-link"
+                                   groups="base.group_system"
+                                   t-attf-href="/web#return_label=Website&amp;action=#{payment_action_id}">
+                                    <i class="fa fa-arrow-right"></i>
+                                    Add payment acquirers
+                                </a>
+                            </div>
+                            <div class="js_payment mt-3" t-if="not website_rental_order.total_amount"
+                                 id="payment_method">
+                                <form action="/rental/payment/validate" method="post" class="float-right">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <button class="btn btn-primary" type="submit"
+                                            name="payment"><span class="fa fa-chevron-right"/>Pay Now
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="oe_structure" id="oe_structure_website_sale_payment_2"/>
+            </div>
+        </template>
+
+        <template id="rental_order_comfirmation">
+            <t t-call="website.layout">
+                <center>
+                    <div style="margin-top:50px;">
+                        <img src="/aspl_vehicle_rental/static/src/img/order-confirmed.png" alt="Smiley face"
+                             height="200" width="200"/>
+                        <div class="col-md-8 col-md-offset-2 oe_cart" style="margin-bottom:30px;">
+                            <h3>
+                                <b style="color: red;">Congratulations!</b>
+                                <b>Your Order is Confirmed. Now Company will contact you soon.</b>
+                            </h3>
+                        </div>
+                    </div>
+                </center>
+            </t>
+        </template>
+
+        <template id="vehicle_cart_update" name="Vehicle Cart">
+            <t t-call="website.layout">
+                <div id="wrap">
+                    <div class="container oe_website_sale">
+                        <div class="row">
+                            <div class="col-md-8 col-md-offset-2 oe_cart">
+                                <div class="row">
+                                    <div class="col-md-12 o_website_sale_rightfit">
+                                        <form name="Checkout Form" id="checkout_form" action="/checkout" method="post">
+                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                            <div class="row">
+                                                <t t-if="vehicle_order_id">
+                                                    <ul class="wizard pull-right hidden-xs">
+                                                        <t t-foreach="vehicle_order_id" t-as="order">
+                                                            <li t-attf-style="#{order.state == 'draft' and 'border:1px solid skyblue' or ''}">
+                                                                <a>
+                                                                    <span>Review Order</span>
+                                                                </a>
+                                                            </li>
+                                                            <li t-attf-style="#{order.state == 'confirm' and 'border:1px solid skyblue' or ''}">
+                                                                <a>
+                                                                    <span>Confirm</span>
+                                                                </a>
+                                                            </li>
+                                                            <li t-attf-style="#{order.state == 'close' and 'border:1px solid skyblue' or ''}">
+                                                                <a>
+                                                                    <span>Close</span>
+                                                                </a>
+                                                            </li>
+                                                            <li t-attf-style="#{order.state == 'cancel' and 'border:1px solid skyblue' or ''}">
+                                                                <a>
+                                                                    <span>Cancel</span>
+                                                                </a>
+                                                            </li>
+                                                        </t>
+                                                    </ul>
+                                                </t>
+                                            </div>
+                                            <h2 class="mb8 mt8">Vehicle Cart</h2>
+                                            <t t-call="aspl_vehicle_rental.cart_lines"/>
+                                            <div class="clearfix"/>
+                                            <t t-foreach="vehicle_order_id" t-as="order">
+                                                <t t-if="not request.env.user._is_public()">
+                                                    <input type="submit" name="process_checkout"
+                                                           value="Process Checkout"
+                                                           class="btn-info mb16"
+                                                           style="float:right; line-height:1.5 ;font-size:1.09375rem; padding: 0.5rem 1rem; border-radius:0.3rem"/>
+                                                </t>
+                                            </t>
+                                            <div class="oe_structure"/>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="oe_structure"/>
+                </div>
+            </t>
+        </template>
+
+        <template id="cart_lines" name="Rental Cart Lines">
+            <table class="table table-striped table-condensed js_cart_lines" id="cart_vehicle">
+                <thead>
+                    <tr class="vehical_order_line_heading">
+                        <th class="td-img">Vehicle</th>
+                        <th></th>
+                        <th>Based On</th>
+                        <th>Total Days/Km</th>
+                        <th class="text-center td-price">Price</th>
+                        <th>Total Price</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="vehicle_order_id.vehicle_order_lines_ids" t-as="line">
+                        <tr class="vehical_order_line">
+                            <td>
+                                <span t-field="line.vehicle_id.image_128"
+                                      t-options="{'widget': 'image', 'class': 'img-rounded'}"/>
+                            </td>
+                            <td t-if="line.vehicle_id.name" class='td-product_name'>
+                                <div>
+                                    <strong t-esc="line.vehicle_id.with_context(display_default_code=False).display_name"/>
+                                </div>
+                            </td>
+                            <td t-if="line.price_based">
+                                <div>
+                                    <t t-if="line.price_based == 'per_day'">
+                                        <strong>Per Day</strong>
+                                    </t>
+                                    <t t-if="line.price_based == 'per_km'">
+                                        <strong>Per Km</strong>
+                                    </t>
+                                </div>
+                            </td>
+                            <td t-if="line.price_based == 'per_day'">
+                                <div>
+                                    <strong t-esc="line.enter_days"/>
+                                </div>
+                            </td>
+                            <td t-if="line.price_based == 'per_km'">
+                                <div>
+                                    <strong t-esc="line.enter_kms"/>
+                                </div>
+                            </td>
+                            <td t-if="line.price">
+                                <div>
+                                    <t t-esc="request.env.user.company_id.currency_id.symbol"/><strong
+                                        t-esc="line.price"/>
+                                </div>
+                            </td>
+                            <td>
+                                <t t-if="vehicle_order_id.total_amount">
+                                    <div>
+                                        <t t-if="line.price_based == 'per_day'">
+                                            <t t-esc="request.env.user.company_id.currency_id.symbol"/><strong
+                                                t-esc="line.enter_days * line.price"/>
+                                        </t>
+                                        <t t-if="line.price_based == 'per_km'">
+                                            <t t-esc="request.env.user.company_id.currency_id.symbol"/><strong
+                                                t-esc="line.enter_kms * line.price"/>
+                                        </t>
+                                    </div>
+                                </t>
+                            </td>
+                            <td class="td-action">
+                                <a href='#' aria-label="Remove from cart" t-att-data_id="line.id"
+                                   title="Remove from cart" class='js_delete_product no-decoration'><small><i
+                                        class='fa fa-trash-o' style="font-size: 25px;"></i></small></a>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </template>
+
+        <template id="vehicle_rental_order" name="Vehicle Order" inherit_id="portal.portal_my_home" priority="20">
+            <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+                <t t-call="portal.portal_docs_entry">
+                    <t t-set="title">Rental Orders</t>
+                    <t t-set="url" t-value="'/order'"/>
+                    <t t-set="count" t-value="rental_order_count"/>
+                </t>
+            </xpath>
+        </template>
+
+        <template id="portal_my_rental_orders" name="Rental Orders" inherit_id="portal.portal_breadcrumbs"
+                  priority="20">
+            <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+                <li t-if="page_name == 'rental_order'" t-attf-class="breadcrumb-item">
+                    Rental Orders
+                </li>
+            </xpath>
+        </template>
+    </data>
+</odoo>

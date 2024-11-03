@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_form_account_internal_transfer" model="ir.ui.view">
+        <field name="name">account.internal.transfer.form</field>
+        <field name="model">account.internal.transfer</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button string="Validate" states="draft" name="action_validate" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_internal_approval_matrix', '=', True)]}"/>
+                    <button string="Completed" name="action_complete" type="object" class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'in_progress')]}"/>
+
+                    <button name="action_request_for_approval" string="Request For Approval" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_internal_approval_matrix', '=', False), ('state', 'not in', 'draft')]}"/>
+
+                    <button name="action_approve" string="Approved" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|', '|', ('is_internal_approval_matrix', '=', False), ('is_approve_button', '=', False), ('state', '!=', 'to_approve')]}"/>
+
+                    <button name="action_reject" string="Reject" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|', '|', ('is_internal_approval_matrix', '=', False), ('is_approve_button', '=', False), ('state', '!=', 'to_approve')]}"/>
+
+                    <field name="state1" widget="statusbar" statusbar_visible="draft,to_approve,in_progress,done"
+                           attrs="{'invisible': ['|', ('is_internal_approval_matrix', '=', False), ('state', '=', 'rejected')]}"/>
+
+                    <field name="state2" widget="statusbar" statusbar_visible="draft,to_approve,rejected"
+                           attrs="{'invisible': ['|', ('is_internal_approval_matrix', '=', False), ('state', '!=', 'rejected')]}"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done"
+                           attrs="{'invisible': [('is_internal_approval_matrix', '=', True)]}"/>
+                </header>
+                <sheet>
+                    <field name="has_reconciled_entries" invisible="1"/>
+                    <div name="button_box" class="oe_button_box">
+                        <button name="open_reconcile_view" class="oe_stat_button" icon="o-hm-smart-hrm-reconcile" type="object"
+                                attrs="{'invisible': [('has_reconciled_entries', '=', False)]}"
+                                string="Reconciled Entries">
+                        </button>
+                        <button name="open_internal_journal_view" class="oe_stat_button" icon="o-hm-smart-all-projects" type="object"
+                                  attrs="{'invisible': [('state', '!=', 'done')]}"
+                                string="Show Journal">
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h3>
+                            <span>Transfer Reference</span>
+                        </h3>
+                        <h2>
+                            <field name="name"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="bank_from_journal_id" required="1"
+                                   attrs="{'readonly': [('state', '!=', 'draft')]}" domain="[('company_id','=',company_id),('type','in',['bank','cash'])]"/>
+                            <field name="bank_to_journal_id" required="1"
+                                   attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="currency_id" force_save='1' invisible='1'/>
+                            <field name="transfer_in_transit" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="account_in_transit"
+                                   attrs="{'invisible' : [('transfer_in_transit', '=', False)], 'required' : [('transfer_in_transit', '=', True)], 'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="create_uid"/>
+                            <field name="create_date"/>
+                            <field name="transfer_desc" required="1" attrs="{'readonly': [('state', '!=', 'draft')],}"/>
+                        </group>
+                        <group>
+                            <field name="transfer_amount" required="1"
+                                   attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="administration" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="analytic_group_ids" widget="many2many_tags"/>
+                            <field name="administration_account"
+                                   attrs="{'invisible' : [('administration', '=', False)], 'required' : [('administration', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="administration_fee"
+                                   attrs="{'invisible' : [('administration', '=', False)], 'required' : [('administration', '=', True)],'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="transfer_date" required="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="company_id" readonly="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="branch_id" attrs="{'readonly': [('state', '!=', 'draft')]}"
+                                   required="1" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="is_internal_approval_matrix" invisible="1"/>
+                            <field name="approval_matrix_id"
+                                   attrs="{'invisible': [('is_internal_approval_matrix', '=', False)], 'required': [('is_internal_approval_matrix', '=', True)]}"/>
+                            <field name="is_approve_button" invisible="1"/>
+                            <field name="approval_matrix_line_id" invisible="1"/>
+                            <field name="filter_branch_ids" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Approval Matrix Line" name="approved_matrix_ids"
+                              attrs="{'invisible': ['|', ('approval_matrix_id', '=', False), ('is_internal_approval_matrix', '=', False)]}">
+                            <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}"
+                                   force_save="1">
+                                <tree create="0" edit="0" delete="0">
+                                    <field name="sequence"/>
+                                    <field name="user_ids" widget="many2many_tags"/>
+                                    <field name="minimum_approver"/>
+                                    <field name="state_char"/>
+                                    <field name="time_stamp" invisible="1"/>
+                                    <field name="feedback"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tree_account_internal_transfer" model="ir.ui.view">
+        <field name="name">account.internal.transfer.tree</field>
+        <field name="model">account.internal.transfer</field>
+        <field name="arch" type="xml">
+            <tree string="Internal Cash/Bank Transfer">
+                <field name="name"/>
+                <field name="bank_from_journal_id"/>
+                <field name="bank_to_journal_id"/>
+                <field name="transfer_amount"/>
+                <field name="transfer_date"/>
+                <field name="state" optional="show" widget="badge" decoration-success="state == 'done'"
+                    decoration-primary="state =='cleared'" decoration-warning2="state == 'approved'" 
+                    decoration-muted="state == 'draft'" decoration-danger3="state == 'canceled'"
+                    decoration-danger="state == 'rejected'" decoration-warning3="state == 'to_approve'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_account_internal_transfer" model="ir.actions.act_window">
+        <field name="name">Internal Cash/Bank Transfer</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">account.internal.transfer</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+            id="internal_cash_bank_transfer_menu"
+            name="Bank and Cash"
+            parent="account.menu_finance"
+            sequence="3"/>
+
+    <menuitem
+            id="approval_matrix_vendor_configuration_menu"
+            name="Internal Cash/Bank Transfer"
+            parent="internal_cash_bank_transfer_menu"
+            action="action_account_internal_transfer"
+            sequence="1"/>
+
+    <record id="internal_cash_bank_transfer_menu" model="ir.ui.menu">
+        <field name="equip_icon_class">o-hm-sidebar-parent-accounting-bank-and-cash</field> 
+    </record>
+
+</odoo>

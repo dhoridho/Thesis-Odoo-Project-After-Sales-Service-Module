@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_report_production_record" model="ir.actions.report">
+        <field name="name">Production Record</field>
+        <field name="model">mrp.consumption</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_manuf_reports.report_production_record_template</field>
+        <field name="report_file">equip3_manuf_reports.report_production_record_template</field>
+        <field name="binding_model_id" ref="equip3_manuf_reports.model_mrp_consumption" />
+        <field name="binding_type">report</field>
+    </record>
+
+
+    <template id="report_production_record_main">
+        <t t-call="equip3_manuf_reports.manuf_external_layout">
+            <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color" />
+            <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color" />
+            <t t-set="company_color" t-value="o.company_id and o.company_id.company_color" />
+            <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color" />
+            <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color" />
+            <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color" />
+            <t t-set="text_color" t-value="o.company_id and o.company_id.text_color" />
+            <div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+                <div class="oe_structure"/>
+                <t t-call="general_template.template_watermark"/>
+
+                <div class="row" style="padding:10px 0px;" valign="top">
+                    <table border="0" cellpadding="0" cellspacing="0"
+                        t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};"
+                        width="100%">
+                        <tr
+                            t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+                            <td t-attf-style="padding:9px 15px; font-weight:bold;">
+                                <strong>Production Record</strong> # <br />
+                            <span
+                                    t-field="o.manufacturing_order_id" />
+                            </td>
+                            <td colspan="2"
+                                t-attf-style="background-color:#f2f2f2; height:4px; color: #{theme_text_color or '#000000'};" />
+                            <td />
+                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                <span class="text-left">Work Order:</span>
+                                <br />
+                                <p t-field="o.workorder_id" />
+                            </td>
+                            <td colspan="2"
+                                t-attf-style="background-color:#f2f2f2; height:4px; color: #{theme_text_color or '#000000'};" />
+                            <td />
+                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                <span class="text-left">Status:</span>
+                                <br />
+                                <p t-field="o.state" />
+                            </td>
+                            <td colspan="2"
+                                t-attf-style="background-color:#f2f2f2; height:4px; color: #{theme_text_color or '#000000'};" />
+                            <td />
+                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                <span class="text-left">Company:</span>
+                                <br />
+                                <p t-field="o.company_id" />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <br />
+                <div class="row" style="padding:10px 0px;" valign="top">
+                    <table border="0" cellpadding="0" cellspacing="0"
+                        t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};"
+                        width="100%">
+                        <tr
+                            t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+                            <td t-attf-style="padding:9px 15px; font-weight:bold;"> Product <br />
+                            <span
+                                    t-field="o.product_id" />
+                            </td>
+                            <td colspan="2"
+                                t-attf-style="background-color:#f2f2f2; height:4px; color: #{theme_text_color or '#000000'};" />
+                            <td />
+                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                <span class="text-left">Work Center:</span>
+                                <br />
+                                <p t-field="o.workcenter_id" />
+                            </td>
+                            <td colspan="2"
+                                t-attf-style="background-color:#f2f2f2; height:4px; color: #{theme_text_color or '#000000'};" />
+                            <td />
+                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                <span class="text-left">Finished:</span>
+                                <br />
+                                <p t-field="o.finished_qty" />
+                            </td>
+                            <td colspan="2"
+                                t-attf-style="background-color:#f2f2f2; height:4px; color: #{theme_text_color or '#000000'};" />
+                            <td />
+                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                <span class="text-left">Rejected:</span>
+                                <br />
+                                <p t-field="o.rejected_qty" />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Finished Goods -->
+                <div class="mt-5" t-if="docs.finished_lot_ids">
+                    <h3>
+                        <i>
+                            <strong>Finished Goods Lot/Serial Number</strong>
+                        </i>
+                    </h3>
+                </div>
+
+                <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0"
+                    cellspacing="0"
+                    style="border-collapse: collapse; text-transform:capitalize; padding:15px;"
+                    width="100%"
+                    t-if="docs.finished_lot_ids">
+                    <tr>
+                        <t t-set="index_no" t-value="1" />
+                        <td width="5%"
+                            t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'}; height: 20px; text-align: center; padding: 15px 9px;">
+                            <b>No.</b>
+                        </td>
+                        <td width="60%"
+                            t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'}; height: 20px; text-align: center; padding: 15px 9px;">
+                            <b>Lot/Serial Number</b>
+                        </td>
+                        <td width="30%"
+                            t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};  height: 20px; text-align: center; padding: 15px 9px;">
+                            <b>Expiration Date</b>
+                        </td>
+                    </tr>
+                    <tr t-foreach="docs.finished_lot_ids" t-as="lot">
+                        <td t-attf-style="padding:5px;border:1px solid #ccc;">
+                            <span t-esc="index_no" />
+                        </td>
+                        <td t-attf-style="padding:5px;border:1px solid #ccc;">
+                            <span t-esc="lot.name" />
+                        </td>
+                        <td t-attf-style="padding:5px;border:1px solid #ccc;">
+                            <span t-field="lot.mrp_consumption_expiration_date" />
+                        </td>
+                        <t t-set="index_no" t-value="index_no+1" />
+                    </tr>
+                </table>
+
+                <!-- Materials -->
+                <div
+                    class="mt-5">
+                    <h3>
+                        <i>
+                            <strong>Materials</strong>
+                        </i>
+                    </h3>
+                </div>
+                <table
+                    BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0"
+                    cellspacing="0"
+                    style="border-collapse: collapse; text-transform:capitalize; padding:15px;"
+                    width="100%">
+                    <t t-set="index_no" t-value="1" />
+                    <tr>
+                        <td
+                            width="5%"
+                            t-attf-style="background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'}; text-align: center; height: 20px; padding: 15px 9px;">
+                            <b>No.</b>
+                        </td>
+                        <td
+                            width="70%"
+                            t-attf-style="background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'}; text-align: center; height: 20px; padding: 15px 9px;">
+                            <b>Product</b>
+                        </td>
+                        <td width="30%"
+                            t-attf-style="background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'}; text-align: center; height: 20px; padding: 15px 9px;">
+                            <b>Consumed</b>
+                        </td>
+                        <td width="30%"
+                            t-attf-style="background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'}; text-align: center; height: 20px; padding: 15px 9px;">
+                            <b>UoM</b>
+                        </td>
+                    </tr>
+                    <tr t-foreach="docs.move_raw_ids" t-as="oo">
+                        <td t-attf-style="padding:5px;border:1px solid #ccc;">
+                            <span t-esc="index_no" />
+                        </td>
+                        <td t-attf-style="padding:5px;border:1px solid #ccc;">
+                            <span t-field="oo.product_id" />
+                        </td>
+                        <td t-attf-style="padding:5px;border:1px solid #ccc;">
+                            <span t-field="oo.quantity_done" />
+                        </td>
+                        <td t-attf-style="padding:5px;border:1px solid #ccc;">
+                            <span t-field="oo.product_uom" />
+                        </td>
+                        <t t-set="index_no" t-value="index_no+1" />
+                    </tr>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_production_record_template">
+        <t t-call="web.html_container">
+            <t t-set="company_id" t-value="res_company"/>
+            <t t-as="o" t-foreach="docs">
+                <t t-call="equip3_manuf_reports.report_production_record_main" />
+            </t>
+        </t>
+    </template>
+</odoo>

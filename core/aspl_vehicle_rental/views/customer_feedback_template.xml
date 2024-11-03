@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <template id="customer_feedback_system_template" name="Customer Feedback">
+            <t t-call="website.layout">
+                <div class="container">
+                    <form class="form" name="feedbackinfo" id="feedbackinfo" action="/start_feedback" method="post">
+                        <div class="main_content">
+                            <center>
+                                <h4 style="margin-top:20px;font-weight: bold;">Please Give Your Valuable
+                                    Feedback
+                                </h4>
+                            </center>
+                            <button type="submit" class="btn-feedback">
+                                <h3 style="color:white;font-weight:bold;margin-top: 5px;"><i
+                                        class="fa fa-play o_start_feedback"/>Get
+                                    Started
+                                </h3>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </t>
+        </template>
+
+        <template id="customer_feedback_system_question_template" name="Feedback Question">
+            <t t-call="website.layout">
+                <div class="container">
+                    <form class="form" name="submitfeedback" id="submitfeedback" action="/submit_feedback"
+                          method="post">
+                        <t t-if="not error">
+                            <t t-set="number" t-value="question_number"/>
+                            <center>
+                                <p style="margin-bottom: 30px;font-size:22px"><span
+                                        t-esc="feedback_template[0].template_id.name"/></p>
+                            </center>
+                            <t t-foreach="feedback_template" t-as="question">
+                                <div class="feedback_question">
+                                    <span class="number">Q.</span>
+                                    <span class="question_content">
+                                        <t t-esc="question.name"/>
+                                    </span>
+                                    <div class="feedback_option">
+                                        <t t-if="question.question_type == 'normal'">
+                                            <table class="table table-condensed" style="width: 70%;">
+                                                <t t-foreach="question.answer_ids" t-as="answer">
+                                                    <tr>
+                                                        <td>
+                                                            <t t-if="question.answer_mode == 'single'">
+                                                                <label>
+                                                                    <input type="radio" id="answer_id"
+                                                                           t-att-name="question.id"
+                                                                           t-att-value='answer.id'/>
+                                                                    <span class="answer_content" t-esc="answer.answer"/>
+                                                                </label>
+                                                            </t>
+                                                            <t t-if="question.answer_mode == 'multiple'">
+                                                                <label>
+                                                                    <input type="checkbox" id="check_boxes"
+                                                                           t-att-name="'group-%s'%(answer.id)"
+                                                                           t-att-value="question.id"/>
+                                                                    <span class="answer_content" t-esc="answer.answer"/>
+                                                                </label>
+                                                            </t>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </table>
+                                        </t>
+                                        <t t-if="question.add_comment">
+                                            <div class="form-group col-lg-8">
+                                                <textarea class="form-control" rows="3" cols="70"
+                                                          t-att-name="'comment-%s'%(question.id)"
+                                                          placeholder="Comment..."/>
+                                            </div>
+                                        </t>
+                                        <t t-if="question.question_type == 'widget'">
+                                            <t t-if="question.rate_type=='star'">
+                                                <div class="rate">
+                                                    <input type="radio" id="star5" t-att-name="'radio-%s'%(question.id)"
+                                                           value="5"/>
+                                                    <label for="star5" title="text">5 stars</label>
+                                                    <input type="radio" id="star4" t-att-name="'radio-%s'%(question.id)"
+                                                           value="4"/>
+                                                    <label for="star4" title="text">4 stars</label>
+                                                    <input type="radio" id="star3" t-att-name="'radio-%s'%(question.id)"
+                                                           value="3"/>
+                                                    <label for="star3" title="text">3 stars</label>
+                                                    <input type="radio" id="star2" t-att-name="'radio-%s'%(question.id)"
+                                                           value="2"/>
+                                                    <label for="star2" title="text">2 stars</label>
+                                                    <input type="radio" id="star1" t-att-name="'radio-%s'%(question.id)"
+                                                           value="1"/>
+                                                    <label for="star1" title="text">1 star</label>
+                                                </div>
+                                            </t>
+                                            <t t-if="question.rate_type=='emoji'">
+                                                <div class="rating">
+                                                    <input type="radio" id="rating1"
+                                                           t-att-name="'rate-%s'%(question.id)" value="1"
+                                                           style="position: absolute;display: none;"/>
+                                                    <label for="rating1" class="rating1">😶</label>
+                                                    <input type="radio" id="rating2"
+                                                           t-att-name="'rate-%s'%(question.id)" value="2"
+                                                           style="position: absolute;display: none;"/>
+                                                    <label for="rating2" class="rating2">😶</label>
+                                                    <input type="radio" id="rating3"
+                                                           t-att-name="'rate-%s'%(question.id)" value="3"
+                                                           style="position: absolute;display: none;"/>
+                                                    <label for="rating3" class="rating3">😶</label>
+                                                    <input type="radio" id="rating4"
+                                                           t-att-name="'rate-%s'%(question.id)" value="4"
+                                                           style="position: absolute;display: none;"/>
+                                                    <label for="rating4" class="rating4">😶</label>
+                                                    <input type="radio" id="rating5"
+                                                           t-att-name="'rate-%s'%(question.id)" value="5"
+                                                           style="position: absolute;display: none;"/>
+                                                    <label for="rating5" class="rating5">😶</label>
+                                                </div>
+                                            </t>
+                                        </t>
+                                    </div>
+                                    <t t-set="number" t-value="number + 1"/>
+                                    <input type="hidden" name="cur_page" value="1"/>
+                                </div>
+                            </t>
+                            <input type="hidden" name="question_number" t-att-value="int(number)"/>
+                            <div t-if="pager" class="o_portal_pager text-center" style="margin-top:80px;">
+                                <t t-call="website.pager"/>
+                            </div>
+                            <input type="hidden" name="page_number" t-att-value="pager['page']['num']"/>
+                            <input type="hidden" name="last_page_number" t-att-value="pager['page_count']"/>
+                            <t t-if="pager['page']['num'] == pager['page_count']">
+                                <div>
+                                    <input id="feedback_submit" type="submit" class="btn-submit" name="submit">
+                                        <i class="fa fa-floppy-o" aria-hidden="true"/>
+                                    </input>
+                                </div>
+                            </t>
+                        </t>
+                        <t t-if="error">
+                            <div class="alert alert-info" role="alert">
+                                <span t-esc="error"/>
+                            </div>
+                        </t>
+                    </form>
+                </div>
+            </t>
+        </template>
+
+        <template id="pager_template_inherit" inherit_id="website.pager">
+            <xpath expr="//ul" position="replace">
+                <ul t-if="pager['page_count'] > 1" t-attf-class="#{ classname or '' } pagination m-0 #{_classes}"
+                    t-att-style="style or None">
+                    <li t-attf-class="page-item #{'disabled' if pager['page']['num'] == 1 else ''}">
+                        <a t-att-href=" pager['page_previous']['url'] if pager['page']['num'] != 1 else None"
+                           class="page-link">Prev</a>
+                    </li>
+                    <t t-foreach="pager['pages']" t-as="page">
+                        <li t-attf-class="page-item #{'active' if page['num'] == pager['page']['num'] else ''}"><button
+                                t-att-href="page['url']" class="page-link" t-raw="page['num']"></button></li>
+                    </t>
+                    <li t-attf-class="page-item #{'disabled' if pager['page']['num'] == pager['page_count'] else ''}">
+                        <button t-att-href="pager['page_next']['url'] if pager['page']['num'] != pager['page_count'] else None"
+                                class="page-link">Next</button>
+                    </li>
+                </ul>
+            </xpath>
+        </template>
+
+        <template id="customer_feedback_system_single_question_template" name="Feedback Question">
+            <t t-call="website.layout">
+                <div class="container">
+                    <form class="form" name="submitfeedback" id="submitfeedback" action="/submit_feedback"
+                          method="post">
+                        <t t-if="not error">
+                            <t t-set="number" t-value="1"/>
+                            <center>
+                                <h1 style="margin-bottom: 30px;font-weight: bold;"><span
+                                        t-esc="feedback_template.name"/></h1>
+                            </center>
+                            <t t-foreach="feedback_template.question_ids" t-as="question">
+                                <div class="feedback_question">
+                                    <span class="number" t-esc="number"/>
+                                    <span class="question_content">
+                                        <t t-esc="question.name"/>
+                                    </span>
+                                    <div class="feedback_option col-md-12">
+                                        <t t-if="question.question_type == 'normal'">
+                                            <table class="table table-condensed" style="width: 70%;">
+                                                <t t-foreach="question.answer_ids" t-as="answer">
+                                                    <tr>
+                                                        <td>
+                                                            <t t-if="question.answer_mode == 'single'">
+                                                                <label>
+                                                                    <input type="radio" id="answer_single_id"
+                                                                           t-att-name="question.id"
+                                                                           t-att-value='answer.id'/>
+                                                                    <span class="answer_content" t-esc="answer.answer"/>
+                                                                </label>
+                                                            </t>
+                                                            <t t-if="question.answer_mode == 'multiple'">
+                                                                <label>
+                                                                    <input type="checkbox" id="check_single_boxes"
+                                                                           t-att-name="'group-%s'%(answer.id)"
+                                                                           t-att-value="question.id"/>
+                                                                    <span class="answer_content" t-esc="answer.answer"/>
+                                                                </label>
+                                                            </t>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </table>
+                                        </t>
+
+                                        <t t-if="question.add_comment">
+                                            <div class="form-group col-lg-8">
+                                                <textarea class="form-control" rows="3" cols="70"
+                                                          t-att-name="'comment-%s'%(question.id)"
+                                                          placeholder="Comment..." required="True"/>
+                                            </div>
+                                        </t>
+                                        <t t-if="question.question_type == 'widget'">
+                                            <t t-if="question.rate_type=='star'">
+                                                <div class="rate col-md-12">
+                                                    <input type="radio" id="star5" t-att-name="'rate-%s'%(question.id)"
+                                                           value="5"/>
+                                                    <label for="star5" title="text">5 stars</label>
+                                                    <input type="radio" id="star4" t-att-name="'rate-%s'%(question.id)"
+                                                           value="4"/>
+                                                    <label for="star4" title="text">4 stars</label>
+                                                    <input type="radio" id="star3" t-att-name="'rate-%s'%(question.id)"
+                                                           value="3"/>
+                                                    <label for="star3" title="text">3 stars</label>
+                                                    <input type="radio" id="star2" t-att-name="'rate-%s'%(question.id)"
+                                                           value="2"/>
+                                                    <label for="star2" title="text">2 stars</label>
+                                                    <input type="radio" id="star1" t-att-name="'rate-%s'%(question.id)"
+                                                           value="1"/>
+                                                    <label for="star1" title="text">1 star</label>
+                                                </div>
+                                            </t>
+                                            <t t-if="question.rate_type=='emoji'">
+                                                <div class="rating">
+                                                    <input type="radio" id="rating1"
+                                                           t-att-name="'rate-%s'%(question.id)" value="1"
+                                                           style="position: absolute;display: none;"/>
+                                                    <label for="rating1" class="rating1">😶</label>
+                                                    <input type="radio" id="rating2"
+                                                           t-att-name="'rate-%s'%(question.id)" value="2"
+                                                           style="position: absolute;display: none;"/>
+                                                    <label for="rating2" class="rating2">😶</label>
+                                                    <input type="radio" id="rating3"
+                                                           t-att-name="'rate-%s'%(question.id)" value="3"
+                                                           style="position: absolute;display: none;"/>
+                                                    <label for="rating3" class="rating3">😶</label>
+                                                    <input type="radio" id="rating4"
+                                                           t-att-name="'rate-%s'%(question.id)" value="4"
+                                                           style="position: absolute;display: none;"/>
+                                                    <label for="rating4" class="rating4">😶</label>
+                                                    <input type="radio" id="rating5"
+                                                           t-att-name="'rate-%s'%(question.id)" value="5"
+                                                           style="position: absolute;display: none;"/>
+                                                    <label for="rating5" class="rating5">😶</label>
+                                                </div>
+                                            </t>
+                                        </t>
+                                    </div>
+                                    <t t-set="number" t-value="number + 1"/>
+                                </div>
+                            </t>
+                            <div>
+                                <button type="submit" class="btn-submit submit-button mb16">
+                                    <i class="fa fa-floppy-o" aria-hidden="true"/>
+                                    Submit
+                                </button>
+                            </div>
+                        </t>
+                        <t t-if="error">
+                            <div class="alert alert-info" role="alert">
+                                <span t-esc="error"/>
+                            </div>
+                        </t>
+                    </form>
+                </div>
+            </t>
+        </template>
+
+        <template id="customer_registration_template" name="CustomerRegistration">
+            <t t-call="website.layout">
+                <div class="container" style="margin-top: 30px;">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <form action="/create_customer" method="post" class="checkout_autoformat">
+                                <div class="form-row">
+                                    <div class="col-lg-12">
+                                        <label class="col-form-label" for="name">Name</label>
+                                        <input class="form-control" type="text" name="name" required="blank"/>
+                                    </div>
+                                    <div class="form-group col-lg-6">
+                                        <label class="col-form-label" for="email">E-mail</label>
+                                        <input class="form-control" type="email" name="email"/>
+                                    </div>
+                                    <div class="form-group col-lg-6">
+                                        <label class="col-form-label" for="phone">Phone</label>
+                                        <input class="form-control" type="tel" name="phone"/>
+                                    </div>
+                                    <div class="w-100"/>
+                                    <div class="form-group col-lg-6">
+                                        <label class="col-form-label" for="company">Company Name</label>
+                                        <input class="form-control" type="text" name="company"/>
+                                    </div>
+                                    <div class="form-group col-lg-6">
+                                        <label class="col-form-label" for="vat">TIN/VAT</label>
+                                        <input class="form-control" type="text" name="vat"/>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <label class="col-form-label" for="street">Street and Number</label>
+                                        <input class="form-control" type="text" name="street"/>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <label class="col-form-label" for="street2">Street2</label>
+                                        <input class="form-control" type="text" name="street2"/>
+                                    </div>
+                                    <div class="form-group col-lg-8">
+                                        <label class="col-form-label" for="city">City</label>
+                                        <input class="form-control" type="text" name="city"/>
+                                    </div>
+                                    <div class="form-group col-lg-4">
+                                        <label class="col-form-label" for="zip">Zip</label>
+                                        <input class="form-control" type="text" name="zip"/>
+                                    </div>
+                                    <div class="form-group col-lg-6">
+                                        <label class="col-form-label" for="country_id">Country</label>
+                                        <select id="country_id" name="country_id" class="form-control">
+                                            <option value="">Country...</option>
+                                            <t t-foreach="countries" t-as="c">
+                                                <option t-att-value="c.id"
+                                                        t-att-selected="c.id == (country and country.id or -1)">
+                                                    <t t-esc="c.name"/>
+                                                </option>
+                                            </t>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button type="submit" class="btn_primary">
+                                        Submit
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <template id="customer_feedback_submit_template" name="SunmitFeedback">
+            <t t-call="website.layout">
+                <div class="container">
+                    <center>
+                        <div>
+                            <img src="/aspl_vehicle_rental/static/src/img/feedback_submitted.png" alt="Smiley face"
+                                 height="150" width="150"/>
+                        </div>
+                        <div class="main">
+                            <h2>Thanks for giving the Feedback.</h2>
+                        </div>
+                    </center>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data noupdate="0">
+        <record id="email_template_application_for_expense_approval" model="mail.template">
+            <field name="name">Application for Expense Approval - Send by Email</field>
+            <field name="email_from">${ctx['email_from']|safe}</field>
+            <field name="subject">Application for Expense Approval</field>
+            <field name="email_to">${ctx['email_to']|safe}</field>
+            <field name="model_id" ref="equip3_hr_expense_extend.model_hr_expense_sheet"/>
+            <field eval="True" name="auto_delete"/>
+            <field name="body_html"><![CDATA[
+            <p>Dear ${ctx['approver_name']|safe},
+            <br/>
+            <p>
+            </br>
+                Based on the Expense Request ${object.seq_name}. You have approval pending that need your decision to approve or reject the expense request from ${object.employee_id.name}.
+            </p>
+            <br/>
+            <p>
+                ${object.employee_id.name} has requested Expense for ${object.name}.
+            </p>
+            <br/>
+            <table cellspacing="0" cellpadding="0"
+                   style="width:900px;border-collapse:collapse;background:inherit;color:inherit;border:1px solid black;">
+                <thead style="border:1px solid black;">
+                    <th width="20%" class="text-center" style="border:1px solid black;">Expense Date</th>
+                    <th width="20%" class="text-center" style="border:1px solid black;">Description</th>
+                    <th width="20%" class="text-center" style="border:1px solid black;">Analytic Account</th>
+                    <th width="20%" class="text-center" style="border:1px solid black;">Taxes</th>
+                    <th width="20%" class="text-center" style="border:1px solid black;">Total</th>
+                </thead>
+            </table>
+            <table cellspacing="0" cellpadding="0"
+                   style="width:900px;border-collapse:collapse;background:inherit;color:inherit;border:1px solid black;">
+                <tbody style="border:1px solid black;">
+                    % for line in object.expense_line_ids:
+                    <tr style="border:1px solid black;">
+                        <td width="20%" style="border:1px solid black;text-align:center;">${line.date}</td>
+                        <td width="20%" style="border:1px solid black;text-align:center;">${line.name}</td>
+                        <td width="20%" style="border:1px solid black;text-align:center;">${line.analytic_account_id.name}</td>
+                        <td width="20%" style="border:1px solid black;text-align:center;">
+                        % for tax in line.tax_ids:
+                            ${tax.name} 
+                        % endfor
+                        </td>
+                        <td width="20%" style="border:1px solid black;text-align:center;">${format_amount(line.total_amount, object.currency_id)}</td>
+                    </tr>
+                </tbody>
+            </table>
+            % endfor
+            <br/>
+            <p>
+                You can approve or reject the Expense request by clicking this button:
+            </p>
+            <br/>
+            <br/>
+            <a href="${ctx['url']|safe}" style="padding: 8px 12px; font-size: 12px; color: #FFFFFF; text-decoration: none !important; font-weight: 400; background-color: #875A7B; border: 0px solid #875A7B; border-radius:3px">View Expense</a>
+            <br/>
+            <br/>
+            <p>
+                Thank you.
+            </p>
+            <br/>
+            <br/>
+        ]]></field>
+        </record>
+    </data>
+
+    <data noupdate="0">
+        <record id="email_template_approval_expense_request" model="mail.template">
+            <field name="name">Approval of Expense Request - Send by Email</field>
+            <field name="email_from">${ctx['email_from']|safe}</field>
+            <field name="subject">Approval of Expense Request</field>
+            <field name="email_to">${ctx['email_to']|safe}</field>
+            <field name="model_id" ref="equip3_hr_expense_extend.model_hr_expense_sheet"/>
+            <field eval="True" name="auto_delete"/>
+            <field name="body_html"><![CDATA[
+            <p>Dear ${object.employee_id.name},</p>
+            <br/>
+            <p>
+                We have received your request for Expense request ${object.seq_name}.
+            </p>
+            <br/>
+            <p>
+                This notification serves as confirmation that your expense request has been approved.
+            </p>
+            <br/>
+            <br/>
+            <p>
+                Thank you.
+            </p>
+            <br/>
+            <br/>
+        ]]></field>
+        </record>
+    </data>
+
+    <data noupdate="0">
+        <record id="email_template_rejection_of_expense_request" model="mail.template">
+            <field name="name">Rejection of Expense Request - Send by Email</field>
+            <field name="email_from">${ctx['email_from']|safe}</field>
+            <field name="subject">Rejection of Expense Request</field>
+            <field name="email_to">${ctx['email_to']|safe}</field>
+            <field name="model_id" ref="equip3_hr_expense_extend.model_hr_expense_sheet"/>
+            <field eval="True" name="auto_delete"/>
+            <field name="body_html"><![CDATA[
+            <p>Dear ${object.employee_id.name},</p>
+            <br/>
+            <p>
+                We have received your request for Expense request ${object.seq_name}.
+            </p>
+            <br/>
+            <p>
+                This notification serves as confirmation that your overtime request has been rejected.
+            </p>
+            <br/>
+            <br/>
+            <p>
+                Thank you.
+            </p>
+            <br/>
+            <br/>
+        ]]></field>
+        </record>
+    </data>
+
+</odoo>

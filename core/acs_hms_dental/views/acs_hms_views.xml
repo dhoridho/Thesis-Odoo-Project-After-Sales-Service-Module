@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <!-- Patient View -->
+    <record id="view_patient_dental_form" model="ir.ui.view">
+        <field name="name">patient.dental.form</field>
+        <field name="model">hms.patient</field>
+        <field name="inherit_id" ref="acs_hms.view_patient_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_dental_procedures" class="oe_stat_button" icon="fa-medkit" type="object" groups="acs_hms_dental.group_hms_odontology">
+                    <field string="Dental Procedures" name="dental_procedure_count" widget="statinfo"/>
+                </button>
+            </div>
+        </field>
+    </record>
+    
+    <!-- Appointment View -->
+    <record id="view_hms_odontology_appointment_form" model="ir.ui.view">
+        <field name="name">hms.appointment.form</field>
+        <field name="model">hms.appointment</field>
+        <field name="inherit_id" ref="acs_hms.view_hms_appointment_form"/>
+        <field name="arch" type="xml">
+            <button name="create_invoice" position="after">
+                <button name="action_create_dental_invoice" string="Create Dental Invoice" groups="account.group_account_invoice" attrs="{'invisible': ['|','|',('department_type','!=','dental'),('invoice_id','!=',False), ('no_invoice','=', True)]}" type="object" class="oe_highlight"/>
+            </button>
+
+            <div name="button_box" position="inside">
+                <button name="action_view_dental_procedures" class="oe_stat_button" icon="fa-medkit" type="object" string="Dental Procedures" groups="acs_hms_dental.group_hms_odontology" attrs="{'invisible':[('department_type','!=', 'dental')]}"/>
+            </div>
+            <xpath expr="//notebook/page[@name='diseases']" position="after">
+                <page name="odontology" string="Odontology" attrs="{'invisible':[('department_type','!=', 'dental')]}" groups="acs_hms_dental.group_hms_odontology">
+                    <separator string="Medical Questionnaire"/>
+                    <field name='medical_questionnaire_ids'/>
+                    <separator string="Dental Questionnaire"/>
+                    <field name='dental_questionnaire_ids'/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_appointment" model="ir.actions.act_window">
+        <field name="name">Appointment</field>
+        <field name="res_model">hms.appointment</field>
+        <field name="view_mode">tree,form,kanban,calendar,pivot</field>
+        <field name="domain" eval="[('department_id.department_type','=','dental')]"/>
+        <field name="context">{'search_default_today': 1,'search_default_done': 1,'is_odontology_appointment': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record Found
+            </p>
+            <p>
+                Click to add an Dental Appointment.
+            </p>
+        </field>
+    </record>
+
+    <!-- Treatment -->
+    <record id="view_hospital_hms_treatment_form" model="ir.ui.view">
+        <field name="name">hms.treatment.form</field>
+        <field name="model">hms.treatment</field>
+        <field name="inherit_id" ref="acs_hms.view_hospital_hms_treatment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_dental_procedures" class="oe_stat_button" icon="fa-medkit" type="object" groups="acs_hms_dental.group_hms_odontology">
+                    <field string="Dental Procedures" name="dental_procedure_count" widget="statinfo"/>
+                </button>
+            </xpath>
+
+            <button name="view_invoice" position="attributes">
+                <attribute name="attrs"></attribute>
+            </button>
+
+            <xpath expr="//notebook/page[1]" position="after">
+                <page name="odontology_procedures" string="Dental Procedures" attrs="{'invisible':[('department_type','!=', 'dental')]}" groups="acs_hms_dental.group_hms_odontology">
+                    <button name="action_create_dental_invoice" class="oe_highlight pull-right" string="Create Combined Invoice" type="object"/>
+                    <field name="dental_procedure_ids" context="{'default_treatment_id': active_id, 'default_patient_id': patient_id, 'default_physician_id': physician_id}">
+                        <tree string="Dental Procedure" decoration-info="state=='scheduled'" decoration-muted="state=='cancel'" decoration-danger="state=='done' and (invoice_id==False)" editable="bottom">
+                            <field name="name" readonly="1"/>
+                            <field name="patient_id"/>
+                            <field name="product_id"/>
+                            <field name="tooth_id"/>
+                            <field name="tooth_surface_ids" widget="many2many_tags"/>
+                            <field name="price_unit"/>
+                            <field name="physician_id"/>
+                            <field name="date"/>
+                            <field name="state"/>
+                            <field name="treatment_id" invisible="1"/> 
+                            <field name="invoice_id" optional="hide"/>
+                            <button name="action_running" title="Mark as Running" type="object" icon="fa-arrow-right" width="0.1" attrs="{'invisible': [('state','!=','scheduled')]}"/>
+                            <button name="action_done" title="Mark as Done" type="object" icon="fa-thumbs-up" width="0.1" attrs="{'invisible': [('state','!=','running')]}"/>
+                            <button name="action_create_invoice" title="Create Invoice" type="object" icon="fa-dollar" width="0.1" attrs="{'invisible': [('invoice_id','!=',False)]}"/>
+                            <button name="action_show_details" title="Show Full details" type="object" icon="fa-list" width="0.1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_acs_treatment" model="ir.actions.act_window">
+        <field name="name">Treatment</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">hms.treatment</field>
+        <field name="view_mode">tree,form,calendar,pivot</field>
+        <field name="domain" eval="[('department_id.department_type','=','dental')]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record Found
+            </p>
+            <p>
+                Click to add a Dental Treatment.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,1776 @@
+<odoo>
+    <data>
+    
+        <record id="add_fields_project_task_form" model="ir.ui.view">
+            <field name="name">add.fields.project.task.form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='project_id']" position="after">
+                    <field name="state_before_pend" invisible="1" force_save="1"/>
+                    <field name="cost_sheet" readonly="1" force_save="1"/>
+                    <field name="project_budget" readonly="1" force_save="1" invisible="1"/>
+                    <field name="sale_order"
+                           domain="[('project_id','=',project_id), ('vo_payment_type','=','split'), ('state','=','sale')]"
+                           attrs="{'invisible':[('department_type', '=', 'department')],
+                           'readonly': ['|', ('state', 'in', ('inprogress', 'pending', 'complete')), ('is_subtask','=', True)],
+                           'required':[('department_type','!=','department'), ('is_subcon', '=', False)]}"/>
+                    <field name="partner_id" widget="res_partner_many2one" class="o_task_customer_field" readonly="1"
+                           attrs="{'required': ['|', ('department_type', '=', 'project')],
+                           'readonly': [('is_subtask','=', True)], 
+                           'invisible': [('department_type', '=', 'department')],}"/>
+                    <field name="stage_computed" invisible="1"/>
+                    <field name="stage" invisible="1"
+                           options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                           attrs="{'readonly': [('state', 'in', ('inprogress', 'pending', 'complete'))]}"/>
+                    <field name="job_estimate"  
+                           attrs="{'invisible':[('department_type', '=', 'project')],
+                                'required': [('department_type','!=','project'), ('is_subcon', '=', False)],'readonly': [('state', 'in',('inprogress', 'pending', 'complete'))]}"
+                           domain="[('project_id','=',project_id),('state_new', 'in', ('approved', 'confirmed'))]"/>
+                    <field name="department_type" invisible="1"/>
+                    <field name="stage_computed_new" widget="many2many_tags" invisible="1"/>
+                    <field name="parent_task" string="Parent Task"
+                           attrs="{'invisible':[('is_subtask','=', False)],
+                           'required':[('is_subtask','=', True)],
+                           'readonly': ['|', ('state', 'in', ('inprogress', 'pending', 'complete')), ('is_subtask','=', True)]}"/>
+                    <field name="stage_new" domain="[('id','in',stage_computed_new)]"
+                           options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                           attrs="{'readonly': ['|', ('state', 'in', ('inprogress', 'pending', 'complete')), ('is_subtask','=', True)],
+                                   'required':[('is_subcon', '=', False)]}"/>
+                    <field name="assigned_date"
+                           attrs="{'invisible':[('is_subtask','=', False)], 'required':[('is_subtask','=', True)], 'readonly': [('state', 'in', ('inprogress', 'pending', 'complete'))]}"/>
+                    <field name="planned_start_date"
+                           attrs="{'readonly': [('state', 'in', ('inprogress', 'pending', 'complete'))],
+                                   'required': [('is_subcon', '=', False)]}"/>
+                    <field name="parent_planned_start_date" invisible="1"/>
+                    <field name="planned_end_date"
+                           attrs="{'readonly': [('state', 'in', ('inprogress', 'pending', 'complete'))],
+                                   'required': [('is_subcon', '=', False)]}"/>
+                    <field name="parent_planned_end_date" invisible="1"/>
+                    <field name="actual_start_date" readonly="1" force_save="1"/>
+                    <field name="parent_actual_start_date" invisible="1"/>
+                    <field name="actual_end_date" readonly="1" force_save="1"/>
+                    <field name="parent_actual_end_date" invisible="1"/>
+                    <field name="is_subcon" invisible="1" force_save="1"/>
+                    <field name="subtask_exist" invisible="1"/>
+                    <field name="is_progress_history_approval_matrix" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//sheet/group/group[1]/field[@name='project_id']" position="attributes">
+                    <attribute name="options">{'no_create': True, 'no_quick_create':True,'no_create_edit':True}</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/group/group[1]/field[@name='project_id']" position="attributes">
+                    <attribute name="domain">[]</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='partner_id']" position="attributes">
+                    <attribute name="attrs">{'invisible':[('department_type','=','department')], 'required': [('department_type','=','project')]}</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/group/group[2]/field[@name='partner_id']" position="after">
+                    <field name="purchase_subcon" string="Contract Subcon" readonly="1" attrs="{'invisible':[('is_subcon','=', False)]}"/>
+                    <label for="work_subcon_weightage" attrs="{'invisible':[('is_subcon','=', False)]}"/> 
+                    <div attrs="{'invisible':[('is_subcon','=', False)]}">
+                        <field name="work_subcon_weightage"
+                               attrs="{'readonly': [('state', 'in', ('inprogress', 'pending', 'complete'))]}" class="oe_inline"/>
+                        <label for="work_subcon_weightage" string="%%"/>
+                    </div>
+                    <field name="project_director" readonly="1" force_save="1" string='Project Manager'/>
+                    <field name="worker_assigned_to" string="PIC"/>
+                    <field name="is_using_labour_attendance" invisible="1"/>
+                    <field name="project_location_domain_dump" invisible="1"/>
+                    <field name="active_location_ids" widget="many2many_tags" domain="project_location_domain_dump" attrs="{'invisible': [('is_using_labour_attendance', '=', False)],'required': [('is_using_labour_attendance', '=', True)], 'readonly': [('is_subtask', '=', True)]}"/>
+                    <field name="assigned_to" invisible="1"
+                           attrs="{'readonly': [('state', 'in', ('inprogress', 'pending', 'complete'))]}" string="PIC"/>
+                    <field name="employee_worker_ids" string="Workers" widget="many2many_tags" force_save="1"/>
+                    <field name="worker_ids" invisible="1"
+                           attrs="{'readonly': [('state', 'in', ('pending', 'complete'))]}"  string="Workers" widget="many2many_tags"/>
+                    <field name="tag_ids" widget="many2many_tags"
+                           options="{'color_field': 'color', 'no_create_edit': True}"/>
+                    <field name="sub_contractor" attrs="{'invisible':[('is_subcon','=', False)]}" readonly='1' force_save='1'/>
+                    <label for="stage_weightage" attrs="{'invisible':[('is_subtask','=', True)]}"/>
+                    <div attrs="{'invisible':[('is_subtask','=', True)]}">
+                        <field name="stage_weightage" readonly="1" force_save="1" />
+                        <label for="stage_weightage" string="%%" class="oe_inline"/>
+                    </div>
+                    <label for="work_weightage" string="Job Weightage" attrs="{'invisible':[('is_subtask','=', True)]}"/> 
+                    <div attrs="{'invisible':[('is_subtask','=', True)]}">
+                        <field name="work_weightage" force_save="1"
+                               attrs="{'readonly': ['|', ('is_subtask','=', True), ('state', 'in', ('inprogress', 'pending', 'complete'))]}" class="oe_inline"/>
+                        <label for="work_weightage" string="%%"/>
+                    </div>
+                    <label for="work_weightage" string="Parent Task Weightage" attrs="{'invisible':[('is_subtask','=', False)]}"/> 
+                    <div attrs="{'invisible':[('is_subtask','=', False)]}">
+                        <field name="work_weightage" force_save="1"
+                               attrs="{'readonly': ['|', ('is_subtask','=', True), ('state', 'in', ('inprogress', 'pending', 'complete'))]}" class="oe_inline"/>
+                        <label for="work_weightage" string="%%" class="oe_inline"/>
+                    </div>
+                    <label for="work_subtask_weightage" attrs="{'invisible':[('is_subtask','=', False)]}"/>
+                    <div attrs="{'invisible':[('is_subtask','=', False)]}">
+                        <field name="work_subtask_weightage" 
+                               attrs="{'readonly': [('state', 'in', ('inprogress', 'pending', 'complete'))]}" class="oe_inline"/>
+                        <label for="work_subtask_weightage" string="%%" class="oe_inline"/>
+                    </div>
+                    <label for="progress_task" string="Progress"/>
+                    <div>
+                        <field name="progress_task" class="oe_inline"/>
+                        <label for="progress_task" string="%%" class="oe_inline"/>
+                    </div>
+                    <field name="gantt_chart_color" placeholder=" like #7B7BAD" widget="biz_color"/>
+                    <field name="company_id" readonly="1"/>
+                    <field name="branch_id" required="1" readonly="1" force_save="1"/>
+                    <field name="create_uid" string='Created By'/>
+                    <field name="create_date" string='Creation Date'/>
+                    <field name="reason_status" readonly='1' force_save="1" attrs="{'invisible':[('reason_status','=', False)]}"/>
+                    <label for="stage_completion" invisible="1"/>
+                    <div invisible="1">
+                        <field name="stage_completion" class="oe_inline"/>
+                        <label for="stage_completion" string="%%"/>
+                    </div>
+                    <label for="contract_completion" invisible="1"/>
+                    <div invisible="1">
+                        <field name="contract_completion" class="oe_inline"/>
+                        <label for="contract_completion" string="%%"/>
+                    </div>
+                </xpath>
+
+                <!-- statusbar -->
+                <xpath expr="//sheet/group/group[1]/field[@name='project_id']" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|','|', ('state', 'in', ('inprogress', 'pending', 'complete')), ('is_subtask','=', True), ('is_subcon','=', True)]}</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='name']" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', 'in', ('inprogress', 'pending', 'complete'))]}</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='parent_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <!-- isi extra info -->
+                <xpath expr="//notebook/page[@name='extra_info']/group/group[2]/field[@name='date_assign']"
+                       position="before">
+                    <field name="create_uid" string="Created By"/>
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="project_progress" invisible="1" />
+                    <field name="completion_ref"  invisible="1"/>
+                    <field name="is_subtask" invisible="1"/>
+                    <field name="claim_request" invisible="1"/>
+                    <field name="rest_weightage" invisible="1" readonly="1" force_save="1"/>
+                    <field name="rest_weightage_string" invisible="1" />
+                    <field name="custom_project_progress" invisible="1" />
+                </xpath>
+                
+                <xpath expr="//notebook/page[@name='extra_info']/group/group[2]/field[@name='date_last_stage_update']"
+                       position="after">
+                    <field name="last_progress" />
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='extra_info']/group/group[1]/field[@name='company_id']"
+                       position="attributes">
+                    <attribute name="readonly">1</attribute>
+                </xpath>
+
+                <!-- button header -->
+                <xpath expr="//button[@name='action_inprogress']" position="attributes">
+                    <attribute name="attrs">{'invisible':[('state','in',['inprogress','pending','complete','cancel'])]}</attribute>                                                  
+                </xpath>
+                <xpath expr="//button[@name='action_pending']" position="attributes">
+                    <attribute name="attrs">{'invisible':[('state','in',['draft','pending','complete','cancel'])]}</attribute>                                                  
+                </xpath>
+                <xpath expr="//button[@name='action_complete']" position="attributes">
+                    <attribute name="attrs">{'invisible':[('state','in',['draft','pending','complete','cancel'])]}</attribute>                                                  
+                </xpath>
+                <xpath expr="//button[@name='action_inprogress']" position="after">
+                    <button name="create_progress_history" type="object" string="Add a progress" 
+                            class="btn-primary" attrs="{'invisible':[('state','in',['draft','pending','cancel','complete'])]}"/>
+                    <button name="create_subtask" type="object" string="Create Sub-tasks" class="btn-primary"
+                            attrs="{'invisible':['|', ('state','in',['pending','complete','cancel']), ('allow_subtasks', '=', False)]}"/>
+                    <button name="product_usage" type="object" string="Product Usage" class="btn-primary"
+                            attrs="{'invisible':[('state','in',['draft','pending','complete','cancel'])]}"/>
+                    <button name="custom_wo_send_joborder" type="object" string="Send by Email" class="btn-primary" invisible="1"/>                                                 
+                </xpath>
+
+                <xpath expr="//div[@name='button_box']/button[@name='action_subtask']" position="attributes">
+                    <attribute name="icon">o-hm-smart-construction-sub-tasks</attribute>
+                    <attribute name="attrs">{'invisible':['|', ('allow_subtasks', '=', False), ('subtask_count', '=', 0)]}</attribute>                                              
+                </xpath>
+
+                <!-- <xpath expr="//div[@name='button_box']/button[@name='action_subtask']" position="after">  
+                    <button name="action_subtask" attrs="{'invisible':['|', ('allow_subtasks', '=', False), ('count_subtask_rel', '=', 0)]}" 
+                            type="object" class="oe_stat_button" icon="o-hm-smart-construction-sub-tasks">
+                        <field name="count_subtask_rel"
+                            string="Sub-tasks"
+                            widget="statinfo"/>
+                    </button>                                         
+                </xpath> -->
+                                                
+                <xpath expr="//sheet/div[2]" position="before">
+                    <div>
+                        <field name="number"/>
+                    </div>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='extra_info']" position="before">
+                    <!-- progress history -->
+                    <page name="progress_history" string="Progress History" groups="project.group_project_user">
+                        <field name="progress_history_ids" readonly="1" class="o_progress_history_line" force_save="1">
+                            <tree string="Progress History" default_order="date_create desc" delete = "0">
+                                <control>
+                                    <create name="add_product_control" string="Add a progress"/>
+                                </control>
+                                <field name="active" invisible="1"/>
+                                <field name="number" force_save="1"/>
+                                <field name="work_order" invisible="1" force_save="1" string="Job Order"/>
+                                <field name="date_create" force_save="1"/>
+                                <field name="subtask" force_save="1" attrs="{'column_invisible':[('parent.subtask_exist','=', False)]}"/>
+                                <field name="progress_start_date" invisible="1"/>
+                                <field name="progress_end_date" invisible="1"/>
+                                <field name="progress_start_date_new" force_save="1"/>
+                                <field name="progress_end_date_new" force_save="1"/>
+                                <field name="create_by" force_save="1"/>
+                                <field name="latest_completion" force_save="1" />
+                                <field name="progress" sum="Total Progress" force_save="1" />
+                                <field name="approved_progress" invisible="1" force_save="1"/>
+                                <field name="progress_summary" force_save="1"/>
+                                <field name="subtask_exist" force_save="1" invisible="1"/>
+                                <field name="is_subtask" force_save="1" invisible="1"/>
+                                <field name="progress_wiz" force_save="1" invisible="1"/>
+                                <field name="is_progress_history_approval_matrix" force_save="1" invisible="1"/>
+                                <field name="is_approval_matrix_filled" invisible="1" />
+                                <field name="is_approve_button" invisible="1" />                 
+                                <field name="approval_matrix_line_id" invisible="1" />
+                                <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                                <field name="is_approver" invisible="1"/>
+                                <field name="approved_user_text" invisible="1"/>
+                                <field name="approved_user" invisible="1" readonly="0"/>
+                                <field name="employee_id" invisible="1"/>
+                                <field name="feedback_parent" invisible="1"/>
+                                <field name="state" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.is_progress_history_approval_matrix', '=', False)]}"
+                                               widget="badge"
+                                               decoration-success="state == 'approved'"
+                                               decoration-info="state == 'to_approve'"
+                                               decoration-danger="state == 'rejected'"
+                                               />
+                                <field name="is_job_order_complete" invisible="1"/>
+                                <field name="account_move_id" invisible="1"/>
+                                <button name="action_confirm_approving_matrix" type="object" string="Approve" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_progress_history_approval_matrix', '=', False), ('state', '!=', 'to_approve'), ('is_approver', '=', False)]}"/>
+                                <button name="action_reject_approving_matrix" type="object" string="Reject" attrs="{'invisible': ['|', '|', ('is_progress_history_approval_matrix', '=', False), ('state', '!=', 'to_approve'), ('is_approver', '=', False)]}"/>
+                                <button name="delete_progress" type="object" class="btn fa fa-trash-o oe_edit_only" attrs="{'invisible': [('is_job_order_complete', '=', True)]}"/>
+                            </tree>
+                            <form string="Progress History" create="false" edit="false"> 
+                                <header attrs="{'invisible': [('is_progress_history_approval_matrix', '=', False)]}">
+                                    <button name="action_confirm_approving_matrix" type="object" string="Approve" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_progress_history_approval_matrix', '=', False), ('state', '!=', 'to_approve'), ('is_approver', '=', False)]}"/>
+                                    <button name="action_reject_approving_matrix" type="object" string="Reject" attrs="{'invisible': ['|', '|', ('is_progress_history_approval_matrix', '=', False), ('state', '!=', 'to_approve'), ('is_approver', '=', False)]}"/>
+                                    <field name="state" widget="statusbar" statusbar_visible="to_approve,approved" attrs="{'invisible' : [('state', 'in', 'rejected')]}"/>   
+                                    <field name="state_2" widget="statusbar" statusbar_visible="to_approve,rejected" attrs="{'invisible' : [('state', '!=', 'rejected')]}"/>
+                                </header>
+                                <sheet>
+                                    <div class="oe_title">
+                                        <h1>
+                                            <field name="number" force_save="1"/>
+                                        </h1>
+                                    </div>
+                                    <group name="main">
+                                        <group>
+                                            <field name="active" invisible="1"/>
+                                            <field name="project_id" force_save="1"/>
+                                            <field name="sale_order" force_save="1" attrs="{'invisible':['|', ('department_type', '=', 'department'), ('is_subcon', '=', True)]}"/>
+                                            <field name="job_estimate" force_save="1" attrs="{'invisible':['|', ('department_type', '=', 'project'), ('is_subcon','=', True)]}"/>
+                                            <field name="purchase_subcon" force_save="1" attrs="{'invisible':[('is_subcon','=', False)]}"/>
+                                            <field name="account_move_id" readonly="1" force_save="1"/>
+                                            <field name="completion_ref" force_save="1" invisible="1"/>
+                                            <field name="stage" force_save="1" invisible="1"/>
+                                            <field name="stage_computed_new" force_save="1" widget="many2many_tags" invisible="1"/>
+                                            <field name="stage_new" readonly="1" force_save="1"/>
+                                            <field name="work_order" readonly="1" force_save="1" string="Job Order" attrs="{'invisible':[('subtask_exist','=', True)]}"/>
+                                            <field name="work_order" readonly="1" force_save="1" string="Job Order" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','!=', False)]}"/>
+                                            <field name="work_order" readonly="1" force_save="1" string="Parent Task" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','=', False)]}"/>
+                                            <field name="hide_subtask_parents" invisible="1"/>
+                                            <field name="subtask_parents" readonly="1" attrs="{'invisible':[('hide_subtask_parents','=', True)]}"/>
+                                            <field name="name" readonly="1" force_save="1" invisible="1" string="Job Order" attrs="{'invisible':[('subtask_exist','=', True)]}"/>
+                                            <field name="name" readonly="1" force_save="1" invisible="1" string="Parent Task" attrs="{'invisible':[('subtask_exist','=', False)]}"/>
+                                            <field name="subtask" force_save="1" attrs="{'invisible':[('subtask_exist','=', False)], 'required':[('subtask_exist','=', True)]}"/>
+                                            <field name="progress_start_date" force_save="1" invisible="1"/>
+                                            <field name="progress_end_date" force_save="1" invisible="1"/>
+                                            <field name="progress_start_date_new" required="1" force_save="1"/>
+                                            <field name="progress_end_date_new" required="1" force_save="1"/>
+                                            <field name="is_subcon" invisible="1" force_save="1"/>
+                                            <field name="subtask_exist" invisible="1" force_save="1"/>
+                                            <field name="department_type" invisible="1" force_save="1"/>
+                                            <field name="custom_project_progress" invisible="1" />
+                                            <field name="is_using_labour_attendance" invisible="1"/>
+                                        </group>
+                                        <group>
+                                            <label for="latest_completion" string="Latest Completion" attrs="{'invisible':[('subtask_exist','=', True)]}"/>
+                                                <div attrs="{'invisible':[('subtask_exist','=', True)]}">
+                                                    <field name="latest_completion" force_save="1" readonly="1" class="oe_inline"/>
+                                                    <label for="latest_completion" string="%%"/>
+                                                </div>
+                                            <label for="latest_completion" string="Latest Completion" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','!=', False)]}"/> 
+                                                <div attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','!=', False)]}">
+                                                    <field name="latest_completion" force_save="1" readonly="1" class="oe_inline"/>
+                                                    <label for="latest_completion" string="%%"/>
+                                                </div>
+                                            <label for="latest_completion" string="Latest Completion Parent Task" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','=', False)]}"/>
+                                                <div attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','=', False)]}">
+                                                    <field name="latest_completion" force_save="1" readonly="1" class="oe_inline"/>
+                                                    <label for="latest_completion" string="%%"/>
+                                                </div>
+                                            <label for="latest_completion_subtask" string="Latest Completion Subtask" attrs="{'invisible':['|',('subtask_exist','=', False),('subtask','=', False)]}"/>
+                                                <div attrs="{'invisible':['|',('subtask_exist','=', False),('subtask','=', False)]}">
+                                                    <field name="latest_completion_subtask" force_save="1" readonly="1" class="oe_inline" />
+                                                    <label for="latest_completion_subtask" string="%%"/>
+                                                </div>
+                                            <label for="progress_subtask" string="Additional Progress Subtask" attrs="{'invisible':['|',('subtask_exist','=', False),('subtask','=', False)]}"/>
+                                                <div attrs="{'invisible':['|',('subtask_exist','=', False),('subtask','=', False)]}">
+                                                    <field name="progress_subtask" force_save="1" class="oe_inline" attrs="{'required':[('subtask_exist','=', True)]}"/>
+                                                    <label for="progress_subtask" string="%%"/>
+                                                </div>
+                                            <label for="progress" string="Additional Progress" attrs="{'invisible':[('subtask_exist','=', True)]}"/>
+                                                <div attrs="{'invisible':[('subtask_exist','=', True)]}">
+                                                    <field name="progress" required="1" force_save="1" class="oe_inline"/>
+                                                    <label for="progress" string="%%"/>
+                                                </div>
+                                            <label for="progress" string="Additional Progress" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','!=', False)]}"/>
+                                                <div attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','!=', False)]}">
+                                                    <field name="progress" required="1" force_save="1" class="oe_inline"/>
+                                                    <label for="progress" string="%%"/>
+                                                </div>
+                                            <label for="progress" string="Parent Task Progress" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','=', False)]}"/>
+                                                <div attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','=', False)]}">
+                                                    <field name="progress" required="1" force_save="1" class="oe_inline" attrs="{'readonly':[('subtask','!=', False)]}"/>
+                                                    <label for="progress" string="%%"/>
+                                                </div>
+                                            <field name="progress_summary" required="1" force_save="1"/>
+                                            <field name="company_id" force_save="1"/>
+                                            <field name="branch_id" force_save="1"/>
+                                            <field name="create_by" readonly="1" force_save="1"/>
+                                            <field name="date_create" readonly="1" force_save="1"/>
+                                            <field name="project_internal" invisible="1" force_save="1"/>
+                                            <field name="is_progress_history_approval_matrix" invisible="1" force_save="1"/>
+                                            <field name="is_approval_matrix_filled" invisible="1" force_save="1"/>
+                                            <field name="is_approve_button" invisible="1" force_save="1"/>                   
+                                            <field name="approval_matrix_line_id" invisible="1" force_save="1"/>
+                                            <field name="approved_progress" invisible="1" force_save="1"/>
+                                            <field name="is_subtask" invisible="1" force_save="1"/>
+                                            <field name="progress_wiz" invisible="1" force_save="1"/>
+                                            <field name="parent_task" invisible="1" force_save="1"/>                        
+                                            <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                            <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                                            <field name="is_approver" invisible="1"/>
+                                            <field name="approved_user_text" invisible="1"/>
+                                            <field name="approved_user" invisible="1" readonly="0"/>
+                                            <field name="employee_id" invisible="1"/>
+                                            <field name="feedback_parent" invisible="1"/>
+                                        </group>
+                                        <group>
+                                            <field name="project_id_progress" invisible="1"/>
+                                            <field name="sale_order_progress" invisible="1"/>
+                                            <field name="completion_ref_progress" invisible="1"/>
+                                            <field name="stage_computed_new_progress" widget="many2many_tags" invisible="1"/>
+                                            <field name="stage_new_progress" force_save="1" invisible="1"/>
+                                            <field name="name_progress" invisible="1"/>
+                                            <field name="attachment_file" widget="many2many_tags" invisible="1"/>
+                                        </group>
+                                    </group>
+                                    <notebook>
+                                        <!-- Labour Usage -->
+                                        <page name="labour_usage" string="Labour Usage" attrs="{'invisible':[('is_using_labour_attendance','=', True)]}">
+
+                                            <field name="labour_usage_ids" attrs="{'readonly':[('state','!=', 'draft')]}">
+                                                <tree editable="bottom" create="1">
+                                                    <field name="labour_usage_line_id" invisible="0"/>
+                                                    <field name="cs_labour_id" invisible="1"/>
+                                                    <field name="bd_labour_id" invisible="1"/>
+                                                    <field name="no" readonly="1"/>
+                                                    <field name="project_scope_id" readonly="0"/>
+                                                    <field name="section_id" readonly="0"/>
+                                                    <field name="group_of_product_id" readonly="0"/>
+                                                    <field name="product_id" readonly="0"/>
+                                                    <field name="contractors" readonly="1"/>
+                                                    <field name="time_usage" readonly="1"  attrs="{'column_invisible':[('parent.custom_project_progress', '!=', 'manual_estimation')]}"/>
+                                                    <field name="time"/>
+                                                    <field name="time_left" readonly="1" invisible="1"/>
+                                                    <field name="uom_id" readonly="1"/>
+                                                    <field name="unit_price"/>
+                                                    <field name="domain_worker" readonly="1" invisible="1"/>
+                                                    <field name="custom_project_progress" readonly="1" invisible="1"/>
+                                                    <field name="workers_ids" widget="many2many_tags" domain="domain_worker" attrs="{'column_invisible':[('parent.custom_project_progress','=', 'manual_estimation')]}"/>
+                                                    <field name="analytic_group_ids" widget="many2many_tags"/>
+                                                    <field name="project_task_id" invisible="1"/>
+                                                    <field name="is_add_progress" invisible="1"/>
+                                                    <field name="temp_time_left" invisible="1" force_save="1"/>
+                                                </tree>
+                                                <form>
+                                                    <sheet>
+                                                        <group>
+                                                            <group class="o_setting_left_pane">
+                                                                <field name="project_task_id" invisible="1"/>
+                                                                <field name="project_scope_id" required="1" force_save="1"/>
+                                                                <field name="section_id" required="1" force_save="1"/>
+                                                                <field name="product_id" required="1" force_save="1"/>
+                                                                <field name="workers_ids" force_save="1" widget="many2many_tags"/>
+                                                            </group>
+                                                            <group class="o_setting_right_pane">
+                                                                <field name="contractors" required="1" force_save="1"/>
+                                                                <field name="time" required="1" force_save="1"/>
+                                                                <field name="time_left" force_save="1"/>
+                                                                <field name="uom_id" required="1" force_save="1"/>
+                                                                <field name="analytic_group_ids" required="1" force_save="1" widget="many2many_tags"/>
+                                                            </group>
+                                                        </group>
+                                                    </sheet>
+                                                </form>
+                                            </field>
+                                        </page>
+                                        <page name="attachment_ids" string="Attachments" >
+                                            <field name="attachment_ids" class="o_attachment_line"  widget="one2many_list">
+                                                <tree editable="bottom">
+                                                    <control>
+                                                        <create name="add_product_control" string="Add a attachment"/>
+                                                    </control>
+                                                    <field name="sequence" invisible="1"/>
+                                                    <field name="sr_no" />
+                                                    <field name="date_now" force_save="1"/>
+                                                    <field name="attachment" force_save="1"/>
+                                                    <field name="name" force_save="1"/>
+                                                    <field name="description" force_save="1"/>
+                                                    <!-- <field name="date" invisible="1" />
+                                                    <field name="size" invisible="1"/> -->
+                                                </tree>
+                                            </field>
+                                        </page>
+                                        <page name="approval_ids" string="Approval Matrix Line" attrs="{'invisible': [('is_progress_history_approval_matrix', '=', False)]}">
+                                            <group name="approval">
+                                                <group >
+                                                    <field name="approving_matrix_progress_id" attrs="{'invisible': [('is_progress_history_approval_matrix', '=', False)]}"/>
+                                                </group>
+                                            </group>
+                                            <field name="progress_history_user_ids">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="name"/>
+                                                    <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                                    <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                                    <field name="is_delegation_mail_sent" invisible="1"/>
+                                                    <field name="minimum_approver" readonly="1" force_save="1"/>
+                                                    <field name="timestamp" invisible="1" force_save="1"/>
+                                                    <field name="approver_state" invisible="1" force_save="1"/>
+                                                    <field name="approval_status" readonly="1" force_save="1"/>
+                                                    <field name="approved_time" readonly="1" force_save="1"/>
+                                                    <field name="is_approve" invisible="1"/>
+                                                    <field name="approved_employee_ids" invisible="1"/>
+                                                    <field name="feedback" readonly="1" force_save="1"/>
+                                                </tree>
+                                            </field>
+                                            <!-- <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}" class="o_sale_approval_matrix_line">
+                                                <tree editable="bottom">
+                                                    <field name="sequence" />
+                                                    <field name="user_name_ids" widget="many2many_tags"/>
+                                                    <field name="minimum_approver" />
+                                                    <field name="state_char" />
+                                                    <field name="time_stamp" />
+                                                    <field name="signature"/>
+                                                    <field name="feedback" />
+                                                </tree>
+                                            </field> -->
+                                        </page>
+                                    </notebook>
+                                </sheet>
+                                <div class="oe_chatter" name="chatter">
+                                    <field name="message_follower_ids"/>
+                                    <field name="activity_ids"/>
+                                    <field name="message_ids"/>
+                                </div>
+                            </form>                 
+                        </field>
+                    </page>
+
+                    <!-- Labour Usage -->
+                    <page name="labour_usage" string="Labour Usage">
+                        <group attrs="{'invisible':[('is_subtask','=', True)]}">
+                            <field name="project_scope_domain_dump" invisible="1"/>
+                            <field name="project_section_domain_dump" invisible="1"/>
+                            <field name="budgeting_period" invisible="1"/>
+                            <field name="labour_project_budget_ids" string="Periodical Budget" widget="many2many_tags" domain="[('state','=','in_progress'), ('project_id','=',project_id)]"  attrs="{'invisible':[('budgeting_period','=', 'project')]}"/>
+                            <field name="labour_project_scope_ids" widget="many2many_tags" attrs="{'invisible':[('state','!=', 'draft')]}" domain="project_scope_domain_dump"/>
+                            <field name="labour_section_ids" widget="many2many_tags" attrs="{'invisible':[('state','!=', 'draft')]}" domain="project_section_domain_dump"/>
+                            <br/>
+                            <button name="create_labour_usage" type="object" string="Compute Labour" class="btn-primary"  attrs="{'invisible':[('state','!=', 'draft')]}"/>
+                        </group>
+                        <group attrs="{'invisible':[('is_subtask','!=', True)]}">
+                            <button name="create_labour_usage_parent" type="object" string="Compute Labour Parent" class="btn-primary"  attrs="{'invisible':[('state','!=', 'draft')]}"/>
+                        </group>
+
+                        <field name="labour_usage_ids" attrs="{'readonly':[('state','!=', 'draft')]}">
+                            <tree editable="bottom" create="0">
+                                <field name="cs_labour_id" invisible="1"/>
+                                <field name="bd_labour_id" invisible="1"/>
+                                <field name="no" readonly="1"/>
+                                <field name="project_scope_id" readonly="1"/>
+                                <field name="section_id" readonly="1"/>
+                                <field name="group_of_product_id" readonly="1"/>
+                                <field name="product_id" readonly="1"/>
+                                <field name="contractors" readonly="1"/>
+                                <field name="time" attrs="{'readonly':[('is_subtask','=', True)]}" force_save="1"/>
+                                <field name="time_left" readonly="1" attrs="{'column_invisible':[('parent.state','!=', 'draft')]}"/>
+                                <field name="unit_price"/>
+                                <field name="uom_id" readonly="1"/>
+                                <field name="workers_ids" widget="many2many_tags"/>
+                                <field name="analytic_group_ids" widget="many2many_tags"/>
+                                <field name="project_task_id" invisible="1"/>
+                                <field name="is_subtask" invisible="1"/>
+                            </tree>
+                            <form>
+                                <sheet>
+                                    <group>
+                                        <group class="o_setting_left_pane">
+                                            <field name="project_task_id" invisible="1"/>
+                                            <field name="project_scope_id" required="1" force_save="1"/>
+                                            <field name="section_id" required="1" force_save="1"/>
+                                            <field name="product_id" required="1" force_save="1"/>
+                                            <field name="workers_ids" force_save="1" widget="many2many_tags"/>
+                                        </group>
+                                        <group class="o_setting_right_pane">
+                                            <field name="contractors" required="1" force_save="1"/>
+                                            <field name="time" required="1" force_save="1"/>
+                                            <field name="time_left" force_save="1"/>
+                                            <field name="uom_id" required="1" force_save="1"/>
+                                            <field name="analytic_group_ids" required="1" force_save="1" widget="many2many_tags"/>
+                                        </group>
+                                    </group>
+                                </sheet>
+                            </form>
+                        </field>
+                    </page>
+
+                    <!-- consumed materials -->
+                    <page name="consumed_product" string="Consumed Product" groups="project.group_project_user" attrs="{'invisible':[('is_subcon','=', True)]}">
+                        <notebook>
+                            <page name="planned_product" string="Planned Product" groups="project.group_project_user" invisible='1'>
+                                <field name="task_product_ids" class="o_consumed_material_line" force_save="1">
+                                    <tree>
+                                        <control>
+                                            <create name="add_product_control" string="Add a plan"/>
+                                        </control>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="sr_no"/>
+                                        <field name="number" string='Job Order ID'/>
+                                        <field name="task_product_id" invisible="1"/>
+                                        <field name="date"/>
+                                        <field name="subtotal" invisible="1"/>
+                                        <field name="state"/>
+                                    </tree>
+                                    <form string="Planned Product"> 
+                                        <header>
+                                            <field name="state" widget="statusbar" statusbar_visible="draft,confirm"/>   
+                                        </header>
+                                        <sheet>
+                                            <div class="oe_title">
+                                                <h1>
+                                                    <field name="number" force_save="1"/>
+                                                </h1>
+                                            </div>
+                                            <group name="main">
+                                                <group>
+                                                    <field name="date" required='1' force_save='1'/>
+                                                </group>
+                                                <group>
+                                                    <field name="subtotal"/>
+                                                </group>
+                                            </group>
+                                            <notebook>
+                                                <page name="task_product_material" string="Material" >
+                                                    <field name="task_product_material" class="o_consumed_material_line"  widget="one2many_list" force_save="1" attrs="{'readonly':[('state','!=', 'draft')]}">
+                                                        <tree editable="bottom">
+                                                            <field name="sequence" widget="handle"/>
+                                                            <field name="sr_no"/>
+                                                            <field name="date" invisible='1'/>
+                                                            <field name="project_scope" required='1'/>
+                                                            <field name="section_name" required='1'/>
+                                                            <field name="variable_ref" optional="hide"/>
+                                                            <field name="group_of_product" required='1'/>
+                                                            <field name="product_id" required='1'/>
+                                                            <field name="description" optional="hide"/>
+                                                            <field name="quantity"/>
+                                                            <field name="uom_id"/>
+                                                            <field name="quantity_left"/>
+                                                            <field name="budget_quantity"/>
+                                                            <field name="uom_id"/>
+                                                            <field name="subtotal" invisible="1"/>
+                                                        </tree>
+                                                    </field>
+                                                </page>
+                                                <page name="task_product_labour" string="Labour" >
+                                                    <field name="task_product_labour" class="o_consumed_material_line"  widget="one2many_list" force_save="1" attrs="{'readonly':[('state','!=', 'draft')]}">
+                                                        <tree editable="bottom">
+                                                            <field name="sequence" widget="handle"/>
+                                                            <field name="sr_no"/>
+                                                            <field name="date" invisible='1'/>
+                                                            <field name="project_scope" required='1'/>
+                                                            <field name="section_name" required='1'/>
+                                                            <field name="variable_ref" optional="hide"/>
+                                                            <field name="group_of_product" required='1'/>
+                                                            <field name="product_id" required='1'/>
+                                                            <field name="description" optional="hide"/>
+                                                            <field name="quantity"/>
+                                                            <field name="uom_id"/>
+                                                            <field name="quantity_left"/>
+                                                            <field name="budget_quantity"/>
+                                                            <field name="uom_id"/>
+                                                            <field name="subtotal" invisible="1"/>
+                                                        </tree>
+                                                    </field>
+                                                </page>
+                                                <page name="task_product_overhead" string="Overhead" >
+                                                    <field name="task_product_overhead" class="o_consumed_material_line"  widget="one2many_list" force_save="1" attrs="{'readonly':[('state','!=', 'draft')]}">
+                                                        <tree editable="bottom">
+                                                            <field name="sequence" widget="handle"/>
+                                                            <field name="sr_no"/>
+                                                            <field name="date" invisible='1'/>
+                                                            <field name="project_scope" required='1'/>
+                                                            <field name="section_name" required='1'/>
+                                                            <field name="variable_ref" optional="hide"/>
+                                                            <field name="group_of_product" required='1'/>
+                                                            <field name="product_id" required='1'/>
+                                                            <field name="description" optional="hide"/>
+                                                            <field name="quantity"/>
+                                                            <field name="uom_id"/>
+                                                            <field name="quantity_left"/>
+                                                            <field name="budget_quantity"/>
+                                                            <field name="uom_id"/>
+                                                            <field name="subtotal" invisible="1"/>
+                                                        </tree>
+                                                    </field>
+                                                </page>
+                                            </notebook>
+                                        </sheet>
+                                    </form>    
+                                </field>
+                            </page>
+                            <page name="consumed_material_group" string="Material" groups="project.group_project_user" attrs="{'invisible':[('is_subcon','=', True)]}">
+                                <notebook>
+                                    <page name="consumed_material" string="Consumed Material" groups="project.group_project_user">
+                                        <field name="consumed_material_ids" class="o_consumed_material_line" readonly="1" force_save="1">
+                                            <tree string="Consumed" editable="bottom">
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="date" invisible="1"/>
+                                                <field name="project_scope" force_save="1"/>
+                                                <field name="section_name" force_save="1"/>
+                                                <field name="variable_ref" optional="hide"/>
+                                                <field name="group_of_product" force_save="1"/>
+                                                <field name="product_id" force_save="1"/>
+                                                <field name="description" invisible="1"/>
+                                                <field name="quantity"/>
+                                                <field name="uom_id"/>
+                                                <field name="quantity_left"/>
+                                                <field name="budget_quantity"/>
+                                                <field name="company_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="consumed_material_history" string="Consumed History">
+                                        <field name="consumed_material_history_ids" readonly="1" force_save="1">
+                                            <tree string="Consumed History" editable="bottom">
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="usage_id"/>
+                                                <field name="date_used"/>
+                                                <field name="group_of_product"/>
+                                                <field name="product_id" force_save="1"/>
+                                                <field name="quantity"/>
+                                                <field name="company_id" invisible="1" force_save="1"/>
+                                                <field name="state"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </page>
+
+                            <!-- consumed labour -->
+                            <page name="consumed_labour_group" string="Labour" groups="project.group_project_user" invisible="1">
+                            <notebook>
+                                    <page name="consumed_labour_material" string="Consumed Labour" groups="project.group_project_user">
+                                        <field name="consumed_labour_ids" class="o_consumed_material_line" readonly="1" force_save="1">
+                                            <tree string="Consumed" editable="bottom">
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="date" invisible="1"/>
+                                                <field name="project_scope"/>
+                                                <field name="section_name"/>
+                                                <field name="variable_ref" optional="hide"/>
+                                                <field name="group_of_product"/>
+                                                <field name="product_id"/>
+                                                <field name="description" invisible="1"/>
+                                                <field name="quantity"/>
+                                                <field name="uom_id"/>
+                                                <field name="quantity_left"/>
+                                                <field name="budget_quantity"/>
+                                                <field name="company_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="consumed_labour_history" string="Consumed History">
+                                        <field name="consumed_labour_history_ids" readonly="1" force_save="1">
+                                            <tree string="Consumed History" editable="bottom">
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="usage_id"/>
+                                                <field name="date_used"/>
+                                                <field name="group_of_product"/>
+                                                <field name="product_id"/>
+                                                <field name="quantity"/>
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="state"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </page>
+                            
+                            <!-- consumed overhead -->
+                            <page name="consumed_overhead_group" string="Overhead" groups="project.group_project_user" attrs="{'invisible':[('is_subcon','=', True)]}">
+                                <notebook>
+                                    <page name="consumed_overhead_material" string="Consumed Overhead" groups="project.group_project_user">
+                                        <field name="consumed_overhead_ids" class="o_consumed_material_line" readonly="1" force_save="1">
+                                            <tree string="Consumed" editable="bottom">
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="date" invisible="1"/>
+                                                <field name="project_scope" force_save="1"/>
+                                                <field name="section_name" force_save="1"/>
+                                                <field name="variable_ref" optional="hide"/>
+                                                <field name="group_of_product"/>
+                                                <field name="product_id" force_save="1"/>
+                                                <field name="description" invisible="1"/>
+                                                <field name="quantity"/>
+                                                <field name="uom_id"/>
+                                                <field name="quantity_left"/>
+                                                <field name="budget_quantity"/>
+                                                <field name="company_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="consumed_overhead_history" string="Consumed History">
+                                        <field name="consumed_overhead_history_ids" readonly="1" force_save="1">
+                                            <tree string="Consumed History" editable="bottom">
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="usage_id"/>
+                                                <field name="date_used"/>
+                                                <field name="group_of_product"/>
+                                                <field name="product_id"/>
+                                                <field name="quantity"/>
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="state"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </page>
+
+                            <!-- consumed equipment -->
+                            <page name="consumed_equipment_group" string="Equipment" groups="project.group_project_user" invisible="1">
+                                <notebook>
+                                    <page name="consumed_equipment_material" string="Consumed Equipment" groups="project.group_project_user">
+                                        <field name="consumed_equipment_ids" class="o_consumed_material_line" readonly="1" force_save="1">
+                                            <tree string="Consumed" editable="bottom">
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="date" invisible="1"/>
+                                                <field name="project_scope"/>
+                                                <field name="section_name"/>
+                                                <field name="variable_ref" optional="hide"/>
+                                                <field name="group_of_product"/>
+                                                <field name="product_id"/>
+                                                <field name="description" invisible="1"/>
+                                                <field name="quantity"/>
+                                                <field name="uom_id"/>
+                                                <field name="quantity_left"/>
+                                                <field name="budget_quantity"/>
+                                                <field name="company_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="consumed_equipment_history" string="Consumed History">
+                                        <field name="consumed_equipment_history_ids" readonly="1" force_save="1">
+                                            <tree string="Consumed History" editable="bottom">
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="usage_id"/>
+                                                <field name="date_used"/>
+                                                <field name="group_of_product"/>
+                                                <field name="product_id"/>
+                                                <field name="quantity"/>
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="state"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </page>
+                        </notebook>
+                    </page>
+
+                    <!-- subtask -->
+                    <page name="subtask" string="Sub-tasks" groups="project.group_project_user" attrs="{'invisible':[('subtask_count', '&lt;', 1)]}">
+                        <group> 
+                            <field name="related_subtask_ids" widget="many2many_list" nolabel="1" readonly="1" force_save="1"/>
+                        </group>
+                    </page>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="hide_fields_project_task_form" model="ir.ui.view">
+            <field name="name">hide.fields.project.task.form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='user_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//sheet/group/group[1]/field[@name='starting_date']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//sheet/group/group[1]/field[@name='task_ref_name']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//sheet/group/group[1]/field[@name='date_deadline']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//sheet/group/group[1]/field[@name='tag_ids']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//sheet/group/group[2]/field[@name='partner_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="hide_fields_2_project_task_form" model="ir.ui.view">
+            <field name="name">hide.fields.project.task.form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="website_job_workorder_request.website_job_workorder_request_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='custom_wo_number']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="hide_page_project_task_form" model="ir.ui.view">
+            <field name="name">hide.page.project.task.form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='website']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='purchase requisition']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+
+        <!-- timesheet -->
+        <record id="view_task_form2_inherited_inherit_hr_timesheet" model="ir.ui.view">
+            <field name="name">project.task.hr.timesheet.view.form.inherit</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="hr_timesheet.view_task_form2_inherited"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@id='timesheets_tab']/group[1]/group[2]/field[@name='progress']" position="attributes">
+                    <attribute name="string">Progress Hours</attribute>
+                </xpath>
+                <xpath expr="//field[@name ='timesheet_ids']/tree/field[@name='employee_id']" position="attributes" >
+                    <attribute name="attrs">{'column_invisible': [('parent.is_subcon', '==', True)]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name ='timesheet_ids']/tree/field[@name='employee_id']" position="after" >
+                    <field name="is_subcon" invisible="1" />
+                    <field name="subcon_id" attrs="{'column_invisible':[('parent.is_subcon', '==', False)]}" />
+                </xpath>
+            </field>
+        </record>
+
+        <!-- kiri setelah planned, sebelum actual -->
+        <record id="add2_fields_project_task_form" model="ir.ui.view">
+            <field name="name">add2.fields.project.task.form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='planned_end_date']" position="after">
+                    <field name="duration" />
+                    <field name="date_deadline" attrs="{'invisible': ['|', ('is_closed', '=', True), ('is_subtask','=', True)]}"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_task_form2_inherited_again" model="ir.ui.view">
+            <field name="name">project.task.form.inherit12345</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="abs_construction_management.view_task_form2_inherited"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='state']" position='attributes'>
+                    <attribute name="force_save">1</attribute>
+                    <attribute name="statusbar_visible">draft,inprogress,pending,complete</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_task_form2_inherited_rename" model="ir.ui.view">
+            <field name="name">project.task.form.inherit123456</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="abs_construction_management.view_task_form2_inherited"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='notes_count']" position='attributes'>
+                    <attribute name="string">Notes</attribute>
+                </xpath>
+                <xpath expr="//field[@name='project_issue_count']" position='attributes'>
+                    <attribute name="string">Issues</attribute>
+                </xpath>
+            </field>
+        </record>
+        
+        <record id="edit_view_task_form2_inherited" model="ir.ui.view">
+            <field name="name">project.task.form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="abs_construction_management.view_task_form2_inherited"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='%(abs_construction_management.action_view_purchase_order_details_form)d']"
+                       position='attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//button[@name='action_view_purchase_order']" position='attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_view_equipment_request']" position='attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_view_vehicle_request']" position='attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_view_job_notes']" position='before'>
+                    <button name="action_product_usage" 
+                        type="object" 
+                        class="oe_stat_button" 
+                        icon="o-hm-smart-construction-product-usage">
+                    <field name="total_product_usage" string="Product Usage" widget="statinfo"/>
+                    </button>
+                    <button name="action_asset_allocation" 
+                        type="object" 
+                        class="oe_stat_button" 
+                        icon="o-hm-smart-construction-product-usage">
+                    <field name="total_asset_allocation" widget="statinfo"/>			
+                    </button>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="attachment_view" model="ir.ui.view">
+            <field name="name">attachment.view</field>
+            <field name="model">attachment.file</field>
+            <field name="arch" type="xml">
+                <form string="Attachments">
+                    <sheet>
+                        <gorup>
+                            <group>
+                                <field name="progress" readonly="1" invisible='1'/>
+                            </group>
+                        </gorup>
+                        <group>
+                            <group>
+                                <field name="date"/>
+                                <field name="attachment" /> 
+                            </group>
+                            <group>
+                                <field name="name" filename="name"/>
+                                <field name="size"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="equip3_construction_masterdata.view_task_tree_project" model="ir.ui.view">
+            <field name="name">project.task.tree.project.external.cons</field>
+            <field name="model">project.task</field>
+            <field eval="1" name="priority"/>
+            <field name="arch" type="xml">
+                <tree multi_edit="1" sample="1">
+                    <field name="active" invisible="1"/>
+                    <field name="message_needaction" invisible="1" readonly="1"/>
+                    <field name="is_closed" invisible="1" />
+                    <field name="sequence" invisible="1" readonly="1"/>
+                    <field name="name"/>
+                    <field name="project_id" optional="hide" readonly="1"/>
+                    <field name="partner_id" optional="hide"/>
+                    <field name="sale_order" optional="hide"/>
+                    <field name="job_estimate" optional="hide"/>
+                    <field name='department_type' invisible='1'/>
+                    <field name="stage_new" />
+                    <field name="parent_task" optional="hide"/>
+                    <field name="is_subtask" invisible="1"/>
+                    <field name="assigned_to" optional="show" widget="many2one_avatar_user"/>
+                    <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                    <field name="allow_subtasks" invisible="1"/>
+                    <!-- Redefined on equip3_construction_hr_operation module-->
+<!--                    <field name="allow_timesheets" invisible="0"/>-->
+<!--                    <field name="planned_hours" widget="timesheet_uom_no_toggle" sum="Initially Planned Hours"  attrs="{'invisible' : [('allow_timesheets', '=', False)]}" optional="hide"/>-->
+<!--                    <field name="effective_hours" widget="timesheet_uom" sum="Effective Hours" attrs="{'invisible' : [('allow_timesheets', '=', False)]}" optional="hide"/>-->
+<!--                    <field name="remaining_hours" widget="timesheet_uom" sum="Remaining Hours" attrs="{'invisible' : [('allow_timesheets', '=', False)]}" optional="hide" decoration-danger="progress &gt;= 100" decoration-warning="progress &gt;= 80 and progress &lt; 100"/>-->
+<!--                    <field name="subtask_effective_hours" widget="timesheet_uom" attrs="{'invisible' : ['|',('allow_subtasks', '=', False),('allow_timesheets', '=', False)]}" optional="hide"/>-->
+<!--                    <field name="total_hours_spent" widget="timesheet_uom" attrs="{'invisible' : ['|',('allow_subtasks', '=', False),('allow_timesheets', '=', False)]}" optional="hide"/>-->
+<!--                    <field name="progress" string='Progress Hours' widget="progressbar" optional="hide" groups="hr_timesheet.group_hr_timesheet_user"/>-->
+                    <field name="activity_ids" widget="list_activity" optional="hide"/>
+                    <field name="progress_task" string="Job Order Progress (%)" />
+                    <field name="stage_completion" string="Stage Completion (%)" optional="hide"/>
+                    <field name="contract_completion" string="Contract Completion (%)" optional="hide"/>
+                    <field name="date_deadline" optional="hide" widget="remaining_days" attrs="{'invisible': [('is_closed', '=', True)]}"/>
+                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+                    <field name="kanban_state" widget="state_selection" optional="hide" readonly="1" invisible='1'/>
+                    <field name="stage_id" readonly="1" invisible='1'/>
+                    <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                    <field name="state" optional="show" string="Status" widget="badge"
+                        decoration-primary="state == 'draft'"
+                        decoration-primary2="state == 'inprogress'"
+                        decoration-warning2="state == 'pending'"
+                        decoration-success2="state == 'complete'"
+                        decoration-secondary="state == 'cancel'"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="edit_view_task_tree_external_own_job" model="ir.ui.view">
+            <field name="name">project.task.tree.external.cons.own.job</field>
+            <field name="model">project.task</field>
+            <field eval="1" name="priority"/>
+            <field name="arch" type="xml">
+                <tree multi_edit="1" sample="1">
+                    <field name="active" invisible="1"/>
+                    <field name="message_needaction" invisible="1" readonly="1"/>
+                    <field name="is_closed" invisible="1" />
+                    <field name="sequence" invisible="1" readonly="1"/>
+                    <field name="name"/>
+                    <field name="project_id" />
+                    <field name="partner_id" optional="hide"/>
+                    <field name="sale_order"/>
+                    <field name='department_type' invisible='1'/>
+                    <field name="stage_new" />
+                    <field name="parent_task" optional="hide"/>
+                    <field name="is_subtask" invisible="1"/>
+                    <field name="assigned_to" optional="show" widget="many2one_avatar_user" />
+                    <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                    <field name="allow_subtasks" invisible="1"/>
+<!--                    <field name="planned_hours" widget="timesheet_uom_no_toggle" sum="Initially Planned Hours" optional="hide"/>-->
+<!--                    <field name="effective_hours" widget="timesheet_uom" sum="Effective Hours" optional="hide"/>-->
+<!--                    <field name="remaining_hours" widget="timesheet_uom" sum="Remaining Hours" optional="hide" decoration-danger="progress &gt;= 100" decoration-warning="progress &gt;= 80 and progress &lt; 100"/>-->
+<!--                    <field name="subtask_effective_hours" widget="timesheet_uom" attrs="{'invisible' : [('allow_subtasks', '=', False)]}" optional="hide"/>-->
+<!--                    <field name="total_hours_spent" widget="timesheet_uom" attrs="{'invisible' : [('allow_subtasks', '=', False)]}" optional="hide"/>-->
+<!--                    <field name="progress" string='Progress Hours' widget="progressbar" optional="hide" groups="hr_timesheet.group_hr_timesheet_user"/>-->
+                    <field name="activity_ids" widget="list_activity" optional="hide"/>
+                    <field name="progress_task" string="Job Order Progress (%)" />
+                    <field name="stage_completion" string="Stage Completion (%)" optional="hide"/>
+                    <field name="contract_completion" string="Contract Completion (%)" optional="hide"/>
+                    <field name="date_deadline" optional="hide" widget="remaining_days" attrs="{'invisible': [('is_closed', '=', True)]}"/>
+                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+                    <field name="kanban_state" widget="state_selection" optional="hide" readonly="1" invisible='1'/>
+                    <field name="stage_id" readonly="1" invisible='1'/>
+                    <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                    <field name="state" optional="show" string="Status" widget="badge"
+                        decoration-primary="state == 'draft'"
+                        decoration-primary2="state == 'inprogress'"
+                        decoration-warning2="state == 'pending'"
+                        decoration-success2="state == 'complete'"
+                        decoration-secondary="state == 'cancel'"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="edit_view_task_tree_external_subcon" model="ir.ui.view">
+            <field name="name">project.task.tree.external.cons.subcon</field>
+            <field name="model">project.task</field>
+            <field eval="1" name="priority"/>
+            <field name="arch" type="xml">
+                <tree multi_edit="1" sample="1">
+                    <field name="active" invisible="1"/>
+                    <field name="message_needaction" invisible="1" readonly="1"/>
+                    <field name="is_closed" invisible="1" />
+                    <field name="sequence" invisible="1" readonly="1"/>
+                    <field name="name"/>
+                    <field name="project_id" />
+                    <field name="partner_id" optional="hide"/>
+                    <field name="sale_order" string='Contract Customer'/>
+                    <field name="purchase_subcon" string='Contract Subcon'/>
+                    <field name='department_type' invisible='1'/>
+                    <field name="stage_new" />
+                    <field name="parent_task" optional="hide"/>
+                    <field name="is_subtask" invisible="1"/>
+                    <field name="assigned_to" optional="show" widget="many2one_avatar_user"/>
+                    <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                    <field name="allow_subtasks" invisible="1"/>
+<!--                    <field name="planned_hours" widget="timesheet_uom_no_toggle" sum="Initially Planned Hours" optional="hide"/>-->
+<!--                    <field name="effective_hours" widget="timesheet_uom" sum="Effective Hours" optional="hide"/>-->
+<!--                    <field name="remaining_hours" widget="timesheet_uom" sum="Remaining Hours" optional="hide" decoration-danger="progress &gt;= 100" decoration-warning="progress &gt;= 80 and progress &lt; 100"/>-->
+<!--                    <field name="subtask_effective_hours" widget="timesheet_uom" attrs="{'invisible' : [('allow_subtasks', '=', False)]}" optional="hide"/>-->
+<!--                    <field name="total_hours_spent" widget="timesheet_uom" attrs="{'invisible' : [('allow_subtasks', '=', False)]}" optional="hide"/>-->
+<!--                    <field name="progress" string='Progress Hours' widget="progressbar" optional="hide" groups="hr_timesheet.group_hr_timesheet_user"/>-->
+                    <field name="activity_ids" widget="list_activity" optional="hide"/>
+                    <field name="progress_task" string="Job Order Progress (%)"/>
+                    <field name="stage_completion" string="Stage Completion (%)" optional="hide"/>
+                    <field name="contract_completion" string="Contract Completion (%)" optional="hide"/>
+                    <field name="date_deadline" optional="hide" widget="remaining_days" attrs="{'invisible': [('is_closed', '=', True)]}"/>
+                    <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
+                    <field name="kanban_state" widget="state_selection" optional="hide" readonly="1" invisible='1'/>
+                    <field name="stage_id" readonly="1" invisible='1'/>
+                    <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                    <field name="state" optional="show" string="Status" widget="badge"
+                        decoration-primary="state == 'draft'"
+                        decoration-primary2="state == 'inprogress'"
+                        decoration-warning2="state == 'pending'"
+                        decoration-success2="state == 'complete'"
+                        decoration-secondary="state == 'cancel'"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="website_job_workorder_request_partner_form_inherit" model="ir.ui.view">
+            <field name="name">edit.button.custom.wo.job.work.order</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="website_job_workorder_request.website_job_workorder_request_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='custom_wo_send_joborder']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_task_form2_inherited2" model="ir.ui.view">
+            <field name="name">edit.button.action.complete</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="abs_construction_management.view_task_form2_inherited"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_complete']" position="after">
+                    <button name="set_to_draft" type="object" string="Set to Draft"
+                            attrs="{'invisible':[('state','in',['draft','complete'])]}"/>
+                </xpath>
+            </field>
+        </record>
+         
+        <record id="project.view_task_search_form" model="ir.ui.view">
+            <field name="name">project.task.search.form</field>
+            <field name="model">project.task</field>
+            <field name="arch" type="xml">
+               <search string="Tasks">
+                    <field name="name" string="Task"/>
+                    <field name="tag_ids"/>
+                    <field name="user_id"/>
+                    <field name="partner_id" operator="child_of"/>
+                    <field name="stage_id" invisible='1'/>
+                    <field name="project_id"/>
+                    <field name="parent_id" groups="project.group_subtask_project"/>
+                    <filter string="My Tasks" name="my_tasks" domain="[('user_id', '=', uid)]"/>
+                    <filter string="Subtasks" name="is_subtask" domain="[('is_subtask', '=', True)]"/>
+                    <filter string="Followed Tasks" name="my_followed_tasks" domain="[('message_is_follower', '=', True)]" />
+                    <filter string="Unassigned" name="unassigned" domain="[('user_id', '=', False)]"/>
+                    <separator/>
+                    <filter string="Starred" name="starred" domain="[('priority', 'in', [1, 2])]"/>
+                    <filter string="Late Tasks" name="late" domain="[('date_deadline', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
+                    <filter string="Rated tasks" name="rating_task" domain="[('rating_last_value', '!=', 0.0)]" groups="project.group_project_rating"/>
+                    <separator/>
+                    <filter string="Unread Messages" name="message_needaction" domain="[('message_needaction', '=', True)]"/>
+                    <separator/>
+                    <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                    <separator/>
+                    <filter invisible="1" string="Late Activities" name="activities_overdue"
+                        domain="[('my_activity_date_deadline', '&lt;', context_today().strftime('%Y-%m-%d'))]"
+                        help="Show all records which has next action date is before today"/>
+                    <filter invisible="1" string="Today Activities" name="activities_today"
+                        domain="[('my_activity_date_deadline', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                    <filter invisible="1" string="Future Activities" name="activities_upcoming_all"
+                        domain="[('my_activity_date_deadline', '&gt;', context_today().strftime('%Y-%m-%d'))]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Status" name="state" context="{'group_by': 'state'}"/>
+                        <filter string="Project" name="project" context="{'group_by': 'project_id'}"/>
+                        <filter string="Project Manager" name="project_director" context="{'group_by': 'project_director'}"/>
+                        <filter string="PIC" name="assigned_to" context="{'group_by': 'assigned_to'}"/>
+                        <filter string="Company" name="company_id" context="{'group_by': 'company_id'}"/>
+                        <filter string="Creation Date" name="group_create_date" context="{'group_by': 'create_date'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- action -->
+        <record id="action_view_task_inherited" model="ir.actions.act_window">
+            <field name="name">Job Orders</field>
+            <field name="res_model">project.task</field>
+            <field name="view_mode">tree,form,calendar,pivot,graph,activity,ks_gantt</field>
+            <field name="domain">[('is_subcon', '=', False), ('department_type', '=', 'project')]</field>
+            <field name="context">{'default_department_type': 'project', 'default_is_subcon': False}</field>
+            <field name="view_id" ref="equip3_construction_operation.edit_view_task_tree_external_own_job"/>
+            <field name="search_view_id" ref="project.view_task_search_form"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Job Order found. Let's create one!
+                </p>
+                <p>
+                    To get things done, use activities and status on tasks.
+                    <br/>
+                    You can track progress, discuss on tasks, attach documents, etc.
+                </p>
+            </field>
+        </record>
+    
+
+        <record id="action_view_subcontractor_task_inherited" model="ir.actions.act_window">
+            <field name="name">Subcontractor Job Orders</field>
+            <field name="res_model">project.task</field>
+            <field name="view_mode">tree,form,calendar,pivot,graph,activity,ks_gantt</field>
+            <field name="domain">[('is_subcon', '=', True), ('department_type', '=', 'project')]</field>
+            <field name="context">{'default_department_type': 'project', 'default_is_subcon': True, 'subcontracting': 1}</field>
+            <field name="view_id" ref="equip3_construction_operation.edit_view_task_tree_external_subcon"/>
+            <field name="search_view_id" ref="project.view_task_search_form"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Subcontractor Job Order found. Let's create one!
+                </p>
+                <p>
+                    To get things done, use activities and status on tasks.
+                    <br/>
+                    You can track progress, discuss on tasks, attach documents, etc.
+                </p>
+            </field>
+        </record>
+
+        <record id="open_view_project_all" model="ir.actions.act_window">
+            <field name="name">Projects</field>
+            <field name="res_model">project.project</field>
+            <field name="domain">[('department_type', '=', 'project'), ('primary_states', 'in', ['progress'])]</field>
+            <field name="context">{'default_department_type': 'project','is_project_job_order':True,'create': 0}</field>
+            <field name="view_mode">kanban,form</field>
+            <field name="view_id" ref="project.view_project_kanban"/>
+            <field name="search_view_id" ref="project.view_project_project_filter"/>
+            <field name="target">main</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No projects found. Let's create one!
+                </p>
+                <p>
+                    Projects regroup tasks on the same topic and each have their own dashboard.
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="menu_job_order_new"
+                  name="Job Orders"
+                  parent="abs_construction_management.menu_job_order"
+                  sequence="-1"/>
+
+        <menuitem id="abs_construction_management.menu_sub_job_order"
+                  name="Job Orders"
+                  parent="equip3_construction_operation.menu_job_order_new"
+                  action="equip3_construction_operation.action_view_task_inherited"
+                  sequence="1"/>
+
+        <menuitem id="menu_sub_subcontractor_job_order"
+                  name="Subcontractor Job Orders"
+                  parent="equip3_construction_operation.menu_job_order_new"
+                  action="equip3_construction_operation.action_view_subcontractor_task_inherited"
+                  sequence="2"/>
+
+        <menuitem id="menu_projects"
+                  action="equip3_construction_operation.open_view_project_all"
+                  name="Projects"
+                  parent="abs_construction_management.menu_job_order"
+                  sequence="-2"/>
+
+        <menuitem id="abs_construction_management.menu_employee"
+                  name="Employees"
+                  parent="abs_construction_management.construction_management"
+                  sequence="2"
+                  active="0"/>
+
+        <record id="progress_history_form_default" model="ir.ui.view">
+            <field name="name">progress.history.form.default</field>
+            <field name="model">progress.history</field>
+            <field name="arch" type="xml">
+               <form string="Progress History" create="false" edit="false">
+                    <header attrs="{'invisible': [('is_progress_history_approval_matrix', '=', False)]}">
+                        <button name="action_confirm_approving_matrix" type="object" string="Approve" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_progress_history_approval_matrix', '=', False), ('state', '!=', 'to_approve'), ('is_approver', '=', False)]}"/>
+                        <button name="action_reject_approving_matrix" type="object" string="Reject" attrs="{'invisible': ['|', '|', ('is_progress_history_approval_matrix', '=', False), ('state', '!=', 'to_approve'), ('is_approver', '=', False)]}"/>
+                        <field name="state" widget="statusbar" statusbar_visible="to_approve,approved" attrs="{'invisible' : [('state', 'in', 'rejected')]}"/>   
+                        <field name="state_2" widget="statusbar" statusbar_visible="to_approve,rejected" attrs="{'invisible' : [('state', '!=', 'rejected')]}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="number" force_save="1"/>
+                            </h1>
+                        </div>
+                        <group name="main">
+                            <group>
+                                <field name="active" invisible="1"/>
+                                <field name="project_id" force_save="1"/>
+                                <field name="sale_order" force_save="1" attrs="{'invisible':['|', ('department_type', '=', 'department'), ('is_subcon', '=', True)]}"/>
+                                <field name="job_estimate" force_save="1" attrs="{'invisible':['|', ('department_type', '=', 'project'), ('is_subcon','=', True)]}"/>
+                                <field name="purchase_subcon" force_save="1" attrs="{'invisible':[('is_subcon','=', False)]}"/>
+                                <field name="completion_ref" force_save="1" invisible="1"/>
+                                <field name="stage" force_save="1" invisible="1"/>
+                                <field name="stage_computed_new" force_save="1" widget="many2many_tags" invisible="1"/>
+                                <field name="stage_new" readonly="1" force_save="1"/>
+                                <field name="work_order" readonly="1" force_save="1" string="Job Order" attrs="{'invisible':[('subtask_exist','=', True)]}"/>
+                                <field name="work_order" readonly="1" force_save="1" string="Job Order" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','!=', False)]}"/>
+                                <field name="work_order" readonly="1" force_save="1" string="Parent Task" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','=', False)]}"/>
+                                <field name="hide_subtask_parents" invisible="1"/>
+                                <field name="subtask_parents" readonly="1" attrs="{'invisible':[('hide_subtask_parents','=', True)]}"/>
+                                <field name="name" readonly="1" force_save="1" invisible="1" string="Job Order" attrs="{'invisible':[('subtask_exist','=', True)]}"/>
+                                <field name="name" readonly="1" force_save="1" invisible="1" string="Parent Task" attrs="{'invisible':[('subtask_exist','=', False)]}"/>
+                                <field name="subtask" force_save="1" attrs="{'invisible':[('subtask_exist','=', False)], 'required':[('subtask_exist','=', True)]}"/>
+                                <field name="progress_start_date" force_save="1" invisible="1"/>
+                                <field name="progress_end_date" force_save="1" invisible="1"/>
+                                <field name="progress_start_date_new" required="1" force_save="1"/>
+                                <field name="progress_end_date_new" required="1" force_save="1"/>
+                                <field name="is_subcon" invisible="1" force_save="1"/>
+                                <field name="subtask_exist" invisible="1" force_save="1"/>
+                                <field name="department_type" invisible="1" force_save="1"/>
+                                <field name="custom_project_progress" invisible="1" />
+                                <field name="is_using_labour_attendance" invisible="1"/>
+                            </group>
+                            <group>
+                                <label for="latest_completion" string="Latest Completion" attrs="{'invisible':[('subtask_exist','=', True)]}"/>
+                                    <div attrs="{'invisible':[('subtask_exist','=', True)]}">
+                                        <field name="latest_completion" force_save="1" readonly="1" class="oe_inline"/>
+                                        <label for="latest_completion" string="%%"/>
+                                    </div>
+                                <label for="latest_completion" string="Latest Completion" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','!=', False)]}"/> 
+                                    <div attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','!=', False)]}">
+                                        <field name="latest_completion" force_save="1" readonly="1" class="oe_inline"/>
+                                        <label for="latest_completion" string="%%"/>
+                                    </div>
+                                <label for="latest_completion" string="Latest Completion Parent Task" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','=', False)]}"/>
+                                    <div attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','=', False)]}">
+                                        <field name="latest_completion" force_save="1" readonly="1" class="oe_inline"/>
+                                        <label for="latest_completion" string="%%"/>
+                                    </div>
+                                <label for="latest_completion_subtask" string="Latest Completion Subtask" attrs="{'invisible':['|',('subtask_exist','=', False),('subtask','=', False)]}"/>
+                                    <div attrs="{'invisible':['|',('subtask_exist','=', False),('subtask','=', False)]}">
+                                        <field name="latest_completion_subtask" force_save="1" readonly="1" class="oe_inline" />
+                                        <label for="latest_completion_subtask" string="%%"/>
+                                    </div>
+                                <label for="progress_subtask" string="Additional Progress Subtask" attrs="{'invisible':['|',('subtask_exist','=', False),('subtask','=', False)]}"/>
+                                    <div attrs="{'invisible':['|',('subtask_exist','=', False),('subtask','=', False)]}">
+                                        <field name="progress_subtask" force_save="1" class="oe_inline" attrs="{'required':[('subtask_exist','=', True)]}"/>
+                                        <label for="progress_subtask" string="%%"/>
+                                    </div>
+                                <label for="progress" string="Additional Progress" attrs="{'invisible':[('subtask_exist','=', True)]}"/>
+                                    <div attrs="{'invisible':[('subtask_exist','=', True)]}">
+                                        <field name="progress"  required="1" force_save="1" class="oe_inline"/>
+                                        <label for="progress" string="%%"/>
+                                    </div>
+                                <label for="progress" string="Additional Progress" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','!=', False)]}"/>
+                                    <div attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','!=', False)]}">
+                                        <field name="progress" required="1" force_save="1" class="oe_inline"/>
+                                        <label for="progress" string="%%"/>
+                                    </div>
+                                <label for="progress" string="Parent Task Progress" attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','=', False)]}"/>
+                                    <div attrs="{'invisible':['|', ('subtask_exist','=', False), ('subtask','=', False)]}">
+                                        <field name="progress" required="1" force_save="1" class="oe_inline" attrs="{'readonly':[('subtask','!=', False)]}"/>
+                                        <label for="progress" string="%%"/>
+                                    </div>
+                                <field name="progress_summary" required="1" force_save="1"/>
+                                <field name="company_id" force_save="1"/>
+                                <field name="branch_id" force_save="1"/>
+                                <field name="create_by" readonly="1" force_save="1"/>
+                                <field name="date_create" readonly="1" force_save="1"/>
+                                <field name="project_internal" invisible="1" force_save="1"/>
+                                <field name="is_progress_history_approval_matrix" invisible="1" force_save="1"/>
+                                <field name="is_approval_matrix_filled" invisible="1" force_save="1"/>
+                                <field name="is_approve_button" invisible="1" force_save="1"/>                   
+                                <field name="approval_matrix_line_id" invisible="1" force_save="1"/>
+                                <field name="approved_progress" invisible="1" force_save="1"/>
+                                <field name="is_subtask" invisible="1" force_save="1"/>
+                                <field name="progress_wiz" invisible="1" force_save="1"/>
+                                <field name="parent_task" invisible="1" force_save="1"/>
+                                <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                                <field name="is_approver" invisible="1"/>
+                                <field name="approved_user_text" invisible="1"/>
+                                <field name="approved_user" invisible="1" readonly="0"/>
+                                <field name="employee_id" invisible="1"/>
+                                <field name="feedback_parent" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="project_id_progress" invisible="1"/>
+                                <field name="sale_order_progress" invisible="1"/>
+                                <field name="completion_ref_progress" invisible="1"/>
+                                <field name="stage_computed_new_progress" widget="many2many_tags" invisible="1"/>
+                                <field name="stage_new_progress" force_save="1" invisible="1"/>
+                                <field name="name_progress" invisible="1"/>
+                                <field name="attachment_file" widget="many2many_tags" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <!-- Labour Usage -->
+                            <page name="labour_usage" string="Labour Usage" attrs="{'invisible':[('is_using_labour_attendance','=', True)]}">
+
+                                <field name="labour_usage_ids" attrs="{'readonly':[('state','!=', 'draft')]}">
+                                    <tree editable="bottom" create="1">
+                                        <field name="labour_usage_line_id" invisible="0"/>
+                                        <field name="cs_labour_id" invisible="1"/>
+                                        <field name="bd_labour_id" invisible="1"/>
+                                        <field name="no" readonly="1"/>
+                                        <field name="project_scope_id" readonly="0"/>
+                                        <field name="section_id" readonly="0"/>
+                                        <field name="group_of_product_id" readonly="0"/>
+                                        <field name="product_id" readonly="0"/>
+                                        <field name="contractors" readonly="1"/>
+                                        <field name="time_usage" readonly="1"  attrs="{'column_invisible':[('parent.custom_project_progress', '!=', 'manual_estimation')]}"/>
+                                        <field name="time" readonly="1"/>
+                                        <field name="time_left" readonly="1" invisible="1"/>
+                                        <field name="uom_id" readonly="1"/>
+                                        <field name="unit_price" readonly="1"/>
+                                        <field name="domain_worker" readonly="1" invisible="1"/>
+                                        <field name="custom_project_progress" readonly="1" invisible="1"/>
+                                        <field name="workers_ids" widget="many2many_tags" domain="domain_worker" attrs="{'column_invisible':[('parent.custom_project_progress','=', 'manual_estimation')]}"/>
+                                        <field name="analytic_group_ids" widget="many2many_tags"/>
+                                        <field name="project_task_id" invisible="1"/>
+                                        <field name="is_add_progress" invisible="1"/>
+                                        <field name="temp_time_left" invisible="1" force_save="1"/>
+                                    </tree>
+                                    <form>
+                                        <sheet>
+                                            <group>
+                                                <group class="o_setting_left_pane">
+                                                    <field name="project_task_id" invisible="1"/>
+                                                    <field name="project_scope_id" required="1" force_save="1"/>
+                                                    <field name="section_id" required="1" force_save="1"/>
+                                                    <field name="product_id" required="1" force_save="1"/>
+                                                    <field name="workers_ids" force_save="1" widget="many2many_tags"/>
+                                                </group>
+                                                <group class="o_setting_right_pane">
+                                                    <field name="contractors" required="1" force_save="1"/>
+                                                    <field name="time" required="1" force_save="1"/>
+                                                    <field name="time_left" force_save="1"/>
+                                                    <field name="uom_id" required="1" force_save="1"/>
+                                                    <field name="analytic_group_ids" required="1" force_save="1" widget="many2many_tags"/>
+                                                </group>
+                                            </group>
+                                        </sheet>
+                                    </form>
+                                </field>
+                            </page>
+                            <page name="attachment_ids" string="Attachments" >
+                                <field name="attachment_ids" class="o_attachment_line"  widget="one2many_list">
+                                    <tree editable="bottom">
+                                        <control>
+                                            <create name="add_product_control" string="Add a attachment"/>
+                                        </control>
+                                        <field name="sequence" invisible="1"/>
+                                        <field name="sr_no" />
+                                        <field name="date_now" force_save="1"/>
+                                        <field name="attachment" force_save="1"/>
+                                        <field name="name" force_save="1"/>
+                                        <field name="description" force_save="1"/>
+                                        <!-- <field name="date" invisible="1" />
+                                        <field name="size" invisible="1"/> -->
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="approval_ids" string="Approval Matrix Line" attrs="{'invisible': [('is_progress_history_approval_matrix', '=', False)]}">
+                                <group name="approval">
+                                    <group >
+                                        <field name="approving_matrix_progress_id" attrs="{'invisible': [('is_progress_history_approval_matrix', '=', False)]}"/>
+                                    </group>
+                                </group>
+                                <field name="progress_history_user_ids">
+                                    <tree editable="bottom" create="false" delete="false">
+                                        <field name="name"/>
+                                        <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                        <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                        <field name="is_delegation_mail_sent" invisible="1"/>
+                                        <field name="minimum_approver" readonly="1" force_save="1"/>
+                                        <field name="timestamp" invisible="1" force_save="1"/>
+                                        <field name="approver_state" invisible="1" force_save="1"/>
+                                        <field name="approval_status" readonly="1" force_save="1"/>
+                                        <field name="approved_time" readonly="1" force_save="1"/>
+                                        <field name="is_approve" invisible="1"/>
+                                        <field name="approved_employee_ids" invisible="1"/>
+                                        <field name="feedback" readonly="1" force_save="1"/>
+                                    </tree>
+                                </field>
+                                <!-- <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}" class="o_sale_approval_matrix_line">
+                                    <tree editable="bottom">
+                                        <field name="sequence" />
+                                        <field name="user_name_ids" widget="many2many_tags"/>
+                                        <field name="minimum_approver" />
+                                        <field name="state_char" />
+                                        <field name="time_stamp" />
+                                        <field name="signature"/>
+                                        <field name="feedback" />
+                                    </tree>
+                                </field> -->
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter" name="chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        
+        <!-- Progress history tree view and submenu -->
+        <record id="progress_history_tree_view" model="ir.ui.view">
+            <field name="name">progress.history.tree.view</field>
+            <field name="model">progress.history</field>
+            <field name="arch" type="xml">
+                <tree create="0" js_class="button_in_tree" default_order="date_create desc" multi_edit="1" sample="1">
+                    <field name="active" invisible="1"/>
+                    <field name="number" force_save="1"/>
+                    <field name="project_id" force_save="1"/>
+                    <field name="sale_order" force_save="1"/>
+                    <field name="purchase_subcon" invisible="1" force_save="1"/>
+                    <field name="completion_ref" invisible="1" force_save="1"/>
+                    <field name="stage_computed_new" force_save="1" widget="many2many_tags" invisible="1" />
+                    <field name="stage_new" force_save="1"/>
+                    <field name="work_order" string="Job Order" force_save="1"/>
+                    <field name="subtask" string="Subtask" optional="hide" force_save="1"/>
+                    <field name="name" invisible="1" string="Job Order" force_save="1"/>
+                    <field name="progress_start_date_new" force_save="1"/>
+                    <field name="progress_end_date_new" force_save="1"/>
+                    <field name="latest_completion" force_save="1"/>
+                    <field name="latest_completion_subtask" force_save="1" optional="hide" />
+                    <field name="progress_subtask" optional="hide" force_save="1"/>
+                    <field name="progress" force_save="1" />
+                    <field name="progress_summary" force_save="1"/>
+                    <field name="create_by" force_save="1"/>
+                    <field name="date_create" force_save="1"/>
+                    <field name="department_type" invisible="1" force_save="1"/>
+                    <field name="is_subcon" invisible="1" force_save="1"/>
+                    <field name="is_approval_matrix_filled" invisible="1"/>
+                    <field name="is_approve_button" invisible="1"/>
+                    <field name="subtask_exist" invisible="1" force_save="1"/>
+                    <field name="is_progress_history_approval_matrix" invisible="1" force_save="1"/>
+                    <field name="approved_progress" invisible="1" force_save="1"/>
+                    <field name="is_subtask" invisible="1" force_save="1"/>
+                    <field name="progress_wiz" invisible="1" force_save="1"/>
+                    <field name="parent_task" invisible="1" force_save="1"/>
+                    <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                    <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                    <field name="is_approver" invisible="1"/>
+                    <field name="approved_user_text" invisible="1"/>
+                    <field name="approved_user" invisible="1" readonly="0"/>
+                    <field name="employee_id" invisible="1"/>
+                    <field name="feedback_parent" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="progress_history_tree_view_approval" model="ir.ui.view">
+            <field name="name">progress.history.tree.view.approval</field>
+            <field name="model">progress.history</field>
+            <field name="arch" type="xml">
+                <tree create="0" js_class="button_in_tree" default_order="date_create desc" multi_edit="1" sample="1">
+                    <header>
+                        <button name="action_progress_history_approve" string="Approve" type="object" class="oe_highlight"/>
+                        <button name="action_progress_history_reject" string="Reject" type="object" class="btn btn-secondary"/>
+                    </header> 
+                    <field name="active" invisible="1"/>
+                    <field name="number" force_save="1"/>
+                    <field name="project_id" force_save="1"/>
+                    <field name="sale_order" force_save="1" />
+                    <field name="purchase_subcon" invisible="1" force_save="1"/>
+                    <field name="completion_ref" invisible="1" force_save="1"/>
+                    <field name="stage_computed_new" force_save="1" widget="many2many_tags" invisible="1" />
+                    <field name="stage_new" force_save="1"/>
+                    <field name="work_order" string="Job Order" force_save="1"/>
+                    <field name="subtask" string="Subtask" optional="hide" force_save="1"/>
+                    <field name="name" invisible="1" string="Job Order" force_save="1"/>
+                    <field name="progress_start_date_new" force_save="1"/>
+                    <field name="progress_end_date_new" force_save="1"/>
+                    <field name="latest_completion" force_save="1"/>
+                    <field name="latest_completion_subtask" force_save="1" optional="hide"/>
+                    <field name="progress_subtask" optional="hide" force_save="1" />
+                    <field name="progress" force_save="1"/>
+                    <field name="progress_summary" force_save="1"/>
+                    <field name="create_by" force_save="1"/>
+                    <field name="date_create" force_save="1"/>
+                    <field name="state"
+                           widget="badge"
+                           decoration-success="state == 'approved'"
+                           decoration-info="state == 'to_approve'"
+                           decoration-danger="state == 'rejected'"
+                           />
+                    <field name="department_type" invisible="1" force_save="1"/>
+                    <field name="is_subcon" invisible="1" force_save="1"/>
+                    <field name="is_approval_matrix_filled" invisible="1"/>
+                    <field name="is_approve_button" invisible="1"/>
+                    <field name="subtask_exist" invisible="1" force_save="1"/>
+                    <field name="is_progress_history_approval_matrix" invisible="1" force_save="1"/>
+                    <field name="approved_progress" invisible="1" force_save="1"/>
+                    <field name="is_subtask" invisible="1" force_save="1"/>
+                    <field name="progress_wiz" invisible="1" force_save="1"/>
+                    <field name="parent_task" invisible="1" force_save="1"/>
+                    <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                    <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                    <field name="is_approver" invisible="1"/>
+                    <field name="approved_user_text" invisible="1"/>
+                    <field name="approved_user" invisible="1" readonly="0"/>
+                    <field name="employee_id" invisible="1"/>
+                    <field name="feedback_parent" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="progress_history_action" model="ir.actions.act_window">
+            <field name="name">Progress History</field>
+            <field name="res_model">progress.history</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="progress_history_tree_view"/>
+            <field name="domain">[('work_order.is_subtask', '=', False), ('department_type', '=', 'project')]</field>
+            <field name="context">{'default_department_type': 'project'}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Progress History found. Let's create one!
+                </p>
+            </field>
+        </record>
+
+        <record id="progress_history_action_approval" model="ir.actions.act_window">
+            <field name="name">Progress History</field>
+            <field name="res_model">progress.history</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="progress_history_tree_view_approval"/>
+            <field name="domain">[('work_order.is_subtask', '=', False), ('department_type', '=', 'project')]</field>
+            <field name="context">{'default_department_type': 'project'}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Progress History found. Let's create one!
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="progress_history_menu"
+              name="Progress History"
+              action="progress_history_action"
+              parent="abs_construction_management.menu_job_order"
+              sequence="1"
+              groups="abs_construction_management.group_construction_user"/>
+            
+        <menuitem id="progress_history_menu_approval"
+              name="Progress History"
+              action="progress_history_action_approval"
+              parent="abs_construction_management.menu_job_order" 
+              sequence="1"
+              groups="abs_construction_management.group_construction_user"/>
+
+        <record id="job_order_action_form" model="ir.actions.act_window">
+            <field name="name">Job Order Form</field>
+            <field name="res_model">project.task</field>
+            <field name="view_mode">form</field>
+            <field name="context">{'res_id': active_id}</field>
+        </record>
+        
+        <record id="pad_project_description_inherit" model="ir.ui.view">
+            <field name="name">pad_project_description_inherit</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="pad_project.view_task_form2_inherit_pad_project"/>
+            <field name="arch" type="xml">
+                <field name="description_pad" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+
+                <field name="description_pad" position="after">
+                    <field name="new_description" nolabel='1'/>
+                    <field name="sub_task_desc" invisible='1'/>
+                </field>
+
+            </field>
+        </record>
+
+
+        <!-- project.task button inherit form view -->
+        <record id="view_task_form2_inherited_smart_button" model="ir.ui.view">
+            <field name="name">project.task.inherit.smart.button</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='custom_wo_purchase_requisition_count']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='custom_wo_show_purchase_requisition']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Job Notes tree View -->
+        <record id="view_job_notes_menu_tree_inherit" model="ir.ui.view">
+            <field name="name">job.notes.tree.inherit</field>
+            <field name="model">job.notes</field>
+            <field name="inherit_id" ref="abs_construction_management.view_job_notes_menu_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree[1]" position="attributes">
+                    <attribute name="multi_edit">1</attribute>
+                    <attribute name="sample">1</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='user_id']" position="after">
+                    <field name="company_id" optional='hide'/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Job Notes form View -->
+        <record id="view_job_notes_menu_form_inherit" model="ir.ui.view">
+            <field name="name">job.notes.form.inherit</field>
+            <field name="model">job.notes</field>
+            <field name="inherit_id" ref="abs_construction_management.view_job_notes_menu_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="///field[@name='task_ids']" position="after">
+                    <field name="company_id" readonly="1" force_save="1"/>
+                    <field name="department_type" invisible="1" />
+                </xpath>
+            </field>
+        </record>
+
+        <!--ACTION [job.notes]-->
+        <record id="abs_construction_management.action_view_job_notes_menu" model="ir.actions.act_window">
+            <field name="name">Job Notes</field>
+            <field name="res_model">job.notes</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('department_type', '=', 'project')]</field>
+            <field name="context">{'default_department_type': 'project'}</field>
+            <field name="view_id" ref="abs_construction_management.view_job_notes_menu_tree"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Job Note found, Let's create one!
+                </p>
+            </field>
+        </record>
+
+
+    </data>
+</odoo>
+    

@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+
+        <record id="view_hr_generate_working_calendar_tree" model="ir.ui.view">
+            <field name="name">hr.generate.workingcalendar.tree</field>
+            <field name="model">hr.generate.workingcalendar</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="generate_type"/>
+                    <field name="follow_contract_period"/>
+                    <field name="state"  string="Status" decoration-primary="state == 'draft'" decoration-success="state == 'generated'" widget="badge"/>
+                    <field name="create_date"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_hr_generate_working_calendar_form" model="ir.ui.view">
+            <field name="name">hr.generate.workingcalendar.form</field>
+            <field name="model">hr.generate.workingcalendar</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,generated"/>
+                        <button name="action_generate" string="Generate"
+                                attrs="{'invisible':[('state','=','generated')]}" type="object" class="oe_highlight"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="generate_type"/>
+                            <field name="resource_calendar_id"
+                                   attrs="{'invisible':[('generate_type','!=', 'update')],'required':[('generate_type','=', 'update')]}"/>
+                            <field name="follow_contract_period"/>
+                            <field name="is_past_date" invisible="1"/>
+                            <label for="start_date" string="Time Period"
+                                   attrs="{'invisible':[('follow_contract_period','=',True)]}"/>
+                            <div attrs="{'invisible':[('follow_contract_period','=',True)]}">
+                                <field name="start_date" class="oe_inline"
+                                       attrs="{'required':[('follow_contract_period','=',False)]}"/>
+                                -
+                                <field name="end_date" class="oe_inline"
+                                       attrs="{'required':[('follow_contract_period','=',False)]}"/>
+                            </div>
+                        </group>
+                        <div>
+                            <field name="past_record" attrs="{'invisible':[('is_past_date', '=', False)]}"
+                                   nolabel="1" readonly="1"/>
+                            <group string="Employee">
+                                <field name="employee_ids" widget="one2many_list">
+                                    <tree string="Employee">
+                                        <field name="name"/>
+                                        <field name="department_id"/>
+                                        <field name="job_id"/>
+                                        <field name="resource_calendar_id" string="Working Schedule"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_hr_generate_working_calendar_search" model="ir.ui.view">
+            <field name="name">hr.generate.workingcalendar.search</field>
+            <field name="model">hr.generate.workingcalendar</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="generate_type"/>
+                    <!--                    <field name="schedule_type"/>-->
+                </search>
+            </field>
+        </record>
+
+        <record id="action_hr_generate_workingcalendar" model="ir.actions.act_window">
+            <field name="name">Generate Working Calendar</field>
+            <field name="res_model">hr.generate.workingcalendar</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="view_hr_generate_working_calendar_search"/>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to add a new Generate Working Calendar.
+                </p>
+            </field>
+        </record>
+
+        <menuitem action="action_hr_generate_workingcalendar" id="menu_hr_generate_workingcalendar"
+                  parent="hr_attendance.menu_hr_attendance_manage_attendances" sequence="90"
+                  
+                  />
+        <record model='ir.ui.menu' id='menu_hr_generate_workingcalendar'>
+        <field name="groups_id" eval="[(6, 0, [ref('equip3_hr_employee_access_right_setting.group_hr_attendance_hr_manager')])]"/>
+    </record>
+
+    </data>
+</odoo>

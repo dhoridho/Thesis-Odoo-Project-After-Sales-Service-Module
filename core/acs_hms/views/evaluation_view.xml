@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_acs_patient_evaluation_form" model="ir.ui.view">
+        <field name="name">Patient Evaluation</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_done" states="draft" groups="acs_hms.group_hms_jr_doctor,acs_hms.group_hms_nurse" type="object" string="Done" class="oe_highlight"/>
+                    <button name="action_cancel" string="Cancel" states="draft" type="object"/>
+                    <button name="action_draft" string="Draft" states="cancel" type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <field name="image_128" widget="image" class="oe_avatar" options="{'preview_image': 'image_128'}"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" default_focus="1" placeholder="Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="age" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="physician_id"/>
+                            <field name="date"/>
+                            <field name="appointment_id" domain="[('patient_id','=', patient_id)]" context="{'default_patient_id': patient_id, 'default_physician_id': physician_id}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="details" string="Details" groups="acs_hms.group_hms_nurse">
+                            <group>
+                                <group>
+                                    <label for="weight"/>
+                                    <div class="o_row">
+                                        <field name="weight"/>
+                                        <span><field name="acs_weight_name"/></span>
+                                    </div>
+                                    <label for="height"/>
+                                    <div class="o_row">
+                                        <field name="height"/>
+                                        <span><field name="acs_height_name"/></span>
+                                    </div>
+                                    <label for="temp"/>
+                                    <div class="o_row">
+                                        <field name="temp"/>
+                                        <span><field name="acs_temp_name"/></span>
+                                    </div>
+                                </group>
+                                <group>
+                                    <field name="rr"/>
+                                    <label string="Systolic/Diastolic BP" for="systolic_bp"/>
+                                    <div name="systolic_bp">
+                                        <div class="oe_inline" style="display: inline;" >
+                                            <field name="systolic_bp" class="oe_inline"/>/<field name="diastolic_bp" class="oe_inline"/>
+                                        </div>
+                                    </div>
+                                    <label for="spo2"/>
+                                    <div class="o_row">
+                                        <field name="spo2"/>
+                                        <span><field name="acs_spo2_name"/></span>
+                                    </div>
+                                    <label for="rbs"/>
+                                    <div class="o_row">
+                                        <field name="rbs"/>
+                                        <span><field name="acs_rbs_name"/></span>
+                                    </div>
+                                </group>
+                                <group>
+                                    <field name="bmi"/>
+                                </group>
+                                <group>
+                                    <field name="bmi_state"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_acs_patient_evaluation_tree">
+        <field name="name">treatment.list</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="arch" type="xml">
+            <tree string="Patient Evaluation">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="date"/>
+                <field name="state"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_acs_patient_evaluation_calendar" model="ir.ui.view">
+        <field name="name">acs.patient.evaluation.calendar</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="type">calendar</field>
+        <field name="arch" type="xml">
+            <calendar string="Patient Evaluations" color="patient_id" date_start="date">
+                <field name="physician_id"/>
+                <field name="patient_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_acs_patient_evaluation_pivot" model="ir.ui.view">
+        <field name="name">acs.patient.evaluation.pivot</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="arch" type="xml">
+            <pivot string="Patient Evaluations">
+                <field name="date" type="row"/>
+                <field name="physician_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_acs_patient_evaluation" model="ir.actions.act_window">
+        <field name="name">Patient Evaluation</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">acs.patient.evaluation</field>
+        <field name="view_mode">tree,form,calendar,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record Found
+            </p>
+            <p>
+                Click to add a Patient Evaluation.
+            </p>
+        </field>
+    </record>
+
+    <!-- POPUP -->
+    <record id="view_acs_patient_evaluation_popup_form" model="ir.ui.view">
+        <field name="name">acs.patient.evaluation.form</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_done" states="draft" groups="acs_hms.group_hms_jr_doctor,acs_hms.group_hms_nurse" type="object" string="Done" class="oe_highlight"/>
+                    <button name="action_cancel" string="Cancel" states="draft" type="object"/>
+                    <button name="action_draft" string="Draft" states="cancel" type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <field name="image_128" widget="image" class="oe_avatar" options="{'preview_image': 'image_128'}"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" default_focus="1" placeholder="Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="age" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="physician_id"/>
+                            <field name="date"/>
+                            <field name="appointment_id" domain="[('patient_id','=', patient_id)]" context="{'default_patient_id': patient_id, 'default_physician_id': physician_id}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="details" string="Details" groups="acs_hms.group_hms_nurse">
+                            <group>
+                                <group>
+                                    <field name="weight"/>
+                                    <field name="height"/>
+                                    <field name="temp"/>
+                                    <field name="hr"/>
+                                </group>
+                                <group>
+                                    <field name="rr"/>
+                                    <label string="Systolic/Diastolic BP" for="systolic_bp"/>
+                                    <div name="systolic_bp">
+                                        <div class="oe_inline" style="display: inline;" >
+                                            <field name="systolic_bp" class="oe_inline"/>/<field name="diastolic_bp" class="oe_inline"/>
+                                        </div>
+                                    </div>
+                                    <field name="spo2"/>
+                                </group>
+                                <group>
+                                    <field name="bmi"/>
+                                </group>
+                                <group>
+                                    <field name="bmi_state"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="create_evaluation" type="object" string="Create" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel" />
+                </footer>
+            </form> 
+        </field>
+    </record>
+
+    <record id="action_acs_patient_evaluation_popup" model="ir.actions.act_window">
+        <field name="name">Evaluation</field>
+        <field name="res_model">acs.patient.evaluation</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record model="ir.actions.act_window.view" id="action_acs_patient_evaluation_popup_form">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_acs_patient_evaluation_popup_form"/>
+        <field name="act_window_id" ref="action_acs_patient_evaluation_popup"/>
+    </record>
+
+</odoo>

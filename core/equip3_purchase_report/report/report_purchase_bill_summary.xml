@@ -1,0 +1,271 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+        <template id="templates_bill_summary_company_details">
+            <span style="text-transform:capitalize; padding:0px; margin:0; color: #51565b;">
+                <t t-if="company_id and company_id.is_company_bold">
+                    <strong>
+                        <span t-field="company_id.partner_id"/>
+                    </strong>
+                </t>
+                <t t-if="not company_id.is_company_bold">
+                    <span t-field="company_id.partner_id"/>
+                </t>
+            </span>
+            <div style="color: #51565b;">
+                <span t-esc="street_company"/>
+                <br/>
+                <span t-esc="address_company"/>
+                <br/>
+            </div>
+            <div style="color: #51565b;">
+                <t t-if="company_id.partner_id.mobile">
+                    <strong>Mobile:</strong>
+                    <span t-field="company_id.partner_id.mobile"/>
+                    <br/>
+                </t>
+                <t t-if="company_id.partner_id.email">
+                    <strong>Email:</strong>
+                    <span t-field="company_id.partner_id.email"/>
+                    <br/>
+                </t>
+                <!--  <t t-if="company_id.is_show_bank_details"><strong>Bank: </strong><span t-esc="company_id.report_bank_id.acc_number"/></t>-->
+            </div>
+        </template>
+        <template id="purchase_bill_summary_watermark">
+            <t t-if="company_id and company_id.is_show_watermark">
+                <div class="watermark text-center" style="position:absolute; opacity:0.25; width:100%; height:auto; z-index:1000; -webkit-transform: rotate(-45deg); -moz-transform:rotate(-45deg); bottom:-600px; left:-100px;">
+                    <t t-if="company_id.watermark == 'logo'">
+                        <img style="max-height: 800px;" t-att-src="'data:image/png;base64,%s' %  to_text(company_id.watermark_logo)" t-if="company_id"/>
+                    </t>
+                    <t t-if="company_id.watermark != 'logo'">
+                        <span t-att-style="'font-size:'+str(company_id.watermark_text_font_size)+'em; color:'+company_id.watermark_text_color">
+                            <span t-field="company_id.watermark_text" t-if="company_id.watermark == 'text'"/>
+                        </span>
+                    </t>
+                </div>
+            </t>
+        </template>
+        <template id="purchase_bill_summary_exclusive_header">
+            <div class="header" t-att-style="'font-family:'+company_id.font_id.family+';font-size:'+str(company_id.font_size)+'px;'">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <center>
+                                    <table border="0" cellpadding="0" cellspacing="0" style="padding:0px 20px 0px 20px; margin:0; background:#fff; line-height:20px; vertical-align:middle; float:none;" width="100%">
+                                        <tr>
+                                            <td align="left" colspan="2" t-attf-style="vertical-align:middle; float:none; color:#{text_color or '#ffffff'}; padding:0 0px;" valign="top">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                    <tr>
+                                                        <td align="left" style="color:#4D4D4F; padding: 20px 20px 0px 20px; border-right: 1px solid #D4D1D1; width:10%; vertical-align:top; float:none;" valign="top">
+                                                            <img style="max-height:50px; vertical-align: top; float:none;" t-att-src="'data:image/png;base64,%s'% to_text(company_id.logo)" t-if="company_id.logo"/>
+                                                            <br/>
+                                                        </td>
+                                                        <td style="padding: 20px 20px 0px 20px; width:30%" valign="top">
+                                                            <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Address</p>
+                                                            <t t-call="equip3_purchase_report.templates_bill_summary_company_details"/>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </center>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+        <template id="templates_bill_summary_footer">
+            <div class="footer" t-att-style="'font-family:'+company_id.font_id.family+';font-size:'+str(company_id.font_size)+'px;'" t-if="company_id.report_footer_selection == 'standard'">
+                <div class="text-center" style="border-top: 1px solid black;">
+                    <ul class="list-inline mb4">
+                        <li t-if="company.phone">Phone:
+                            <span t-field="company.phone"/></li>
+                        <li t-if="company.email">Email:
+                            <span t-field="company.email"/></li>
+                        <li t-if="company.website">Web:
+                            <span t-field="company.website"/></li>
+                        <li t-if="company.vat">
+                            <t t-esc="company.country_id.vat_label or 'TIN'"/>:
+                            <span t-field="company.vat"/></li>
+                    </ul>
+                    <div name="financial_infos">
+                        <span t-field="company.report_footer"/>
+                    </div>
+                    <div class="text-muted">Page:
+                        <span class="page"/>
+                        /
+                        <span class="topage"/></div>
+                </div>
+            </div>
+            <div class="footer" t-att-style="'font-family:'+company_id.font_id.family+';font-size:'+str(company_id.font_size)+'px;'" t-if="company_id.report_footer_selection == 'multi_columns'">
+                <div class="col-md-3 text-center" style="width:27%; display:inline-block; vertical-align: top;">
+                    <span t-field="company_id.name"/>
+                    <br/>
+                    <span t-esc="street_company"/>
+                    <br/>
+                    <span t-esc="address_company"/>
+                </div>
+                <div class="col-md-3 text-center" style="width:27%; display:inline-block; vertical-align: top;">
+                    <span t-field="company_id.phone"/>
+                    <br/>
+                    <span t-field="company_id.website"/>
+                    <br/>
+                    <span t-field="company_id.email"/>
+                    <br/>
+                    <!-- Put social in one line
+                    <icon>Website name + <icon>twitter + <icon>googleplus
+                    -->
+                </div>
+                <div class="col-md-3 text-center" style="width:27%; display:inline-block; vertical-align: top;">
+                    <span t-field="company_id.report_footer"/>
+                </div>
+                <div class="col-md-3 text-center" style="width:15%; margin-bottom:20px; display: inline-block; vertical-align: top;">
+                    <img style="margin-bottom:50px;max-height: 110px;max-width: 100%;"  t-att-src="'data:image/png;base64,%s' % to_text(company_id.logo_footer)"/>
+                </div>
+            </div>
+        </template>
+        <template id="purchase_bill_summary_exclusive_external_layout">
+            <!-- Multicompany -->
+            <t t-set="company" t-value="company_id"/>
+            <t t-call="equip3_purchase_report.purchase_bill_summary_exclusive_header"/>
+            <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+                <t t-raw="0"/>
+            </div>
+            <t t-call="equip3_purchase_report.templates_bill_summary_footer"/>
+        </template>
+        <template id="sh_purchase_reports.sh_po_bill_summary_doc">
+            <t t-call="web.html_container">
+                <t t-call="equip3_purchase_report.purchase_bill_summary_exclusive_external_layout">
+                    <t t-set="theme_color" t-value="company_id and company_id.theme_color"/>
+                    <t t-set="theme_text_color" t-value="company_id and company_id.theme_text_color"/>
+                    <t t-set="company_color" t-value="company_id and company_id.company_color"/>
+                    <t t-set="company_address_color" t-value="company_id and company_id.company_address_color"/>
+                    <t t-set="customer_color" t-value="company_id and company_id.customer_color"/>
+                    <t t-set="customer_address_color" t-value="company_id and company_id.customer_address_color"/>
+                    <t t-set="text_color" t-value="company_id and company_id.text_color"/>
+                    <div class="page" t-att-style="'font-family:'+company_id.font_id.family+';font-size:'+str(company_id.font_size)+'px;'">
+                        <div class="oe_structure"/>
+                        <t t-call="equip3_purchase_report.purchase_bill_summary_watermark"/>
+                        <br/>
+                        <div width="100%">
+                            <div  style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+                                <div class="row">
+                                    <div class="col-12 mx-auto">
+                                        <div class="text-center">
+                                            <b>
+                                                <h4>Purchase Bill Summary</h4>
+                                            </b>
+                                            <b>
+                                                <span t-esc="date_start" />
+                                                -
+                                                <span t-esc="date_end" />
+                                            </b>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div align="left"  style="color:#4D4D4F; padding: 0px 0px 15px 0px;" valign="top">
+                                    <table border="0" cellpadding="0" cellspacing="0" t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};" width="100%">
+                                        <tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+                                            <td t-attf-style="padding:9px 15px; font-weight:bold;">
+                                                <span>Printed On</span>
+                                                <br/>
+                                                <span t-esc="print_date"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <t t-if="vendor_order_dic">
+                                    <t t-foreach="vendor_order_dic.keys()" t-as="vendor">
+                                        <b>
+                                            <span t-esc="vendor" />
+                                        </b>
+                                        <!--                                        <t t-set="total_amount_invoiced" t-value="0" />-->
+                                        <!--                                        <t t-set="total_amount_paid" t-value="0" />-->
+                                        <!--                                        <t t-set="total_amount_due" t-value="0" />-->
+                                        <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+                                            <thead>
+                                                <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                                    <td style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Order Number</td>
+                                                    <td style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Order Date</td>
+                                                    <td style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Bill Number</td>
+                                                    <td style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Payment Date</td>
+                                                    <td style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Bill Date</td>
+                                                    <td style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Amount Billed</td>
+                                                    <td style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Amount Paid</td>
+                                                    <td style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Amount Due</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="sale_tbody">
+                                                <t t-foreach="vendor_order_dic[vendor]" t-as="order">
+                                                    <t t-if="order_odd">
+                                                        <t t-set="ol_color" t-value="company_id.even_party_color"/>
+                                                    </t>
+                                                    <t t-if="order_even">
+                                                        <t t-set="ol_color" t-value="company_id.odd_party_color"/>
+                                                    </t>
+                                                    <t t-set="currency" t-value="request.env['res.currency'].sudo().browse(order.get('invoice_currency_id',False))" />
+                                                    <tr t-att-style="'page-break-inside: avoid !important;background-color: ' + ol_color + '; color: ' + text_color">
+                                                        <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="order.get('order_number','')" />
+                                                        </td>
+                                                        <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="order.get('order_date','')" t-options='{"widget": "date"}' />
+                                                        </td>
+                                                        <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="order.get('invoice_number','')" />
+                                                        </td>
+                                                        <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="order.get('payment_date','')" />
+                                                        </td>
+                                                        <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="order.get('invoice_date','')" />
+                                                        </td>
+                                                        <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="order.get('invoice_amount',0.0)" t-options='{"widget": "monetary", "display_currency": currency}' />
+                                                        </td>
+                                                        <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="order.get('invoice_paid_amount',0.0)" t-options='{"widget": "monetary", "display_currency": currency}' />
+                                                        </td>
+                                                        <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="order.get('due_amount',0.0)" t-options='{"widget": "monetary", "display_currency": currency}' />
+                                                        </td>
+                                                        <!--                                                        <t t-set="total_amount_invoiced" t-value="total_amount_invoiced + order.get('invoice_amount',0)" />-->
+                                                        <!--                                                        <t t-set="total_amount_paid" t-value="total_amount_paid + order.get('invoice_paid_amount',0)" />-->
+                                                        <!--                                                        <t t-set="total_amount_due" t-value="total_amount_due + order.get('due_amount',0)" />-->
+                                                    </tr>
+                                                </t>
+                                                <tr>
+                                                    <td style="border:1px solid black;"></td>
+                                                    <td style="border:1px solid black;"></td>
+                                                    <td style="border:1px solid black;"></td>
+                                                    <td style="border: 1px solid black;"></td>
+                                                    <td style="border: 1px solid black;">
+                                                        <b>Total</b>
+                                                    </td>
+                                                    <td style="border: 1px solid black;">
+                                                        <t t-esc="invoice_amount" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                                                    </td>
+                                                    <td style="border: 1px solid black;">
+                                                        <t t-esc="invoice_paid_amount" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                                                    </td>
+                                                    <td style="border: 1px solid black;">
+                                                        <t t-esc="due_amount" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>

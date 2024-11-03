@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+
+        <menuitem name="Appraisals"
+                  id="menu_template"
+                  web_icon="employee_performance,static/description/icon.png"
+                  groups="hr.group_hr_manager" />
+
+        <record id="view_add_employees" model="ir.ui.view">
+            <field name="name">add.employees.students</field>
+            <field name="model">add.employees</field>
+            <field name="arch" type="xml">
+                <form string="Add Lessons">
+                    <header>
+                        <button icon="fa-cogs" string="Add Employees" name="compute_sheet" type="object" class="oe_highlight"/>
+                    </header>
+                    <group>
+                        <h1 colspan="4" nolabel="1" string="This wizard will generate performance for all selected employees."/>
+                        <group>
+                            <field name="date_range_id"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+                    <group colspan="4">
+                        <separator string="Employees" colspan="4"/>
+                        <newline/>
+                        <field name="employee_ids" nolabel="1"/>
+                    </group>
+               </form>
+            </field>
+        </record>
+
+        <record id="action_view_add_employees" model="ir.actions.act_window">
+            <field name="name">Generate Performance Evaluation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">add.employees</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_add_employees"/>
+            <field name="target">new</field>
+        </record>
+
+        <record model="ir.ui.view" id="performance_date_range_form">
+            <field name="name">performance.date.range.form</field>
+            <field name="model">performance.date.range</field>
+            <field name="arch" type="xml">
+                <form string="Job Position">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" string="Period Name"/>
+                            </group>
+                            <group>
+                                <field name="date_start"/>
+                                <field name="date_end"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="job_view_form">
+            <field name="name">hr.job.form</field>
+            <field name="model">hr.job</field>
+            <field name="arch" type="xml">
+                <form string="Job Position">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" string="Job Position"/>
+                            </group>
+                            <group>
+                                <field name="template_id"/>
+                                <field name="comp_template_id"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="job_view_tree" model="ir.ui.view">
+            <field name="name">hr.job.tree</field>
+            <field name="model">hr.job</field>
+            <field name="arch" type="xml">
+                <tree string="Job Position">
+                    <field name="name" string="Job Position"/>
+                    <field name="department_id"/>
+                    <field name="no_of_employee"/>
+                    <field name="no_of_recruitment"/>
+                    <field name="template_id"/>
+                    <field name="comp_template_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="job_view_action">
+            <field name="name">Job Position</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.job</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click here to add a new job position
+                </p>
+            </field>
+        </record>
+
+        <record id="job_tree" model="ir.actions.act_window.view">
+            <field name="sequence" eval="10"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="job_view_tree"/>
+            <field name="act_window_id" ref="job_view_action"/>
+        </record>
+
+        <record id="job_form" model="ir.actions.act_window.view">
+            <field name="sequence" eval="15"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="job_view_form"/>
+            <field name="act_window_id" ref="job_view_action"/>
+        </record>
+
+        <record model="ir.ui.view" id="performance_template_form">
+            <field name="name">performance.template.form</field>
+            <field name="model">performance.template</field>
+            <field name="arch" type="xml">
+                <form string="Template">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Key Performance">
+                                <field name="key_performance_ids" widget="section_and_note_one2many">
+                                        <form>
+                                            <group>
+                                                <group attrs="{'invisible': [('display_type', '!=', False)]}">
+                                                    <field name="display_type" invisible="1"/>
+                                                    <field name="sequence" widget="handle"/>
+                                                    <field name="name" required="1"/>
+                                                    <field name="description"/>
+                                                    <field name="hint"/>
+                                                    <field name="weightage"/>
+                                                </group>
+                                                <label for="name" string="Description" attrs="{'invisible': [('display_type', '!=', False)]}"/>
+                                                <label for="name" string="Section Name" attrs="{'invisible': [('display_type', '!=', 'line_section')]}"/>
+                                                <label for="name" string="Note" attrs="{'invisible': [('display_type', '!=', 'line_note')]}"/>
+                                                <field name="name"/>
+                                            </group>
+                                    </form>
+                                    <tree editable="bottom">
+                                        <control>
+                                            <create string="Add a line"/>
+                                            <create string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                            <create string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                        </control>
+                                        <field name="display_type" invisible="1"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name" required="1"/>
+                                        <field name="description"/>
+                                        <field name="hint"/>
+                                        <field name="weightage"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                  <div class="oe_chatter">
+                      <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                      <field name="activity_ids" widget="mail_activity"/>
+                      <field name="message_ids" widget="mail_thread"/>
+                  </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="performance_template_shift_tree" model="ir.ui.view">
+            <field name="name">performance.template.tree</field>
+            <field name="model">performance.template</field>
+            <field name="arch" type="xml">
+                <tree string="Template">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_performance_template">
+            <field name="name">Key Performance Template</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">performance.template</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click here to add a new template
+                </p>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="competencies_template_form">
+            <field name="name">competencies.template.form</field>
+            <field name="model">competencies.template</field>
+            <field name="arch" type="xml">
+                <form string="Template">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="COMPETENCIES">
+                                    <field name="competencies_ids" widget="section_and_note_one2many">
+                                        <form>
+                                            <group>
+                                                <group attrs="{'invisible': [('display_type', '!=', False)]}">
+                                                    <field name="display_type" invisible="1"/>
+                                                    <field name="sequence" widget="handle"/>
+                                                    <field name="name" required="1"/>
+                                                    <field name="description"/>
+                                                </group>
+                                                <label for="name" string="Description" attrs="{'invisible': [('display_type', '!=', False)]}"/>
+                                                <label for="name" string="Section Name" attrs="{'invisible': [('display_type', '!=', 'line_section')]}"/>
+                                                <label for="name" string="Note" attrs="{'invisible': [('display_type', '!=', 'line_note')]}"/>
+                                                <field name="name"/>
+                                            </group>
+                                        </form>
+                                        <tree editable="bottom">
+                                            <control>
+                                                <create string="Add a line"/>
+                                                <create string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                                <create string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                            </control>
+                                            <field name="display_type" invisible="1"/>
+                                            <field name="sequence" widget="handle"/>
+                                            <field name="name" required="1"/>
+                                            <field name="description"/>
+                                        </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                  <div class="oe_chatter">
+                      <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                      <field name="activity_ids" widget="mail_activity"/>
+                      <field name="message_ids" widget="mail_thread"/>
+                  </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="competencies_template_tree" model="ir.ui.view">
+            <field name="name">competencies.template.tree</field>
+            <field name="model">competencies.template</field>
+            <field name="arch" type="xml">
+                <tree string="Template">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_competencies_template">
+            <field name="name">Competencies Template</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">competencies.template</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click here to add a new template
+                </p>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="employee_performance_form">
+            <field name="name">employee.performance.form</field>
+            <field name="model">employee.performance</field>
+            <field name="arch" type="xml">
+                <form string="Employee Performance">
+                    <header>
+                        <button name="action_cancel" states="draft,sent_to_manager,sent_to_employee,cancel" type="object" string="Cancel"/>
+                        <button name="action_draft" states="cancel" type="object" string="Set to Draft"/>
+                        <button name="action_done" type="object" string="Mark as done" states="sent_to_manager"/>
+                        <button name="action_sent_employee" type="object" string="Send to Employee" states="draft"/>
+                        <button name="action_sent_manager" type="object" string="Send to Manager" states="sent_to_employee"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,sent_to_employee,sent_to_manager,done"/>
+                    </header>
+                    <sheet>
+                        <h1>
+                            <div>
+                                <field name="name" readonly="1"/>
+                            </div>
+                        </h1>
+                        <group>
+                            <group string="Employee Details">
+                                <field name="employee_id" attrs="{'readonly': [('state','!=','draft')]}"/>
+                                <field name="template_id" attrs="{'readonly': [('state','!=','draft')]}"/>
+                                <field name="comp_template_id" attrs="{'readonly': [('state','!=','draft')]}"/>
+                            </group>
+                            <group string="Period">
+                                <field name="date_range_id" attrs="{'readonly': [('state','!=','draft')]}"/>
+                                <field name="date_start" attrs="{'readonly': [('state','!=','draft')]}"/>
+                                <field name="date_end" attrs="{'readonly': [('state','!=','draft')]}"/>
+                                <field name="deadline" attrs="{'readonly': [('state','!=','draft')]}"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="KEY PERFORMANCE AREAS">
+                                <field name="key_performance_ids" widget="section_and_note_one2many" attrs="{'readonly': [('state','not in',['draft', 'sent_to_employee'])]}">
+                                        <form>
+                                            <group>
+                                                <group attrs="{'invisible': [('display_type', '!=', False)]}">
+                                                    <field name="state" invisible="1"/>
+                                                    <field name="display_type" invisible="1"/>
+                                                    <field name="sequence" widget="handle"/>
+                                                    <field name="name" required="1"/>
+                                                    <field name="description"/>
+                                                    <field name="weightage" />
+                                                    <field name="employee_rate"/>
+                                                    <field name="employee_remark"/>
+                                                    <field name="manager_rate" readonly="1" string="Final Rating"/>
+                                                    <field name="manager_remark" readonly="1" string="Final Remark"/>
+                                                </group>
+                                                <label for="name" string="Description" attrs="{'invisible': [('display_type', '!=', False)]}"/>
+                                                <label for="name" string="Section Name" attrs="{'invisible': [('display_type', '!=', 'line_section')]}"/>
+                                                <label for="name" string="Note" attrs="{'invisible': [('display_type', '!=', 'line_note')]}"/>
+                                                <field name="name"/>
+                                            </group>
+                                    </form>
+                                    <tree editable="bottom">
+                                        <control>
+                                            <create string="Add a line"/>
+                                            <create string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                            <create string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                        </control>
+                                        <field name="display_type" invisible="1"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name" required="1"/>
+                                        <field name="state" invisible="1"/>
+                                        <field name="description" />
+                                        <field name="weightage" />
+                                        <field name="employee_rate"/>
+                                        <field name="employee_remark"/>
+                                        <field name="manager_rate" readonly="1" string="Final Rating"/>
+                                        <field name="manager_remark" readonly="1" string="Final Remark"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="COMPETENCIES">
+                                <field name="competencies_ids" widget="section_and_note_one2many">
+                                    <form>
+                                        <group>
+                                            <group attrs="{'invisible': [('display_type', '!=', False)]}">
+                                                <field name="display_type" invisible="1"/>
+                                                <field name="state" invisible="1"/>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="name"/>
+                                                <field name="description"/>
+                                                <field name="score" />
+                                                <field name="comment" />
+                                            </group>
+                                            <label for="name" string="Description" attrs="{'invisible': [('display_type', '!=', False)]}"/>
+                                            <label for="name" string="Section Name" attrs="{'invisible': [('display_type', '!=', 'line_section')]}"/>
+                                            <label for="name" string="Note" attrs="{'invisible': [('display_type', '!=', 'line_note')]}"/>
+                                            <field name="name"/>
+                                        </group>
+                                    </form>
+                                    <tree editable="bottom">
+                                        <control>
+                                            <create string="Add a line"/>
+                                            <create string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                            <create string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                        </control>
+                                        <field name="display_type" invisible="1"/>
+                                        <field name="state" invisible="1"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name" />
+                                        <field name="description" />
+                                        <field name="score" />
+                                        <field name="comment" />
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                  <!-- <div class="oe_chatter">
+                      <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                      <field name="activity_ids" widget="mail_activity"/>
+                      <field name="message_ids" widget="mail_thread"/>
+                  </div> -->
+                </form>
+            </field>
+        </record>
+
+        <record id="employee_performance_shift_tree" model="ir.ui.view">
+            <field name="name">employee.performance.tree</field>
+            <field name="model">employee.performance</field>
+            <field name="arch" type="xml">
+                <tree string="Template">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="template_id"/>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                    <field name="date_range_id"/>
+                    <field name="key_performance_ids" string="Key Performance Area Questions"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_employee_performance">
+            <field name="name">All Performance Evaluations</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">employee.performance</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click here to add a new evaluation
+                </p>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="employee_team_performance_form">
+            <field name="name">employee.performance.form.new</field>
+            <field name="model">employee.performance</field>
+            <field name="arch" type="xml">
+                <form string="Employee Performance">
+                    <header>
+                        <button name="action_cancel" states="draft,sent_to_manager,sent_to_employee,cancel" type="object" string="Cancel"/>
+                        <button name="action_draft" states="cancel" type="object" string="Set to Draft"/>
+                        <button name="action_done" type="object" string="Mark as done" states="sent_to_manager"/>
+                        <button name="action_sent_employee" type="object" string="Send to Employee" states="draft"/>
+                        <button name="action_sent_manager" type="object" string="Send to Manager" states="sent_to_employee"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,sent_to_employee,sent_to_manager,done"/>
+                    </header>
+                    <sheet>
+                        <h1>
+                            <div>
+                                <field name="name" readonly="1" />
+                            </div>
+                        </h1>
+                        <group>
+                            <group string="Employee Details">
+                                <field name="employee_id" />
+                                <field name="template_id" />
+                                <field name="comp_template_id" />
+                            </group>
+                            <group string="Period">
+                                <field name="date_range_id" />
+                                <field name="date_start" />
+                                <field name="date_end" />
+                                <field name="deadline" />
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="KEY PERFORMANCE AREAS">
+                                <field name="key_performance_ids" widget="section_and_note_one2many" attrs="{'readonly': [('state','not in',['draft', 'sent_to_manager'])]}">
+                                        <form>
+                                            <group>
+                                                <group attrs="{'invisible': [('display_type', '!=', False)]}">
+                                                    <field name="display_type" invisible="1"/>
+                                                    <field name="state" invisible="1"/>
+                                                    <field name="sequence" widget="handle"/>
+                                                    <field name="name" required="1"/>
+                                                    <field name="description" />
+                                                    <field name="weightage" />
+                                                    <field name="employee_rate" readonly="1"/>
+                                                    <field name="employee_remark" readonly="1"/>
+                                                    <field name="manager_rate" string="Final Rating"/>
+                                                    <field name="manager_remark" string="Final Remark"/>
+                                                </group>
+                                                <label for="name" string="Description" attrs="{'invisible': [('display_type', '!=', False)]}"/>
+                                                <label for="name" string="Section Name" attrs="{'invisible': [('display_type', '!=', 'line_section')]}"/>
+                                                <label for="name" string="Note" attrs="{'invisible': [('display_type', '!=', 'line_note')]}"/>
+                                                <field name="name"/>
+                                            </group>
+                                    </form>
+                                    <tree editable="bottom">
+                                        <control>
+                                            <create string="Add a line"/>
+                                            <create string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                            <create string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                        </control>
+                                        <field name="display_type" invisible="1"/>
+                                        <field name="state" invisible="1"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name" required="1" />
+                                        <field name="description" />
+                                        <field name="weightage" />
+                                        <field name="employee_rate" readonly="1"/>
+                                        <field name="employee_remark" readonly="1"/>
+                                        <field name="manager_rate"/>
+                                        <field name="manager_remark" string="Final Remark"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="COMPETENCIES">
+                                <field name="competencies_ids" widget="section_and_note_one2many" attrs="{'readonly': [('state','not in',['draft', 'sent_to_employee'])]}">
+                                    <form>
+                                        <group>
+                                            <group attrs="{'invisible': [('display_type', '!=', False)]}">
+                                                <field name="display_type" invisible="1"/>
+                                                <field name="state" invisible="1"/>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="name" required="1" />
+                                                <field name="description" />
+                                                <field name="score"/>
+                                                <field name="comment"/>
+                                            </group>
+                                            <label for="name" string="Description" attrs="{'invisible': [('display_type', '!=', False)]}"/>
+                                            <label for="name" string="Section Name" attrs="{'invisible': [('display_type', '!=', 'line_section')]}"/>
+                                            <label for="name" string="Note" attrs="{'invisible': [('display_type', '!=', 'line_note')]}"/>
+                                            <field name="name"/>
+                                        </group>
+                                    </form>
+                                    <tree editable="bottom">
+                                        <control>
+                                            <create string="Add a line"/>
+                                            <create string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                            <create string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                        </control>
+                                        <field name="display_type" invisible="1"/>
+                                        <field name="state" invisible="1"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name" required="1" />
+                                        <field name="description"/>
+                                        <field name="score"/>
+                                        <field name="comment" />
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                  <!-- <div class="oe_chatter">
+                      <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                      <field name="activity_ids" widget="mail_activity"/>
+                      <field name="message_ids" widget="mail_thread"/>
+                  </div> -->
+                </form>
+            </field>
+        </record>
+
+        <record id="employee_team_performance_tree" model="ir.ui.view">
+            <field name="name">employee.performance.tree</field>
+            <field name="model">employee.performance</field>
+            <field name="arch" type="xml">
+                <tree string="Template">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="template_id"/>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                    <field name="date_range_id"/>
+                    <field name="key_performance_ids" string="Key Performance Area Questions"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_team_employee_performance">
+            <field name="name">Team Performance Evaluations</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">employee.performance</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('employee_id.parent_id.user_id', '=', uid)]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click here to add a new evaluation
+                </p>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_my_perform_tree">
+            <field name="sequence" eval="9"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="employee_team_performance_tree"/>
+            <field name="act_window_id" ref="action_team_employee_performance"/>
+        </record>
+
+
+        <record model="ir.actions.act_window.view" id="act_my_perform_form">
+            <field name="sequence" eval="10"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="employee_team_performance_form"/>
+            <field name="act_window_id" ref="action_team_employee_performance"/>
+        </record>
+
+
+        <record model="ir.actions.act_window" id="action_my_employee_performance">
+            <field name="name">My Performances Evaluation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">employee.performance</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('employee_id.user_id', '=', uid)]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click here to add a new evaluation
+                </p>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_my_perform_my_tree">
+            <field name="sequence" eval="9"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="employee_team_performance_tree"/>
+            <field name="act_window_id" ref="action_my_employee_performance"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_my_perform_my">
+            <field name="sequence" eval="10"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="employee_performance_form"/>
+            <field name="act_window_id" ref="action_my_employee_performance"/>
+        </record>
+
+
+        <menuitem name="Performance Evaluations" id="menu_performance_emp"
+                  parent="menu_template" sequence="1" groups="hr.group_hr_manager"/>
+            <menuitem name="My Performance Evaluations" id="menu_my_performance_emp" action="action_my_employee_performance"
+                      parent="menu_performance_emp" sequence="1"/>
+            <menuitem name="Team Performance Evaluations" id="appraisal_review" action="action_team_employee_performance"
+                      parent="menu_performance_emp" sequence="2" groups="hr.group_hr_manager"/>
+            <menuitem name="All Performance Evaluations" id="menu_all_performance_emp" action="action_employee_performance"
+                      parent="menu_performance_emp" sequence="3" groups="hr.group_hr_manager"/>
+            <menuitem name="Generate performance Evaluation" id="menu_performance_batch" action="action_view_add_employees"
+                      parent="menu_template" sequence="3" groups="hr.group_hr_manager"/>
+
+     <record id="report_report_key_performance_pivot" model="ir.ui.view">
+         <field name="name">report.key.performance.pivot</field>
+         <field name="model">report.key.performance</field>
+         <field name="arch" type="xml">
+            <pivot string="Employee Perform Analysis" disable_linking="True">
+                <field name="employee_id" type="row"/>
+                <field name="employee_rate" string="Employee Rating" type="measure"/>
+            </pivot>
+         </field>
+    </record>
+
+     <record id="report_competencies_pivot" model="ir.ui.view">
+         <field name="name">report.competencies.pivot</field>
+         <field name="model">report.competencies</field>
+         <field name="arch" type="xml">
+            <pivot string="Employee Competencies" disable_linking="True">
+                <field name="employee_id" type="row"/>
+                <field name="employee_rate" string="Score" type="measure"/>
+            </pivot>
+         </field>
+    </record>
+
+    <!--<record id="report_all_channels_sales_view_search" model="ir.ui.view">-->
+        <!--<field name="name">report.all.channels.sales.search</field>-->
+        <!--<field name="model">report.all.channels.sales</field>-->
+        <!--<field name="arch" type="xml">-->
+            <!--<search string="Sales by Channel Analysis">-->
+                <!--<field name="date_order"/>-->
+                <!--<field name="product_id"/>-->
+                <!--<filter string="Date" name="current_year" date="date_order" default_period="this_year"/>-->
+                <!--<filter string="Last 365 Days" name="last_year" domain="[('date_order', '&gt;=', (context_today() - datetime.timedelta(days=365)).strftime('%Y-%m-%d'))]"/>-->
+                <!--<group expand="1" string="Group By">-->
+                    <!--<filter string="Sales Team" name="team_id" context="{'group_by':'team_id'}"/>-->
+                <!--</group>-->
+            <!--</search>-->
+        <!--</field>-->
+    <!--</record>-->
+
+    <record id="report_report_key_performance_pivot_action" model="ir.actions.act_window">
+        <field name="name">Employee Performance</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">report.key.performance</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="report_report_key_performance_pivot"/>
+    </record>
+
+    <record id="report_report_competencies_pivot_action" model="ir.actions.act_window">
+        <field name="name">Competencies</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">report.competencies</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id" ref="report_competencies_pivot"/>
+    </record>
+
+        <menuitem name="Reporting" id="menu_reporting_config" parent="menu_template" groups="hr.group_hr_manager" sequence="3"/>
+            <menuitem id="menu_report_performance" parent="menu_reporting_config" action="report_report_key_performance_pivot_action" groups="hr.group_hr_manager"/>
+            <menuitem id="menu_report_competencies" parent="menu_reporting_config" action="report_report_competencies_pivot_action" groups="hr.group_hr_manager"/>
+
+        <menuitem name="Configuration" id="menu_performance_config" parent="menu_template" groups="hr.group_hr_manager" />
+            <menuitem id="menu_job_employee" parent="menu_performance_config" action="job_view_action" groups="hr.group_hr_manager"/>
+            <menuitem id="menu_template_employee" parent="menu_performance_config" action="action_performance_template" groups="hr.group_hr_manager"/>
+            <menuitem id="menu_competencies_template" parent="menu_performance_config" action="action_competencies_template" groups="hr.group_hr_manager"/>
+    </data>
+</odoo>

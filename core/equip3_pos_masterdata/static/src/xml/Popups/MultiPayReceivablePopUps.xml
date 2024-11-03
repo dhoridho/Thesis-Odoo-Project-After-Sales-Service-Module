@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="MultiPayReceivablePopUps" owl="1">
+        <div role="dialog" class="modal-dialog multi_receivable_popups" t-att-class="view_mode">
+            <Draggable>
+                <t t-set="amount_different" t-value="getSummary().amount_different"/>
+                
+                <div class="popup popup-textarea" >
+                    <header class="title drag-handle">
+                        <div class="button-back-content">
+                            <div class="button back" t-on-click="cancel">
+                                <i class="fa fa-angle-double-left fa-fw"></i>
+                                <span>Back</span>
+                            </div>
+                        </div>
+                        <div class="total-value-content">
+                            <div class="total-value">
+                                <t t-if="amount_different &lt; 0">
+                                    <span>Change: </span>
+                                    <span><t t-esc="env.pos.format_currency(amount_different * -1)"/></span>
+                                </t>
+                                <t t-else="">
+                                    <span>Due: </span>
+                                    <span><t t-esc="env.pos.format_currency(amount_different)"/></span>
+                                </t>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="multipay-receivable-container">
+                        <div class="mpr-col mpr-col-left">
+                            <div class="mpr-payment-method">
+                                <div class="mpr-payment-method-list">
+                                    <t t-foreach="props.payment_methods" t-as="payment"> 
+                                        <div class="mpr-payment-method-item" t-att-id="payment.id" t-on-click.stop="clickPaymentMethod(payment)">
+                                            <div class="mpr-payment-method-btn">
+                                                <span><t t-esc="payment.name"/></span>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mpr-col mpr-col-mid">
+                            <!-- <PaymentScreenNumpad/> -->
+                            <!-- <NumpadWidget/> -->
+                            <MprNumpad/>
+                        </div>
+                        <div class="mpr-col mpr-col-right">
+                            <div class="mpr-payment-summary">
+                                <table class="mpr-payment-table">
+                                    <tr>
+                                        <td class="td-method">Method</td>
+                                        <td class="td-amount" colspan="2">Amount</td>
+                                    </tr>
+                                    <t t-foreach="getPayments()" t-as="payment">
+                                        <tr t-att-res_id="payment.id" 
+                                            t-att-class="{'selected': isSelectedPayment(payment)}"
+                                            t-on-click="selectPayment(payment)">
+                                            <td class="td-method">
+                                                <span><t t-esc="payment.name"/></span>
+                                            </td>
+                                            <td class="td-method">
+                                                <span>
+                                                    <t t-esc="env.pos.format_currency(payment.amount)"/>
+                                                </span>
+                                            </td>
+                                            <td class="td-method">
+                                                <div aria-label="Delete" title="Delete" class="delete-button" 
+                                                    t-on-click="deletePayment(payment)">
+                                                    <i class="fa fa-times-rectangle"></i>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </table>
+                            </div>
+
+                            <div class="button confirm" t-on-click="save_payment">
+                                <span class="icon-keyboard">
+                                    <span>COMPLETE </span>
+                                    <span t-if="state.save_payment_state == 'process'">
+                                        <i class="fa fa-spin fa-spinner"></i>
+                                    </span>
+                                </span>
+                            </div>
+
+                            <div class="mpr-payment-remining">
+                                <div>
+                                    <span>Remaining: </span>
+                                    <span>
+                                        <t t-if="amount_different &gt; 0">
+                                            <t t-esc="env.pos.format_currency(amount_different)"/>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="env.pos.format_currency(0)"/>
+                                        </t>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Draggable>
+        </div>
+    </t>
+
+</templates>

@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_rfq_report" model="report.paperformat">
+        <field name="name">Paperformat RFQ</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">65</field>
+        <field name="margin_bottom">32</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">60</field>
+        <field name="dpi">80</field>
+    </record>
+
+    <record id="purchase.report_purchase_quotation" model="ir.actions.report">
+        <field name="paperformat_id" ref="equip3_purchase_operation.paperformat_rfq_report"/>
+    </record>
+
+    <template id="quotation_exclusive_headers">
+        <div class="header" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <center>
+                                <table border="0" cellpadding="0" cellspacing="0" style="padding:0px 20px 0px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+                                    <tr>
+                                        <td align="left" colspan="2" t-attf-style="color:#{text_color or '#ffffff'}; padding:0px 0px;" valign="top">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                <tr>
+                                                    <td align="left" style="color:#4D4D4F; padding: 10px 20px 0px 20px; border-right: 1px solid #D4D1D1;" valign="top">
+                                                        <img style="max-height: 50px; margin-top: 8%;" t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo)" t-if="o.company_id.logo"/>
+                                                        <br/>
+                                                    </td>
+                                                    <td style="padding: 10px 20px 0px 20px;width:40%" valign="top">
+                                                        <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Address</p>
+                                                        <t t-call="general_template.templates_company_details"/>
+                                                    </td>
+                                                    <td class="d-none" align="left" style="padding: 10px 20px 0px 20px; width:40%; line-height:18px;" valign="top">
+                                                        <t t-call="general_template.templates_warehouse_details"/>
+                                                    </td>
+                                                    <td align="left" style="padding: 10px 20px 0px 20px; width:40%; line-height:18px;" valign="top">
+                                                        <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Vendor Address</p>
+                                                        <t t-call="general_template.templates_customer_details"/>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </center>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </template>
+
+    <template id="quotation_template_external_layout">
+        <!-- Multicompany -->
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id"/>
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company"/>
+        </t>
+        <t t-call="equip3_purchase_operation.quotation_exclusive_headers"/>
+        <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+            <t t-raw="0"/>
+        </div>
+        <t t-call="general_template.templates_footer"/>
+    </template>
+
+	<template id="report_quotation_main_inherit" inherit_id="general_template.report_quotation_main">
+		<xpath expr="//t" position="replace">
+            <t t-call="equip3_purchase_operation.quotation_template_external_layout">
+                <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+                <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+                <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+                <t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+                <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+                <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+                <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+                <t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+                <div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+                    <div class="oe_structure"/>
+                        <t t-call="general_template.templates_watermark"/>
+                    <div width="100%">
+                        <div style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+                            <div t-attf-style="background-color:#f2f2f2; overflow: visible; margin-bottom: 20px;">
+                                <div align="left" style="padding:15px; width:50%; line-height:18px;float:left;" valign="top">
+                                    <t t-call="general_template.templates_customer_details"/>
+                                </div>
+                                <div align="right" style="padding:15px; width:50%;float:right;" valign="top">
+                                    <table t-attf-style="text-transform:capitalize; background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                        <tr>
+                                            <td t-attf-style="padding:9px 15px; font-weight:bold;">
+                                                <span t-if="o.state in ['draft', 'rfq_approved']">Request for Quotation</span>
+                                            </td>
+                                            <td t-attf-style="text-align:right; font-weight:bold; padding:9px 15px;">
+                                                <span t-field="o.name" t-if="o.state in ['draft', 'rfq_approved']"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2" t-attf-style="background-color:#f2f2f2; height:4px;"/>
+                                            <td/>
+                                        </tr>
+                                        <tr>
+                                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                                <strong>Quotation Date:</strong>
+                                            </td>
+                                            <td t-attf-style="text-align:right; padding:5px 15px;">
+                                                <span t-field="o.create_date"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                                <strong t-if="o.state in ['draft', 'rfq_approved']">RFQ Expiry Date:</strong>
+                                            </td>
+                                            <td t-attf-style="text-align:right; padding:5px 15px;">
+                                                <span t-field="o.date_order" t-if="o.state in ['draft', 'rfq_approved']"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div>
+                                <p t-attf-style="border-bottom:1px solid #{theme_color or '#000000'}; padding:0px;"/>
+                            </div>
+                            <div>
+                                <t t-call="general_template.quotation_template_order_lines"/>
+                            </div>
+    <!--                        <div t-attf-style="border-top:1px solid #{'#959595'};color: #{text_color or '#000000'}; padding-top:5px; width:100%;" t-if="o.notes and o.company_id.is_show_notes == True">-->
+    <!--                            <p t-field="o.notes"/>-->
+    <!--                        </div>-->
+                            <!-- <div align="right" t-attf-style="color: #{text_color or '#000000'};">
+                                <t t-call="general_template.report_signature"/>
+                            </div> -->
+                            <div class="oe_structure"/>
+                        </div>
+                    </div>
+                </div>
+                <t t-call="general_template.report_barcode"/>
+            </t>
+		</xpath>
+	</template>
+
+    <template id="quotation_template_order_lines_inherit_gen" inherit_id="general_template.quotation_template_order_lines">
+        <xpath expr="//table" position="replace">
+            <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+                <thead>
+                    <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                        <td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="8%">NO.</td>
+                        <t t-if="o.company_id.add_product_image == True">
+                            <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="10%">Image</td>
+                        </t>
+                        <td align="left" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="10%">Product</td>
+                        <t t-if="o.company_id.is_description == True">
+                            <td align="left" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="30%">Description</td>
+                        </t>
+                        <td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="14%">Expected Date</td>
+                        <td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="14%">Destination</td>
+                        <td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="10%">Qty</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-as="l" t-foreach="o.order_line">
+<!--                        <t t-if="l_odd">-->
+                        <t t-if="not l.display_type">
+                            <t t-set="ol_color" t-value="o.company_id.odd_party_color"/>
+                        </t>
+                        <t t-if="l.display_type == 'line_section'">
+                            <t t-set="ol_color" t-value="o.company_id.even_party_color"/>
+                        </t>
+                        <t t-else="">
+                            <t t-set="ol_color" t-value="o.company_id.odd_party_color"/>
+                        </t>
+                        <tr t-att-style="'page-break-inside: avoid !important;background-color: ' + ol_color + '; color: ' + text_color">
+                            <t t-if="not l.display_type">
+                                <td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                    <span t-esc="l.sequence2"/>
+                                </td>
+                                <t t-if="o.company_id.add_product_image == True">
+                                    <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                                        <img style="max-height: 80px; padding:5px;" t-att-src="'data:image/png;base64,%s' %  to_text(l.product_id.image_256)" t-if="l.product_id and l.product_id.image_256"/>
+                                    </td>
+                                </t>
+                                <td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                    <span t-field="l.product_id.name"/>
+                                </td>
+                                <t t-if="o.company_id.is_description == True">
+                                    <td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                        <span t-field="l.name"/>
+                                    </td>
+                                </t>
+                                <td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                    <span t-field="l.date_planned"/>
+                                </td>
+                                <td align="center" class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                    <span t-field="l.destination_warehouse_id.name"/>
+                                </td>
+                                <td align="right" class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                    <span t-field="l.product_qty"/>
+                                </td>
+                            </t>
+                            <t t-if="l.display_type == 'line_section'">
+<!--                                <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">-->
+<!--                                    <span t-esc="l_index+1"/>-->
+<!--                                </td>-->
+                                <td t-att-colspan="7" class="text-left" t-att-style="'font-weight: bold;padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                    <span t-field="l.name" t-options="{'widget': 'text'}"/>
+                                </td>
+                                <t t-set="current_section" t-value="l"/>
+                                <t t-set="current_subtotal" t-value="0"/>
+                            </t>
+                            <t t-if="l.display_type == 'line_note'">
+<!--                                <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">-->
+<!--                                    <span t-esc="l_index+1"/>-->
+<!--                                </td>-->
+                                <td t-att-colspan="7" class="text-left" t-att-style="'font-style: italic;padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                    <span t-field="l.name" t-options="{'widget': 'text'}"/>
+                                </td>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </xpath>
+    </template>
+
+    <template id="quotation_template_order_subtotal" inherit_id="general_template.purchase_template_order_subtotal">
+        <xpath expr="//table" position="replace">
+            <table class="pull-right" style="font-weight:bold;width:40%; text-transform:capitalize; " t-att-style="'color: '+ text_color">
+                <tr>
+                    <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;'">Untaxed Amount</td>
+                    <td align="right" tyle="padding:9px 0px 7px 10px;">
+                        <span t-field="o.amount_untaxed" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="border-bottom:1px solid #959595"/>
+                </tr>
+                <tr>
+                    <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;'">Discount</td>
+                    <td align="right" tyle="padding:9px 0px 7px 10px;">
+                        <span t-if="o.discount_type == 'global'" t-field="o.discount_amt" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                        <span t-if="o.discount_type == 'line'" t-field="o.discount_amt_line" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="border-bottom:1px solid #959595"/>
+                </tr>
+                <tr t-att-style="'padding:9px 10px 7px 0px;'">
+                    <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;'">
+                        <span>Taxes</span>
+                    </td>
+                    <td align="right" t-att-style="'padding:9px 0px 7px 10px;'">
+                        <span t-field="o.amount_tax" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="border-bottom:1px solid #959595"/>
+                </tr>
+                <tr>
+                    <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px; text-transform:uppercase;'">total</td>
+                    <td align="right" style="padding:9px 0px 7px 10px; text-transform:uppercase; ">
+                        <span t-field="o.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                    </td>
+                </tr>
+            </table>
+        </xpath>
+    </template>
+</odoo>

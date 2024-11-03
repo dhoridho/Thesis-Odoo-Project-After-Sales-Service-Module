@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data noupdate="0">
+    <record id="izi_marketplace.search_mp_account" model="ir.ui.view">
+      <field name="name">Marketplace Account Search View</field>
+      <field name="model">mp.account</field>
+      <field name="arch" type="xml">
+        <search string="Marketplace Account">
+          <field name="name"/>
+          <filter name="group_by_marketplace" string="Marketplace" context="{'group_by': 'marketplace'}"/>
+        </search>
+      </field>
+    </record>
+
+    <record id="izi_marketplace.tree_mp_account" model="ir.ui.view">
+      <field name="name">Marketplace Account Tree View</field>
+      <field name="model">mp.account</field>
+      <field name="arch" type="xml">
+        <tree string="Marketplace Account">
+          <field name="name"/>
+          <field name="marketplace"/>
+          <field name="company_id" groups="base.group_multi_company"/>
+          <field name="state"/>
+        </tree>
+      </field>
+    </record>
+
+    <record id="izi_marketplace.form_mp_account" model="ir.ui.view">
+      <field name="name">Marketplace Account Form View</field>
+      <field name="model">mp.account</field>
+      <field name="arch" type="xml">
+        <form string="Marketplace Account">
+          <header name="default">
+            <field name="marketplace" invisible="1"/>
+            <button name="action_authenticate" string="Authenticate" class="oe_highlight" type="object" states="new,authenticating"/>
+            <button name="action_get_dependencies" string="1. Get Dependencies" class="oe_highlight" type="object" states="authenticated"/>
+            <button name="action_get_products" string="2. Get Products" class="oe_highlight" type="object" states="authenticated"/>
+            <button name="action_map_product" string="3. Map Products" class="oe_highlight" type="object" states="authenticated"/>
+            <button name="%(izi_marketplace.action_window_wiz_mp_order)d" string="4. Get Orders" class="oe_highlight" type="action" states="authenticated" context="{'default_mp_account_id': active_id}"/>
+            <button name="%(izi_marketplace.action_window_wiz_mp_order_wallet)d" string="5. Get Orders Wallet" class="oe_highlight" type="action" states="authenticated" context="{'default_mp_account_id': active_id}"/>
+<!--            <button name="%(izi_marketplace.action_window_wiz_mp_order_return)d" string="6. Get Orders Return" class="oe_highlight" type="action" states="authenticated" context="{'default_mp_account_id': active_id}"/>-->
+            <!-- this is for shopee form -->
+            <button name="%(izi_marketplace.action_window_wiz_mp_order_return)d" string="6. Get Orders Return" class="oe_highlight" type="action" attrs="{'invisible':['|',('marketplace','!=', 'shopee'), ('state', 'not in', ['authenticated'])]}" context="{'default_mp_account_id': active_id}"/>
+            <button name="%(izi_marketplace.action_window_wiz_mp_promotion)d" string="7. Get Promotion" class="oe_highlight" type="action" attrs="{'invisible':['|',('marketplace','!=', 'shopee'), ('state', 'not in', ['authenticated'])]}" context="{'default_mp_account_id': active_id}"/>
+            <button name="%(izi_marketplace.action_window_wiz_mp_webhook_order)d" string="8. Get Webhook Orders" class="oe_highlight" type="action" attrs="{'invisible':['|',('marketplace','!=', 'shopee'), ('state', 'not in', ['authenticated'])]}" context="{'default_mp_account_id': active_id}" groups="base.group_no_one"/>
+            <!-- this is for shopee form -->
+            <button name="%(izi_marketplace.action_window_wiz_mp_promotion)d" string="6. Get Promotion" class="oe_highlight" type="action" attrs="{'invisible':['|',('marketplace','=', 'shopee'), ('state', 'not in', ['authenticated'])]}" context="{'default_mp_account_id': active_id}"/>
+            <button name="%(izi_marketplace.action_window_wiz_mp_webhook_order)d" string="7. Get Webhook Orders" class="oe_highlight" type="action" attrs="{'invisible':['|',('marketplace','=', 'shopee'), ('state', 'not in', ['authenticated'])]}" context="{'default_mp_account_id': active_id}" groups="base.group_no_one"/>
+            <button name="action_reauth" string="Re-Authenticate" type="object" states="authenticated"/>
+<!--            <button name="action_open_seller_center" string="Open Seller Center" class="oe_highlight" type="object" attrs="{'invisible':[('state', 'not in', ['authenticated'])]}" context="{'default_mp_account_id': active_id}" groups="base.group_no_one"/>-->
+            <field name="state" widget="statusbar" statusbar_visible="new,authenticated"/>
+          </header>
+          <sheet>
+            <div attrs="{'invisible': ['|', ('auth_message', '=', False), ('auth_message', '=', '')]}">
+              <div role="alert" class="alert alert-warning text-center o_form_header" states="authenticating">
+                <a class="close" data-dismiss="alert" href="#" aria-hidden="true">x</a>
+                <div>
+                  <strong>
+                    <field name="auth_message"/>
+                  </strong>
+                </div>
+              </div>
+              <div role="alert" class="alert alert-success text-center o_form_header" states="authenticated">
+                <a class="close" data-dismiss="alert" href="#" aria-hidden="true">x</a>
+                <div>
+                  <strong>
+                    <field name="auth_message"/>
+                  </strong>
+                </div>
+              </div>
+            </div>
+            <div class="oe_button_box" name="button_box">
+              <!-- <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                <field name="active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
+              </button> -->
+              <button name="action_view_mp_promotion" string="MP Promotion" class="oe_stat_button" icon="fa-ticket" type="object" states="authenticating,authenticated"/>
+              <button name="action_view_mp_product" string="MP Products" class="oe_stat_button" icon="fa-archive" type="object" states="authenticating,authenticated"/>
+              <button name="action_view_mp_orders" string="MP Orders" class="oe_stat_button" icon="fa-dollar" type="object" states="authenticating,authenticated"/>
+              <button name="action_view_mp_bank_statement" string="MP Wallet" class="oe_stat_button" icon="fa-money" type="object" states="authenticating,authenticated"/>
+<!--              <button name="action_view_mp_return" string="MP Return" class="oe_stat_button" icon="fa-shopping-cart" type="object" states="authenticating,authenticated"/>-->
+              <button name="action_view_mp_return" string="MP Return" class="oe_stat_button" icon="fa-shopping-cart" type="object" attrs="{'invisible':['|',('marketplace','!=', 'shopee'), ('state', 'not in', ['authenticating','authenticated'])]}"/>
+            </div>
+            <div class="oe_title">
+              <label for="name" class="oe_edit_only"/>
+              <h1>
+                <field name="name"/>
+              </h1>
+            </div>
+            <group>
+              <group name="main_marketplace_account">
+                <field name="marketplace"/>
+                <field name="active" widget="boolean_toggle"/>
+              </group>
+              <group>
+                <field name="cron_active" widget="boolean_toggle"/>
+                <field name="cron_id"/>
+                <field name="cron_nextcall"/>
+                <label for="cron_interval_number"/>
+                <div>
+                  <field name="cron_interval_number" class="oe_inline" />
+                  <field name="cron_interval_type" class="oe_inline" />
+                </div>
+              </group>
+              <group>
+                <field name="branch_id" options="{'no_create': True}"/>
+                <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                <field name="currency_id" groups="base.group_multi_currency" options="{'no_create': True}"/>
+                <field name="wallet_journal_id" domain="[('company_id', '=', company_id)]"/>
+              </group>
+            </group>
+            <notebook>
+              <page name="mp_credential" string="Credential">
+                <group name="mp_credential" string="Marketplace Account" attrs="{'invisible': [('marketplace', '=', False)]}"></group>
+                <group name="mp_token" string="Marketplace Token" attrs="{'invisible': ['|', ('state', '!=', 'authenticated'), ('access_token', '=', False)]}">
+                  <field name="access_token"/>
+                  <field name="access_token_expired_date"/>
+                </group>
+              </page>
+              <page name="mp_order" string="Order">
+                <group name="mp_order" attrs="{'invisible': [('marketplace', '=', False)]}">
+                  <group name="product_configuration" string='Default Order Product Component'>
+                    <field name="insurance_product_id"/>
+                    <field name="global_discount_product_id"/>
+                    <field name="adjustment_product_id"/>
+                    <field name="services_product_id"/>
+                  </group>
+                  <group name="sales_configuration" string='Default Order Field'>
+                    <field name="warehouse_id" required="1" domain="[('branch_id', '=', branch_id)]"/>
+                    <field name="user_id" required="1" domain="[('company_id', '=', company_id)]"/>
+                    <field name="sale_channel_id" />
+                    <field name="payment_term_id" />
+                    <field name="pricelist_id" />
+                  </group>
+                  <group name="order_state_config_1" string='Get Order Option'>
+                    <field name="get_unpaid_orders" widget="boolean_toggle" attrs="{'invisible': [('marketplace', '!=', 'shopee')]}"/>
+                    <field name="get_cancelled_orders" widget="boolean_toggle"/>
+                  </group>
+                  <group name="order_state_config_2" string='Order Action Option'>
+                    <field name="keep_order_date" widget="boolean_toggle"/>
+                    <field name="default_awb_action"/>
+                  </group>
+                  <group name="order_state_config_3" string='Order Auto Config'>
+                    <field name="create_invoice" invisible="1" widget="boolean_toggle"/>
+                    <field name="auto_confirm" invisible="1" widget="boolean_toggle"/>
+                    <field name="create_invoice_after_delivery" widget="boolean_toggle"/>
+                    <field name="auto_print_label" widget="boolean_toggle"/>
+                    <field name="auto_process_orders" widget="boolean_toggle"/>
+                  </group>
+                </group>
+              </page>
+              <page name="mp_webhook" string="Webhook">
+                <group name="mp_webhook" string="Marketplace Webhook" attrs="{'invisible': [('marketplace', '=', False)]}">
+                  <group>
+                    <field name="mp_webhook_state"/>
+                  </group>
+                </group>
+                <button name="register_webhooks" string="Register Webhooks" icon="fa-upload" type="object" style="margin: 10px;"/>
+                <button name="unregister_webhooks" string="Unregister Webhooks" icon="fa-upload" type="object" style="margin: 10px;"/>
+              </page>
+              <page name="mp_log_error" string="Marketplace Log Error" attrs="{'invisible': [('marketplace', '!=', False), ('debug_skip_error', '=', False)]}">
+                <group>
+                  <button name="action_view_mp_log_error" string="Marketplace Log Error View" class="btn-info" type="object" icon="fa-check-circle"/>
+                </group>
+              </page>
+              <page name="debug" string="Debug" groups="base.group_no_one">
+                <group>
+                  <field name="debug_force_update" widget="boolean_toggle"/>
+                  <field name="debug_force_update_raw" widget="boolean_toggle"/>
+                  <field name="debug_store_product_img" widget="boolean_toggle"/>
+                  <field name="debug_skip_error" widget="boolean_toggle"/>
+                  <field name="debug_product_limit"/>
+                  <field name="debug_order_limit"/>
+                </group>
+              </page>
+            </notebook>
+          </sheet>
+        </form>
+      </field>
+    </record>
+  </data>
+</odoo>

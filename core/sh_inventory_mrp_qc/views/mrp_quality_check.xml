@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_quality_check_form_view" model="ir.ui.view">
+        <field name="name">sh.mrp.quality.check.form.view</field>
+        <field name="model">sh.mrp.quality.check</field>
+        <field name="arch" type="xml">
+            <form string="Quality Check">
+                <sheet>
+                    <group>
+                        <field name="product_id" required="1" />
+                        <field name="sh_mrp" />
+                        <field name="sh_workorder_id" />
+                        <field name="sh_date" required="1" />
+                        <field name="sh_control_point" required="1" />
+                        <field name="control_point_id" required="1" />
+                        <field name="qc_type" required="1" />
+                        <field name="attachment_ids" attrs="{'invisible':[('qc_type','!=','type3')]}" widget="many2many_binary" />
+                        <field name="text_message" attrs="{'invisible':[('qc_type','!=','type4')]}" />
+                        <field name="sh_norm" attrs="{'invisible':[('qc_type','!=','type2')]}" />
+                        <field name="company_id" groups="base.group_multi_company" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="mrp_quality_check_tree_view" model="ir.ui.view">
+        <field name="name">sh.mrp.quality.check.tree.view</field>
+        <field name="model">sh.mrp.quality.check</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="state == 'fail'" decoration-success="state == 'pass'">
+                <field name="product_id" />
+                <field name="sh_mrp" />
+                <field name="sh_date" />
+                <field name="sh_control_point" />
+                <field name="control_point_id" />
+                <field name="state" />
+                <field name="qc_type" />
+                <field name="text_message" attrs="{'invisible':[('qc_type','!=','type4')]}" />
+                <field name="sh_norm" attrs="{'invisible':[('qc_type','!=','type2')]}" />
+            </tree>
+        </field>
+    </record>
+    <record id="wo_quality_check_tree_view" model="ir.ui.view">
+        <field name="name">sh.mrp.quality.check.tree.view</field>
+        <field name="model">sh.mrp.quality.check</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="state == 'fail'" decoration-success="state == 'pass'">
+                <field name="product_id" />
+                <field name="sh_workorder_id" />
+                <field name="sh_date" />
+                <field name="sh_control_point" />
+                <field name="control_point_id" />
+                <field name="state" />
+                <field name="qc_type" />
+                <field name="text_message" attrs="{'invisible':[('qc_type','!=','type4')]}" />
+                <field name="sh_norm" attrs="{'invisible':[('qc_type','!=','type2')]}" />
+            </tree>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="mrp_quality_check_pivot_view">
+        <field name="name">sh.mrp.quality.check.pivot.view</field>
+        <field name="model">sh.mrp.quality.check</field>
+        <field name="arch" type="xml">
+            <pivot string="Quality Checks" display_quantity="True">
+                <field name="product_id" type="row" />
+                <field name="state" type="col" />
+            </pivot>
+        </field>
+    </record>
+    <record id="mrp_quality_check_search_view" model="ir.ui.view">
+        <field name="name">sh.mrp.quality.check.search.view</field>
+        <field name="model">sh.mrp.quality.check</field>
+        <field name="arch" type="xml">
+            <search string="Quality Check">
+                <field name="product_id" />
+                <field name="sh_mrp" />
+                <field name="sh_workorder_id" />
+                <field name="sh_date" />
+                <field name="sh_control_point" />
+                <field name="state" />
+                <group expand="0" string="Group By">
+                    <filter string="Product" name="product" context="{'group_by':'product_id'}" />
+                    <filter string="Manufacturing Operation" name="mrp" context="{'group_by':'sh_mrp'}" />
+                    <filter string="Work Order" name="workorder" context="{'group_by':'sh_workorder_id'}" />
+                    <filter string="Date" name="date" context="{'group_by':'sh_date'}" />
+                    <filter string="Quality Control Point" name="control_point" context="{'group_by':'sh_control_point'}" />
+                    <filter string="Status" name="status" context="{'group_by':'state'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="mrp_quality_check_action" model="ir.actions.act_window">
+        <field name="name">Mrp Quality Check</field>
+        <field name="res_model">sh.mrp.quality.check</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="context">{'search_default_control_point':1}</field>
+        <field name="domain">[('sh_mrp','!=',False)]</field>
+        <field name="view_id" ref="mrp_quality_check_tree_view" />
+    </record>
+    <record id="wo_quality_check_action" model="ir.actions.act_window">
+        <field name="name">WO Quality Check</field>
+        <field name="res_model">sh.mrp.quality.check</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="context">{'search_default_control_point':1}</field>
+        <field name="domain">[('sh_workorder_id','!=',False)]</field>
+        <field name="view_id" ref="wo_quality_check_tree_view" />
+    </record>
+</odoo>

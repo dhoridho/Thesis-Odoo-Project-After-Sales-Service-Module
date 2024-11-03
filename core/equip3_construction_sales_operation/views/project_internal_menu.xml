@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- View tree Job Estimate -->
+        <record id="job_estimate_tree_view_internal" model="ir.ui.view">
+            <field name="name">job.estimate.tree.view.internal</field>
+            <field name="model">job.estimate</field>
+            <field name="arch" type="xml">
+                <tree string="BOQ" multi_edit="1" sample="1">
+                    <field name="name" class="font-weight-bold"/>
+                    <field name="project_id" attrs="{'readonly': [('state_new', 'not in', ['draft'])]}"/>
+                    <field name="contract_category" string="Contract Category" />
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="department_type" invisible="1"/>
+                    <field name="total_material_estimate" optional="hide" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="total_labour_estimate" optional="hide" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="total_overhead_estimate" optional="hide" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="total_equipment_estimate" optional="hide" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="total_subcon_estimate" optional="hide" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="total_job_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="company_id" optional="hide"/>
+                    <field name="state_new"
+                           decoration-secondary="state_new == 'draft'"
+                           decoration-success2="state_new == 'confirmed'"
+                           decoration-primary3="state_new == 'sent'"
+                           decoration-warning3="state_new == 'waiting_for_approve'"
+                           decoration-success="state_new == 'approved'"
+                           decoration-danger="state_new == 'rejected'"
+                           decoration-danger3="state_new == 'cancel'"
+                           decoration-warning="state_new == 'revised'"
+                           widget="badge"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Action Job Estimate -->
+        <record id="action_job_estimate_project_internal" model="ir.actions.act_window">
+            <field name="name">BOQ</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">job.estimate</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="job_estimate_tree_view_internal"/>
+            <field name="domain">[('department_type', '=', 'department')]</field>
+            <field name="context">{'default_department_type': 'department'}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No BOQ found. Let's create one!
+                </p>
+            </field>
+        </record>
+
+        <!-- Menu Job Estimate -->
+        <menuitem
+            id="menu_job_estimate_internal"
+            name="BOQ"
+            parent="equip3_construction_masterdata.construction_internal_project"
+            sequence="4">
+            <menuitem
+                id="submenu_job_estimates_internal"
+                name="BOQ"
+                action="action_job_estimate_project_internal"
+                sequence="1"/>
+            <menuitem
+                id="submenu_upload_job_estimate_internal"
+                name="Import BOQ"
+                action="action_upload_job_estimate"
+                sequence="2"/>
+        </menuitem>
+
+        <record id="menu_job_estimate_internal" model="ir.ui.menu">
+            <field name="equip_icon_class"> o-hm-sidebar-parent-construction-construction</field>
+        </record>
+
+        <record model='ir.ui.menu' id='menu_job_estimate_internal'>
+            <field name="groups_id" eval="[(6, 0, [ref('equip3_construction_accessright_setting.group_construction_engineer')])]"/>
+        </record>
+        
+        <!-- Menu Configuration -->
+        <menuitem id="configuration_internal"
+            name = "Configuration"
+            parent="equip3_construction_masterdata.construction_internal_project"
+            sequence="15"
+        />
+
+        <!-- Menu Configuration - Approval Matrix -->
+        <menuitem id="approval_matrix_internal"
+            name = "Approval Matrix"
+            parent="configuration_internal"
+            sequence="10"
+        />
+
+        <!-- Action Approval Job Estimate -->
+        <record id="action_approval_matrix_job_estimates_internal" model="ir.actions.act_window">
+            <field name="name">BOQ Approval Matrix</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">approval.matrix.job.estimates</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('department_type', '=', 'department')]</field>
+            <field name="context">{'default_department_type': 'department'}</field>
+            <field name="target">current</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Approval Matrix found. Let's create one!
+                </p>
+            </field>
+        </record>
+
+        <!-- Menu Configuration - Approval Matrix - Job Estimate -->
+        <menuitem
+            id="menu_internal_approving_matrix_job_estimate"
+            name="BOQ Approval Matrix"
+            parent="approval_matrix_internal"
+            action="action_approval_matrix_job_estimates_internal"
+            sequence="1"
+        />
+
+        <record model='ir.ui.menu' id='menu_internal_approving_matrix_job_estimate'>
+            <field name="groups_id" eval="[(6, 0, [ref('equip3_construction_accessright_setting.group_construction_engineer')])]"/>
+        </record>
+
+    </data>    
+</odoo>

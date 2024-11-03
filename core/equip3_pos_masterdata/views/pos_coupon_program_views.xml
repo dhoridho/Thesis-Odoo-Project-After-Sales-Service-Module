@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+ 
+    <record id="pos_coupon_program_form" model="ir.ui.view">
+        <field name="name">pos.coupon.program.form</field>
+        <field name="model">pos.coupon.program</field>
+        <field name="arch" type="xml">
+            <form>
+                <header> 
+                    <button name="action_generate" 
+                        type="object" 
+                        string="Generate" 
+                        class="btn-primary"
+                        groups="point_of_sale.group_pos_manager" />
+                    <field name="pos_coupon_count" invisible="1"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_coupons"
+                            type="object"
+                            class="oe_stat_button oe_read_only"
+                            icon="fa-ticket">
+                            <field name="pos_coupon_count" widget="statinfo" string="Coupon"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Conditions"> 
+                            <field name="coupon_name"/>
+                            <field name="type_apply"/>
+                            <field name="base_on_product_id" attrs="{
+                                'required':[('type_apply','=','Specific Product')],
+                            }"/>
+                            <field name="minimum_purchase_quantity" required="1"/>
+                            <field name="sequence_generate_method" required="1"/>
+                            <field name="manual_input_sequence"
+                                widget="equip3_field_nowhitespaces" 
+                                attrs="{
+                                'invisible':[('sequence_generate_method','!=','Manual Input')],
+                                'required':[('sequence_generate_method','=','Manual Input')],
+                            }"/>
+                        </group>
+                        <group string="Validity">
+                            <field name="start_date" required="1"/>
+                            <field name="end_date" required="1"/>
+                            <field name="no_of_usage"/>
+                            <field name="create_uid" class="oe_read_only"/> 
+                            <field name="create_date" class="oe_read_only"/> 
+                            <field name="company_id" options="{'no_open':True,'no_create':True}" required="1"/>
+                        </group>
+                    </group>  
+                    <group>
+                        <group string="Rewards"> 
+                            <field name="reward_type"/> 
+                            <field name="reward_product_id" attrs="{
+                                'invisible':[('reward_type','!=','Free Item')],
+                                'required':[('reward_type','=','Free Item')],
+                            }"/> 
+                            <field name="reward_quantity" attrs="{
+                                'invisible':[('reward_type','!=','Free Item')],
+                                'required':[('reward_type','=','Free Item')],
+                            }"/> 
+                            <label string="Discount Type" for="reward_discount_type" attrs="{'invisible':[('reward_type','!=','Discount')],}" />
+                            <div name="reward_discount_type" class="o_row" attrs="{'invisible':[('reward_type','!=','Discount')],}">
+                                <field name="reward_discount_type" attrs="{'required':[('reward_type','=','Discount')],}"/> 
+                                <field name="reward_discount_amount" attrs="{'required':[('reward_type','=','Discount')],}"/>
+                            </div>
+                            <field name="reward_max_discount_amount" 
+                                attrs="{'invisible':['|',('reward_type','!=','Discount'),('reward_discount_type','!=','Percentage')], 
+                                'required':[('reward_type','=','Discount')],}"/>
+                        </group>
+                    </group>
+                </sheet> 
+            </form>
+        </field>
+    </record>
+
+    
+    <record id="pos_coupon_program_tree" model="ir.ui.view">
+        <field name="name">pos.coupon.program.tree</field>
+        <field name="model">pos.coupon.program</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="coupon_name"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="base_on_product_id"/>
+                <field name="reward_type"/>
+                <field name="company_id"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pos_coupon_program_search" model="ir.ui.view">
+        <field name="name">pos.coupon.program.filter</field>
+        <field name="model">pos.coupon.program</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="pos_coupon_program_action">
+        <field name="name">Coupon Programs</field>
+        <field name="res_model">pos.coupon.program</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem 
+        id="pos_coupon_program_menu"
+        name="Coupon Programs"
+        action="pos_coupon_program_action"
+        parent="menu_promotion_voucher_discount"
+        sequence="12"/>
+
+</odoo>

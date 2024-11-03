@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_manuf_consumption_tree" model="ir.ui.view">
+        <field name="name">view.manuf.consumption.tree</field>
+        <field name="model">mrp.consumption</field>
+        <field name="arch" type="xml">
+            <tree string="Production Records">
+                <field name="create_date"/>
+                <field name="name" string="Production Record"/>
+                <field name="finished_qty"/>
+                <field name="rejected_qty"/>
+                <field name="company_id"/>
+                <field name="product_uom_id"/>
+                <field name="state" widget="badge" decoration-success="state == 'confirm'" decoration-info="state not in ('draft', 'confirm')"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="mrp_consumption_tree" model="ir.ui.view">
+        <field name="name">mrp.consumption.tree</field>
+        <field name="model">mrp.consumption</field>
+        <field name="arch" type="xml">
+            <tree string="Production Record"
+                  decoration-info="state == 'draft'"
+                  create="false">
+                <field name="name" string="Production Record"/>
+                <field name="manufacturing_plan" string="Production Plan"/>
+                <field name="manufacturing_order_id" string="Production Order"/>
+                <field name="workorder_id" string="Production Work Order"/>
+                <field name="product_id"/>
+                <field name="activity_ids" widget="list_activity" optional="show" />
+                <field name="state" widget="badge" decoration-muted="state == 'draft'" decoration-warning3="state == 'approval'" decoration-warning2="state == 'approved'" decoration-danger="state == 'reject'" decoration-primary="state == 'confirm'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="mrp_consumption_form" model="ir.ui.view">
+        <field name="name">mrp.consumption.form</field>
+        <field name="model">mrp.consumption</field>
+        <field name="arch" type="xml">
+            <form string="Manufacturing Consumption" create="false">
+                <header>
+                    <button name="button_confirm" string="Confirm" type="object" class="btn-primary" attrs="{'invisible': [('hide_confirm_btn', '!=', False)]}"/>
+                    <button string="Request Approval" name="action_approval" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state', 'not in', ('draft')),('is_matrix_on', '!=', True)]}"/>
+                    <button string="Approve" name="action_approve" type="object" class="oe_highlight" attrs="{'invisible': ['|','|',('state', 'not in', ('approval')),('user_is_approver','=',False),('is_matrix_on', '!=', True)]}"/>
+                    <button string="Reject" name="action_reject" type="object" class="oe_highlight" attrs="{'invisible': ['|','|',('state', 'not in', ('approval')),('user_is_approver','=',False),('is_matrix_on', '!=', True)]}"/>
+                    <field name="state" invisible="1"/>
+                    <field name="state_1" widget="statusbar" statusbar_visible="draft,confirm" attrs="{'invisible': [('state', 'not in', ('draft')),('is_matrix_on', '!=', False)]}"/>
+                    <field name="state_2" widget="statusbar" statusbar_visible="draft,approval,confirm" attrs="{'invisible': ['|',('state', 'not in', ('approval')),('is_matrix_on', '!=', True)]}"/>
+                    <field name="state_3" widget="statusbar" statusbar_visible="draft,approved,confirm" attrs="{'invisible': ['|',('state', 'not in', ('confirm','approved')),('is_matrix_on', '!=', True)]}"/>
+                    <field name="state_4" widget="statusbar" statusbar_visible="draft,reject,confirm" attrs="{'invisible': ['|',('state', 'not in', ('reject')),('is_matrix_on', '!=', True)]}"/>
+                    <field name="is_matrix_on" invisible="1"/>
+                    <field name="user_is_approver" invisible="1" />
+                    <field name="hide_confirm_btn" invisible="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" nolabel="1" readonly="1"/></h1>
+                    </div>
+                    <group name="consumption_details">
+                        <group>
+                            <field name="manufacturing_plan" string="Production Plan" readonly="1" attrs="{'invisible': [('manufacturing_plan', '=', False)]}"/>
+                            <field name="manufacturing_order_id" string="Production Order" readonly="1"/>
+                            <field name="workorder_id" string="Production Work Order" readonly="1"/>
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                            <field name="branch_id" readonly="1"/>
+                            <field name="create_uid" string="Created By" readonly="1"/>
+                            <field name="create_date" string="Created On" readonly="1"/>
+                            <field name="date_finished" invisible="1"/>
+                            <field name="approval_matrix_id" readonly="1" force_save="1" attrs="{'invisible': [('is_matrix_on', '!=', True)], 'required': [('is_matrix_on', '=', True)]}"/>
+                        </group>
+                        <group>
+                            <field name="product_id"/>
+                            <field name="product_qty" invisible="1"/>
+                            <label for="finished_qty" string="Finished"/>
+                            <div class="o_row no-gutters d-flex">
+                                <field name="finished_qty"/>
+                                <field name="product_uom_id" readonly="1"/>
+                                <button type="object" name="button_scale" class="fa fa-balance-scale o_button_scale" context="{
+                                    'scale_res_model': 'mrp.consumption',
+                                    'scale_res_id': id,
+                                    'scale_qty': 'finished_qty'
+                                }" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                            </div>
+                            <label for="rejected_qty" string="Rejected"/>
+                            <div class="o_row no-gutters d-flex">
+                                <field name="rejected_qty"/>
+                                <field name="product_uom_id" readonly="1"/>
+                                <button type="object" name="button_scale" class="fa fa-balance-scale o_button_scale" context="{
+                                    'scale_res_model': 'mrp.consumption',
+                                    'scale_res_id': id,
+                                    'scale_qty': 'rejected_qty'
+                                }" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                            </div>
+
+                            <label for="action_generate_serial" string="Lot/Serial Number" attrs="{'invisible': [('any_byproduct_is_autogenerate', '=', False), ('is_autogenerate', '=', False)]}"/>
+                            <div class="o_row no-gutters d-flex" attrs="{'invisible': [('any_byproduct_is_autogenerate', '=', False), ('is_autogenerate', '=', False)]}">
+                                <button name="action_generate_serial" string="Generate" type="object" class="btn btn-primary" aria-label="Creates a new serial/lot number" title="Creates a new serial/lot number" role="img" disabled="disabled" attrs="{'invisible': [('is_disable_generate', '=', False)]}"/>
+                                <button name="action_generate_serial" string="Generate" type="object" class="btn btn-primary" aria-label="Creates a new serial/lot number" title="Creates a new serial/lot number" role="img" attrs="{'invisible': [('is_disable_generate', '=', True)]}"/>
+                            </div>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Finished" name="finished" attrs="{'invisible': ['|', ('is_last_workorder', '=', False), ('bom_finished_type', '!=', 'multi')]}">
+                            <field name="move_finished_ids">
+                                <tree editable="bottom" create="0" delete="0">
+                                    <field name="product_tmpl_id" string="Product" readonly="1"/>
+                                    <field name="product_id" string="Variant" readonly="1"/>
+                                    <field name="product_uom_qty" string="To Produce" invisible="1"/>
+                                    <field name="quantity_done" string="Quantity" readonly="1" force_save="1"/>
+                                    <field name="product_uom" groups="uom.group_uom" string="Unit of Measure" readonly="1"/>
+                                    <field name="location_dest_id" invisible="1" readonly="1"/>
+                                    <field name="location_rejected_id" invisible="1" readonly="1"/>
+                                    <field name="mpr_finished_qty" invisible="1"/>
+                                    <field name="mpr_rejected_qty" invisible="1"/>
+                                    <field name="state" invisible="1" readonly="1"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page name="components" string="Materials">
+                            <field name="move_raw_ids"
+                                   force_save="1"
+                                   context="{
+                                       'default_picking_type_id': picking_type_id,
+                                       'default_location_id': location_src_id,
+                                       'default_location_dest_id': production_location_id,
+                                       'default_group_id': procurement_group_id,
+                                   }"
+                                   attrs="{
+                                       'readonly': ['|',
+                                           ('state', '!=', 'draft'),
+                                           '|', ('consumption', '=', 'strict'),
+                                           ('is_locked', '=', True)
+                                       ]
+                                   }">
+                                <tree editable="bottom" trash-icon="$bom_line_id == false">
+                                    <field name="move_line_ids" invisible="1">
+                                        <tree>
+                                            <field name="lot_id" invisible="1"/>
+                                            <field name="owner_id" invisible="1"/>
+                                            <field name="package_id" invisible="1"/>
+                                            <field name="result_package_id" invisible="1"/>
+                                            <field name="location_id" invisible="1"/>
+                                            <field name="location_dest_id" invisible="1"/>
+                                            <field name="qty_done" invisible="1"/>
+                                            <field name="product_id" invisible="1"/>
+                                            <field name="product_uom_id" invisible="1"/>
+                                            <field name="product_uom_qty" invisible="1"/>
+                                            <field name="state" invisible="1"/>
+                                            <field name="move_id" invisible="1"/>
+                                            <field name="id" invisible="1"/>
+                                        </tree>
+                                    </field>
+                                    <field name="mrp_consumption_id" invisible="1"/>
+                                    <field name="name" invisible="1"/>
+                                    <field name="date" invisible="1"/>
+                                    <field name="date_deadline" invisible="1"/>
+                                    <field name="bom_line_id" invisible="1"/>
+                                    <field name="picking_type_id" invisible="1"/>
+                                    <field name="picking_id" invisible="1"/>
+                                    <field name="priority" invisible="1"/>
+                                    <field name="product_id"
+                                           required="1"
+                                           attrs="{'readonly': [
+                                               ('bom_line_id', '!=', False)
+                                           ]}"/>
+                                    <field name="product_uom_qty" string="To Consume" readonly="1" force_save="1" invisible="1"/>
+                                    <field name="mrp_product_uom_qty" string="To Consume"/>
+                                    <field name="quantity_done" string="Consumed"/>
+                                    <field name="dedicated_qty" optional="hide"/>
+                                    <field name="reserved_availability" invisible="1"/>
+                                    <field name="product_uom_category_id" invisible="1"/>
+                                    <field name="product_uom"/>
+                                    <button type="object" name="button_scale" class="fa fa-balance-scale o_button_scale" context="{
+                                        'scale_res_model': 'stock.move',
+                                        'scale_res_id': id,
+                                        'scale_qty': 'quantity_done'
+                                    }"  attrs="{'invisible': [('state', 'in', ('done', 'cancel'))]}"/>
+                                    <field name="location_id" invisible="1"/>
+                                    <field name="location_dest_id" invisible="1"/>
+                                    <field name="raw_material_production_id" invisible="1"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="allowed_operation_ids" invisible="1"/>
+                                    <field name="operation_id" invisible="1"/>
+                                    <field name="price_unit" invisible="1"/>
+                                    <field name="procure_method" invisible="1"/>
+                                    <field name="origin" invisible="1"/>
+                                    <button name="action_show_details" type="object" icon="fa-list" width="0.1"
+                                            attrs="{'invisible': [('has_tracking', '=', 'none')]}" options='{"warn": true}'/>
+                                    <field name="state"
+                                           widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-info="state not in ('done', 'cancel')"
+                                           optional="show"/>
+                                    <field name="warehouse_id" invisible="1"/>
+                                    <field name="group_id" invisible="1"/>
+                                    <field name="propagate_cancel" invisible="1"/>
+                                    <field name="availability_uom_qty" string="Available" optional="hide"/>
+                                    <field name="reserved_availability" string="Reserved" optional="hide"/>
+                                    <field name="forecast_availability" optional="hide"/>
+                                    <field name="lot_ids"
+                                           widget="many2many_tags"
+                                           optional="hide"
+                                           readonly="1"
+                                           context="{
+                                               'default_product_id': product_id,
+                                               'default_company_id': company_id
+                                           }"/>
+                                    <field name="has_tracking" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page name="byproduct" string="By-Product" attrs="{'invisible': [('byproduct_ids', '=', [])]}">
+                            <field name="byproduct_ids"
+                                   context="{
+                                       'default_picking_type_id': picking_type_id,
+                                       'default_location_id': production_location_id,
+                                       'default_location_dest_id': location_dest_id,
+                                       'default_group_id': procurement_group_id
+                                   }"
+                                   attrs="{
+                                       'readonly': [('state', '!=', 'draft')]
+                                   }">
+                                <tree editable="bottom" trash-icon="$byproduct_id == false">
+                                    <field name="move_line_ids" invisible="1">
+                                        <tree>
+                                            <field name="lot_id" invisible="1"/>
+                                            <field name="owner_id" invisible="1"/>
+                                            <field name="package_id" invisible="1"/>
+                                            <field name="result_package_id" invisible="1"/>
+                                            <field name="location_id" invisible="1"/>
+                                            <field name="location_dest_id" invisible="1"/>
+                                            <field name="qty_done" invisible="1"/>
+                                            <field name="product_id" invisible="1"/>
+                                            <field name="product_uom_id" invisible="1"/>
+                                            <field name="product_uom_qty" invisible="1"/>
+                                            <field name="state" invisible="1"/>
+                                            <field name="move_id" invisible="1"/>
+                                            <field name="id" invisible="1"/>
+                                        </tree>
+                                    </field>
+                                    <field name="mrp_consumption_byproduct_id" invisible="1"/>
+                                    <field name="product_id"
+                                           required="1"
+                                           attrs="{'readonly': [('byproduct_id', '!=', False)]}"/>
+                                    <field name="product_uom_qty" string="To Produce" readonly="1" force_save="1" invisible="1"/>
+                                    <field name="mrp_product_uom_qty" string="To Produce"/>
+                                    <field name="quantity_done" string="Produced"/>
+                                    <field name="product_uom_category_id" invisible="1"/>
+                                    <field name="product_uom" readonly="1" force_save="1"/>
+                                    <field name="allowed_operation_ids" invisible="1"/>
+                                    <field name="operation_id" invisible="1"/>
+                                    <field name="byproduct_id" invisible="1"/>
+                                    <field name="name" invisible="1"/>
+                                    <field name="date" invisible="1"/>
+                                    <field name="date_deadline" invisible="1"/>
+                                    <field name="picking_type_id" invisible="1"/>
+                                    <field name="location_id" invisible="1"/>
+                                    <field name="location_dest_id" invisible="1"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="production_id" invisible="1"/>
+                                    <field name="warehouse_id" invisible="1"/>
+                                    <field name="origin" invisible="1"/>
+                                    <field name="group_id" invisible="1"/>
+                                    <field name="propagate_cancel" invisible="1"/>
+                                    <field name="move_dest_ids" invisible="1"/>
+                                    <field name="lot_ids"
+                                           widget="many2many_tags"
+                                           optional="hide"
+                                           context="{
+                                               'default_product_id': product_id,
+                                               'default_company_id': company_id
+                                           }"/>
+                                    <field name="state"
+                                           widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-info="state not in ('done', 'cancel')"
+                                           optional="show"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page name="finished_lot"
+                              string="Finished Goods Lot/Serial Number"
+                              attrs="{'invisible': [('show_finished_lot_tab', '=', False)]}">
+                            <field name="finished_lot_ids" 
+                                   force_save="1"
+                                   attrs="{
+                                        'readonly': [
+                                            '|',
+                                                ('all_finished_is_autogenerate', '=', True),
+                                                ('state', '!=', 'draft')
+                                        ]
+                                    }" 
+                                   context="{
+                                        'default_company_id': company_id,
+                                        'default_product_id': default_next_finished_product_id,
+                                        'mpr_finished_qty': default_finished_lot_qty
+                                    }">
+                                <tree string="Finished Goods Lot/Serial Number" editable="bottom" default_order="product_id,name">
+                                    <field name="is_autogenerate" optional="hide"/>
+                                    <field name="name" attrs="{'readonly': [('is_autogenerate', '=', True)]}" force_save="1"/>
+                                    <field name="product_id" domain="[('id', 'in', parent.finished_manual_product_ids)]" attrs="{'readonly': [('is_autogenerate', '=', True)]}" force_save="1"/>
+                                    <field name="product_tracking" optional="hide"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="consumption_qty" string="Quantity" attrs="{'readonly': ['|', ('product_tracking', '=', 'serial'), ('is_autogenerate', '=', True)]}" force_save="1" required="1"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page name="rejected_lot"
+                              string="Rejected Goods Lot/Serial Number"
+                              attrs="{'invisible': [('show_finished_lot_tab', '=', False)]}">
+                            <field name="rejected_lot_ids"
+                                   force_save="1"
+                                   attrs="{
+                                        'readonly': [
+                                            '|',
+                                                ('all_finished_is_autogenerate', '=', True),
+                                                ('state', '!=', 'draft')
+                                        ]
+                                    }" 
+                                    context="{
+                                        'default_company_id': company_id,
+                                        'default_product_id': default_next_rejected_product_id,
+                                        'mpr_finished_qty': default_rejected_lot_qty
+                                    }">
+                                <tree string="Rejected Goods Lot/Serial Number" editable="bottom" default_order="product_id,name">
+                                    <field name="is_autogenerate" optional="hide"/>
+                                    <field name="name" attrs="{'readonly': [('is_autogenerate', '=', True)]}" force_save="1"/>
+                                    <field name="product_id" domain="[('id', 'in', parent.rejected_manual_product_ids)]" attrs="{'readonly': [('is_autogenerate', '=', True)]}" force_save="1"/>
+                                    <field name="product_tracking" optional="hide"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="consumption_qty" string="Quantity" attrs="{'readonly': ['|', ('product_tracking', '=', 'serial'), ('is_autogenerate', '=', True)]}" force_save="1" required="1"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page name="byproduct_lot"
+                              string="ByProduct Lot/Serial Number"
+                              attrs="{'invisible': [('show_byproduct_lot_tab', '=', False)]}">
+                            <field name="byproduct_lot_ids"
+                                   force_save="1"
+                                   attrs="{
+                                        'readonly': [
+                                            '|',
+                                                ('all_byproduct_is_autogenerate', '=', True),
+                                                ('state', '!=', 'draft')
+                                        ]
+                                    }" 
+                                    context="{
+                                        'default_company_id': company_id,
+                                        'default_product_id': default_next_byproduct_product_id,
+                                        'mpr_byproduct_qty': default_byproduct_lot_qty
+                                    }">
+                                <tree string="ByProduct Lot/Serial Number" editable="bottom" default_order="product_id,name">
+                                    <field name="is_autogenerate" optional="hide"/>
+                                    <field name="name" attrs="{'readonly': [('is_autogenerate', '=', True)]}" force_save="1"/>
+                                    <field name="product_id" domain="[('id', 'in', parent.byproduct_manual_product_ids)]" attrs="{'readonly': [('is_autogenerate', '=', True)]}" force_save="1"/>
+                                    <field name="product_tracking" optional="hide"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="consumption_qty" string="Quantity" attrs="{'readonly': ['|', ('product_tracking', '=', 'serial'), ('is_autogenerate', '=', True)]}" force_save="1" required="1"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page string="Miscellaneous" name="miscellaneous" invisible="0">
+                            <group>
+                                <group string="Production Order">
+                                    <field name="picking_type_id"/>
+                                    <field name="location_src_id"/>
+                                    <field name="location_dest_id"/>
+                                    <field name="production_location_id"/>
+                                    <field name="procurement_group_id"/>
+                                    <field name="operation_id"/>
+                                    <field name="workcenter_id"/>
+                                    <field name="bom_finished_type"/>
+                                </group>
+                                <group string="Others">
+                                    <field name="consumption"/>
+                                    <field name="is_locked"/>
+                                    <field name="is_last_workorder"/>
+                                    <field name="product_tracking"/>
+                                    <field name="is_disable_generate" invisible="1"/>
+                                    <field name="is_autogenerate" invisible="1"/>
+                                </group>
+                            </group>
+                            <group invisible="1">
+                                <group string="By-Products">
+                                    <field name="show_byproduct_lot_tab"/>
+                                    <field name="byproduct_manual_product_ids" widget="many2many_tags"/>
+                                    <field name="default_byproduct_lot_qty"/>
+                                    <field name="default_next_byproduct_product_id"/>
+                                    <field name="any_byproduct_is_autogenerate"/>
+                                    <field name="all_byproduct_is_autogenerate"/>
+                                </group>
+                                <group string="Finished">
+                                    <field name="show_finished_lot_tab"/>
+                                    <field name="finished_manual_product_ids" widget="many2many_tags"/>
+                                    <field name="rejected_manual_product_ids" widget="many2many_tags"/>
+                                    <field name="default_finished_lot_qty"/>
+                                    <field name="default_rejected_lot_qty"/>
+                                    <field name="default_next_finished_product_id"/>
+                                    <field name="default_next_rejected_product_id"/>
+                                    <field name="any_finished_is_autogenerate"/>
+                                    <field name="all_finished_is_autogenerate"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page name="approval_matrix_lines"
+                              attrs="{'invisible': [('is_matrix_on', '!=', True)]}"
+                              string="Approval Matrix Lines">
+                            <field name="approval_matrix_line_ids" context="{
+                                'tree_view_ref': 'equip3_manuf_operations.view_mrp_approval_matrix_entry_tree',
+                                'form_view_ref': 'equip3_manuf_operations.view_mrp_approval_matrix_entry_form',
+                            }"/>
+                        </page>
+
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="mrp_consumption_search" model="ir.ui.view">
+        <field name="name">mrp.consumption.search</field>
+        <field name="model">mrp.consumption</field>
+        <field name="arch" type="xml">
+            <search string="Search Production Records">
+                <field name="manufacturing_plan" string="Production Plan"/>
+                <field name="manufacturing_order_id" string="Production Order"/>
+                <field name="workorder_id" string="Production Work Order"/>
+                <field name="name" string="Production Record"/>
+                <field name="product_id" string="Finished Goods"/>
+                <field name="move_raw_ids" string="Material" filter_domain="[('move_raw_ids.product_id', 'ilike', self)]"/>
+
+                <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="To Be Approved" name="filter_to_be_approved" domain="[('state', '=', 'approval')]"/>
+                <filter string="Approved" name="filter_approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Rejected" name="filter_rejected" domain="[('state', '=', 'reject')]"/>
+                <filter string="Confirmed" name="filter_confirmed" domain="[('state', '=', 'confirm')]"/>
+
+                <group expand="0" string="Group By...">
+                    <filter name="groupby_mrp_plan" string="Production Plan" domain="[]" context="{'group_by': 'manufacturing_plan'}"/>
+                    <filter name="groupby_mrp_order" string="Production Order" domain="[]" context="{'group_by': 'manufacturing_order_id'}"/>
+                    <filter name="groupby_workorder_id" string="Production Work Order" domain="[]" context="{'group_by': 'workorder_id'}"/>
+                    <filter name="groupby_state" string="Status" domain="[]" context="{'group_by': 'state'}"/>
+                </group>
+
+                <searchpanel view_types="tree,kanban,pivot,graph">
+                    <field name="product_id"/>
+                    <field name="operation_id"/>
+                    <field name="workcenter_id"/>
+                    <field name="state"/>
+                </searchpanel>
+
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mrp_consumption" model="ir.actions.act_window">
+        <field name="name">Production Record</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.consumption</field>
+        <field name="view_mode">tree,form</field>
+        <field name="views">[['mrp_consumption_tree', 'tree']]]</field>
+        <field name="search_view_id" ref="mrp_consumption_search"/>
+        <field name="help" type="html">
+          <p class="oe_view_nocontent_create">
+            Create Production Records . . .
+          </p>
+        </field>
+    </record>
+    
+</odoo>

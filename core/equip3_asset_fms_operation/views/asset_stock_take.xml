@@ -1,0 +1,154 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <!-- asset.stock.take tree view -->
+    <record id="asset_stock_take_view_tree" model="ir.ui.view">
+        <field name="name">asset.stock.take.view.tree</field>
+        <field name="model">asset.stock.take</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="acc_date" />
+                <field name="state" widget="badge" decoration-success="state == 'validate'"
+                    decoration-info="state in ('draft', 'in_progress')"
+                    decoration-danger="state == 'cancel'" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- asset.stock.take form view -->
+    <record id="asset_stock_take_view_form" model="ir.ui.view">
+        <field name="name">asset.stock.take.view.form</field>
+        <field name="model">asset.stock.take</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <script type="text/javascript" src="/sh_all_in_one_mbs/static/src/js/ZXing.js"></script>
+                <script type="text/javascript"
+                    src="/equip3_asset_fms_operation/static/src/js/sh_asset_stock_barcode_mobile.js"></script>
+                <header>
+                    <button string="Start Inventory" name="state_start" type="object"
+                        class="oe_highlight"
+                        attrs="{'invisible':[('state', 'in', ['in_progress','validate','cancel'])]}" />
+
+                    <button name="action_validate" string="Validate Inventory" type="object"
+                        attrs="{'invisible': [('state', 'in', ['draft','validate','cancel'])]}"
+                        class="oe_highlight" />
+
+                    <button string="Cancel" name="state_cancel" type="object"
+                        attrs="{'invisible':[('state', 'in', ['draft', 'cancel', 'validate'])]}"
+                        class="oe_highlight" />
+
+                    <button string="Set to Draft" name="state_draft" type="object"
+                        attrs="{'invisible':[('state', 'not in', ['cancel'])]}" class="oe_highlight" />
+
+                    <field name="state" widget="statusbar"
+                        statusbar_visible="draft,in_progress,validate" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only" />
+                        <h3 modifiers="{}">
+                            <field name="name" placeholder="e.g. Annual inventory"
+                                attrs="{'readonly':[('state','not in',['draft'])]}" id="name" />
+                        </h3>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="fac_area"
+                                attrs="{'readonly': [('state', 'in', ['in_progress', 'validate'])]}" />
+                            <field name="inventory_of" widget="radio"
+                                attrs="{'readonly': [('state', 'in', ['in_progress', 'validate'])]}" />
+                            <field name="asset_category"
+                                attrs="{'invisible':[('inventory_of', 'in', ['all asset','select asset manually'])], 'required': [('inventory_of', '=', 'one asset category')]}" />
+                        </group>
+                        <group>
+                            <field name="acc_date"
+                                attrs="{'readonly': [('state', '=', 'in_progress')]}" invisible="1" />
+                            <field name="branch"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                            <field name="company_id" />
+                        </group>
+                    </group>
+
+                    <group col="3" class="oe_edit_only">
+                        <group>
+                            <label for="sh_asset_stock_barcode_mobile"/>
+                            <div class="o_row">
+                                <field name="sh_asset_stock_barcode_mobile"/>
+                                <a role="button" class="btn btn-primary o_mbs_start_button" id="js_id_sh_asset_stock_barcode_mobile_start_btn">
+                                    <i class="fa fa-barcode"></i> Start
+                                </a>
+                                <a role="button" style="display: none;" class="btn btn-danger o_mbs_stop_button" id="js_id_sh_asset_stock_barcode_mobile_reset_btn">
+                                    <i class="fa fa-barcode"></i> Stop
+                                </a>
+                            </div>
+                        </group>
+                    </group>
+
+                     <section class="oe_edit_only">
+                        <div id="js_id_sh_asset_stock_barcode_mobile_vid_div" style="display: none;">
+                            <group style="margin-bottom: 10px;">
+                                <div class="form-group row" style="margin-bottom: 0px;">
+                                    <strong class="o_mbs_label" style="margin-left: 15px;">Camera</strong>
+                                    <select class="col-4 form-control"
+                                        id="js_id_sh_asset_stock_barcode_mobile_cam_select"> </select>
+                                </div>
+                            </group>
+                            <video id="js_video_view_asset_stock_operations"
+                                class="cls_sh_all_in_one_mbs_video_tag" width="600" height="400"
+                                style="border: 1px solid gray;"></video>
+
+                            <span style="display: block;">Result:</span>
+                            <code id="js_id_sh_asset_stock_barcode_mobile_result"></code>
+                            <field name="scanned_value" id="scanned_value" />
+                        </div>
+                    </section>
+
+                    <notebook>
+                        <page string="Asset">
+                            <field name="asset_inventory_line"
+                                attrs="{'readonly': [('state', '=', 'validate')]}">
+                                <tree editable="bottom">
+                                    <field name="asset_id" string="Asset" />
+                                    <field name="serial_no" string="Serial Number" />
+                                    <field name="fac_area" string="Current Facilites Area"
+                                        force_save="1"
+                                        readonly="1" />
+                                    <field name="new_fac_area" string="New Facilities Area"
+                                        force_save="1"
+                                        attrs="{'readonly': [('parent.state', '!=', 'in_progress')]}" />
+                                    <field name="state_equip" string="Current Status" force_save="1"
+                                        readonly="1" />
+                                    <field name="is_missing" force_save="1" invisible="1" />
+                                    <field name="real_state" string="New Status" force_save="1"
+                                        required="1"
+                                        attrs="{'readonly': [('parent.state', '!=', 'in_progress')]}" />
+                                    <field name="attachment_ids"
+                                        attrs="{'column_invisible':[('parent.state', 'in', ['cancel'])]}"
+                                        widget="many2many_binary" force_save="1" />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="asset_stock_take_action" model="ir.actions.act_window">
+        <field name="name">Asset Stock Take</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">asset.stock.take</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                <!-- Add Text Here -->
+            </p>
+            <p>
+                <!-- More details about what a user can do with this object will be OK -->
+            </p>
+        </field>
+    </record>
+
+    <menuitem name="Asset Stock Take" id="asset_stock_take_menu" parent="maintenance.menu_m_request"
+        sequence="16" action="asset_stock_take_action" />
+</odoo>

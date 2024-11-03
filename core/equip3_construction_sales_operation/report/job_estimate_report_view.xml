@@ -1,0 +1,502 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+
+		<template id="job_estimate_templates_customer_details">
+			<!-- <td align="left" style="padding:15px 0px 0px 15px; width:50%; line-height:18px;" valign="top">-->
+			<!-- <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold; margin:0; margin-bottom:5px; padding:10px 0px 0px 0px; border-top:1px solid #ececec;">
+				<strong t-if="o.partner_shipping_id == o.partner_invoice_id">Invoicing and shipping address:</strong>
+				<strong t-if="o.partner_shipping_id != o.partner_invoice_id">Invoicing address:</strong>
+			</p> -->
+			<t t-if="o.partner_id">
+				<span t-attf-style="text-transform:capitalize; padding:0px; margin:0; color: #51565b;">
+					<t t-if="o.company_id and o.company_id.is_customer_bold">
+						<strong>
+							<span t-field="o.partner_id"/>
+						</strong>
+					</t>
+					<t t-if="not o.company_id.is_customer_bold">
+						<span t-field="o.partner_id"/>
+					</t>
+				</span>
+				<p t-attf-style="color: #51565b;">
+					<span t-esc="o._get_street(o.partner_id)"/>
+					<br/>
+					<span t-esc="o._get_address_details(o.partner_id)"/>
+					<br/>
+					<t t-if="o.partner_id.mobile">
+						<strong>Mobile: </strong>
+						<span t-field="o.partner_id.mobile"/>
+						<br/>
+					</t>
+					<t t-if="o.partner_id.email">
+						<strong>Email: </strong>
+						<span t-field="o.partner_id.email"/>
+						<br/>
+					</t>
+					<t t-if="o.partner_id.vat">
+						<strong>Vat: </strong>
+						<span t-field="o.partner_id.vat"/>
+					</t>
+				</p>
+			</t>
+			<!-- </td><td align="left" style="padding:15px 0px 0px 15px; width:50%; line-height:18px;" valign="top">-->
+
+		</template>
+
+
+		<template id="job_estimate_print_out_doc_report_external_layout">
+			<!-- Multicompany -->
+			<t t-if="o and 'company_id' in o">
+				<t t-set="company" t-value="o.company_id"/>
+			</t>
+			<t t-if="not o or not 'company_id' in o">
+				<t t-set="company" t-value="res_company"/>
+			</t>
+			<t t-call="equip3_construction_sales_operation.job_estimate_doc_report_header"/>
+			<div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+                <t t-raw="0"/>
+			</div>
+			<t t-call="general_template.templates_footer"/>
+		</template>
+
+		<template id="job_estimate_doc_report_header">
+			<div class="header" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+				<table border="0" cellpadding="0" cellspacing="0" width="100%">
+					<tbody>
+						<tr>
+							<td>
+								<center>
+									<table border="0" cellpadding="0" cellspacing="0" style="padding:0px 20px 0px 20px; margin:0; background:#fff;" width="100%">
+										<tr>
+											<td align="left" colspan="2" t-attf-style="color:#{text_color or '#ffffff'}; padding:0 0px;" valign="top">
+												<table border="0" cellpadding="0" cellspacing="0" style="line-height: 15px;" width="100%">
+													<tr>
+														<td align="left" style="color:#4D4D4F; padding:0px 15px; border-right: 1px solid #D4D1D1; width:10%;" valign="top">
+															<img style="max-height:50px; vertical-align: top; float:none;" t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo)"/>
+														</td>
+														<td style="padding:15px 0px 0px 15px; width:30%" valign="top">
+															<p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Company</p>
+															<t t-call="general_template.templates_company_details"/>
+														</td>
+														<td align="left" style="width:30%; padding:15px 0px 0px 15px;" valign="top">
+															<p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Customer</p>
+															<t t-call="equip3_construction_sales_operation.job_estimate_templates_customer_details"/>
+														</td>
+													</tr>
+												</table>
+											</td>
+										</tr>
+									</table>
+								</center>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</template>
+		
+		<template id="job_estimate_custom_equip" inherit_id="bi_job_cost_estimate_customer.job_estimate_report">
+			<xpath expr="//t[@t-call='web.html_container']" position="replace">
+
+				<t t-call="web.html_container">
+					<t t-foreach="docs" t-as="o">
+						<t t-call="equip3_construction_sales_operation.job_estimate_print_out_doc_report_external_layout">
+							<t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+							<t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+							<t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+							<t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+							<t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+							<t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+							<t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+
+							<div class="page" style="margin-top: 500px">
+								<div class="oe_structure"  style="margin-top: 500px" />
+								<div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'"  style="margin-top: 500px" >
+									<table t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:14px; position: static; margin-left: 30px'" >
+										<style>
+											tr {height: 25px;font-weight: bold;}
+										</style>
+										<tr>
+											<td>Project</td>
+                                			<td style="width: 100px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.project_id.name" />
+											</td>
+										</tr>
+										<tr>
+											<td>Planned Start Date</td>
+                                			<td style="width: 100px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.start_date" />
+											</td>
+										</tr>
+										<tr>
+											<td>Planned End Date</td>
+                                			<td style="width: 100px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.end_date" />
+											</td>
+										</tr>
+									</table>
+									<div class="oe_structure"/>
+									
+									<!-- <t t-call="general_template.template_watermark"/> -->
+									<!-- <hr t-attf-style="border: 1px solid #{theme_text_color or '#000000'} !important;"></hr> -->
+									<hr t-attf-style="border: 1px solid #{theme_color or '#000000'} !important;"></hr>
+
+									<table border="0" cellpadding="0" cellspacing="0" t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};" width="100%">
+										<tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+											<td t-attf-style="padding:9px 15px; font-weight:bold;">
+												<t>
+													<span>BOQ # </span>
+												</t>
+												<br/>
+												<span t-field="o.name"/>
+											</td>
+											<td colspan="2" t-attf-style="background-color:#f2f2f2; height:4px; color: #{theme_text_color or '#000000'};"/>
+											<td/>
+											<td t-attf-style="padding:5px 15px; font-weight:bold;">
+												<strong>Date of Estimate:</strong>
+												<br/>
+												<span t-field="o.create_date"/>
+												<!-- <span t-field="context_timestamp(datetime.datetime.today())"/> -->
+											</td>
+											<td t-attf-style="padding:5px 15px; font-weight:bold;">
+												<span class="text-left">Your Reference:</span>
+												<br/>
+												<span t-field="o.customer_ref"/>
+											</td>
+											<td t-attf-style="padding:5px 15px; font-weight:bold;">
+												<span class="text-left">Salesperson:</span>
+												<br/>
+												<p t-field="o.sales_person_id"/>
+											</td>
+										</tr>
+									</table>
+									<div border="0" cellpadding="0" cellspacing="0" t-attf-style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px; border-top:1px solid #{theme_color or '#000000'};" width="100%"></div>
+									<div class="oe_structure"/>
+								</div>
+
+								<h4 style="margin-left: 30px">Material Estimate</h4>
+								<br/>
+								<table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered table-striped" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+									<thead>
+										<tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="5%">No.</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Project Scope</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Section</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Description</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Quantity</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Unit Price</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Sub Total</th>
+										</tr>
+									</thead>
+									<tbody class="components_tbody">
+										<t t-set="no" t-value="0"/>
+										<t t-foreach="o.material_estimation_ids" t-as="material_line">
+											<t t-set="no" t-value="no + 1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-esc="no" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="material_line.project_scope.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="material_line.section_name.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="material_line.description" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="material_line.quantity" />
+													<span></span>
+													<span t-field="material_line.uom_id.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="material_line.unit_price" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="o.currency_id.symbol" />
+													<span t-field="material_line.subtotal" />
+												</td>
+											</tr>
+										</t>
+									</tbody>
+								</table>
+
+								<h4 style="margin-left: 30px">Labour Estimate</h4>
+								<br/>
+								<table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered table-striped" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+									<thead>
+										<tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="5%">No.</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Project Scope</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Section</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Description</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Quantity</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Unit Price</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Sub Total</th>
+										</tr>
+									</thead>
+									<tbody class="components_tbody">
+										<t t-set="no" t-value="0"/>
+										<t t-foreach="o.labour_estimation_ids" t-as="labour_line">
+											<t t-set="no" t-value="no + 1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-esc="no" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="labour_line.project_scope.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="labour_line.section_name.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="labour_line.description" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="labour_line.quantity" />
+													<span></span>
+													<span t-field="labour_line.uom_id.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="labour_line.unit_price" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="o.currency_id.symbol" />
+													<span t-field="labour_line.subtotal" />
+												</td>
+											</tr>
+										</t>
+									</tbody>
+								</table>
+
+								<h4 style="margin-left: 30px">Overhead Estimate</h4>
+								<br/>
+								<table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered table-striped" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+									<thead>
+										<tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="5%">No.</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Project Scope</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Section</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Description</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Quantity</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Unit Price</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Sub Total</th>
+										</tr>
+									</thead>
+									<tbody class="components_tbody">
+										<t t-set="no" t-value="0"/>
+										<t t-foreach="o.overhead_estimation_ids" t-as="overhead_line">
+											<t t-set="no" t-value="no + 1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-esc="no" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="overhead_line.project_scope.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="overhead_line.section_name.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="overhead_line.description" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="overhead_line.quantity" />
+													<span></span>
+													<span t-field="overhead_line.uom_id.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="overhead_line.unit_price" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="o.currency_id.symbol" />
+													<span t-field="overhead_line.subtotal" />
+												</td>
+											</tr>
+										</t>
+									</tbody>
+								</table>
+
+								<h4 style="margin-left: 30px">Equipment Estimate</h4>
+								<br/>
+								<table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered table-striped" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+									<thead>
+										<tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="5%">No.</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Project Scope</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Section</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Description</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Quantity</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Unit Price</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Sub Total</th>
+										</tr>
+									</thead>
+									<tbody class="components_tbody">
+										<t t-set="no" t-value="0"/>
+										<t t-foreach="o.equipment_estimation_ids" t-as="equip_line">
+											<t t-set="no" t-value="no + 1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-esc="no" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="equip_line.project_scope.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="equip_line.section_name.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="equip_line.description" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="equip_line.quantity" />
+													<span></span>
+													<span t-field="equip_line.uom_id.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="equip_line.unit_price" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="o.currency_id.symbol" />
+													<span t-field="equip_line.subtotal" />
+												</td>
+											</tr>
+										</t>
+									</tbody>
+								</table>
+
+								<h4 style="margin-left: 30px">Subcon Estimate</h4>
+								<br/>
+								<table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered table-striped" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+									<thead>
+										<tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="5%">No.</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Project Scope</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Section</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Description</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Quantity</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Unit Price</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Sub Total</th>
+										</tr>
+									</thead>
+									<tbody class="components_tbody">
+										<t t-set="no" t-value="0"/>
+										<t t-foreach="o.subcon_estimation_ids" t-as="subcon_line">
+											<t t-set="no" t-value="no + 1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-esc="no" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="subcon_line.project_scope.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="subcon_line.section_name.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="subcon_line.description" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="subcon_line.quantity" />
+													<span></span>
+													<span t-field="subcon_line.uom_id.name" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="subcon_line.unit_price" />
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-field="o.currency_id.symbol" />
+													<span t-field="subcon_line.subtotal" />
+												</td>
+											</tr>
+										</t>
+									</tbody>
+								</table>
+
+								<div class="clearfix" style="padding-top: 40px" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+									<div class="row pull-right" name="total">
+										<div>
+											<table class="table-condensed" style="min-width: 200px;max-width: 350px;">
+												<tr class="border-black" style="border-top:1px solid #dddddd;">
+													<td>
+														<strong>Total Material Estimate</strong>
+													</td>
+													<td class="text-right">
+														<span t-field="o.total_material_estimate"/>
+													</td>
+												</tr>
+												<tr>
+													<td>
+														<strong>Total Labour Estimate</strong>
+													</td>
+													<td class="text-right">
+														<span t-field="o.total_labour_estimate"/>
+													</td>
+												</tr>
+												<tr>
+													<td>
+														<strong>Total Overhead Estimate</strong>
+													</td>
+													<td class="text-right">
+														<span t-field="o.total_overhead_estimate"/>
+													</td>
+												</tr>
+												<tr>
+													<td>
+														<strong>Total Equipment Estimate</strong>
+													</td>
+													<td class="text-right">
+														<span t-field="o.total_equipment_estimate"/>
+													</td>
+												</tr>
+												<tr>
+													<td>
+														<strong>Total Subcon Estimate</strong>
+													</td>
+													<td class="text-right">
+														<span t-field="o.total_subcon_estimate"/>
+													</td>
+												</tr>
+												<tr class="border-black" style="border-bottom:1px solid #dddddd;">
+													<td>
+														<strong>Total BOQ</strong>
+													</td>
+													<td class="text-right">
+														<span t-field="o.total_job_estimate"/>
+													</td>
+												</tr>
+											</table>
+										</div>
+									</div>
+									<div style="position: static; margin-top: 30px; border-bottom: 1px solid black; width: 45%; padding-bottom: 5px;" >
+										<strong style="padding-left: 20px">
+										Description Of BOQ
+										</strong>
+									</div>
+									<span style="margin-top: 30px; padding-left: 20px;  padding-top: 5px;" t-field="o.description"/>
+								</div>
+
+								<span t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">Total in word: <t t-esc="o.said"/></span>
+							<hr style="border: 1px solid black"></hr>
+						</div>
+					</t>
+				</t>
+			</t>
+
+		</xpath>
+	</template>
+
+
+
+
+
+
+
+</data>
+</odoo>
+

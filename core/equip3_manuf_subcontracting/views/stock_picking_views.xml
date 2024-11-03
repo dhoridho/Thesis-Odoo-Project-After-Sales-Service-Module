@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_picking_inherit_subcon" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.subcon</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='backorder_id']" position="after">
+                <field name="is_a_delivery" invisible="1"/>
+                <field name="is_a_subcontracting" readonly="1" string="Subcontracting"/>
+                <field name="is_readonly_origin" invisible="1"/>
+
+                <field name="subcon_production_id" invisible="1"/>
+                <field name="subcon_production_name" string="Manufacturing Order" attrs="{'invisible': [('is_a_subcontracting','!=', True)]}"/>
+
+                <!-- label for receipt -->
+                <label for="subcon_product_qty" string="Subcontracted" attrs="{'invisible': ['|', ('is_a_subcontracting', '=', False), ('is_a_delivery','=', True)]}"/>
+                <div class="o_row no-gutters d-flex" attrs="{'invisible': ['|', ('is_a_subcontracting', '=', False), ('is_a_delivery','=', True)]}">
+                    <div class="o_row">
+                        <field name="subcon_qty_producing" class="text-left" attrs="{'readonly': [('state', 'in', ('done', 'cancel'))]}"/>
+                        /
+                    </div>
+                    <field name="subcon_product_qty" class="oe_inline" readonly="1"/>
+                    <field name="subcon_uom_id" options="{'no_open': True, 'no_create': True}" groups="uom.group_uom" class="oe_inline" readonly="1"/>
+                </div>
+                <field name="subcon_qty_produced" invisible="1"/>
+
+                <!-- label for delivery order -->
+                <label for="subcon_product_qty" string="To Subcontract" attrs="{'invisible': ['|', ('is_a_subcontracting', '=', False), ('is_a_delivery','=', False)]}"/>
+                <div class="o_row no-gutters d-flex" attrs="{'invisible': ['|', ('is_a_subcontracting', '=', False), ('is_a_delivery','=', False)]}">
+                    <div class="o_row">
+                        <field name="subcon_product_qty" class="text-left" readonly="1"/>
+                    </div>
+                    <field name="subcon_uom_id" options="{'no_open': True, 'no_create': True}" groups="uom.group_uom" class="oe_inline" readonly="1"/>
+                </div>
+                <label for="subcon_qty_producing" string="Subcontracted" attrs="{'invisible': ['|', ('is_a_subcontracting', '=', False), ('is_a_delivery','=', False)]}"/>
+                <div class="o_row no-gutters d-flex" attrs="{'invisible': ['|', ('is_a_subcontracting', '=', False), ('is_a_delivery','=', False)]}">
+                    <div class="o_row">
+                        <field name="subcon_qty_producing" class="text-left" attrs="{'readonly': [('state', '=', 'done')]}"/>
+                    </div>
+                    <field name="subcon_uom_id" options="{'no_open': True, 'no_create': True}" groups="uom.group_uom" class="oe_inline" readonly="1"/>
+                </div>
+            </xpath>
+                <!-- <label for="partner_id" position="replace">
+                <label string="Vendor" for="partner_id" />
+                </label> -->
+                
+            <xpath expr="//field[@name='origin']" position="attributes">
+				<attribute name="attrs">{'readonly': [('is_readonly_origin', '=', True)]}</attribute>
+				<attribute name="force_save">1</attribute>
+			</xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']//field[@name='product_uom']" position="after">
+                <field name="allocated_cost" attrs="{'column_invisible': [('parent.is_a_subcontracting', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_picking_form_view" model="ir.ui.view">
+        <field name="name">stock.picking.form.view</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="mrp_subcontracting.stock_picking_form_view" />
+        <field name="arch" type="xml">
+            <!-- OPTIMIZATION -->
+            <!-- field/action bellow is not relevan anymore -->
+            <xpath expr="//field[@name='show_subcontracting_details_visible']" position="replace"/>
+            <xpath expr="//button[@name='action_show_subcontract_details']" position="replace"/>
+        </field>
+    </record>
+</odoo>

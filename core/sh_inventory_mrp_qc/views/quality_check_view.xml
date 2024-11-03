@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="quality_check_form_view" model="ir.ui.view">
+        <field name="name">quality.check.form.view</field>
+        <field name="model">sh.quality.check</field>
+        <field name="arch" type="xml">
+            <form string="Quality Check">
+                <header>
+                    <button name="accept" string="Pass" type="object" class="btn-primary" attrs="{'invisible': [('state', 'not in', 'draft')]}" groups="sh_inventory_mrp_qc.sh_quality_control_manager" />
+                    <button name="reject" string="Fail" type="object" class="btn-primary" attrs="{'invisible': [('state', 'not in', 'draft')]}" groups="sh_inventory_mrp_qc.sh_quality_control_manager" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pass,fail" />
+                </header>
+                <sheet>
+                    <group>
+                        <field name="product_id" required="1" />
+                        <field name="sh_picking" required="1" />
+                        <field name="sh_date" required="1" />
+                        <field name="sh_control_point" required="1" />
+                        <field name="control_point_id" required="1" />
+                        <field name="qc_type" required="1" />
+                        <field name="attachment_ids" attrs="{'invisible':[('qc_type','!=','type3')]}" widget="many2many_binary" />
+                        <field name="text_message" attrs="{'invisible':[('qc_type','!=','type4')]}" />
+                        <field name="sh_norm" attrs="{'invisible':[('qc_type','!=','type2')]}" />
+                        <field name="company_id" groups="base.group_multi_company" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="quality_check_tree_view" model="ir.ui.view">
+        <field name="name">quality.check.tree.view</field>
+        <field name="model">sh.quality.check</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="state == 'fail'" decoration-success="state == 'pass'">
+                <field name="product_id" />
+                <field name="sh_picking" />
+                <field name="sh_date" />
+                <field name="sh_control_point" />
+                <field name="control_point_id" />
+                <field name="state" />
+                <field name="qc_type" />
+                <field name="text_message" attrs="{'invisible':[('qc_type','!=','type4')]}" />
+                <field name="sh_norm" attrs="{'invisible':[('qc_type','!=','type2')]}" />
+            </tree>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="quality_check_pivot_view">
+        <field name="name">quality.check.pivot.view</field>
+        <field name="model">sh.quality.check</field>
+        <field name="arch" type="xml">
+            <pivot string="Quality Checks" display_quantity="True">
+                <field name="product_id" type="row" />
+                <field name="state" type="col" />
+            </pivot>
+        </field>
+    </record>
+    <record id="quality_check_search_view" model="ir.ui.view">
+        <field name="name">quality.check.search.view</field>
+        <field name="model">sh.quality.check</field>
+        <field name="arch" type="xml">
+            <search string="Quality Check">
+                <field name="product_id" />
+                <field name="sh_picking" />
+                <field name="sh_date" />
+                <field name="sh_control_point" />
+                <field name="state" />
+                <group expand="0" string="Group By">
+                    <filter string="Product" name="product" context="{'group_by':'product_id'}" />
+                    <filter string="Picking Operation" name="picking_type" context="{'group_by':'sh_picking'}" />
+                    <filter string="Date" name="date" context="{'group_by':'sh_date'}" />
+                    <filter string="Quality Control Point" name="control_point" context="{'group_by':'sh_control_point'}" />
+                    <filter string="Status" name="status" context="{'group_by':'state'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="quality_check_action" model="ir.actions.act_window">
+        <field name="name">Quality Check</field>
+        <field name="res_model">sh.quality.check</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="context">{'search_default_control_point':1}</field>
+        <field name="view_id" ref="quality_check_tree_view" />
+    </record>
+</odoo>

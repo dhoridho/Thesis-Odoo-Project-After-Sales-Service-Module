@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Prescription View -->
+    <record id="view_hms_prescription_order_form" model="ir.ui.view">
+        <field name="name">prescription.order.form</field>
+        <field name="model">prescription.order</field>
+        <field name="inherit_id" ref='acs_hms.view_hms_prescription_order_form'/>
+        <field name="arch" type="xml">
+            <button name="button_reset" position="after">
+                <button name="create_invoice" string="Create Invoice" type="object" attrs="{'invisible': ['|',('invoice_id','!=', False),('state','!=', 'prescription')]}" groups="account.group_account_invoice"/>
+                <field name="invoice_id" invisible="1"/>
+            </button>
+            <div name="button_box" position="inside">
+                <button name="view_invoice" string="View Invoice" groups="account.group_account_invoice" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': [('invoice_id','=', False)]}"/>
+            </div>
+        </field>
+    </record>
+
+    <record id="view_hms_prescription_order_search" model="ir.ui.view">
+        <field name="name">prescription.order.search</field>
+        <field name="model">prescription.order</field>
+        <field name="inherit_id" ref='acs_hms.view_hms_prescription_order_search'/>
+        <field name="arch" type="xml">
+            <field name="company_id" position="after">
+                <field name="invoice_id" invisible="1"/>
+            </field>
+            <filter name="today" position="after">
+                <separator/>
+                <filter string="Not Invoiced" name="not_invoiced" domain="[('invoice_id','=', False)]"/>
+            </filter>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_open_hms_prescription_order_view">
+        <field name="name">Prescription Order</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">prescription.order</field>
+        <field name="view_mode">tree,kanban,form,calendar,pivot</field>
+        <field name="context">{'search_default_not_invoiced': 1, 'search_default_today': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record Found
+            </p>
+            <p>
+                Click to add Prescrition.
+            </p>
+        </field>
+    </record>
+    
+    <record id="acs_hms_view_move_form" model="ir.ui.view">
+        <field name="name">account.move.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="acs_hms.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='physician_id']" position="after">
+                <field name="prescription_id" domain="[('patient_id','=',patient_id)]"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

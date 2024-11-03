@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="inherit_view_resource_calendar_tree" model="ir.ui.view">
+            <field name="name">Working Schedule Tree</field>
+            <field name="model">resource.calendar</field>
+            <field name="inherit_id" ref="resource.view_resource_calendar_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="schedule"/>
+                    <field name="allow_public_holidays"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="resource_calendar_form_flexible_calendar_schedule" model="ir.ui.view">
+            <field name="name">Working Schedule - Flexible Schedule options</field>
+            <field name="model">resource.calendar</field>
+            <field name="inherit_id" ref="resource.resource_calendar_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet" position="before">
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,generated"/>
+                        <button name="action_generate" string="Generate" type="object" class="oe_highlight" attrs="{'invisible':['|',('schedule','=','fixed_schedule'),('state','=','generated')]}"/>
+                    </header>
+                </xpath>
+                <xpath expr="//widget[@name='web_ribbon']" position="replace">
+                </xpath>
+                <xpath expr="//div[@name='button_box']" position="replace">
+                </xpath>
+                <field name="name" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','generated')]}</attribute>
+                </field>
+                <xpath expr="//field[@name='company_id']" position="replace">
+                    <field name="schedule" widget="radio" options="{'horizontal':true}" nolable="1" attrs="{'readonly':[('state','=','generated')]}"/>
+                    <field name="week_working_day" string="Number Of Working"/>
+                    <field name="allow_public_holidays"/>
+                </xpath>
+                <xpath expr="//field[@name='tz']" position="replace">
+                    <field name="tz" invisible="1"/>
+                </xpath>
+                <xpath expr="/form/sheet/group[1]/group[1]" position="after">
+                    <group>
+                        <field name="schedule_period_from" attrs="{'invisible' : [('schedule', '=', 'fixed_schedule')], 'required' : [('schedule', '!=', 'fixed_schedule')], 'readonly':[('state','=','generated')]}"/>
+                        <field name="schedule_period_to" attrs="{'invisible' : [('schedule', '=', 'fixed_schedule')], 'required' : [('schedule', '!=', 'fixed_schedule')], 'readonly':[('state','=','generated')]}"/>
+                        <field name="start_from_day_no" attrs="{'invisible' : [('schedule', '=', 'fixed_schedule')], 'required' : [('schedule', '!=', 'fixed_schedule')], 'readonly':[('state','=','generated')]}"/>
+                        <field name="tz" attrs="{'readonly':[('state','=','generated')]}"/>
+                        <field name="company_id" groups="base.group_multi_company" attrs="{'readonly':[('state','=','generated')]}"/>
+                        <!-- <field name="branch_id"/> -->
+                        <field name="create_date" string="Create On"/>
+                        <field name="create_uid" string="Create By"/>
+                        <field name="break_time_to_work_hour"/>
+                        <field name="hr_overlaps_schema"/>
+                    </group>
+                </xpath>
+                <xpath expr="//field[@name='hours_per_day']" position="replace">
+                    <field name="hours_per_day" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='attendance_ids']" position="replace">
+                    <button name="mass_update_fixed" attrs="{'invisible':[('schedule', '!=', 'fixed_schedule')]}"
+                            string="Mass Update" type="object"/>
+                    <field name="attendance_ids" attrs="{'invisible' : [('schedule', '!=', 'fixed_schedule')]}">
+                        <tree editable="bottom">
+                            <field name="name" required="0" invisible="1"/>
+                            <field name="dayofweek" string="Name of Day"/>
+                            <field name="hour_from" widget="float_time" string="Work From"/>
+                            <field name="hour_to" widget="float_time" string="Work To"/>
+                            <field name="grace_time_for_late" widget="float_time"/>
+                            <field name="attendance_formula_id" options="{'no_create':True}"/>
+                            <field name="break_from" widget="float_time"/>
+                            <field name="break_to" widget="float_time"/>
+                            <field name="half_day" invisible="1"/>
+                            <field name="minimum_hours" widget="float_time"/>
+                            <field name="start_checkin" widget="float_time"/>
+                            <field name="end_checkout" widget="float_time"/>
+                        </tree>
+                    </field>
+                    <field name="shift_variation_line_ids" attrs="{'invisible' : [('schedule', '=', 'fixed_schedule')], 'readonly' : [('state', '=', 'generated')]}">
+                        <tree editable="bottom">
+                            <field name="sequence" string="No"/>
+                            <field name="shifting_id"/>
+                            <field name="day_type" invisible="1"/>
+                            <field name="start_time" widget="float_time" readonly="1" force_save="1"/>
+                            <field name="end_time" widget="float_time" readonly="1" force_save="1"/>
+                            <field name="attendance_formula_id" attrs="{'readonly':[('day_type','=','day_off')]}"/>
+                            <field name="total_days"/>
+                            <field name="minimum_hours" widget="float_time"  readonly="1" force_save="1"/>
+                            <field name="start_checkin" widget="float_time" readonly="1" force_save="1"/>
+                            <field name="end_checkout" widget="float_time" readonly="1" force_save="1"/>
+                            <field name="name" invisible="1"/>
+                        </tree>
+                    </field>
+                </xpath>
+                <xpath expr="//page[2]" position="replace">
+                    <page string="Public Holidays" name="global_leaves">
+                        <field name="global_leave_ids">
+                            <tree editable="top" delete="0" create="0">
+                                <field name="name"/>
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+                <xpath expr="//button[@name='switch_calendar_type']" position="replace">
+                    <button name="switch_calendar_type" string="Switch to 2 weeks calendar" type="object"
+                            invisible="1"/>
+                </xpath>
+                <xpath expr="//form/sheet" position="after">
+                    <div class="oe_chatter">
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </xpath>
+                <xpath expr="//page[@name='global_leaves']" position="before">
+                    <page string="Calendar Working Times" name="calendar_working_times" attrs="{'invisible' : [('schedule', '=', 'fixed_schedule')]}">
+                        <field name="calendar_working_time_ids">
+                            <tree editable="bottom" create="0" delete="0">
+                                <field name="working_date"/>
+                                <field name="shifting_id"/>
+                                <field name="start_time" widget="float_time"/>
+                                <field name="end_time" widget="float_time"/>
+                                <field name="break_from" widget="float_time"/>
+                                <field name="break_to" widget="float_time"/>
+                                <field name="grace_time_for_late" widget="float_time"/>
+                                <field name="attendance_formula_id"/>
+                                <field name="minimum_hours" widget="float_time"/>
+                                <field name="start_checkin" widget="float_time"/>
+                                <field name="end_checkout" widget="float_time"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="resource_calendar_search_flexible_calendar_schedule" model="ir.ui.view">
+            <field name="name">Working Schedule Search Filter</field>
+            <field name="model">resource.calendar</field>
+            <field name="inherit_id" ref="resource.view_resource_calendar_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='inactive']" position="after">
+                    <group expand="0" string="Group By">
+                        <filter string="Schedule" name="schedule" domain="[]" context="{'group_by': 'schedule'}"/>
+                        <filter string="Company" name="company" domain="[]" context="{'group_by': 'company_id'}"
+                                groups="base.group_multi_company"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="resource.action_resource_calendar_form" model="ir.actions.act_window">
+            <field name="name">Working Times</field>
+            <field name="res_model">resource.calendar</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="resource_calendar_search_flexible_calendar_schedule"/>
+            <field name="context">{"search_default_schedule":1, "search_default_company_id":1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Define working hours and time table that could be scheduled to your project members
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="equip3_hr_working_schedule.equip3_menu_hr_attendance_settings" name="Settings" parent="hr_attendance.menu_hr_attendance_settings"
+                  sequence="1" action="hr_attendance.action_hr_attendance_settings"
+                  />
+        <menuitem action="resource.action_resource_calendar_form" id="menu_working_schedule" name="Working Times"
+                  parent="hr_attendance.menu_hr_attendance_settings" sequence="1"/>
+
+
+                  <record model='ir.ui.menu' id='menu_working_schedule'>
+                    <field name="groups_id" eval="[(6, 0, [ref('hr_attendance.group_hr_attendance_user')])]"/>
+                </record>
+    </data>
+</odoo>

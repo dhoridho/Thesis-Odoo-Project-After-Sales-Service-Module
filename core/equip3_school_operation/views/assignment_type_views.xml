@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="assignment.action_school_teacher_assignment_form" model="ir.actions.act_window">
+        <field name="name">Assign Assignment</field>
+        <field name="res_model">school.teacher.assignment</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="context">{'search_default_groupby_intake': 1, 'search_default_groupby_state': 1, 'search_default_active_assign':0}</field>
+    </record>
+
+    <record id="view_school_teacher_assignment_search_inherit" model="ir.ui.view">
+        <field name="name">school.teacher.assignment.search</field>
+        <field name="model">school.teacher.assignment</field>
+        <field name="inherit_id" ref="assignment.view_school_teacher_assignment_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="groupby_intake" string="Intake" context="{'group_by': 'standard_id'}"/>
+                <filter name="groupby_state" string="States" context="{'group_by': 'state'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_school_teacher_assignment_tree_inherit" model="ir.ui.view">
+       <field name="name">school.teacher.assignment.tree.inherit</field>
+        <field name="model">school.teacher.assignment</field>
+        <field name="inherit_id" ref="assignment.view_school_teacher_assignment_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="replace">
+                <field name="state" widget="badge" decoration-info="state in ('draft')" decoration-success="state in ('running','finished')"/>
+            </xpath>
+            <xpath expr="//field[@name='standard_id']" position="attributes">
+                <attribute name="string">Intake</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="type_submission"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_school_teacher_assignment_inherit" model="ir.ui.view">
+        <field name="name">assignment.type.form.inherit</field>
+        <field name="model">school.teacher.assignment</field>
+        <field name="inherit_id" ref="assignment.view_school_teacher_assignment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="replace">
+                <header>
+                    <button name="print_result" string="Print Result" type="object" states="finished" class="oe_highlight" groups="school.group_school_administration,school.group_school_teacher" attrs="{'invisible': [('state', 'not in',['running', 'finsihed'])]}"/>
+                    <button name="active_assignment" class="oe_highlight" states="draft" string="Start" type="object" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="done_assignments" states="active" class="oe_highlight" string="Done" type="object" attrs="{'invisible': [('state', '!=', 'running')]}"/>
+                    <button name="action_cancel" string="Cancel" confirm="Are you sure to cancel this Assignment?" type="object" attrs="{'invisible': [('state', '!=', 'running')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,running,finished"/>
+                </header>
+            </xpath>
+            <xpath expr="//sheet" position="replace">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_view_assignment" type="object" icon="fa-pencil-square-o" class="oe_stat_button" attrs="{'invisible': [('state','in',['draft'])]}">
+                            <span>Assignment Result</span>
+                        </button>
+                    </div>
+                    <field name="related_group_class_ids" widget="many2many_tags" invisible="1"/>
+                    <group string="Assignment Detail">
+                        <group >
+                            <field name="name" required="1" placeholder="Assignment Name" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="school_id" required="1" options="{'no_create': True, 'no_create_edit':True}" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="program_id" required="1" options="{'no_create': True, 'no_create_edit':True}" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="standard_id" select="1" string="Intake" placeholder="Intake" attrs="{'readonly':[('state','!=','draft')]}" required="1" widget="selection"/>
+                            <field name="group_class" required="1" widget="many2many_tags" domain="[('id', 'in', related_group_class_ids), ('state', '=', 'validated')]" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="year_id" required="1" options="{'no_create': True, 'no_create_edit':True}" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="type_submission" required="1" attrs="{'readonly':[('state','!=','draft')]}" />
+                            <field name="file_format" invisible="1" attrs="{'invisible':[('type_submission','in', ['hardcopy', 'online'])],'readonly':[('state','!=','draft')]}"/>
+                            <field name="subject_standard_assignment" invisible="1"/>
+                            <field name="attach_files" invisible="1" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="attached_homework" placeholder="Attachment File" attrs="{'readonly':[('state','!=','draft')], 'invisible': [('type_submission', '=', 'online')]}" filename="attach_files" />
+                        </group>
+                        <group>
+                            <field name="term_ids" required="1" options="{'no_create': True, 'no_create_edit':True}" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="subject_id" select="1" placeholder="Subject" domain="[('id', 'in', related_subject_ids)]" attrs="{'readonly':[('state','!=','draft')]}" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="teacher_id" options="{&quot;no_create&quot;: True, &quot;no_search&quot;: True}" force_save="1" domain="[('id', '=', related_teacher_ids)]" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="assign_date" placeholder="Assign Date" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="due_date" placeholder="Due Date" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="grade_system" required="1"  attrs="{'readonly':[('state','!=','draft')]}" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="survey_id" attrs="{'invisible':[('type_submission','!=','online')],'required': [('type_submission','=','online')], 'readonly':[('state','!=','draft')]}"/>
+                            <field name="subject_standard_assignment" invisible="1"/>
+                            <field name="attach_files" invisible="1" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="file_format" invisible="1" attrs="{'invisible':[('type_submission','in', ['hardcopy', 'online'])],'readonly':[('state','!=','draft')]}"/>
+                            <field name="related_subject_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="related_teacher_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="branch_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="students" string="Students">
+                            <field name="student_ids" readonly="1" force_save="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="program_id" invisible="1"/>
+                                    <field name="academic_code" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        
+                        <page name="student_results" string="Student Results" attrs="{'invisible': [('state', 'not in', ['running', 'finished'])]}">
+                            <field name="student_assign_ids" readonly="1" force_save="1">
+                                <tree>
+                                    <field name="student_id"/>
+                                    <field name="state"/>
+                                    <button name="done_assignment" string="Mark as Done" type="object" icon="fa-check text-success" help="done assigment" states="active"/>
+                                    <button name="reassign_assignment" string="Reassign" type="object" icon="fa-recycle" help="Re-assign assigment" states="reject"/>
+                                    <button name="done_reject" type="object" string="Mark as Reject" icon="fa-times-circle text-danger" help="reject assignment"  states="active"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="assignment.action_school_student_assignment_form" model="ir.actions.act_window">
+        <field name="name">Student Assignment</field>
+        <field name="res_model">school.student.assignment</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="context">{'search_default_groupby_intake': 1, 'search_default_groupby_subject': 1, 'search_default_groupby_name': 1,'search_default_active_assign':0}</field>
+    </record>
+
+    <record id="view_school_student_assignment_search_inherit" model="ir.ui.view">
+        <field name="name">school.student.assignment.search</field>
+        <field name="model">school.student.assignment</field>
+        <field name="inherit_id" ref="assignment.view_school_student_assignment_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="groupby_intake" string="Intake" context="{'group_by': 'standard_id'}"/>
+                <filter name="groupby_subject" string="Subject" context="{'group_by': 'subject_id'}"/>
+                <filter name="groupby_name" string="Assignment Name" context="{'group_by': 'name'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_school_student_assignment_inherit" model="ir.ui.view">
+        <field name="name">assignment.type.form.inherit</field>
+        <field name="model">school.student.assignment</field>
+        <field name="inherit_id" ref="assignment.view_school_student_assignment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_show_survey" type="object" class="btn mt-md-n4 oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible':[('submission_type','!=','online')]}">
+                        <field string="Answers" name="answers_count" widget="statinfo"/>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//header//field[@name='state']" position="replace">
+                <field name="state" widget="statusbar" statusbar_visible="draft,active,reject,done" />
+            </xpath>
+            <xpath expr="//button[@name='done_assignment']" position="attributes">
+                <attribute name="class">oe_highlight</attribute>
+            </xpath>
+            <xpath expr="//form/sheet" position="replace">
+                <sheet>
+                    <group col="4">
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_show_survey" type="object" class="btn oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible':[('submission_type','!=','online')]}">
+                                <field string="Answers" name="answers_count" widget="statinfo"/>
+                            </button>
+                        </div>
+                    </group>
+                    <group string="Assignment Information">
+                        <group>
+                            <field name="student_id" placeholder="Student" attrs="{'readonly':[('state','!=','draft')]}" options="{&quot;no_create&quot;: True, &quot;no_search&quot;: True}" domain="[('state','=','done')]"/>
+                            <field name="stud_roll_no" invisible="1"/>
+                            <field name="name" placeholder="Assignment Name" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="school_id" required="1" attrs="{'readonly':[('state','!=','draft')]}" options="{&quot;no_create&quot;: True, &quot;no_search&quot;: True}"/>
+                            <field name="program_id" required="1" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="standard_id" string="Intake" placeholder="Intake" attrs="{'readonly':[('state','!=','draft')]}" widget="selection"/>
+                            <field name="group_class" required="1" widget="many2many_tags"/>
+                            <field name="year_id" required="1"/>
+                            <field name="submission_type" string="Assignment Type" readonly="1" attrs="{'readonly':[('state','=','active'),('submission_type','=','online')]}"/>
+                            <field name="attached_homework" placeholder="Attachment File" attrs="{'readonly':[('state','!=','draft')],'invisible':[('submission_type','=','online')]}" filename="attached_homework_file_name"/>
+                            <field name="file_name" invisible="1"/>
+                            <field name="rejection_reason" attrs="{'invisible':[('state','in',['draft','active','done','reject'])]}"/>
+                            <field name="attached_homework_file_name" invisible="1"/>
+                            <field name="attachfile_format" invisible="1" string="Assignment File Format" attrs="{'invisible':[('submission_type','in', ['hardcopy', 'online'])],'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="term_ids" domain="[('year_id','=',year_id)]" required="1"/>
+                            <field name="subject_id"  placeholder="Subject" attrs="{'readonly':[('state','!=','draft')]}" widget="selection" domain="[('teacher_ids','in',teacher_id),('standard_ids','in',student_standard)]"/>
+                            <field name="teacher_id" placeholder="Teacher" attrs="{'readonly':[('state','!=','draft')]}" options="{&quot;no_create&quot;: True, &quot;no_search&quot;: True}"/>
+                            <field name="assign_date" placeholder="Assign Date" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="due_date" placeholder="Due Date" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="survey_id" attrs="{'invisible':[('submission_type','!=','online')],'required': [('submission_type','=','online')]}"/>
+                            <field name="submit_assign" filename="file_name" attrs="{'invisible':[('submission_type','in',['hardcopy', 'online'])],'readonly':[('state','!=','active')]}"/>
+                            <field name="score" attrs="{'invisible': [('submission_type', '=', 'online')]}"/>
+                            <field name="branch_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="teacher_assignment_ids">
+                        <tree editable="bottom" create="0" delete="0">
+                            <field name="subject_id" readonly="1"/>
+                            <field name="scoring_percentage"/>
+                            <field name="grade"/>
+                            <field name="result"/>
+                        </tree>
+                    </field>
+                    <field name="teacher_assignment_id" invisible="1"/>
+                    <field name="student_standard" invisible="1"/>
+                    <field name='active' invisible='1'/>
+                </sheet>
+            </xpath>
+            <xpath expr="//form" position="attributes">
+                <attribute name="create">false</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

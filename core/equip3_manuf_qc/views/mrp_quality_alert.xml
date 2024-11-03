@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mrp_quality_alert_form_view" model="ir.ui.view">
+        <field name="name">quality.alert.form.view</field>
+        <field name="model">sh.mrp.quality.alert</field>
+        <field name="inherit_id" ref="sh_inventory_mrp_qc.mrp_quality_alert_form_view"/>
+        <field name="arch" type="xml">
+            <!-- STATUS BAR -->
+            <xpath expr="//field[@name='stage_id']" position="attributes">
+                <attribute name="domain">[('name', '!=', 'CANCELLED')]</attribute>
+            </xpath>
+
+            <!-- HIDE FIELDS -->
+            <xpath expr="//field[@name='title']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='lot_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- ADDED BUTTONS -->
+            <xpath expr="//header" position="inside">
+                <field name="stage_name" invisible="1"/>
+                <field name="control_point_id" invisible="1"/>
+                <field name="show_create_qc_button" invisible="1"/>
+                <button name="action_create_qc_wizards" string="Create Quality Checks" type="object" class="oe_highlight" attrs="{'invisible': [('show_create_qc_button', '=', False)]}"/>
+                <button name="action_done" string="Done" type="object" class="oe_highlight" attrs="{'invisible': [('stage_name', '!=', 'WAITING')]}"/>
+            </xpath>
+
+            <!-- ADDED FIELDS -->
+            <xpath expr="//field[@name='mrp_id']" position="before">
+                <field name="plan_id" attrs="{'invisible': [('plan_id', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//field[@name='mrp_id']" position="attributes">
+                <attribute name="attrs">{'invisible': [('mrp_id', '=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='workorder_id']" position="attributes">
+                <attribute name="attrs">{'invisible': [('workorder_id', '=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='workorder_id']" position="after">
+                <field name="consumption_id" attrs="{'invisible': [('consumption_id', '=', False)]}"/>
+                <field name="move_id" invisible="1"/>
+            </xpath>
+
+            <!-- ADDED TABS -->
+            <xpath expr="//notebook/page[1]" position="before">
+                <page name="quality_check_wizard" string="Quality Checks" attrs="{'invisible': [('wizard_ids', '=', [])]}">
+                    <field name="wizard_ids" context="{'tree_view_ref': 'equip3_manuf_qc.view_mrp_qc_wizard_tree'}"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp_quality_alert_kanban_view" model="ir.ui.view">
+        <field name="name">mrp.quality.alert.kanban.view</field>
+        <field name="model">sh.mrp.quality.alert</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage_id" class="o_kanban_small_column o_quality_alert_kanban" archivable="false" sample="1">
+                <field name="stage_id"/>
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="sh_priority"/>
+                <field name="user_id"/>
+                <field name="color"/>
+                <field name="activity_ids"/>
+                <field name="int_record"/>
+                <progressbar field="activity_state" colors='{"planned": "success", "today": "warning", "overdue": "danger"}' sum_field="int_record" help="This bar allows to filter the opportunities based on scheduled activities."/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="#{!selection_mode ? kanban_color(record.color.raw_value) : ''} oe_kanban_global_click">
+                            <div class="o_dropdown_kanban dropdown">
+                                <a class="dropdown-toggle o-no-caret btn" role="button" data-toggle="dropdown" data-display="static" href="#" aria-label="Dropdown menu" title="Dropdown menu">
+                                    <span class="fa fa-ellipsis-v"/>
+                                </a>
+                                <div class="dropdown-menu" role="menu">
+                                    <t t-if="widget.editable"><a role="menuitem" type="edit" class="dropdown-item">Edit</a></t>
+                                    <t t-if="widget.deletable"><a role="menuitem" type="delete" class="dropdown-item">Delete</a></t>
+                                    <ul class="oe_kanban_colorpicker" data-field="color"/>
+                                </div>
+                            </div>
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_title">
+                                    <strong><field name="product_id"/></strong>
+                                </div>
+                                <div class="o_kanban_record_subtitle">
+                                    <div><strong><field name="name"/></strong></div>
+                                    <div><field name="control_point_id"/></div>
+                                    
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="sh_priority" widget="priority" groups="base.group_user"/>
+                                        <field name="activity_ids" widget="kanban_activity"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="user_id" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="oe_clear"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+</odoo>

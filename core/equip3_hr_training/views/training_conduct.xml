@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="form_training_conduct" model="ir.ui.view">
+            <field name="name">form.training.conduct</field>
+            <field name="model">training.conduct</field>
+            <field name="arch" type="xml">
+                <form string="Training Conduct Form">
+                    <header>
+                        <field name='sequence' invisible="1"/>
+                        <field name='state' invisible="1"/>
+                        <field name='is_approved' invisible="1"/>
+                        <field name='is_next_stage_hide' invisible="1"/>
+                        <field name="certificate_hide" invisible="1"/>
+                        <button string="Confirm" name="action_confirm" states="draft" type="object"
+                                class="oe_highlight"/>
+                        <button string="Approve" name="wizard_approve" type="object" class="oe_highlight"
+                                attrs="{'invisible': ['|', ('is_approver', '=', False), ('is_approved', '!=', False)]}"/>
+                        <button string="Reject" name="wizard_reject" type="object" class="oe_highlight"
+                                attrs="{'invisible': ['|', ('is_approver', '=', False), ('is_approved', '!=', False)]}"/>
+                        <button string="Move to Next Stage" name="action_move_next_stage" type="object"
+                                class="oe_highlight"
+                                attrs="{'invisible': ['|', ('is_approved', '=', False), ('is_next_stage_hide', '!=', False)]}"/>
+
+                        <button string="Send Certificate" name="action_certificate" type="object"
+                                class="oe_highlight"
+                                attrs="{'invisible': ['|', ('certificate', '=', False), ('certificate_hide', '=', False)]}"/>
+                        <field name="stage_id" widget="statusbar" options="{'clickable': False, 'fold_field': 'fold'}"
+                               invisible="1"/>
+                        <field name="stage_course_id" widget="statusbar"
+                               options="{'clickable': False, 'fold_field': 'fold'}"
+                               domain="[('id','in',stage_course_domain_ids)]" attrs="{'invisible':[('is_training_approval_matrix','=',False)]}"/>
+                        <field name="state1" widget="statusbar"
+                               options="{'clickable': False, 'fold_field': 'fold'}"
+                               domain="[('id','in',stage_course_domain_ids), ('sequence','not in',[2, 6])]" attrs="{'invisible':[('is_training_approval_matrix','!=',False)]}"/>
+                    </header>
+                    <sheet>
+
+                        <div class="oe_button_box" name="button_box">
+                            <button name="get_participations" class="oe_stat_button" icon="o-hm-smart-hrm-test-result" type="object">
+                                <field name="participations_count" widget="statinfo" string="Test Result"/>
+                            </button>
+
+                        </div>
+
+                        <div class="oe_title">
+                            <h1 class="o_row">
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="stage_course_domain_ids" invisible="1"/>
+                                <field name="course_id"
+                                       options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True,'create':False}" attrs="{'readonly' : [('state', '!=', 'draft')]}"/>
+                                <field name="trainer_type" widget="radio" options="{'horizontal':true}" attrs="{'readonly' : [('state', '!=', 'draft')]}"/>
+                                <field name="training_level_id" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True,'create':False}" attrs="{'readonly' : [('state', '!=', 'draft')]}"/>
+                                <field name="venue_id" attrs="{'invisible' : [('trainer_type', '!=', 'external')], 'readonly' : [('state', '!=', 'draft')]}"/>
+                                <field name="employee_ids" widget="many2many_tags"
+                                       attrs="{'invisible' : [('trainer_type', '=', 'external')], 'required' : [('trainer_type', '!=', 'external')], 'readonly' : [('state', '!=', 'draft')]}"/>
+                                <field name="external_trainer"
+                                       attrs="{'invisible' : [('trainer_type', '!=', 'external')], 'required' : [('trainer_type', '=', 'external')], 'readonly' : [('state', '!=', 'draft')]}"/>
+                                <field name="employee_id" invisible="1"/>
+                                <field name="responsible_ids" widget="many2many_tags"
+                                       attrs="{'invisible' : [('trainer_type', '!=', 'external')], 'readonly' : [('state', '!=', 'draft')]}"/>
+                                <label for="estimated_cost"/>
+                                <div>
+                                    <field name="estimated_currency" class="oe_inline" no_label="1" attrs="{'readonly' : [('state', '!=', 'draft')]}"/>
+                                    <field name="estimated_cost" class="oe_inline" no_label="1" attrs="{'readonly' : [('state', '!=', 'draft')]}"/>
+                                </div>
+                                <field name="certificate" attrs="{'readonly' : [('state', '!=', 'draft')]}"/>
+                                <field name="certificate_template"
+                                       attrs="{'invisible' : [('certificate', '!=', True)], 'required' : [('certificate', '=', True)], 'readonly' : [('state', '!=', 'draft')]}"/>
+
+                            </group>
+
+                            <group>
+                                <field name="start_date" required="True" attrs="{'readonly' : [('state', '!=', 'draft')]}"/>
+                                <field name="end_date" required="True" attrs="{'readonly' : [('state', '!=', 'draft')]}"/>
+                                <field name="minimal_score" string="Minimum Score" attrs="{'readonly' : [('state', '!=', 'draft')]}"/>
+                                <field name="company_id" invisible="1"/>
+                                <field name="created_date" readonly="1" force_save="1"/>
+                                <field name="created_by" readonly="1"
+                                       options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True,'create':False}"/>
+
+                                <field name="job_id" invisible="1"/>
+                                <field name="department_id" invisible="1"/>
+                                <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                                <field name="is_approver" invisible="1"/>
+                                <field name="approved_user_text" invisible="1"/>
+                                <field name="approved_user" invisible="1" readonly="1"/>
+                                <field name="feedback_parent" invisible="1"/>
+                                <field name="edit_score" invisible="1"/>
+                                <field name="is_training_approval_matrix" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Training Conduct Line">
+                                <field name="current_stage" invisible="1"/>
+                                <button name="emp_add_select_btn" string="Add Employee" type="object" attrs="{'invisible': ['|', ('current_stage', '=', 'On Progress'), ('current_stage', '=', 'Completed')]}"/>
+                                <field name="conduct_line_ids" options="{'create':[('state', '=', 'draft')]}">
+                                    <tree editable="bottom">
+                                        <field name='employee_domain_ids' invisible='1' />
+                                        <field name="edit_score" invisible="1"/>
+                                        <field name="is_next_stage_executed" invisible="1"/>
+                                        <field name="employee_id" options="{'no_open': True,'no_create': True}"  domain="[('id','not in', employee_domain_ids)]"/>
+                                        <field name="attended"/>
+                                        <field name="remarks"/>
+                                        <field name="attachment"/>
+                                        <field name="certificate_attachment" filename="certificate_attachment_fname"
+                                               widget="binary" invisible="1"/>
+                                        <field name="certificate_attachment_fname" invisible="1"/>
+<!--                                        <field name="pre_test" string="Pre-Test" force_save="1" attrs="{'readonly': ['|', ('edit_score', '=', False), ('is_next_stage_executed', '!=', False)]}"/>-->
+                                        <field name="pre_test" string="Pre-Test" force_save="1"/>
+                                        <field name="post_test" string="Post-Test" force_save="1"/>
+                                        <field name="final_score" readonly="1" force_save="1" string="Average Score"/>
+                                        <field name="status" string="Status" force_save="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Approval Matrix Lines" attrs="{'invisible':[('is_training_approval_matrix','=',False)]}">
+                                <field name="training_approver_user_ids">
+                                    <tree editable="bottom" create="false" delete="false">
+                                        <field name="name"/>
+                                        <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                        <field name="minimum_approver" readonly="1" force_save="1"/>
+                                        <field name="timestamp" invisible="1" force_save="1"/>
+                                        <field name="approver_state" invisible="1" force_save="1"/>
+                                        <field name="approval_status" readonly="1" force_save="1"/>
+                                        <field name="approved_time" readonly="1" force_save="1"/>
+                                        <field name="is_approve" invisible="1" force_save="1"/>
+                                        <field name="approved_employee_ids" invisible="1"/>
+                                        <field name="feedback" readonly="1" force_save="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+
+        <record id="calendar_training_conduct" model="ir.ui.view">
+            <field name="name">calendar.training.conduct</field>
+            <field name="model">training.conduct</field>
+            <field name="arch" type="xml">
+
+                <calendar date_start="start_date" date_stop="end_date" string="Training Conduct">
+                    <field name="name"/>
+                    <field name="course_id"/>
+                </calendar>
+
+            </field>
+        </record>
+
+
+        <record id="tree_training_conduct" model="ir.ui.view">
+            <field name="name">tree.training.conduct</field>
+            <field name="model">training.conduct</field>
+            <field name="arch" type="xml">
+                <tree string="Training Conduct Tree">
+                    <field name="name"/>
+                    <field name="course_id"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="current_stage" invisible='1'/>
+                    <field name="stage_course_id" decoration-primary="current_stage == 'New'"
+                            decoration-warning="current_stage == 'To Approve'"
+                            decoration-warning2="current_stage == 'On Progress'"
+                            decoration-secondary="current_stage == 'More'"
+                            decoration-success="current_stage == 'Approved'" 
+                            decoration-success2="current_stage == 'Completed'" 
+                            widget='badge' string='Status'/>
+                </tree>
+            </field>
+        </record>
+        <!-- search View Of Training conduct -->
+        <record id="search_training_conduct" model="ir.ui.view">
+            <field name="name">training.conduct.search</field>
+            <field name="model">training.conduct</field>
+            <field name="arch" type="xml">
+                <search string="Training Conduct">
+                    <field name="stage_course_id"/>
+                    <field name="course_id"/>
+                    <group expand="0" string="Group By">
+                        <!-- <filter name="course_id" string="Course" icon="terp-check" context="{'group_by':'course_id'}"/> -->
+                        <filter name="stage_course_id" string="Stage" icon="terp-check" context="{'group_by':'stage_course_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+        <record id="action_training_conduct" model="ir.actions.act_window">
+            <field name="name">Training Conduct</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">training.conduct</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tree_training_conduct" />
+            <field name="search_view_id" ref="search_training_conduct"/>
+            <field name="context">{"search_default_stage_course_id":1,"search_default_course_id":1}</field>
+        </record>
+
+
+        <record model="ir.actions.server" id="action_training_kanban_conduct">
+            <field name="name">Training Conduct</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="model_training_conduct"/>
+            <field name="code">action = model.get_menu()</field>
+        </record>
+
+
+        <record model="ir.actions.server" id="action_training_kanban_conduct_by_course">
+            <field name="name">Training Conduct</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="model_training_conduct"/>
+            <field name="code">action = model.get_menu_by_course()</field>
+        </record>
+
+
+        <record id="training_conduct_view_search" model="ir.ui.view">
+            <field name="name">training.conduct.view.search</field>
+            <field name="model">training.conduct</field>
+            <field name="arch" type="xml">
+                <search string="Search Training Conduct">
+                    <field name="course_id"/>
+                </search>
+            </field>
+        </record>
+
+
+        <record model="ir.ui.view" id="hr_kanban_view_training_conduct">
+            <field name="name">Training Conduct kanban</field>
+            <field name="model">training.conduct</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="stage_id" class="o_kanban_applicant" sample="1">
+                    <field name="stage_id" options='{"group_by_tooltip": {"requirements": "Requirements"}}' readonly="1"
+                           force_save="1"/>
+                    <field name="name"/>
+                    <field name="course_id"/>
+                    <field name="color"/>
+                    <field name="priority"/>
+                    <field name="activity_ids"/>
+                    <field name="activity_state"/>
+                    <progressbar field="activity_state"
+                                 colors='{"planned": "success", "overdue": "danger", "today": "warning"}'/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="{{!selection_mode ? 'oe_kanban_color_' + kanban_getcolor(record.color.raw_value) : ''}} oe_kanban_card oe_kanban_global_click oe_applicant_kanban oe_semantic_html_override">
+                                <div class="o_dropdown_kanban dropdown">
+                                    <a class="dropdown-toggle o-no-caret btn" role="button" data-toggle="dropdown"
+                                       href="#" aria-label="Dropdown menu" title="Dropdown menu" data-display="static">
+                                        <span class="fa fa-ellipsis-v"/>
+                                    </a>
+                                    <div class="dropdown-menu" role="menu">
+                                        <t t-if="widget.deletable">
+                                            <a role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                                        </t>
+                                        <div role="separator" class="dropdown-divider"></div>
+                                        <ul class="oe_kanban_colorpicker text-center" data-field="color"/>
+                                    </div>
+                                </div>
+                                <div class="oe_kanban_content">
+                                    <div class="o_kanban_record_top">
+                                        <div class="o_kanban_record_headings">
+                                            <b class="o_kanban_record_title mt8" t-if="record.name.raw_value">
+                                                <field name="name"/>
+                                                <br/>
+                                            </b>
+                                            <t t-else="1">
+                                                <i class="o_kanban_record_title">
+                                                    <field name="name"/>
+                                                </i>
+                                                <br/>
+                                            </t>
+                                            <div class="o_kanban_record_subtitle"
+                                                 invisible="context.get('search_default_course_id', False)">
+                                                <field name="course_id"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="o_kanban_record_bottom mt4">
+                                        <div class="oe_kanban_bottom_left">
+                                            <div class="float-left mr4" groups="base.group_user">
+                                                <field name="priority" widget="priority"/>
+                                            </div>
+                                            <div class="o_kanban_inline_block mr8">
+                                                <field name="activity_ids" widget="kanban_activity"/>
+                                            </div>
+                                        </div>
+                                        <div class="oe_kanban_bottom_right">
+                                            <!-- <a name="action_get_attachment_tree_view" type="object">
+                                                <span title='Documents'><i class='fa fa-paperclip' role="img" aria-label="Documents"/>
+                                                    <t t-esc="record.attachment_number.raw_value"/>
+                                                </span>
+                                            </a> -->
+                                            <!-- <div class="o_kanban_state_with_padding ml-1 mr-2" >
+                                                <field name="kanban_state" widget="kanban_state_selection"/>
+                                                <field name="legend_normal" invisible="1"/>
+                                                <field name="legend_blocked" invisible="1"/>
+                                                <field name="legend_done" invisible="1"/>
+                                            </div>
+                                            <field name="user_id" widget="many2one_avatar_user"/> -->
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="oe_clear"></div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="training_conduct_view_calendar" model="ir.ui.view">
+            <field name="name">hr.leave.view.calendar</field>
+            <field name="model">training.conduct.line</field>
+            <field name="arch" type="xml">
+                <calendar date_start="start_date" date_stop="end_date" event_open_popup="true" mode="month" quick_add="false" color="employee_id" string="Training Conduct">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="course_id"/>
+                </calendar>
+            </field>
+        </record>
+
+        <record id="action_training_conduct_view_calendar" model="ir.actions.act_window">
+        <field name="name">My Dashboard</field>
+        <field name="res_model">training.conduct.line</field>
+        <field name="view_mode">calendar</field>
+        <field name="domain">[('employee_id.user_id', '=', uid)]</field>
+        <field name="context">{'short_name': 1,'is_calendar':True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Keep track of your Training.
+            </p><p>
+                A great way to keep track on Training status.
+            </p>
+        </field>
+    </record>
+
+    </data>
+</odoo>

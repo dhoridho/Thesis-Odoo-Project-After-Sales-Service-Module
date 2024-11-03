@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+        <!-- EMS Classes Form View -->
+        <record id="ems_class_form" model="ir.ui.view">
+            <field name="name">ems.classes.form</field>
+            <field name="model">ems.classes</field>
+            <field name="arch" type="xml">
+                <form string="EMS Classes">
+                    <header>
+                        <button string="Activate Class" name="action_active" type="object" class="oe_highlight" attrs="{'invisible': [('state', 'not in', ['pending'])]}"/>
+                        <button string="Done" name="action_done" type="object" class="oe_highlight" attrs="{'invisible': [('state', 'not in', ['active'])]}"/>
+                        <button string="Cancel Class" name="action_cancel" type="object" attrs="{'invisible': [('state', 'not in', ['pending', 'active'])]}"/>
+                        <field name="state" widget="statusbar" statusbar_visible="pending,active,done"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="classes_type" required="1" attrs="{'readonly': [('state', '!=', 'active')]}"/>
+                                <field name="name" required="1" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="school_id" required="1" attrs="{'readonly': [('state', '!=', 'pending')]}" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="program_id" required="1" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="intake_id" required="1" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="group_class" required="1" widget="many2many_tags" domain="[('id', 'in', related_group_class_ids), ('state', '=', 'validated')]" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="year_id" required="1" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="term_id" required="1" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="subject_id" required="1" domain="[('id', 'in', related_subject_ids)]" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="related_subject_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="related_group_class_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="related_teacher_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="is_teacher" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="teacher_id" attrs="{'invisible': [('is_teacher', '=', True)], 'required': [('is_teacher', '=', False)], 'readonly': [('state', '!=', 'pending')]}" domain="[('id', '=', related_teacher_ids)]"/>
+                                <field name="replacement_teacher_id" attrs="{'invisible': [('is_teacher', '=', True)], 'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="classroom_id" required="1" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="class_date" widget="date" required="1" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="study_day" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="start_time" widget="float_time" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="end_time" widget="float_time" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
+                                <field name="branch_id" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Student">
+                                <field name="ems_classes_line" attrs="{'readonly': [('state', '!=', 'active')]}" force_save="1">
+                                    <tree editable="bottom" create="0" delete="0">
+                                        <field name="student_id" required="1"/>
+                                        <field name="is_present" attrs="{'readonly': [('is_absent', '=', True)]}"/>
+                                        <field name="is_late"/>
+                                        <field name="is_absent" attrs="{'readonly': [('is_present', '=', True)]}"/>
+                                        <field name="remark"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_school_teacher_calendar_new" model="ir.ui.view">
+            <field name="name">ems.classes.calendar</field>
+            <field name="model">ems.classes</field>
+            <field name="arch" type="xml">
+                <calendar string="Calendar" date_start="class_date_start" date_stop="class_date_end"  mode="month">
+                    <field name="name"/>
+                    <field name="teacher_id"/>
+                    <field name="classroom_id"/>
+                    <field name="class_date" widget="date"/>
+                    <field name="start_time" widget="float_time"/>
+                    <field name="end_time" widget="float_time"/>
+                </calendar>
+            </field>
+        </record>
+    
+        <!-- EMS Classes Tree View -->
+        <record id="ems_class_view_tree" model="ir.ui.view">
+            <field name="name">ems.classes.view.tree</field>
+            <field name="model">ems.classes</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="subject_id"/>
+                    <field name="study_day"/>
+                    <field name="class_date" widget="date"/>
+                    <field name="teacher_id"/>
+                    <field name="classroom_id"/>
+                    <field name="state" string="Status" widget="badge" decoration-info="state in ('pending')"
+                                                                       decoration-success="state in ('active','done')"
+                                                                       decoration-danger="state in ('cancelled')"/>
+                </tree>
+            </field>
+        </record>
+        
+        <!-- <record id="ems_regular_class_view_tree" model="ir.ui.view">
+            <field name="name">ems.classes.view.tree</field>
+            <field name="model">ems.classes</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="subject_id"/>
+                    <field name="study_day"/>
+                    <field name="class_date" widget="date"/>
+                    <field name="teacher_id"/>
+                    <field name="classroom_id"/>
+                    <field name="state" string="Status" widget="badge" decoration-info="state in ('pending')"
+                                                                       decoration-success="state in ('active','done')"
+                                                                       decoration-danger="state in ('cancelled')"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="ems_exam_class_view_tree" model="ir.ui.view">
+            <field name="name">ems.classes.view.tree</field>
+            <field name="model">ems.classes</field>
+            <field name="arch" type="xml">
+                <tree create="false">
+                    <field name="name"/>
+                    <field name="subject_id"/>
+                    <field name="study_day"/>
+                    <field name="class_date" widget="date"/>
+                    <field name="teacher_id"/>
+                    <field name="classroom_id"/>
+                    <field name="state" string="Status" widget="badge" decoration-info="state in ('pending')"
+                                                                       decoration-success="state in ('active','done')"
+                                                                       decoration-danger="state in ('cancelled')"/>
+                </tree>
+            </field>
+        </record> -->
+    
+        <!-- EMS Classes action window -->
+        <record id="ems_class_action" model="ir.actions.act_window">
+            <field name="name">Classes</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ems.classes</field>
+            <field name="view_ids" eval="[(5, 0, 0), 
+                                          (0, 0, {'view_mode': 'calendar'}), 
+                                          (0, 0, {'view_mode': 'tree', 'view_id': ref('ems_class_view_tree')}),                           
+                                          (0, 0, {'view_mode': 'form'})]"/>
+            <field name="context">{'group_by': ['classes_type', 'name'], 'default_classes_type': 'regular'}</field>
+            <field name="target">current</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to Create New EMS Classes.
+                </p>
+            </field>
+        </record>
+
+        <!-- <record id="ems_regular_class_action" model="ir.actions.act_window">
+            <field name="name">Regular Classes</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ems.classes</field>
+            <field name="view_ids" eval="[(5, 0, 0), 
+                                          (0, 0, {'view_mode': 'calendar'}), 
+                                          (0, 0, {'view_mode': 'tree', 'view_id': ref('ems_regular_class_view_tree')}),                           
+                                          (0, 0, {'view_mode': 'form'})]"/>
+            <field name="domain">[('classes_type','=','regular')]</field>
+            <field name="context">{'group_by':['name'], 'default_classes_type':'regular'}</field>
+            <field name="target">current</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to Create New EMS Classes.
+                </p>
+            </field>
+        </record>
+
+        <record id="ems_exam_class_action" model="ir.actions.act_window">
+            <field name="name">Exam Classes</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ems.classes</field>
+            <field name="view_ids" eval="[(5, 0, 0), 
+                                          (0, 0, {'view_mode': 'calendar'}), 
+                                          (0, 0, {'view_mode': 'tree', 'view_id': ref('ems_exam_class_view_tree')}),                           
+                                          (0, 0, {'view_mode': 'form'})]"/>
+            <field name="domain">[('classes_type','=','exam')]</field>
+            <field name="context">{'group_by':['name'], 'default_classes_type':'exam'}</field>
+            <field name="target">current</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to Create New EMS Classes.
+                </p>
+            </field>
+        </record> -->
+    
+        <!-- EMS Classes Menu Action -->
+        <menuitem id="ems_class_menu_act"
+                name="Classes"
+                parent="menu_class_schedule"
+                action="ems_class_action"
+                sequence="10"/>
+        
+        <!-- <menuitem id="ems_regular_class_menu_act"
+                name="Regular Classes"
+                parent="menu_class_schedule"
+                action="ems_regular_class_action"
+                sequence="2"/>
+
+        <menuitem id="ems_exam_class_menu_act"
+                name="Exam Classes"
+                parent="menu_class_schedule"
+                action="ems_exam_class_action"
+                sequence="3"/> -->
+        
+        <record id="menu_class_schedule" model="ir.ui.menu">
+            <field name="equip_icon_class">o-hm-sidebar-parent-school-class-schedule</field>
+        </record>
+
+        <record model="ir.ui.menu" id="school.menu_class_room">
+            <field name="sequence">60</field>
+        </record>
+
+</odoo>

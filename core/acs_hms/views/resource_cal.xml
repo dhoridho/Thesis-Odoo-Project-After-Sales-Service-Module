@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_schedule_form" model="ir.ui.view">
+        <field name="name">resource.calendar.form</field>
+        <field name="model">resource.calendar</field>
+        <field name="inherit_id" ref="resource.resource_calendar_form"/>
+        <field name="arch" type="xml">
+            <field name="company_id" position="after">
+                <field name='category'/>
+            </field>
+            <xpath expr="//group[1]" position="after">
+                <group>
+                    <field name='department_id' groups="acs_hms.group_allow_multi_department"/>
+                    <field name='physician_ids' widget="many2many_tags" attrs="{'invisible': [('category','!=','doctor')]}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_schedule_tree" model="ir.ui.view">
+        <field name="name">resource.calendar.tree</field>
+        <field name="model">resource.calendar</field>
+        <field name="inherit_id" ref="resource.view_resource_calendar_tree"/>
+        <field name="arch" type="xml">
+            <field name="company_id" position="after">
+                <field name='category'/>
+                <field name='physician_ids' widget="many2many_tags"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_schedule_search" model="ir.ui.view">
+        <field name="name">resource.calendar.search</field>
+        <field name="model">resource.calendar</field>
+        <field name="inherit_id" ref="resource.view_resource_calendar_search"/>
+        <field name="arch" type="xml">
+            <field name="company_id" position="after">
+                <field name='department_id' groups="acs_hms.group_allow_multi_department"/>
+            <filter name="my_app" string="Doctor's Schedule" domain="[('category', '=','doctor')]"/>
+            <filter name="my_app" string="Nurse's Schedule" domain="[('category', '=','nurse')]"/>
+            <group expand="0" string="Group By...">
+                <filter string="Department" name="department_id_groupby" domain="[]" context="{'group_by':'department_id'}" />
+            </group>
+            </field>
+        </field>
+    </record>
+
+    <record id="action_resource_calendar" model="ir.actions.act_window">
+        <field name="name">Working Times</field>
+        <field name="res_model">resource.calendar</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('category','!=',False)]</field>
+        <field name="view_id" eval="False"/>
+        <field name="search_view_id" ref="resource.view_resource_calendar_search"/>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Physician working hours and time table.
+          </p>
+        </field>
+    </record>
+
+</odoo>

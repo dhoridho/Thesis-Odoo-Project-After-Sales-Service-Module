@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sh_purchase_agreement_view_form_inherit" model="ir.ui.view">
+        <field name="name">sh.purchase.agreement.view.form.inherit</field>
+        <field name="model">purchase.agreement</field>
+        <field name="inherit_id" ref="sh_po_tender_management.sh_purchase_agreement_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group" position="before">
+                <div>
+                    <div class="row">
+                        <div class="col" name="col_1">
+                            <group>
+                                <field name="sh_purchase_user_id" attrs="{'readonly':[('state','in',['closed','cancel'])]}" />
+                                <field name="sh_agreement_type" widget="selection" attrs="{'readonly':[('state','in',['closed','cancel'])]}" />
+                                <field name="sh_vender_id" invisible="1" />
+                                <field name="partner_ids" attrs="{'readonly':[('state','in',['closed','cancel'])]}" widget="many2many_tags" />
+                                <field name="sh_manage_tender_document" invisible="1"/>
+                            </group>
+                        </div>
+                        <div class="col" name="col_2">
+                            <group>
+                                <field name="sh_agreement_deadline" attrs="{'readonly':[('state','in',['closed','cancel'])]}" />
+                                <field name="sh_order_date" attrs="{'readonly':[('state','in',['closed','cancel'])]}" />
+                                <field name="sh_delivery_date" attrs="{'readonly':[('state','in',['closed','cancel'])]}" />
+                                <field name="sh_source" placeholder="e.g. PO0001" attrs="{'readonly':[('state','in',['closed','cancel'])]}" />
+                            </group>
+                        </div>
+                        <div class="col" name="col_3">
+                            <group>
+                                <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" />
+                                <field name="is_price_ratting_rfq_tender" invisible="1"/>
+                            </group>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='action_confirm']" position="attributes">
+                <attribute name="attrs">{'invisible':['|', ('state','in',['confirm','bid_submission','bid_selection','closed','cancel','reject']),('approval_matrix', '!=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_confirm']" position="after">
+                <field name="is_purchase_tender_approval_matrix" invisible="1"/>
+                <field name="is_approve_button" invisible="1"/>
+                <button name="action_approved" string="Approve" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_purchase_tender_approval_matrix','=', False), ('is_approve_button', '=', False), ('state', '!=', 'waiting_approval')]}"/>
+                <button name="action_reject" string="Reject" type="object" class="decoration-secondary" attrs="{'invisible': ['|', '|', ('is_purchase_tender_approval_matrix','=', False), ('is_approve_button', '=', False), ('state', '!=', 'waiting_approval')]}"/>
+            </xpath>
+            <xpath expr="//button[@name='action_confirm']" position="after">
+                <button name="action_request" string="Request for Approval" type="object" class="oe_highlight" attrs="{'invisible':['|', ('state', 'not in', 'draft'),('approval_matrix','=',False)]}"/>
+                <button name="action_confirm_pt" string="Confirm" type="object" class="oe_highlight" attrs="{'invisible':['|', ('state', '!=', 'tender_approved'),('approval_matrix','=',False)]}"/>
+            </xpath>
+            <xpath expr="//button[@name='action_new_quotation']" position="before">
+                <button name="action_open_purchase_tender" string="Open" type="object" class="oe_highlight" attrs="{'invisible':['|',('state2','!=','pending'),('tender_scope','!=','open_tender')]}" />
+                <button name="action_new_quotation2" string="New Quotation" type="object" class="oe_highlight" attrs="{'invisible':[('state','in',['draft','waiting_approval','bid_selection','closed','cancel','reject', 'tender_approved'])]}" />
+            </xpath>
+            <xpath expr="//button[@name='action_new_quotation']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_validate']" position="attributes">
+                <attribute name="attrs">{'invisible':['|', ('state','in',['draft','waiting_approval','bid_selection','closed','cancel','reject', 'tender_approved']),('state2','in',['pending'])]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_close']" position="attributes">
+                <attribute name="attrs">{'invisible':[('state','in',['draft','waiting_approval','confirm','bid_submission','closed','cancel','reject', 'tender_approved'])]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_analyze_rfq']" position="attributes">
+                <attribute name="attrs">{'invisible':[('state','in',['draft','waiting_approval','confirm','bid_submission','closed','cancel','reject', 'tender_approved'])]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_set_to_draft']" position="attributes">
+                <attribute name="attrs">{'invisible':[('state','in',['draft','waiting_approval','confirm','bid_submission','bid_selection','reject'])]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_send_tender']" position="attributes">
+                <attribute name="attrs">{'invisible':[('state','in',['waiting_approval', 'tender_approved','reject'])]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_cancel']" position="attributes">
+                <attribute name="attrs">{'invisible':[('state','in',['cancel','reject','waiting_approval', 'tender_approved'])]}</attribute>
+            </xpath>
+
+            <field name="state" position="replace">
+                <field name="state1" widget="statusbar" statusbar_visible="draft,confirm" align="right" readonly="1" attrs="{'invisible':[('approval_matrix','!=',False)]}"/>
+                <field name="state4" widget="statusbar" statusbar_visible="draft,waiting_approval,tender_approved,confirm" align="right" readonly="1" attrs="{'invisible':['|',('approval_matrix','=',False),('state','=','reject')]}"/>
+                <field name="state5" widget="statusbar" statusbar_visible="draft,waiting_approval,reject,confirm" align="right" readonly="1" attrs="{'invisible':[('state','!=','reject')]}"/>
+                <field name="state" invisible="1"/>
+            </field>
+            <xpath expr="//header" position="after">
+                <header>
+                    
+                    <field name="state2" widget="statusbar" statusbar_visible="pending,bid_submission,bid_selection,closed" align="right" readonly="1" attrs="{'invisible':[('state','=','cancel')]}"/>
+                    <field name="state3" widget="statusbar" statusbar_visible="pending,bid_submission,cancel" align="right" readonly="1" attrs="{'invisible':[('state','!=','cancel')]}"/>
+                </header>
+            </xpath>
+            <field name="sh_agreement_deadline" position="attributes">
+                <attribute name="string">Tender Expiry Date</attribute>
+                <attribute name="attrs">{'invisible':[('state','not in',('draft','waiting_approval','confirm'))]}</attribute>
+            </field>
+            <field name="company_id" position="before">
+                <field name="partner_id" invisible="1" />
+                <field name="sh_bid_agreement_deadline" attrs="{'invisible':[('state','!=','bid_submission')]}"/>
+                <field name="sh_bid_selection_agreement_deadline" attrs="{'invisible':[('state','!=','bid_selection')]}"/>
+                <field name="approval_matrix_line_id" invisible="1"/>
+            </field>
+            <field name="sh_order_date" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </field>
+<!--            <field name="sh_notes" position="attributes">-->
+<!--                <attribute name="attrs">{'readonly':[('state1', '=', 'confirm')]}</attribute>-->
+<!--            </field>-->
+            <field name="partner_ids" position="before">
+                <field name="tender_scope" attrs="{'readonly':['|', ('state1', 'in', ['confirm']), ('state4', 'in', ['waiting_approval', 'tender_approved', 'confirm'])]}"/>
+                <field name="tender_name" required="1" attrs="{'readonly':['|', ('state1', 'in', ['confirm']), ('state4', 'in', ['waiting_approval', 'tender_approved', 'confirm'])]}"/>
+            </field>
+            <field name="partner_ids" position="attributes">
+                <attribute name="attrs">{'readonly':['|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])],'invisible':[('tender_scope','=','open_tender')],'required':[('tender_scope','=','invitation_tender')]}</attribute>
+            </field>
+            <field name="sh_agreement_type" position="attributes">
+                <attribute name="attrs">{'readonly':['|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])]}</attribute>
+            </field>
+            <field name="company_id" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </field>
+            <field name="sh_purchase_user_id" position="attributes">
+                <attribute name="attrs">{'readonly':['|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])]}</attribute>
+            </field>
+            <field name="company_id" position="after">
+                <field name="branch_id" attrs="{'readonly':['|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])]}"/>
+                <field name="pt_state" invisible="1"/>
+                <field name="analytic_accounting" invisible="1"/>
+                <field name="show_analytic_tags" invisible="1"/>
+                <field name="account_tag_ids" attrs="{'invisible': ['|', ('analytic_accounting', '=', False),('show_analytic_tags', '=', False)], 'readonly':['|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])]}" widget="many2many_tags" options="{'color_field': 'color'}" domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]"/>
+            </field>
+            <field name="sh_source" position="after">
+                <field name="amount" invisible="1"/>
+                <field name="approver" invisible="1"/>
+                <field name="destination_warehouse_id"/>
+            </field>
+            <field name="sh_source" position="attributes">
+                <attribute name="attrs">{'readonly':['|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])], 'invisible': [('sh_source', '=', False), ('state1', '=', 'confirm')]}</attribute>
+            </field>
+            <field name="sh_delivery_date" position="after">
+                <label for="set_single_delivery_date" invisible='1'/>
+                <div class="o_row" name="delivery_date">
+                    <field name="set_single_delivery_date" nolabel="1" attrs="{'readonly': ['|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])], 'invisible': [('set_single_delivery_date', '=', False), ('state1', '=', 'confirm')]}" style="margin-right: 20px;"/>
+                    <span attrs="{'invisible': [('set_single_delivery_date', '=', False), ('state1', '=', 'confirm')]}">Single Schedule Date</span>
+                </div>
+            </field>
+            <field name="sh_delivery_date" position="attributes">
+                <attribute name="attrs">{'invisible': [('set_single_delivery_date', '!=', True)], 'readonly':['|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])], 'required':[('set_single_delivery_date', '=', True)]}</attribute>
+            </field>
+            <xpath expr="//field[@name='destination_warehouse_id']" position="after">               
+                <label for="set_single_delivery_destination" invisible='1'/>
+                <div class="o_row" name="delivery_dest">
+                    <field name="set_single_delivery_destination" nolabel="1" attrs="{'readonly':['|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])], 'invisible': [('set_single_delivery_destination', '=', False), ('state1', '=', 'confirm')]}" style="margin-right: 20px;"/>
+                    <span attrs="{'invisible': [('set_single_delivery_destination', '=', False), ('state1', '=', 'confirm')]}">Single Destination</span>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='destination_warehouse_id']" position="attributes">
+                <attribute name="attrs">{'invisible': [('set_single_delivery_destination', '!=', True)], 'readonly':['|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])], 'required':[('set_single_delivery_destination', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//notebook/page/field[@name='sh_purchase_agreement_line_ids']/tree/field[@name='sh_product_id']" position="after">
+                <field name="sh_product_description"/>
+                <field name="product_uom_category_id" invisible="1"/>
+                <field name="request_line_id" invisible="1"/>
+                <field name="branch_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//notebook/page/field[@name='sh_purchase_agreement_line_ids']/tree/field[@name='sh_qty']" position="attributes">
+                <attribute name="attrs">{'readonly': [('request_line_id', '!=', False)]}</attribute>
+            </xpath>
+
+            <xpath expr="//notebook/page/field[@name='sh_purchase_agreement_line_ids']/tree/field[@name='sh_product_id']" position="before">
+                <field name="sequence"  widget="handle" />
+                <field name="sequence2" force_save="1" readonly="1" class="approver_matrix_sequence"/>
+                <field name="set_single_delivery_date" invisible="1"/>
+                <field name="set_single_delivery_destination" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//notebook/page/field[@name='sh_purchase_agreement_line_ids']/tree/field[@name='sh_price_unit']" position="attributes">
+                <attribute name="string">Reference Price</attribute>
+            </xpath>
+            <xpath expr="//notebook/page/field[@name='sh_purchase_agreement_line_ids']" position="attributes">
+                <attribute name="context">{'sh_purchase_agreement_line_ids': sh_purchase_agreement_line_ids}</attribute>
+                <attribute name="attrs">{'readonly':['|', '|', ('state', 'in', ['closed', 'cancel','reject']), ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved'])]}</attribute>
+            </xpath>
+            <xpath expr="//notebook/page/field[@name='sh_purchase_agreement_line_ids']/tree/field[@name='sh_ordered_qty']" position="after">
+                <field name="sh_product_uom_id"/>
+                <field name="dest_warehouse_id" attrs="{'required' :[('set_single_delivery_destination', '=', False)], 'column_invisible': [('parent.set_single_delivery_destination', '=', True)]}" force_save="1"/>
+                <field name="picking_type_id" invisible="1"/>
+                <field name="analytic_tag_ids" string="Analytic Group" attrs="{'column_invisible': ['|',('parent.analytic_accounting', '=', False),('parent.show_analytic_tags', '=', False)],'required' : [('parent.show_analytic_tags','=',True)]}" readonly="False" widget="many2many_tags" options="{'color_field': 'color'}" domain="['|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]"/>
+                <field name="schedule_date" attrs="{'readonly': [('set_single_delivery_date', '=', True)], 'column_invisible': [('parent.set_single_delivery_date', '=', True)], 'required': [('set_single_delivery_date', '!=', True)]}" force_save="1"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Approval Matrix Line" attrs="{'invisible':[('approval_matrix','=',False)]}">
+                    <label for="approval_matrix" style="margin-bottom: 13px;"/>
+                    <field name="approval_matrix" attrs="{'invisible':[('approval_matrix','=',False)]}" string="Approval Matrix"/>
+                    <field name="approval_matrix_line_ids" context="{'approval_matrix_line_ids': approval_matrix_line_ids}">
+                        <tree  create="false" edit="false" delete="false">
+                            <field name="sequence" invisible="1"/>
+                            <field name="sequence2" force_save="1" readonly="1" class="approver_matrix_sequence"/>
+                            <field name="user_ids" widget="many2many_tags"/>
+                            <field name="user_ids_domain" invisible="1"/>
+                            <field name="minimum_approver"/>
+                            <field name="status"/>
+                            <field name="time" invisible="1"/>
+                            <field name="feedback"/>
+                            <field name="approved" invisible="1"/>
+                            <field name="approval" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Vendor Comparison" attrs="{'invisible':[('partner_ids','=',False)]}">
+                    <field name="comparison_ids" attrs="{'readonly': [('state1', '=', 'confirm')]}">
+                        <tree create="false" edit="false" delete="false">
+                            <field name="partner_id" readonly="1" style="width:25%"/>
+                            <field name="on_time_rate" readonly="1" style="width:25%"/>
+                            <field name="fulfillment" readonly="1" style="width:25%"/>
+                            <field name="final_star" widget="priority" readonly="1" force_save="1" style="width:25%"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+            <xpath expr="//notebook" position="after">
+                <group>
+                    <group>
+                        <field name="term_condition" class="oe_inline"/>
+                    </group>
+                    <group>
+                        <field name="amount_total" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    </group>
+                </group>
+                <group name="note_group" col="6" class="mt-2 mt-md-0">
+                    <group colspan="4">
+                        <div>
+                            <div>
+                                <field name="term_condition_box" widget="html" nolabel="1" readonly="0" placeholder="Define your terms and conditions ..."/>
+                            </div>
+                        </div>
+                    </group>
+                    <group colspan="2">
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="search_purchase_agreement_view_filter" model="ir.ui.view">
+        <field name="name">purchase.agreement.list.select</field>
+        <field name="model">purchase.agreement</field>
+        <field name="arch" type="xml">
+            <search string="Search Purchase Agreements"> 
+                <field name="name"></field>
+                <field name="user_id" string="Purchase Representative"></field>
+                <field name="partner_ids" filter_domain="[('partner_ids.display_name', 'ilike', self)]"/>
+                <filter string="Draft" name="draft" domain="[('pt_state', '=', 'draft')]"/>
+                <filter string="Waiting for Approval" name="waiting_approval" domain="[('pt_state', '=', 'waiting_approval')]"/>
+                <filter string="Pending" name="pending" domain="[('pt_state', '=', 'pending')]"/>
+                <filter string="Bid Submission" name="bid_submission" domain="[('pt_state', '=', 'bid_submission')]"/>
+                <filter string="Bid Selection" name="bid_selection" domain="[('pt_state', '=', 'bid_selection')]"/>
+                <filter string="Closed" name="closed" domain="[('pt_state', '=', 'closed')]"/>
+                <filter string="Cancelled" name="cancel" domain="[('pt_state', '=', 'cancel')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="cancel_tender_memory_form">
+        <field name="name">cancel.tender.memory.form</field>
+        <field name="model">cancel.tender.memory</field>
+        <field name="arch" type="xml">
+            <form>
+                <label for="reason" string="Reason:"/><p/>
+                <field name="reason" style="font-size: 12px"/>
+                <footer>
+                    <button string="Proceed" type="object" name="action_cancel_tender" class="oe_highlight"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="sh_purchase_agreement_tree_view" model="ir.ui.view">
+        <field name="model">purchase.agreement</field>
+        <field name="inherit_id" ref="sh_po_tender_management.sh_purchase_agreement_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="state" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="state" position="after">
+                <field name="pt_state" 
+                    decoration-primary="pt_state == 'draft'"
+                    decoration-warning="pt_state == 'waiting_approval'"
+                    decoration-warning2="pt_state == 'pending'" 
+                    decoration-success="pt_state == 'tender_approved'"
+                    decoration-secondary="pt_state == 'cancel'"
+                    decoration-primary3="pt_state == 'bid_submission'"
+                    decoration-primary2="pt_state == 'bid_selection' or pt_state == 'confirm'"
+                    decoration-success2="pt_state == 'closed'"
+                    decoration-danger="pt_state == 'reject'"
+                    widget="badge" />
+                <field name="branch_id" optional="hide" readonly="True" required="True" />
+                <field name="company_id" optional="hide" readonly="True" required="True" />
+            </field>
+
+            <field name="sh_agreement_type" position="before">
+                <field name="tender_name" style="width: 250px !important;"/>
+            </field>
+            <field name="sh_vender_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="sh_vender_id" position="after">
+                <field name="tender_scope"/>
+                <field name="partner_ids" widget="many2many_tags"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="sh_po_tender_management.sh_purchase_agreement_action" model="ir.actions.act_window">
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="search_purchase_agreement_view_filter"/>
+    </record>
+
+                    
+</odoo>

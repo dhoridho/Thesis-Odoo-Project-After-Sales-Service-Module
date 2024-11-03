@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="pos_coupon_report_tree_view" model="ir.ui.view">
+        <field name="name">pos.coupon.report.tree.view</field>
+        <field name="model">pos.coupon.report</field>
+        <field name="arch" type="xml">
+            <tree create="false" edit="false" delete="false">
+                <field name="used_date"/>
+                <field name="pos_order_id"/>
+                <field name="number"/>
+                <field name="code" optional="hide"/>
+                <field name="name"/>
+                <field name="config_id"/>
+                <field name="session_id"/>
+                <field name="reward_type"/>
+                <field name="pos_branch_id"/>
+                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pos_coupon_report_search" model="ir.ui.view">
+        <field name="name">pos.coupon.report.search</field>
+        <field name="model">pos.coupon.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="number"/>
+                <field name="config_id"/>
+                <field name="session_id"/>
+
+                <filter string="This Month" name="this_month"
+                        domain="[('used_date', '&gt;=', context_today().strftime('%%Y-%%m-01'))]"/>
+                <filter string="Last Month" name="last_month"
+                        domain="['&amp;', ('used_date', '&gt;=', (context_today() - relativedelta(months=1)).strftime('%%Y-%%m-01')), ('used_date', '&lt;', context_today().strftime('%%Y-%%m-01'))]"/>
+                <filter string="Last 6 Months" name="6months"
+                        domain="[('used_date','&gt;=',(context_today()-relativedelta(months=5)).strftime('%Y-%m-01'))]"/>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_pos_coupon_report">
+        <field name="name">Coupon Report</field>
+        <field name="res_model">pos.coupon.report</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{'search_default_this_month':1}</field>
+    </record>
+
+    <menuitem id="pos_coupon_report_menu"
+        action="action_pos_coupon_report"
+        parent="point_of_sale.menu_point_rep" 
+        sequence="125"
+        groups="equip3_pos_masterdata.group_pos_supervisor,equip3_pos_masterdata.group_pos_manager"/>
+
+        
+</odoo>

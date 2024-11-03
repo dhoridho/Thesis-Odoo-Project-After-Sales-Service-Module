@@ -1,0 +1,73 @@
+<odoo>
+    <record id="view_account_invoice_discount_form" model="ir.ui.view">
+        <field name="name">account.invoice.discount.form.view</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//div[@class='d-flex']" position="after">
+                <field name="discount_type" invisible="1"/>
+            </xpath> 
+
+            <field name="narration" position="before">
+                <group style="width: 65%%">
+                    <label for="discount_method" attrs="{'invisible': [('discount_type','=','line')]}" force_save='1'/>
+                    <div>
+                        <field name="discount_method" class="oe_inline" attrs="{'invisible': [('discount_type','=','line')],'readonly': [('state', '=', 'posted')]}" force_save='1'/>
+                    </div>
+                     <label for="discount_amount" attrs="{'invisible': [('discount_type','=','line')]}"/>
+                    <div name="discount_section">
+                        <field name="discount_amount" class="oe_inline" attrs="{'invisible': [('discount_type','=','line')],'readonly': [('state', '=', 'posted')],'readonly': [('discount_method', '!=', 'fix')]}" force_save='1'/>
+                        <label for="discount_amount" string="%" attrs="{'invisible': ['|',('discount_method', '!=', 'per'),('discount_type','!=','global')]}" class="oe_inline"/>
+                     </div>
+               </group>
+            </field>
+
+            <xpath expr="//group[@class='oe_subtotal_footer oe_right']/field[@name='amount_untaxed']" position="after">
+                    <field name="discount_amt" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('discount_type','=','line')]}" force_save='1'/>
+                    <field name="discount_amt_line" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('discount_type','=','global')]}" force_save='1'/>
+                    <field name="discount_amount_line"  invisible="1" force_save='1'/>
+            </xpath>
+            
+            <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='discount']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="after">
+                <field name="discount_type" invisible="1" force_save='1'/>
+                <field name="discount_method" attrs="{'readonly': [('discount_type', '=', 'global')]}" force_save='1'/>
+                <field name="discount_amount" attrs="{'readonly': [('discount_type', '=', 'global')]}" force_save='1'/>
+                <field name="discount_amt" string='Discount Amount' optional="hide" readonly='1' force_save='1'/>
+            </xpath>
+
+            <xpath expr="//field[@name='line_ids']/tree/field[@name='analytic_tag_ids']" position="after">
+                <field name="discount_type" invisible="1" force_save="1"/>
+                <field name="discount_method" invisible="1" force_save="1"/>
+                <field name="discount_amount" invisible="1" force_save="1"/>
+                <field name="discount_amt" string='Discount Amount' optional="hide" readonly='1' force_save='1'/>
+            </xpath>
+
+            <xpath expr=".//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='price_subtotal']" position="replace">
+                <field name="price_subtotal" string="Untaxed Amount" force_save='1'/>
+            </xpath>
+
+            <xpath expr=".//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='price_total']" position="replace">
+                <field name="price_total" string="Total Amount" force_save='1' />
+            </xpath>
+
+        </field>
+    </record>
+
+
+    <record id="view_account_account_discount_form" model="ir.ui.view">
+        <field name="name">account.account.discount.form.view</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_form" />
+        <field name="arch" type="xml">
+            <field name="user_type_id" position="after">
+                <field name="discount_account" />
+            </field>
+        </field>
+    </record>
+</odoo>
+    

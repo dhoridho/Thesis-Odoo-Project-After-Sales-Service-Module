@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_so_printout_editor_document">
+        <t t-call="general_template.sale_external_layout">
+            <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+            <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+            <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+            <t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+            <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+            <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+            <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+            <t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+            <div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+                <div class="oe_structure"/>
+                <t t-call="general_template.templates_watermark"/>
+                <div width="100%">
+                    <div style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+                        <div t-attf-style="background-color:#f2f2f2;border-bottom:1px solid #{theme_color or '#ececec'}; overflow: visible; margin-bottom: 20px;">
+                            <div align="left" style="padding:15px; width:50%; line-height:18px;float:left;" valign="top">
+                                <t t-call="general_template.templates_customer_details"/>
+                            </div>
+                            <div align="right" style="padding:15px; width:50%;float:right;" valign="top">
+                                <table t-attf-style="text-transform:capitalize; background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                    <t t-foreach="sorted(docs.so_header_filter_ids, key=lambda r: r.sequence)" t-as="header_field">
+                                        <tr>
+                                            <td t-attf-style="padding:9px 15px; font-weight:bold;">
+                                                <span><t t-esc="header_field.field_description"/></span>
+                                            </td>
+                                            <td t-attf-style="text-align:right; font-weight:bold; padding:9px 15px;">
+                                                <t t-if="header_field.ttype == 'many2one'">
+                                                    <span t-esc="o[header_field.name].name"></span>
+                                                </t>
+                                                <t t-if="header_field.ttype == 'selection'">
+                                                    <span t-esc="dict(o._fields[header_field.name].selection).get(o[header_field.name], '')"></span>
+                                                </t>
+                                                <t t-if="header_field.ttype in ('char', 'float', 'text', 'integer')">
+                                                    <span t-esc="o[header_field.name]"></span>
+                                                </t>
+                                                <t t-if="header_field.ttype == 'many2many'">
+                                                    <span t-esc="','.join(o[header_field.name].mapped('name'))"></span>
+                                                </t>
+                                                <t t-if="header_field.ttype == 'datetime'">
+                                                    <span t-if="o[header_field.name]" t-esc="o[header_field.name].strftime('%Y-%m-%d %H:%M')"></span>
+                                                </t>
+                                                <t t-if="header_field.ttype == 'date'">
+                                                    <span t-if="o[header_field.name]" t-esc="o[header_field.name].strftime('%Y-%m-%d')"></span>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+                                <thead>
+                                    <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                        <t t-foreach="docs.so_table_filter_ids" t-as="table_field">
+                                            <td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"><t t-esc="table_field.field_description"/></td>
+                                        </t>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-if="sorted(docs.so_table_filter_ids, key=lambda r: r.sequence)" t-as="line" t-foreach="o.order_line">
+                                        <tr>
+                                            <t t-foreach="docs.so_table_filter_ids" t-as="line_table_field">
+                                               <t t-if="line_table_field.ttype == 'many2one'">
+                                                   <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                       <span t-esc="line[line_table_field.name].name"></span>
+                                                   </td>
+                                               </t>
+                                               <t t-if="line_table_field.ttype == 'selection'">
+                                                    <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                        <t t-set="selection_field_name" t-value="line[line_table_field.name]"/>
+                                                        <span t-if="selection_field_name" t-esc="dict(line._fields[line_table_field.name].selection).get(selection_field_name, '')"></span>
+                                                    </td>
+                                               </t>
+                                               <t t-if="line_table_field.ttype in ('char', 'text', 'float', 'integer')">
+                                                   <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                       <span t-esc="line[line_table_field.name]"></span>
+                                                   </td>
+                                                </t>
+                                               <t t-if="line_table_field.ttype == 'many2many'">
+                                                   <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                       <span t-esc="','.join(line[line_table_field.name].mapped('name'))"></span>
+                                                   </td>
+                                               </t>
+                                               <t t-if="line_table_field.ttype == 'datetime'">
+                                                    <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                       <span t-if="line[line_table_field.name]" t-esc="line[line_table_field.name].strftime('%Y-%m-%d %H:%M')"></span>
+                                                   </td>
+                                               </t>
+                                               <t t-if="line_table_field.ttype == 'date'">
+                                                    <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                       <span t-if="line[line_table_field.name]" t-esc="line[line_table_field.name].strftime('%Y-%m-%d')"></span>
+                                                   </td>
+                                               </t>
+                                               <t t-if="line_table_field.ttype == 'binary'">
+                                                    <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                                                        <img style="max-height: 80px; padding:5px;" t-att-src="'data:image/png;base64,%s' %  to_text(line[line_table_field.name])"/>
+                                                    </td>
+                                               </t>
+                                               <t t-if="line_table_field.ttype == 'monetary'">
+                                                    <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                       <span t-esc="line[line_table_field.name]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"></span>
+                                                   </td>
+                                               </t>
+                                            </t>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="overflow:visible;">
+                            <div class="row">
+                                <div class="col-6">
+                                    <t t-foreach="sorted(docs.so_footer_filter_ids.filtered(lambda f:f.name in ('digital_sign','sign_by','designation','sign_on')), key=lambda r: r.sequence)" t-as="footer_field">
+                                        <t t-if="footer_field.name == 'sign_on'">
+                                            <span t-esc="o[footer_field.name].strftime('%d %B %Y')"/>
+                                            <br />
+                                        </t>
+                                        <t t-if="footer_field.name == 'digital_sign'">
+                                            <img style="max-height: 80px; padding:5px;" t-att-src="'data:image/png;base64,%s' %  to_text(o[footer_field.name])"/>
+                                            <br />
+                                        </t>
+                                        <t t-if="footer_field.name == 'sign_by'">
+                                            <div class="row" style="position:absolute;left:25px;border-top:2px solid black;width:250px;"></div>
+                                            <strong t-esc="o[footer_field.name]" />
+                                            <br />
+                                        </t>
+                                        <t t-if="footer_field.name == 'designation'">
+                                            <span t-esc="o[footer_field.name]" />
+                                            <br />
+                                        </t>
+                                    </t>
+                                </div>
+                                <div class="col-6">
+                                    <table class="pull-right" style="font-weight:bold;width:40%; text-transform:capitalize;">
+                                        <t t-foreach="sorted(docs.so_footer_filter_ids.filtered(lambda f:f.name not in ('digital_sign','sign_by','designation','sign_on')), key=lambda r: r.sequence)" t-as="footer_field">
+                                            <tr>
+                                                <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;'"><t t-esc="footer_field.field_description"/></td>
+                                                <t t-if="footer_field.ttype == 'many2one'">
+                                                    <td align="right" style="padding:9px 0px 7px 10px;">
+                                                        <span t-esc="o[footer_field.name].name"/>
+                                                    </td>
+                                                </t>
+                                                <t t-if="footer_field.ttype in ('float', 'monetary', 'integer')">
+                                                    <td align="right" style="padding:9px 0px 7px 10px;">
+                                                        <span t-esc="o[footer_field.name]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                                    </td>
+                                                </t>
+                                                <t t-if="footer_field.ttype in ('char', 'text')">
+                                                    <td align="right" style="padding:9px 0px 7px 10px;">
+                                                        <span t-esc="o[footer_field.name]"/>
+                                                    </td>
+                                                </t>
+                                                <t t-if="footer_field.ttype == 'selection'">
+                                                    <td align="right" style="padding:9px 0px 7px 10px;">
+                                                        <span t-esc="dict(o._fields[footer_field.name].selection).get(o[footer_field.name], '')"/>
+                                                    </td>
+                                                </t>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" style="border-bottom:1px solid #959595"/>
+                                            </tr>
+                                        </t>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="oe_structure"/>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+
+    <template id="exclusive_so_report_printout_editor">
+        <t t-call="web.html_container">
+            <t t-foreach="docs.sale_order_ids" t-as="o">
+                <t t-call="equip3_sale_custom_printout.report_so_printout_editor_document"/>
+            </t>
+        </t>
+    </template>
+
+</odoo>

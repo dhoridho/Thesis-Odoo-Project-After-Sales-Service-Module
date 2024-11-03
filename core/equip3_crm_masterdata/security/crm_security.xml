@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record model="ir.module.category" id="module_crm">
+            <field name="name">CRM</field>
+            <field name="description">Sales Teams</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="group_team_member" model="res.groups">
+            <field name="name">Team Member</field>
+            <field name="category_id" ref="module_crm"/>
+        </record>
+        <record id="group_team_leader" model="res.groups">
+            <field name="name">Team Leader</field>
+            <field name="category_id" ref="module_crm"/>
+        </record>
+        <record id="group_admin_crm" model="res.groups">
+            <field name="name">Administrator</field>
+            <field name="category_id" ref="module_crm"/>
+        </record>
+        <record id="group_manage_crm" model="res.groups">
+            <field name="name">Allow Manage CRM Masterdata</field>
+            <field name="category_id" ref="module_crm"/>
+            <field name="users" eval="[(4, ref('base.user_root')),(4, ref('base.user_admin'))]"/>
+        </record>
+        <record id="customer_rule" model="ir.rule">
+            <field name="name">Customer per Sale Team</field>
+            <field name="model_id" ref="model_res_partner"/>
+            <field name="domain_force">['|','|',('salesperson_ids', '=', False),('salesperson_ids', 'in', user.list_user_id.user_ids.ids),('salesperson_ids', 'in', user.ids)]</field>
+            <field name="groups" eval="[(4, ref('equip3_crm_masterdata.group_team_member')),(4, ref('equip3_crm_masterdata.group_team_leader'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+        <record id="lead_rule" model="ir.rule">
+            <field name="name">Lead per Sale Team</field>
+            <field name="model_id" ref="model_crm_lead"/>
+            <field name="domain_force">['|',('user_ids', 'in', user.list_user_id.user_ids.ids),('user_ids', 'in', user.ids)]</field>
+            <field name="groups" eval="[(4, ref('equip3_crm_masterdata.group_team_member')),(4, ref('equip3_crm_masterdata.group_team_leader'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <record id="lead_rule_admin" model="ir.rule">
+            <field name="name">Lead per Sale Team - Admin</field>
+            <field name="model_id" ref="model_crm_lead"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('equip3_crm_masterdata.group_admin_crm'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+    </data>
+</odoo>

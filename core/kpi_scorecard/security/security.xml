@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="module_category_kpi" model="ir.module.category">
+        <field name="name">KPI Management</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <record id="group_kpi_admin" model="res.groups">
+        <field name="name">KPI Manager</field>
+        <field name="category_id" ref="kpi_scorecard.module_category_kpi"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <data noupdate="0">
+        <!--  KPI Constants -->
+        <record id="kpi_constant_multi_company_rule" model="ir.rule">
+            <field name="name">KPI Constants: Multi Company</field>
+            <field name="model_id" ref="kpi_scorecard.model_kpi_constant"/>
+            <field name="domain_force">[
+                '|',
+                    ('company_id','=', False),
+                    ('company_id', 'in', company_ids),
+            ]</field>
+        </record>
+        <!--  KPI Measurements -->
+        <record id="kpi_measure_item_multi_company_rule" model="ir.rule">
+            <field name="name">KPI Measurements (Variables): Multi Company</field>
+            <field name="model_id" ref="kpi_scorecard.model_kpi_measure_item"/>
+            <field name="domain_force">[
+                '|',
+                    ('company_id','=', False),
+                    ('company_id', 'in', company_ids),
+            ]</field>
+        </record>
+        <!--  KPI Periods -->
+        <record id="kpi_period_multi_company_rule" model="ir.rule">
+            <field name="name">KPI Periods: Multi Company</field>
+            <field name="model_id" ref="kpi_scorecard.model_kpi_period"/>
+            <field name="domain_force">[
+                '|',
+                    ('company_id','=', False),
+                    ('company_id', 'in', company_ids),
+            ]</field>
+        </record>
+        <!--  KPI Categories -->
+        <record id="kpi_category_multi_company_rule" model="ir.rule">
+            <field name="name">All users - all KPI Categories of own company</field>
+            <field name="model_id" ref="kpi_scorecard.model_kpi_category"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">[
+                '|',
+                    ("access_user_ids", "in", [user.id]),
+                    ("edit_access_user_ids", "in", [user.id]),
+                '|',
+                    ('company_id','=', False),
+                    ('company_id', 'in', company_ids),
+            ]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+        <record id="kpi_category_admin_multi_company_rule" model="ir.rule">
+            <field name="name">KPI Admin - all KPI Categories of own company</field>
+            <field name="model_id" ref="kpi_scorecard.model_kpi_category"/>
+            <field name="domain_force">[
+                '|',
+                    ('company_id','=', False),
+                    ('company_id', 'in', company_ids),
+            ]</field>
+            <field name="groups" eval="[(4, ref('kpi_scorecard.group_kpi_admin'))]"/>
+        </record>
+        <!--  KPIs -->
+        <record id="kpi_item_multi_company_rule" model="ir.rule">
+            <field name="name">All users: KPIs ow own companies</field>
+            <field name="model_id" ref="kpi_scorecard.model_kpi_item"/>
+            <field name="domain_force">[
+                '|',
+                    ("access_user_ids", "in", [user.id]),
+                    ("edit_access_user_ids", "in", [user.id]),
+                '|',
+                    ('company_id','=', user.company_id.id),
+                    ('company_id','=', False),
+            ]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+        <record id="kpi_item__admin_multi_company_rule" model="ir.rule">
+            <field name="name">KPIs: Multi Company</field>
+            <field name="model_id" ref="kpi_scorecard.model_kpi_item"/>
+            <field name="domain_force">[
+                '|',
+                    ('company_id','=', False),
+                    ('company_id', 'in', company_ids),
+            ]</field>
+            <field name="groups" eval="[(4, ref('kpi_scorecard.group_kpi_admin'))]"/>
+        </record>
+        <!-- KPI Targets -->
+        <record id="kpi_scorecard_line_multi_company_rule" model="ir.rule">
+            <field name="name">All users - Read targets of own companies related to them / their groups</field>
+            <field name="model_id" ref="kpi_scorecard.model_kpi_scorecard_line"/>
+            <field name="domain_force">[
+                '|',
+                    ("kpi_id.access_user_ids", "in", [user.id]),
+                    ("kpi_id.edit_access_user_ids", "in", [user.id]),
+                '|',
+                    ('period_id.company_id', '=', False),
+                    ('period_id.company_id', '=', user.company_id.id),
+            ]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+        <record id="kpi_scorecard_line_edit_multi_company_rule" model="ir.rule">
+            <field name="name">All users - Edit targets of own companies related to them / their groups</field>
+            <field name="model_id" ref="kpi_scorecard.model_kpi_scorecard_line"/>
+            <field name="domain_force">[
+                ("kpi_id.edit_access_user_ids", "in", [user.id]),
+                '|',
+                    ('period_id.company_id', '=', False),
+                    ('period_id.company_id', 'in', company_ids),
+            ]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+        <record id="kpi_scorecard_line_admin_multi_company_rule" model="ir.rule">
+            <field name="name">KPI Admin - any KPI Targets of own companies</field>
+            <field name="model_id" ref="kpi_scorecard.model_kpi_scorecard_line"/>
+            <field name="domain_force">[
+                '|',
+                    ('period_id.company_id', '=', False),
+                    ('period_id.company_id', 'in', company_ids),
+            ]</field>
+            <field name="groups" eval="[(4, ref('kpi_scorecard.group_kpi_admin'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+    </data>
+
+</odoo>
+

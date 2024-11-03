@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="view_mining_cost_actualization_tree" model="ir.ui.view">
+		<field name="name">view.mining.cost.actualization.tree</field>
+		<field name="model">mining.cost.actualization</field>
+		<field name="arch" type="xml">
+			<tree string="Mining Cost Actualization">
+				<field name="name"/>
+				<field name="company_id" invisible="1"/>
+				<field name="currency_id" invisible="1"/>
+				<field name="branch_id"/>
+				<field name="date_from"/>
+				<field name="date_to"/>
+				<field name="mpa_ids" invisible="1"/>
+				<field name="total_cost"/>
+				<field name="state"/>
+			</tree>
+		</field>
+	</record>
+
+	<record id="view_mining_cost_actualization_form" model="ir.ui.view">
+		<field name="name">view.mining.cost.actualization.form</field>
+		<field name="model">mining.cost.actualization</field>
+		<field name="arch" type="xml">
+			<form string="Mining Cost Actualization">
+				<header>
+					<button name="action_validate" type="object" string="Validate" class="btn btn-primary" attrs="{'invisible': [('state', 'in', ('post', 'cancel'))]}"/>
+					<button name="action_cancel" type="object" string="Cancel" attrs="{'invisible': [('state', 'in', ('post', 'cancel'))]}"/>
+
+					<field name="state" widget="statusbar" statusbar_visible="draft,post,cancel" attrs="{'invisible': [('state', '!=', 'cancel')]}"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,post" attrs="{'invisible': [('state', '=', 'cancel')]}"/>
+				</header>
+				<sheet>
+					<div class="oe_title">
+						<h1>
+                            <field name="name"/>
+                        </h1>
+					</div>
+					<group>
+						<group>
+							<label for="date_from" string="Period"/>
+							<div class="o_row no-gutters d-flex">
+								From date
+								<div class="o_row">
+                                    <field name="date_from" class="text-left" attrs="{'readonly': [('state', '=', 'post')]}"/>
+                                </div>
+                                To date
+								<field name="date_to" attrs="{'readonly': [('state', '=', 'post')]}"/>
+							</div>
+							<field name="mpa_ids" widget="many2many_tags" options="{'no_create': True}"/>
+							<field name="create_date" string="Created Date"/>
+							<field name="create_uid" string="Created By"/>
+						</group>
+						<group>
+							<field name="account_move_id" force_save="1"/>
+							<field name="company_id"/>
+                            <field name="is_branch_required" invisible="1"/>
+							<field name="currency_id" invisible="1"/>
+							<field name="branch_id" attrs="{'required': [('is_branch_required', '=', True)]}" options="{'no_create': True, 'no_create_edit': True}"/>
+						</group>
+					</group>
+					<group string="Cost Lines"/>
+					<notebook>
+						<page string="Cost Lines">
+							<field name="line_ids" 
+								nolabel="1" 
+								options="{
+									'create': [('state', '=', 'draft')],
+									'delete': [('state', '=', 'draft')],
+									'edit': [('state', '=', 'draft')]
+								}"
+								attrs="{
+									'readonly': [('state', '!=', 'draft')]
+								}"
+								context="{
+									'default_company_id': company_id
+								}">
+								<tree string="Cost Lines" editable="bottom">
+									<field name="mining_cost_actualization_id" invisible="1"/>
+									<field name="company_id" invisible="1"/>
+									<field name="currency_id" invisible="1"/>
+									<field name="product_id" options="{'no_create_edit': True, 'no_create': True}"/>
+									<field name="account_type" invisible="1"/>
+									<field name="allowed_account_type_ids" widget="many2many_tags" invisible="1"/>
+									<field name="account_id" options="{'no_create_edit': True, 'no_create': True}"/>
+									<field name="cost_category"/>
+									<field name="description"/>
+									<field name="split_method"/>
+									<field name="cost" sum="Total Cost"/>
+								</tree>
+							</field>
+						</page>
+					</notebook>
+					
+					<group string="Valuation Adjustment"/>
+					<notebook>
+						<page string="Valuation Adjustment">
+							<field name="valuation_line_ids" mode="tree" nolabel="1">
+								<tree string="Valuation Adjustment" create="false">
+									<field name="mining_cost_actualization_id" invisible="1"/>
+									<field name="company_id" invisible="1"/>
+									<field name="currency_id" invisible="1"/>
+									<field name="production_id"/>
+									<field name="product_id"/>
+									<field name="quantity"/>
+									<field name="category"/>
+									<field name="allowed_account_type_ids" widget="many2many_tags" invisible="1"/>
+									<field name="account_id"/>
+									<field name="account_type" invisible="1"/>
+									<field name="add_cost" sum="Total Cost"/>
+								</tree>
+							</field>
+						</page>
+					</notebook>
+
+					<group string="Production Cost Lines"/>
+					<notebook>
+						<page string="Production Cost Lines">
+							<field name="production_line_ids" mode="tree" nolabel="1">
+								<tree string="Production Cost Lines" create="false">
+									<field name="mining_cost_actualization_id" invisible="1"/>
+									<field name="company_id" invisible="1"/>
+									<field name="currency_id" invisible="1"/>
+									<field name="production_id"/>
+									<field name="product_id"/>
+									<field name="quantity"/>
+									<field name="former_cost" sum="Total Former Cost"/>
+									<field name="total_material" sum="Total Material"/>
+									<field name="total_overhead" sum="Total Overhead"/>
+									<field name="total_labor" sum="Total Labor"/>
+									<field name="total_subcontracting" sum="Total Subcontracting"/>
+									<field name="total" sum="Total Cost"/>
+									<field name="new_cost" sum="Total New Cost"/>
+									<field name="svl_id" invisible="1"/>
+								</tree>
+							</field>
+						</page>
+					</notebook>
+				</sheet>
+				<div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+			</form>
+		</field>
+	</record>
+
+	<record id="action_view_mining_cost_actualization" model="ir.actions.act_window">
+        <field name="name">Mining Cost Actualization</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.cost.actualization</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+           Create a new Mining Cost Actualization
+          </p>
+        </field>
+    </record>
+</odoo>

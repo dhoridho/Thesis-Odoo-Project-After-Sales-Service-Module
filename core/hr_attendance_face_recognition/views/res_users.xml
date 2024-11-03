@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <record id="res_users_preferences_recognition" model="ir.ui.view">
+        <field name="name">res.users.preferences.recognition</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="hr.res_users_view_form_profile" />
+        <field name="arch" type="xml">
+             <xpath expr="//notebook" position="inside">
+                <group string="Face Recognition Preferences"
+                       colspan="12">
+                    <group string="Face filters" colspan="12">
+                        <field name="face_emotion" attrs="{'readonly': [('res_users_image_ids', '!=', False)]}"/>
+                        <field name="face_gender" attrs="{'readonly': [('res_users_image_ids', '!=', False)]}"/>
+                        <field name="face_age" attrs="{'readonly': [('res_users_image_ids', '!=', False)]}"/>
+                    </group>
+                    <group string="Your faces" colspan="12">
+                        <field name="res_users_image_ids" 
+                          class="o_website_sale_image_list"
+                          context="{'default_name': name, 'default_res_user_id': id}"
+                          mode="kanban"
+                          options="{'create_text':'Add face', 'face_mode': 'user'}"
+                          nolabel="1"
+                          attrs="{'readonly': [('res_users_image_ids', '!=', False)]}"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+    
+<record id="res_users_form_view_face_recognition" model="ir.ui.view">
+        <field name="name">res.users.form.view.face.recognition</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="priority" eval="99"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="Face recognition" string="Face recognition">
+<!--                     <button name="create_desc" 
+                            type="object" 
+                            string="Active face recognition" 
+                            class="btn btn-secondary"
+                            help="Create descriptors from images"/> -->
+                    <group string="Face filters">
+                        <field name="face_emotion"/>
+                        <field name="face_gender"/>
+                        <field name="face_age"/>
+                    </group>
+                     <group name="face_recognition_images" string="Images">
+                        <field name="res_users_image_ids" 
+                          class="o_website_sale_image_list"
+                          context="{'default_name': name, 'default_res_user_id': id}"
+                          mode="kanban"
+                          options="{'create_text':'Add face'}"
+                          nolabel="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+        <!-- This view should only be used from the product o2m because the required field product_tmpl_id has to be automatically set. -->
+    <record id="view_res_user_image_form" model="ir.ui.view">
+        <field name="name">res_user.image.view.form</field>
+        <field name="model">res.users.image</field>
+        <field name="arch" type="xml">
+            <form string="User Images">
+                <field name="sequence" invisible="1"/>
+                <div class="row o_website_sale_image_modal">
+                    <div class="col-md-6 col-xl-5">
+                        <label for="name" string="Image Name"/>
+                        <h2><field name="name" placeholder="Image Name"/></h2>
+                        <label for="name" string="Descriptor"/>
+                        <field name="descriptor"/>
+                        <field name="res_user_id" readonly="1"/>
+<!--                         <label for="video_url" string="Video URL"/><br/>
+                        <field name="video_url"/><br/> -->
+                    </div>
+                    <div class="col-md-6 col-xl-7 text-center o_website_sale_image_modal_container">
+                        <div class="row">
+                            <div class="col" id="face-recognition-image">
+                                <field name="image" widget="image"/>
+                            </div>
+<!--                             <div class="col" attrs="{'invisible': [('video_url', 'in', ['', False])]}">
+                                <div class="o_video_container p-2">
+                                    <span>Video Preview</span>
+                                    <field name="embed_code" class="mt-2" widget="video_preview"/>
+                                    <h4 class="o_invalid_warning text-muted text-center" attrs="{'invisible': [('embed_code', '!=', False)]}">
+                                        Please enter a valid Video URL.
+                                    </h4>
+                                </div>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </field>
+    </record>
+
+        <record id="res_users_image_view_kanban" model="ir.ui.view">
+        <field name="name">res.users.image.view.kanban</field>
+        <field name="model">res.users.image</field>
+        <field name="arch" type="xml">
+            <kanban string="Users Images" default_order="sequence">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="image"/>
+                <field name="descriptor"/>
+                <field name="sequence" widget="handle"/>
+                <input type="checkbox" id="toggle-face-rec" />
+<!--                   <label class="label-face-rec" for="toggle-face-rec"></label>
+                  
+                  <div class="day-night-cont">
+                      <span class="the-sun"></span>
+                      <div class="the-moon"><span class="moon-inside"></span></div>
+                   </div>
+                  
+                  <div class="switch-face-rec">
+                    <div class="button">
+                      <div class="b-inside"></div>
+                    </div>
+                  </div> -->
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="card oe_kanban_global_click p-0">
+                             <div class="o_squared_image">
+
+                                <t t-if="record.descriptor.value">
+                                    <img class="card-img-top" 
+                                        t-att-src="kanban_image('res.users.image', 'image', record.id.value)"
+                                        t-att-alt="record.name.value"
+                                        t-att-data-id="record.id.value"
+                                        t-att-data-descriptor="1"
+                                        />
+                                </t>
+                                <t t-else="1">
+                                    <img class="card-img-top" 
+                                        t-att-src="kanban_image('res.users.image', 'image', record.id.value)"
+                                        t-att-alt="record.name.value"
+                                        t-att-data-id="record.id.value"
+                                        t-att-data-descriptor="0"
+                                        />
+                                </t>
+                                <img class="card-img-top only-descriptor" 
+                                    t-att-src="kanban_image('res.users.image', 'image_detection', record.id.value)"
+                                    t-att-alt="record.name.value"
+                                    />
+                            </div>
+                            <div class="card-body p-0">
+                                <h4 class="card-title p-2 m-0 bg-200">
+                                    <small><field name="name"/></small>
+                                </h4>
+                            </div>
+                            <!-- below 100 Kb: good -->
+                            <t t-if="record.image.raw_value.length &lt; 100*1000">
+                                <t t-set="size_status" t-value="'badge-success'"/>
+                                <t t-set="message">Acceptable file size</t>
+                            </t>
+                            <!-- below 1000 Kb: decent -->
+                            <t t-elif="record.image.raw_value.length &lt; 1000*1000">
+                                <t t-set="size_status" t-value="'badge-warning'" />
+                                <t t-set="message">Huge file size. The image should be optimized/reduced.</t>
+                            </t>
+                            <!-- above 1000 Kb: bad -->
+                            <t t-else="1">
+                                <t t-set="size_status" t-value="'badge-danger'"/>
+                                <t t-set="message">Optimization required! Reduce the image size or increase your compression settings.</t>
+                            </t>
+
+                            <!-- <t t-if="record.descriptor.value != '' and record.descriptor != False"> -->
+                            <t t-if="record.descriptor.value">
+                                <span class="badge badge-success o_product_image_size" 
+                                      title="Descriptor is successfully created and the image is involved in face recognition.">
+                                      Descriptor created
+                                </span>
+                            </t>
+                            <t t-else="1">
+                                <span class="badge badge-danger o_product_image_size" 
+                                      title="Descriptor is missing, in order to create it, click on the button to make descriptors.">
+                                      Descriptor is missing
+                                </span>
+                            </t>
+                            <span t-attf-class="badge #{size_status} o_product_image_size" style="top:20px" t-esc="record.image.value" t-att-title="message"/>
+
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+  </data>
+</odoo>

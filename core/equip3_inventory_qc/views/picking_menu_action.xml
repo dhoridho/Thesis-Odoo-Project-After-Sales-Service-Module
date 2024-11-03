@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="sh_inventory_mrp_qc.pending_qc_action" model="ir.actions.act_window">
+        <field name="name">Pending QC</field>
+        <field name="domain">[('is_pending_qc','=',True)]</field>
+    </record>
+
+    <record id="sh_inventory_mrp_qc.failed_qc_action" model="ir.actions.act_window">
+        <field name="name">Failed QC</field>
+        <field name="domain">[('is_qc_fail','=',True)]</field>
+    </record>
+
+    <record id="sh_inventory_mrp_qc.passed_qc_action" model="ir.actions.act_window">
+        <field name="name">Under Progress QC</field>
+        <field name="domain">[('is_under_progress','=',True)]</field>
+
+    </record>
+    <record id="sh_inventory_mrp_qc.fully_passed_qc_action" model="ir.actions.act_window">
+        <field name="name">Passed QC</field>
+        <field name="domain">[('is_qc_pass','=',True)]</field>
+    </record>
+
+    <record model="ir.ui.menu" id="sh_inventory_mrp_qc.menu_passed_qc">
+        <field name="name">Under Progress QC</field>
+    </record>
+
+    <!-- hide inventory qc view (pending,failed,under progress,passed) -->
+    <record id="make_invisible" model="res.groups">
+        <field name="name">Invisible</field>
+    </record>
+    <record id="sh_inventory_mrp_qc.child_menu_quality_picking_inventory" model="ir.ui.menu">
+        <field name="groups_id" eval="[(6,0,[ref('make_invisible')])]"/>
+    </record>
+    <!-- end of hide -->
+
+    <record id="inventory_quality_check_action" model="ir.actions.act_window">
+        <field name="name">Inventory Quality Check</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">tree,form</field>
+        <!-- <field name="context">{'group_by': 'qc_status'}</field> -->
+        <field name="context">{
+            'contact_display': 'partner_address',
+            'default_company_id': allowed_company_ids[0],
+            'all_operations' : False,
+            'group_header': True,
+            'all_operation_groups': True}</field>
+            <field name="domain">[('sh_quality_check_ids', '!=', False)]</field>
+
+    </record>
+
+    <menuitem id="inventory_quality_check_menu" parent="sh_inventory_mrp_qc.main_menu_quality_picking" action="inventory_quality_check_action" sequence="1" />
+
+</odoo>

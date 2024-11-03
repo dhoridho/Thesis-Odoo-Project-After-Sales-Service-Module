@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="hr_overtime_analysis_tree_view" model="ir.ui.view">
+        <field name="name">hr.overtime.analysis.tree</field>
+        <field name="model">hr.overtime.analysis</field>
+        <field name="arch" type="xml">
+            <tree string="Overtime Analysis">
+                <field name="employee_id"/>
+                <field name="overtime_request"/>
+                <field name="date"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="request_hours"/>
+                <field name="actual_id"/>
+                <field name="actual_date"/>
+                <field name="actual_start_date"/>
+                <field name="actual_end_date"/>
+                <field name="actual_hours"/>
+                <field name="coefficient_hours"/>
+                <field name="overtime_fee"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="hr_overtime_analysis_view_pivot" model="ir.ui.view">
+        <field name="name">hr.overtime.analysis.pivot</field>
+        <field name="model">hr.overtime.analysis</field>
+        <field name="arch" type="xml">
+            <pivot string="Overtime Analysis">
+                <field name="employee_id" type="row"/>
+                <field name="actual_date" interval="month" type="col"/>
+                <field name="request_hours" type="measure"/>
+                <field name="actual_hours"  type="measure"/>
+                <field name="coefficient_hours"  type="measure"/>
+                <field name="overtime_fee"  type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="hr_overtime_analysis_view_search" model="ir.ui.view">
+        <field name="name">hr.overtime.analysis.search</field>
+        <field name="model">hr.overtime.analysis</field>
+        <field name="arch" type="xml">
+            <search string="Overtime Analysis">
+                <field name="employee_id"/>
+                <field name="actual_date" invisible="1"/>
+                <filter string="This Year" name="year"  domain="[('actual_date','&lt;=', time.strftime('%%Y-12-31')),('actual_date','&gt;=',time.strftime('%%Y-01-01'))]"/>
+                <filter string="This Month" name="thismonth" domain="[('actual_date','&gt;=',time.strftime('%%Y-%%m-01')), ('actual_date','&lt;',(context_today()+relativedelta(months=1)).strftime('%%Y-%%m-01'))]"/>
+                <group expand="1" string="Group By">
+                    <filter name="employee" string="Employee" context="{'group_by':'employee_id'}"/>
+                    <filter name="date_actual" string="Actual Date" context="{'group_by':'actual_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+
+    <record id="action_hr_overtime_analysis_view_report" model="ir.actions.act_window">
+        <field name="res_model">hr.overtime.analysis</field>
+        <field name="name">Overtime Analysis</field>
+        <field name="view_mode">pivot</field>
+        <field name="context">{'search_default_year':1,'search_default_date_actual': 1}</field>
+        <field name="help"></field>
+    </record>
+
+    <menuitem
+            id="hr_overtime_analysis_menu"
+            name="Overtime Analysis"
+            parent="hr_overtimes_reporting_menu"
+            action="action_hr_overtime_analysis_view_report"
+            sequence="1"/>
+
+</odoo>

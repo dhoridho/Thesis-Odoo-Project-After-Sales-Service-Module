@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <!--Form View: Inheri contract form view to add expense products configurations-->
+    <record model="ir.ui.view" id="sg_inherit_hr_contract_view_form">
+        <field name="name">sg.inherit.hr.contract.view.form</field>
+        <field name="model">hr.contract</field>
+        <field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='information']" position="after">
+                <page string="Expense products">
+                    <separator string="Expense Products"/>
+                    <group>
+                        <field name="hr_cont_prod_ids" nolabel="1">
+                            <tree editable="bottom">
+                                <field name="product_id" required="1" context="{'default_hr_expense_ok':1}"/>
+                                <field name="start_date" />
+                                <field name="end_date" />
+                                <field name="max_prod_cap" sum="Total Maximum Amount"/>
+                                <field name="max_exp_cap" sum="Total Approved Expense"/>
+                                <field name="override"/>
+                                <field name="pro_rate"/>
+                                <field name="max_exp_cap_draft" sum="Total Draft Expense"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+                <page string="Expenses" invisible="1">
+                    <separator string="Expenses"/>
+                    <group>
+                        <field name="hr_expense_ids" nolabel="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="sg_inherit_hr_expense_form_view_view_form">
+        <field name="name">sg.expense.hr.expense.view.form</field>
+        <field name="model">hr.expense</field>
+        <field name="inherit_id" ref="hr_expense.hr_expense_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="replace">
+                <field name="product_id" context="{'default_can_be_expensed': 1, 'form_view_ref': 'product.product_normal_form_view'}"/>
+            </xpath>
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="contract_id" domain="[('employee_id','=',employee_id)]" attrs="{'readonly':[('state','!=','draft')]}" groups="hr.group_hr_manager"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

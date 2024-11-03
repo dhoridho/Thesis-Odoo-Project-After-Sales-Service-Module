@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Project Issues tree View -->
+    <record id="view_project_issue_menu_tree" model="ir.ui.view">
+        <field name="name">project.issue.tree</field>
+        <field name="model">project.issue</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="job_order_id"/>
+                <field name="supplier_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Project Issues form View -->
+    <record id="view_project_issue_menu_form" model="ir.ui.view">
+        <field name="name">project.issue.form</field>
+        <field name="model">project.issue</field>
+        <field name="arch" type="xml">
+        <form string="Project Issue">
+        <header>
+            <button name="create_bill" type="object" string="Create Bill" class="btn-primary" attrs="{'invisible': [('invoice_count', '>=', 1)]}"/>
+        </header>
+        <sheet>
+            <div class="oe_button_box" name="button_box">
+                <button name="action_view_invoice"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-pencil-square-o"
+                        attrs="{'invisible': [('invoice_count', '=', 0)]}">
+                    <field name="invoice_count" widget="statinfo"/>
+                </button>
+            </div>
+            <group>
+                <group>
+                    <field name="name" required = '1'/>
+                    <field name="issue_type_id" required = '1'/>
+                    <field name="project_id" required = '1'/>
+                    <field name="job_order_id" domain="[('id','in', job_order_ids)]"/>
+                </group>
+                <group>
+                    <field name="job_order_ids" invisible = '1' widget = 'many2many_tags'/>
+                    <field name="create_date"/>
+                    <field name="user_id"/>
+                    <field name="supplier_id" required = '1'/>
+                </group>
+            </group>
+            <notebook>
+                <page string = "Invoice Lines">
+                    <field name ="issue_line_ids" nolabel = "1" attrs="{'readonly': [('invoice_count', '>=', 1)]}">
+                        <tree editable = "bottom">
+                            <field name = "product_id" required = 'True'/>
+                            <field name = "description"/>
+                            <field name = "product_qty"/>
+                            <field name = "price_unit"/>
+                            <field name = "amount_total"/>
+                        </tree>
+                    </field>
+                    <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                            <label for="amount_total" />
+                        </div>
+                            <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                    </group>
+                </page>
+                <page string = "Description">
+                    <field name ="description" nolabel = "1"/>
+                </page>
+            </notebook>
+        </sheet>
+        </form>
+        </field>
+    </record>
+
+        <record id="view_project_issue_menu_filter" model="ir.ui.view">
+            <field name="name">project.issue.select</field>
+            <field name="model">project.issue</field>
+            <field name="arch" type="xml">
+                <search string="Search Project Issue">
+                   <group name="group_by" string="Group By">
+                       <filter name="project_id" string="Project" domain="[]" context="{'group_by' : 'project_id'}" />
+                       <filter name="job_order_id" string="Work Order" domain="[]" context="{'group_by' : 'job_order_id'}" />
+                       <filter name="issue_type_id" string="Issue Type" domain="[]" context="{'group_by' : 'issue_type_id'}" />
+                       <filter name="user_id" string="Assigned To" domain="[]" context="{'group_by' : 'user_id'}" />
+                       <filter name="supplier_id" string="Supplier" domain="[]" context="{'group_by' : 'supplier_id'}" />
+                   </group>
+               </search>
+            </field>
+        </record>
+
+    <!--ACTION [project.issue]-->
+    <record id="action_view_project_issue_menu" model="ir.actions.act_window">
+        <field name="name">Project Issue</field>
+        <field name="res_model">project.issue</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_project_issue_menu_tree" />
+    </record>
+
+    <!--MENU [Project Issue]-->
+    <menuitem id="menu_sub_project_issue"
+        name = "Project Issues"
+        parent = "menu_projects"
+        action = "action_view_project_issue_menu"
+        sequence="3"
+        groups = "abs_construction_management.group_construction_user"/>
+
+</odoo>

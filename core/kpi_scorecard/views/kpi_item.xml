@@ -1,0 +1,160 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="kpi_item_view_search" model="ir.ui.view">
+        <field name="name">kpi.item.search</field>
+        <field name="model">kpi.item</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="description"/>
+                <filter string="Archived"
+                        name="inactive"
+                        domain="[('active','=',False)]"
+                />
+                <group expand="0" string="Group By">
+                    <filter string="Category"
+                            name="group_category"
+                            context="{'group_by': 'category_id'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="kpi_item_view_form" model="ir.ui.view">
+        <field name="name">kpi.item.form</field>
+        <field name="model">kpi.item</field>
+        <field name="arch" type="xml">
+            <form>
+                <div class="oe_title">
+                    <h1>
+                        <field name="name"
+                               placeholder="KPI"
+                               class="oe_inline"
+                        />
+                    </h1>
+                </div>
+                <h2 class="oe_read_only pull-right text-warning"
+                    attrs="{'invisible': [('formula_warning', '=', False)]}"    
+                >
+                    <field name="formula_warning"/>
+                </h2>
+                <field name="formula"
+                       widget="kpiFormulaWidget" 
+                />
+                <notebook>
+                    <page string="Settings">
+                        <group>
+                            <group>
+                                <field name="category_id"/>
+                                <field name="parent_id"/>
+                                <field name="company_id"
+                                       options="{'no_create_edit': 1, 'no_quick_create': 1}" 
+                                       groups="base.group_multi_company"   
+                                />
+                                <field name="sequence"/>
+                            </group>
+                            <group>
+                                <field name="result_type"/>
+                                <field name="result_appearance"/>
+                                <field name="result_preffix"
+                                       attrs="{'invisible': [('result_appearance', '=', 'monetory')]}" 
+                                />
+                                <field name="result_suffix"
+                                       attrs="{'invisible': [('result_appearance', '=', 'monetory')]}"  
+                                />
+                                <field name="currency_id"
+                                    attrs="{'invisible': [('result_appearance', '!=', 'monetory')]}"
+                                />
+                                <field name="result_rounding"/>
+                            </group>
+                        </group>
+                    </page>
+                    <page string="Extra Targets Security">
+                        <group string="Read Rights">
+                            <field name="user_ids"
+                                   widget="many2many_tags" 
+                                   options="{'no_create_edit': 1, 'no_quick_create': 1}" 
+                            />
+                            <field name="user_group_ids"
+                                   widget="many2many_tags" 
+                                   options="{'no_create_edit': 1, 'no_quick_create': 1}" 
+                            />
+                            <field name="access_user_ids"
+                                   widget="many2many_tags"
+                                   invisible="1"
+                            />
+                        </group>
+                        <group string="Edit Rights">
+                            <field name="edit_user_ids"
+                                   widget="many2many_tags" 
+                                   options="{'no_create_edit': 1, 'no_quick_create': 1}" 
+                            />
+                            <field name="edit_user_group_ids"
+                                   widget="many2many_tags" 
+                                   options="{'no_create_edit': 1, 'no_quick_create': 1}" 
+                            />
+                            <field name="edit_access_user_ids"
+                                   widget="many2many_tags"
+                                   invisible="1"
+                            />
+                        </group>
+                    </page>
+                    <page string="Notes">
+                        <field name="description"
+                               placholder="notes... would be shown as explanation title on scorecard target line" 
+                        />
+                    </page>
+                    <page string="Technical" invisible="1">
+                        <group>
+                            <field name="active"/>
+                            <field name="all_parent_ids"
+                                   widget="many2many_tags"
+                            />
+                        </group>
+                        <group string="Measurements">
+                            <field name="measures_ids"
+                                   widget="many2many_tags"
+                            />
+                            <field name="constant_ids"
+                                   widget="many2many_tags"
+                            />
+                            <field name="kpi_ids"
+                                   widget="many2many_tags"
+                            />
+                        </group>
+                    </page>
+                    <page string="Help" attrs="{'invisible': [('help_notes', '=', False)]}">
+                        <field name="kpi_help_dummy" invisible="1"/>
+                        <field name="help_notes"/>
+                    </page>
+                </notebook>
+            </form>
+        </field>
+    </record>
+    <record id="kpi_item_view_tree" model="ir.ui.view">
+        <field name="name">kpi.item.tree</field>
+        <field name="model">kpi.item</field>
+        <field name="arch" type="xml">
+            <tree decoration-warning="formula_warning != False">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" invisible="1"/>
+                <field name="formula_warning" invisible="0"/>
+            </tree>
+        </field>
+    </record>
+    <record id="kpi_item_action" model="ir.actions.act_window">
+        <field name="name">KPI</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">kpi.item</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" eval="kpi_item_view_search"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Add new KPI to measure performance
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="employee_career_suggestion_form_view" model="ir.ui.view">
+            <field name="name">employee.career.suggestion.form</field>
+            <field name="model">employee.career.suggestion</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="generate_suggestion_match" string="Generate Career Suggestion" type="object" class="oe_highlight" attrs="{'invisible':['|',('show_generate','=',False),('is_generated','=',True)]}"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" required="1" options="{'no_quick_create':True,'no_create_edit':True,'no_open':True,'no_create':True}"/>
+                                <field name="current_job" readonly="1" force_save="1"/>
+                                <field name="department_id" readonly="1" force_save="1"/>
+                                <field name="matched_based_on"/>
+                                <field name="department_ids" widget="many2many_tags"  attrs="{'invisible':[('matched_based_on','=','by_job')],'required':[('matched_based_on','=','by_department')]}"/>
+                                <field name="job_ids" widget="many2many_tags"  attrs="{'invisible':[('matched_based_on','=','by_department')],'required':[('matched_based_on','=','by_job')]}"/>
+                            </group>
+                            <group>
+                                <field name="create_uid" string="Suggester"/>
+                                <field name="create_date"/>
+                                <field name="company_id" readonly="1"/>
+                                <field name="evaluation_period_ids" widget="many2many_tags" required="1" options="{'no_quick_create':True,'no_create_edit':True,'no_open':True,'no_create':True}"/>
+                                <field name="show_generate" invisible="1"/>
+                                <field name="is_generated" invisible="1"/>
+                                <field name="comp_match_count" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Suggestions">
+                                <field name="career_suggestion_ids" attrs="{'invisible':[('comp_match_count','=',0)]}">
+                                    <tree editable="bottom" create="false">
+                                        <field name="competencies_match_id" required="1" options="{'no_quick_create':True,'no_create_edit':True,'no_open':True,'no_create':True}" domain="[('suggestion_id','=',parent.id)]"/>
+                                        <field name="job_id" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="department_id" readonly="1" force_save="1"/>
+                                        <field name="competency_match" readonly="1" force_save="1"/>
+                                        <field name="task_ids" widget="many2many_tags"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Suggestion Competencies Match">
+                                <field name="suggestion_comp_match_ids" attrs="{'invisible':[('is_generated','=',False)]}">
+                                    <kanban default_group_by="department_id" default_order="department_id"  quick_create="false" group_create="false" create="false" delete="false">
+                                        <field name="department_id"/>
+                                        <field name="color"/>
+                                        <templates>
+                                            <t t-name="kanban-box">
+                                                <div t-attf-class="{{'oe_kanban_color_' + kanban_getcolor(record.color.raw_value) }} oe_kanban_card oe_semantic_html_override">
+
+                                                    <div class="d-home">
+                                                        <div>
+                                                            <strong>
+                                                                <field name="department_id"/>
+                                                            </strong>
+                                                        </div>
+                                                        <div>
+                                                            <strong class="o_kanban_record_title">
+                                                                <field name="job_id" />
+                                                            </strong>
+                                                        </div>
+                                                        <span>
+                                                            <field name="competency_match"/> 
+                                                        </span>
+                                                    </div>
+                                                    <div class="oe_clear"/>
+                                                    <div class="button-details">
+                                                            <button string="Details" name="%(equip3_hr_employee_appraisals.hr_appraisal_comptencies_match_wizard_action)d" class="btn btn-primary" type="action">Details</button>
+                                                    </div>
+                                                </div>
+                                                
+                                            </t>
+                                        </templates>
+                                    </kanban>
+                                    <!-- <form delete="false">
+                                        <sheet>
+                                            <group>
+                                                <field name="job_id"  readonly="1"/>
+                                                <field name="department_id" readonly="1"/>
+                                                <field name="competency_match" readonly="1"/>
+                                                <field name="link_task_id" readonly="0" required="1"/>
+                                                <field name="link_deadline" readonly="0" required="1"/>
+                                            </group>
+                                        </sheet>
+                                    </form> -->
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        
+        <record id="employee_career_suggestion_tree_view" model="ir.ui.view">
+            <field name="name">employee.career.suggestion.tree</field>
+            <field name="model">employee.career.suggestion</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="current_job"/>
+                    <field name="department_id"/>
+                    <field name="evaluation_period_ids" widget="many2many_tags"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="employee_career_suggestion_search" model="ir.ui.view">
+            <field name="name">employee.career.suggestion.search</field>
+            <field name="model">employee.career.suggestion</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="current_job"/>
+                    <field name="department_id"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="career_suggestion_competencies_match_tree_view" model="ir.ui.view">
+            <field name="name">career.suggestion.competencies.match.tree</field>
+            <field name="model">career.suggestion.competencies.match</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="job_id"/>
+                    <field name="department_id"/>
+                    <field name="competency_match"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- <record model="ir.actions.act_window" id="action_career_suggestion">
+            <field name="name">Career Suggestion</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">employee.career.suggestion</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new Career Suggestion.
+                </p>
+            </field>
+        </record> -->
+
+        <record id="action_career_suggestion" model="ir.actions.server">
+            <field name="name">Career Suggestion</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="equip3_hr_employee_appraisals.model_employee_career_suggestion"/>
+            <field name="code">action = model.custom_menu()</field>
+        </record>
+
+        <menuitem name="Career Suggestion" id="menu_career_suggestion" action="action_career_suggestion"
+                  parent="menu_career_plan" sequence="2" />
+        <record model='ir.ui.menu' id='menu_career_suggestion'>
+            <field name="groups_id" eval="[(6, 0, [ref('equip3_hr_employee_appraisals.group_hr_appraisal_manager')])]"/>
+        </record>
+        
+    </data>
+</odoo>

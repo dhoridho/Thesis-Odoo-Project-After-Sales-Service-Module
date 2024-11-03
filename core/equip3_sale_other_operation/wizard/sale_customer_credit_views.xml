@@ -1,0 +1,206 @@
+<?xml version ="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="sale_order_partner_credit_limit_form" model="ir.ui.view">
+        <field name="name">form.sale.order.partner.credit</field>
+        <field name="model">sale.order.partner.credit</field>
+        <field name="inherit_id" ref="sh_sale_credit_limit.sale_order_partner_credit_limit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group" position="before">
+                <span invisible="context.get('show_credit_limit', True)"><strong>Can not continue the quotation because this customer has over credit limit.</strong></span>
+                <span invisible="context.get('show_invoice_limit', True)"><strong>Can not continue the quotation because this customer has invoice overdue.</strong></span>
+                <span invisible="context.get('show_credit_invoice_limit', True)"><strong>Can not continue the quotation because this customer has over credit limit and invoice overdue.</strong></span>
+            </xpath>
+            <xpath expr="//button[@name='confirm_sale_order']" position="before">
+                 <button string="Ok" name="ok_sale_customer_credit" type="object" class="btn-primary" invisible="1"/>
+            </xpath>
+            <field name="customer_credit_limit" position="attributes">
+                <attribute name="string">Customer Available Credit Limit</attribute>
+            </field>
+            <xpath expr="//button[@name='confirm_sale_order']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <field name="set_customer_onhold" position="attributes">
+                <attribute name="readonly">1</attribute>
+                <attribute name="force_save">1</attribute>
+            </field>
+            <xpath expr="//button[@name='onhold_sale_order']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sale_order_partner_over_limit_form" model="ir.ui.view">
+        <field name="name">form.sale.order.partner.over.limit</field>
+        <field name="model">sale.order.partner.credit</field>
+        <field name="inherit_id" ref="equip3_sale_other_operation.sale_order_partner_credit_limit_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='ok_sale_customer_credit']" position="before">
+                <button string="Ok" special='cancel' class="btn-primary"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_form_sale_order_partner_credit_limit" model="ir.ui.view">
+        <field name="name">form.sale.order.partner.credit</field>
+        <field name="model">sale.order.partner.credit</field>
+        <field name="arch" type="xml">
+            <form string="Customer Credit">
+                <sheet>
+                    <span invisible="context.get('show_credit_limit', True)"><strong>Can not continue the quotation because this customer has over credit limit.</strong></span>
+                    <span invisible="context.get('show_invoice_limit', True)"><strong>Can not continue the quotation because this customer has invoice overdue.</strong></span>
+                    <span invisible="context.get('show_credit_invoice_limit', True)"><strong>Can not continue the quotation because this customer has over credit limit and invoice overdue.</strong></span>
+                    <group>
+                        <group>
+                            <field name="name" invisible="1" />
+                            <field name="order_partner" />
+                            <field name="customer_max_invoice_overdue" />
+                            <field name="is_set_customer_on_hold" />
+                        </group>
+                        <group>
+                            <field name="total_receivable" />
+                            <field name="invoice_number" />
+                            <field name="sale_orders_cnt_amt" />
+                            <field name="cust_invoice_cnt_amt" />
+                        </group>
+                    </group>
+                    <footer>
+                        <button string="Ok" name="ok_invoice_overdue" type="object" class="btn-primary"/>
+                        <button string="Confirm" name="confirm_sale_order" type="object" default_focus="1" class="btn-primary" groups="sh_sale_credit_limit.sh_group_sale_order_partner_credit_limit" invisible="1"/>
+                        <button string="On Hold" name="onhold_sale_order" type="object" class="btn-default" invisible="1"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_form_sale_order_partner_open_invoice_limit" model="ir.ui.view">
+        <field name="name">form.sale.order.partner.open.invoice.limit</field>
+        <field name="model">sale.order.partner.credit</field>
+        <field name="arch" type="xml">
+            <form string="Open Invoice Limit">
+                <sheet>
+                    <span><strong>Can not continue the quotation because this customer has open invoice limit.</strong></span>
+                    <group>
+                        <group>
+                            <field name="name" invisible="1" />
+                            <field name="order_partner" />
+                            <field name="avl_open_inv_limt"/>
+                            <field name="customer_on_hold_open_invoice" string="Customer On Hold(Open Invoice Limit Exceed)" />
+                        </group>
+                        <group>
+                            <field name="total_receivable" />
+                            <field name="current_order" />
+                            <field name="sale_orders_cnt_amt" />
+                            <field name="cust_invoice_cnt_amt" />
+                        </group>
+                    </group>
+                    <footer>
+                        <button string="Ok" name="ok_invoice_open" type="object" class="btn-primary"/>
+                        
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_form_sale_order_partner_open_invoice_limit_and_overdue" model="ir.ui.view">
+        <field name="name">form.sale.order.partner.open.invoice.limit</field>
+        <field name="model">sale.order.partner.credit</field>
+        <field name="arch" type="xml">
+            <form string="Open Invoice Limit">
+                <sheet>
+                    <span><strong>Can not continue the quotation because this customer has open invoice overlimit and invoice overdue.</strong></span>
+                    <group>
+                        <group>
+                            <field name="name" invisible="1" />
+                            <field name="order_partner" />
+                            <field name="avl_open_inv_limt"/>
+                            <field name="customer_on_hold_open_invoice" string="Customer On Hold(Open Invoice Limit Exceed)" />
+                            <field name="customer_max_invoice_overdue" />
+                            <field name="is_set_customer_on_hold" />
+                        </group>
+                        <group>
+                            <field name="total_receivable" />
+                            <field name="current_order"/>
+                            <field name="invoice_number" />
+                            <field name="sale_orders_cnt_amt" />
+                            <field name="cust_invoice_cnt_amt" />
+                        </group>
+                    </group>
+                    <footer>
+                        <button string="Ok" name="ok_invoice_overdue_open_limit" type="object" class="btn-primary"/>
+                        
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_form_sale_order_partner_open_invoice_limit_and_credit_limit" model="ir.ui.view">
+        <field name="name">form.sale.order.partner.open.invoice.limit</field>
+        <field name="model">sale.order.partner.credit</field>
+        <field name="arch" type="xml">
+            <form string="Open Invoice Limit">
+                <sheet>
+                    <span><strong>Can not continue the quotation because this customer has over credit limit and open invoice overlimit.</strong></span>
+                    <group>
+                        <group>
+                            <field name="name" invisible="1" />
+                            <field name="order_partner" />
+                            <field name="customer_credit_limit" string="Customer Available Credit Limit" />
+                            <field name="set_customer_onhold" string="Customer On Hold(Credit Limit Exceed)"/>
+                            <field name="avl_open_inv_limt"/>
+                            <field name="customer_on_hold_open_invoice" string="Customer On Hold(Open Invoice Limit Exceed)" />
+                        </group>
+                        <group>
+                            <field name="total_receivable" />
+                            <field name="current_order"/>
+                            <field name="sale_orders_cnt_amt" />
+                            <field name="cust_invoice_cnt_amt"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button string="Ok" name="ok_credit_invoice_open_limit" type="object" class="btn-primary"/>
+                        
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_form_sale_order_partner_open_invoice_limit_and_credit_limit_and_invoice_overdue" model="ir.ui.view">
+        <field name="name">form.sale.order.partner.open.invoice.limit</field>
+        <field name="model">sale.order.partner.credit</field>
+        <field name="arch" type="xml">
+            <form string="Open Invoice Limit">
+                <sheet>
+                    <span><strong>Can not continue the quotation because this customer has over credit limit, open invoice overlimit, and invoice Overdue.</strong></span>
+                    <group>
+                        <group>
+                            <field name="name" invisible="1" />
+                            <field name="order_partner" />
+                            <field name="customer_credit_limit" string="Customer Available Credit Limit" />
+                            <field name="set_customer_onhold" string="Customer On Hold(Credit Limit Exceed)"/>
+                            <field name="avl_open_inv_limt"/>
+                            <field name="customer_on_hold_open_invoice" string="Customer On Hold(Open Invoice Limit Exceed)" />
+                            <field name="customer_max_invoice_overdue"/>
+                            <field name="is_set_customer_on_hold"/>
+                        </group>
+                        <group>
+                            <field name="total_receivable" />
+                            <field name="current_order"/>
+                            <field name="invoice_number" />
+                            <field name="sale_orders_cnt_amt" />
+                            <field name="cust_invoice_cnt_amt" />
+                        </group>
+                    </group>
+                    <footer>
+                        <button string="Ok" name="ok_credit_overdue_open_limit" type="object" class="btn-primary"/>
+                        
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mining_production_record_processing_form" model="ir.ui.view">
+        <field name="name">mining.production.record.form</field>
+        <field name="model">mining.production.record</field>
+        <field name="arch" type="xml">
+            <form string="Production Record" create="0" delete="0">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm" class="oe_highlight" attrs="{'invisible': [('state', '=', 'confirmed')]}"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button"
+                                name="action_view_stock_moves"
+                                icon="fa-exchange"
+                                type="object" 
+                                attrs="{'invisible':[('stock_moves_count', '=', 0)]}">
+                                <div class="o_field_widget o_stat_info">
+                                    <span class="o_stat_value">
+                                        <field name="stock_moves_count" widget="statinfo" nolabel="1"/>
+                                    </span>
+                                    <span class="o_stat_text">Moves</span>
+                                </div>
+                        </button>
+                    </div>
+                    <group attrs="{'invisible': [('selected_operation_type', '!=', 'shipment')]}">
+                        <group>
+                            <field name="selected_operation_type" invisible="1" force_save="1"/>
+                            <field name="product_id" attrs="{'required': [('selected_operation_type', '=', 'shipment')]}"/>
+                            <field name="allowed_product_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="description" attrs="{'readonly': [('state', '=', 'confirmed')]}"/>
+                            <field name="product_uom" readonly="1"/>
+                            <field name="stock_move_ids" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="remaining" attrs="{'readonly': [('state', '=', 'confirmed')]}"/>
+                            <field name="product_uom_qty" attrs="{'readonly': [('state', '=', 'confirmed')]}"/>
+                            <field name="quantity_done" attrs="{'readonly': [('state', '=', 'confirmed')]}"/>
+                        </group>
+                    </group>
+                    <group attrs="{'invisible': [('selected_operation_type', '=', 'shipment')]}">
+                        <group>
+                            <field name="selected_operation_type" invisible="1"/>
+                            <field name="mining_site_id" attrs="{'readonly': [('state', '=', 'confirmed')]}" required="1"/>
+                            <field name="mining_pit_id" attrs="{'invisible':[('selected_operation_type', 'in', ('hauling','processing'))], 'required': [('selected_operation_type', 'in', ('extraction', 'waste_removal'))], 'readonly': [('state', '=', 'confirmed')]}"/>
+                            <field name="mining_operation_id" readonly="1" force_save="1"/>
+                            <field name="equipment_id" attrs="{'invisible':[('selected_operation_type', '=', 'hauling')], 'required': [('selected_operation_type', 'in', ('extraction', 'waste_removal', 'processing'))], 'readonly': [('state', '=', 'confirmed')]}"/>
+                            <field name="transport_id" attrs="{'invisible':[('selected_operation_type', '=', 'processing')], 'readonly': [('state', '=', 'confirmed')], 'required': [('selected_operation_type', '=', 'hauling')]}"/>
+                            <field name="processing_location_id" attrs="{'invisible':[('selected_operation_type', '!=', 'processing')], 'readonly': [('state', '=', 'confirmed')], 'required': [('selected_operation_type', '=', 'processing')]}"/>
+                            <field name="source_location_id" attrs="{'invisible':[('selected_operation_type', '=', 'processing')], 'required': [('selected_operation_type', 'in', ('extraction', 'waste_removal', 'hauling'))], 'readonly': ['|', ('selected_operation_type', 'in', ('extraction', 'waste_removal')), ('state', '=', 'confirmed')]}" force_save="1"/>
+                            <field name="destination_location_id" attrs="{'invisible':[('selected_operation_type', '=', 'processing')], 'readonly': [('state', '=', 'confirmed')], 'required': [('selected_operation_type', '=', 'hauling')]}"/>
+                            <field name="product_id" attrs="{'invisible':[('selected_operation_type', '=', 'processing')], 'required': [('selected_operation_type', 'in', ('extraction', 'waste_removal', 'hauling'))], 'readonly': [('state', '=', 'confirmed')]}"/>
+
+                            <label for="gross_total" string="Gross" attrs="{'invisible':[('selected_operation_type', '=', 'processing')]}"/>
+                            <div attrs="{'invisible':[('selected_operation_type', '=', 'processing')]}" class="o_row">
+                                <field name="gross_total" attrs="{'readonly': [('state', '=', 'confirmed')]}" class="oe_lnline mr-2"/>
+                                <field name="gross_uom_id" readonly="1" force_save="1" class="oe_inline"/>
+                            </div>
+                            <label for="tare_total" string="Tare" attrs="{'invisible':[('selected_operation_type', '=', 'processing')]}"/>
+                            <div attrs="{'invisible':[('selected_operation_type', '=', 'processing')]}" class="o_row">
+                                <field name="tare_total" attrs="{'readonly': [('state', '=', 'confirmed')]}" class="oe_lnline mr-2"/>
+                                <field name="tare_uom_id"  readonly="1" force_save="1" class="oe_inline"/>
+                            </div>
+                            <label for="nett_total" string="Nett" attrs="{'invisible':[('selected_operation_type', '=', 'processing')]}"/>
+                            <div attrs="{'invisible':[('selected_operation_type', '=', 'processing')]}" class="o_row">
+                                <field name="nett_total" readonly="1" force_save="1" class="oe_lnline mr-2"/>
+                                <field name="nett_uom_id" readonly="1" force_save="1" class="oe_inline"/>
+                            </div>
+
+                            <label for="input_total" string="Input Total" attrs="{'invisible':[('selected_operation_type', '!=', 'processing')]}"/>
+                            <div attrs="{'invisible':[('selected_operation_type', '!=', 'processing')]}" class="o_row">
+                                <field name="input_total" attrs="{'readonly': [('state', '=', 'confirmed')]}" class="oe_lnline mr-2"/>
+                                <field name="input_uom_id" readonly="1" force_save="1" class="oe_inline"/>
+                            </div>
+                            <label for="output_total" string="Output Total" attrs="{'invisible':[('selected_operation_type', '!=', 'processing')]}"/>
+                            <div attrs="{'invisible':[('selected_operation_type', '!=', 'processing')]}" class="o_row">
+                                <field name="output_total" attrs="{'readonly': [('state', '=', 'confirmed')]}" class="oe_lnline mr-2"/>
+                                <field name="output_uom_id" readonly="1" force_save="1" class="oe_inline"/>
+                            </div>
+                            <label for="loss_total" string="Loss Total" attrs="{'invisible':[('selected_operation_type', '!=', 'processing')]}"/>
+                            <div attrs="{'invisible':[('selected_operation_type', '!=', 'processing')]}" class="o_row">
+                                <field name="loss_total" readonly="1" force_save="1" class="oe_lnline mr-2"/>
+                                <field name="loss_uom_id" readonly="1" force_save="1" class="oe_inline"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="prod_rec_date" attrs="{'readonly': ['|', ('state', '=', 'confirmed'), ('selected_operation_type', 'in', ('extraction', 'waste_removal', 'hauling', 'processing'))]}" force_save="1"/>
+                            <field name="company_id" readonly="1" force_save="1"/>
+                            <field name="branch_id" readonly="1" force_save="1"/>
+                            <field name="create_date" readonly="1" force_save="1"/>
+                            <field name="create_uid" readonly="1" force_save="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Input" name="production_record_input" attrs="{'invisible': [('selected_operation_type', '!=', 'processing')]}">
+                            <field name="production_record_input_ids" attrs="{'readonly': [('state', '=', 'confirmed')]}">
+                                <tree string="Production Record" editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Output" name="production_record_output" attrs="{'invisible': [('selected_operation_type', '!=', 'processing')]}">
+                            <field name="production_record_output_ids" attrs="{'readonly': [('state', '=', 'confirmed')]}">
+                                <tree string="Production Record" editable="bottom">
+                                    <field name="product_id" required="1"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Cost Details" name="cost_details" attrs="{'invisible': [('stock_valuation_layer_ids', '=', [])]}">
+                            <field name="stock_valuation_layer_ids">
+                                <tree string="Cost Details">
+                                    <field name="mining_type" string="Type"/>
+                                    <field name="product_id"/>
+                                    <field name="value"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+     <record id="mining_production_record_processing_tree" model="ir.ui.view">
+        <field name="name">mining.production.record.tree</field>
+        <field name="model">mining.production.record</field>
+        <field name="arch" type="xml">
+            <tree create="0" delete="0">
+                <field name="name"/>
+                <field name="mining_site_id"/>
+                <field name="mining_operation_id"/>
+                <field name="prod_rec_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="mining_production_record_shipment_tree" model="ir.ui.view">
+        <field name="name">mining.production.record.tree</field>
+        <field name="model">mining.production.record</field>
+        <field name="arch" type="xml">
+            <tree create="0" delete="0">
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="description"/>
+                <field name="remaining"/>
+                <field name="product_uom_qty"/>
+                <field name="quantity_done"/>
+                <field name="product_uom"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="mining_production_record_processing_search" model="ir.ui.view">
+        <field name="name">Mining Production Processing Record Search</field>
+        <field name="model">mining.production.record</field>
+        <field name="arch" type="xml">
+            <search string="Search Operation">
+                <field name="mining_operation_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="mining_production_record_shipment_action" model="ir.actions.act_window">
+        <field name="name">Mining Production Shipment Record</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.production.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="mining_production_record_shipment_tree"/>
+        <field name="domain">[('daily_production_id.selected_operation_type', '=', 'shipment')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your Mining Production Shipment Record !
+            </p>
+        </field>
+    </record>
+
+    <record id="mining_production_record_processing_action" model="ir.actions.act_window">
+        <field name="name">Mining Production Processing Record</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.production.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('daily_production_id.selected_operation_type', '=', 'processing')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your Mining Production Processing Record !
+            </p>
+        </field>
+    </record>
+
+    <record id="mining_production_record_extraction_action" model="ir.actions.act_window">
+        <field name="name">Mining Production Extraction Record</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.production.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('daily_production_id.selected_operation_type', '=', 'extraction')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your Mining Production Extraction Record !
+            </p>
+        </field>
+    </record>
+
+    <record id="mining_production_record_hauling_action" model="ir.actions.act_window">
+        <field name="name">Mining Production Hauling Record</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.production.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('daily_production_id.selected_operation_type', '=', 'hauling')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your Mining Production Hauling Record !
+            </p>
+        </field>
+    </record>
+
+    <record id="mining_production_record_waste_removal_action" model="ir.actions.act_window">
+        <field name="name">Mining Production Waste Removal Record</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.production.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('daily_production_id.selected_operation_type', '=', 'waste_removal')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your Mining Production Waste Removal Record !
+            </p>
+        </field>
+    </record>
+</odoo>

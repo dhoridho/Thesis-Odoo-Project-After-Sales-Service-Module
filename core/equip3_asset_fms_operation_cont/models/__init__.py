@@ -1,0 +1,1 @@
+from . import interwarehouse_transfer_asset

@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_daily_activity_tree" model="ir.ui.view">
+        <field name="name">view.daily.culture.activity.tree</field>
+        <field name="model">agriculture.daily.activity</field>
+        <field name="arch" type="xml">
+            <tree string="Plantation Plan" default_order="priority desc, date_scheduled desc, name desc">
+                <field name="priority" widget="priority" nolabel="1"/>
+                <field name="name" string="Plantation Plan"/>
+                <field name="block_id"/>
+                <field name="crop_ids" widget="many2many_tags"/>
+                <field name="user_id" string="PPIC"/>
+                <field name="date_scheduled"/>
+                <field name="state" widget='badge' decoration-secondary="state == 'draft'"
+                                                   decoration-warning3="state == 'to_be_approved'"
+                                                   decoration-warning2="state == 'approved'"
+                                                   decoration-danger="state == 'rejected'"
+                                                   decoration-primary="state == 'confirm'"
+                                                   decoration-warning="state == 'progress'"
+                                                   decoration-success="state == 'done'"
+                                                   decoration-danger3="state == 'cancel'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_daily_activity_form" model="ir.ui.view">
+        <field name="name">view.daily.culture.activity.form</field>
+        <field name="model">agriculture.daily.activity</field>
+        <field name="arch" type="xml">
+            <form string="Plantation Plan">
+                <header>
+                    <field name="user_is_approver" invisible="1"/>
+                    <field name="is_matrix_on" invisible="1"/>
+                    <field name="daily_activity_type" invisible="1"/>
+                    
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,progress,done" attrs="{'invisible': ['|', ('is_matrix_on', '!=', True), ('state', 'in', ['cancel', 'rejected'])]}"/>
+                    <field name="state_1" widget="statusbar" statusbar_visible="draft,rejected,progress,done" attrs="{'invisible': ['|', ('is_matrix_on', '!=', True), ('state', '!=', 'rejected')]}"/>
+                    <field name="state_2" widget="statusbar" statusbar_visible="draft,progress,done" attrs="{'invisible': ['|', ('is_matrix_on', '!=', False), ('state', '=', 'cancel')]}"/>
+                    <field name="state_3" widget="statusbar" statusbar_visible="draft,confirm,cancel" attrs="{'invisible': [('state', '!=', 'cancel')]}"/>
+                    
+                    <button name="button_confirm" string="Confirm" type="object" class="oe_highlight" attrs="{'invisible': ['|', '&amp;', ('is_matrix_on', '=', True), ('state', '!=', 'approved'), '&amp;', ('is_matrix_on', '=', False), ('state', '!=', 'draft')]}"/>
+                    <button name="button_done" string="Mark As Done" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'progress')]}"/>
+                    <button name="action_approval" string="Request Approval" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('is_matrix_on', '!=', True), ('state', '!=', 'draft')]}"/>
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"  attrs="{'invisible': ['|', '|', ('is_matrix_on', '!=', True), ('state', '!=', 'to_be_approved'), ('user_is_approver', '=', False)]}"/>
+                    <button name="action_reject" string="Reject" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_matrix_on', '!=', True), ('state', '!=', 'to_be_approved'), ('user_is_approver', '=', False)]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="priority" widget="priority" class="mr-3"/>
+                            <field name="name" nolabel="1"/>
+                        </h1>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" name="action_view_moves" type="object" icon="o-hm-smart-all-product-move" attrs="{'invisible': [('moves_count', '=', 0)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="moves_count"/></span>
+                                <span class="o_stat_text">Product<br/>Moves</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" name="action_view_planting_moves" type="object" icon="o-hm-smart-all-product-move" attrs="{'invisible': [('planting_moves_count', '=', 0)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="planting_moves_count"/></span>
+                                <span class="o_stat_text">Planting<br/>Moves</span>
+                            </div>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date_scheduled"/>
+                            <field name="is_whole_day"/>
+                            <div class="o_row" attrs="{'invisible': [('is_whole_day', '=', True)]}">
+                                <div class="o_td_label oe_inline mr-4">
+                                    <label for="start_time"/>
+                                    <field name="start_time" widget="datetime_timepicker" class="d-block" attrs="{'required': [('is_whole_day', '=', False)]}" options="{'datepicker': {'stepping': 30}}"/>
+                                </div>
+                                <div class="o_td_label oe_inline">
+                                    <label for="end_time"/>
+                                    <field name="end_time" widget="datetime_timepicker" class="d-block" attrs="{'required': [('is_whole_day', '=', False)]}" options="{'datepicker': {'stepping': 30}}"/>
+                                </div>
+                            </div>
+                            <field name="block_id" options="{'no_create_edit': True, 'no_create': True}" domain="[('use_type', '=', 'block')]"/>
+                            <field name="allowed_sub_block_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="sub_block_id" options="{'no_create_edit': True, 'no_create': True}" attrs="{'invisible': [('allowed_sub_block_ids', '=', [])], 'required': [('allowed_sub_block_ids', '!=', [])]}"/>
+                            <label for="size"/>
+                            <div class="o_row">
+                                <field name="size" class="oe_inline" required="1"/>
+                                <field name="uom_id" class="oe_inline" force_save="1"/>
+                            </div>
+                            <field name="user_id" options="{'no_create_edit': True, 'no_create': True}"/>
+                            <field name="approval_matrix_id" readonly="1" attrs="{'invisible': [('is_matrix_on', '=', False)], 'required': [('is_matrix_on', '=', True)]}"/>
+                        </group>
+                        <group>
+                            <field name="analytic_group_ids" widget="many2many_tags" options="{'no_create_edit': True, 'no_create': True}"/>
+                            <field name="company_id"/>
+                            <field name="is_branch_required" invisible="1"/>
+                            <field name="branch_id" options="{'no_create_edit': True, 'no_create': True}" attrs="{'required': [('is_branch_required', '=', True)]}"/>
+                            <field name="create_date" string="Created On" readonly="1" force_save="1"/>
+                            <field name="create_uid" string="Created By" readonly="1" force_save="1"/>
+                            <field name="worker_type" widget="radio"/>
+
+                            <field name="crop_activity_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="any_maintenance" invisible="1"/>
+                            <field name="any_planting" invisible="1"/>
+                            <field name="any_crop_adjustment" invisible="1"/>
+                            <field name="any_transfer" invisible="1"/>
+                            <field name="any_harvest" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="line_ids" string="Plantation Lines">
+                            <field name="line_ids" attrs="{'readonly': [('state', '!=', 'draft')]}" context="{
+                                'default_daily_activity_type': daily_activity_type,
+                                'default_is_whole_day': is_whole_day,
+                                'default_start_time': start_time,
+                                'default_end_time': end_time,
+                                'default_sequence': next_sequence,
+                                'default_priority': priority,
+                                'default_company_id': company_id,
+                                'default_branch_id': branch_id,
+                                'default_analytic_group_ids': analytic_group_ids,
+                                'default_date_scheduled': date_scheduled,
+                                'default_block_id': block_id,
+                                'default_sub_block_id': sub_block_id,
+                                'default_size': size,
+                                'default_uom_id': uom_id
+                            }">
+                                <tree string="Plantation Lines" editable="bottom">
+                                    <field name="daily_activity_type" invisible="1"/>
+                                    <field name="is_whole_day" invisible="1"/>
+                                    <field name="start_time" invisible="1"/>
+                                    <field name="end_time" invisible="1"/>
+                                    <field name="sequence" invisible="1"/>
+                                    <field name="daily_activity_id" invisible="1"/>
+                                    <field name="priority" optional="hide"/>
+                                    <field name="company_id" optional="hide"/>
+                                    <field name="branch_id" optional="hide"/>
+                                    <field name="analytic_group_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="date_scheduled" optional="hide"/>
+                                    <field name="block_id" optional="hide"/>
+                                    <field name="sub_block_id" optional="hide"/>
+                                    <field name="allowed_sub_block_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="harvest" optional="hide"/>
+                                    <field name="nursery" optional="hide"/>
+                                    <field name="all_moves_done" optional="hide"/>
+                                    <field name="name"/>
+                                    <field name="activity_id" options="{'no_create_edit': True, 'no_create': True}" domain="[('category_type', '=', 'plantation')]"/>
+                                    <field name="agreement_id" options="{'no_create_edit': True, 'no_create': True}"/>
+                                    <field name="activity_type" invisible="1"/>
+                                    <field name="notes"/>
+                                    <field name="crop_ids" widget="many2many_tags" optional="hide" force_save="1"/>
+                                    <field name="crop_age" invisible="1"/>
+                                    <field name="size" optional="hide"/>
+                                    <field name="uom_id" force_save="1" optional="hide"/>
+                                    <field name="state" 
+                                           widget='badge' 
+                                           decoration-secondary="state == 'draft'"
+                                           decoration-warning3="state == 'to_be_approved'"
+                                           decoration-warning2="state == 'approved'"
+                                           decoration-danger="state == 'rejected'"
+                                           decoration-primary="state == 'confirm'"
+                                           decoration-warning="state == 'progress'"
+                                           decoration-success="state == 'done'"
+                                           decoration-danger3="state == 'cancel'"/>
+                                    <button name="action_actualization" string="Actualization" type="object" class="btn-danger" attrs="{'invisible': [('state', 'not in', ('confirm', 'progress'))]}" style="padding: 5px 10px;"/>
+                                    <button name="action_done" string="Mark As Done" type="object" class="btn-success" attrs="{'invisible': [('state', '!=', 'progress')]}" style="padding: 5px 10px;"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="nursery_ids" string="Crop" attrs="{'invisible': [('any_planting', '=', False), ('any_crop_adjustment', '=', False)]}">
+                            <field name="nursery_ids"
+                                   attrs="{'readonly': [('state', '!=', 'draft')]}"
+                                   context="{
+                                        'default_block_id': block_id,
+                                        'default_date': date_scheduled,
+                                        'default_original_move': True
+                                   }">
+                                <tree string="Crop" editable="bottom">
+                                    <field name="activity_line_sequence" invisible="1"/>
+                                    <field name="daily_activity_id" invisible="1"/>
+                                    <field name="allowed_activity_line_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="activity_line_id" string="Plantation Lines" domain="[('id', 'in', allowed_activity_line_ids)]" required="1"/>
+                                    <field name="block_id" invisible="1"/>
+                                    <field name="product_id"/>
+                                    <field name="count"/>
+                                    <field name="uom_id"/>
+                                    <field name="date"/>
+                                    <field name="original_move" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="harvest_ids" string="Harvest" attrs="{'invisible': [('harvest', '=', False)]}">
+                            <field name="harvest_ids" 
+                                   attrs="{'readonly': [('state', '!=', 'draft')]}"
+                                   context="{
+                                        'default_location_id': production_location_id,
+                                        'default_location_dest_id': location_id,
+                                        'default_date': date_scheduled,
+                                        'default_date_deadline': date_scheduled,
+                                        'default_company_id': company_id,
+                                        'default_branch_id': branch_id,
+                                        'default_name': name,
+                                        'default_origin': name,
+                                        'default_warehouse_id': warehouse_id,
+                                        'default_block_id': block_id,
+                                        'default_sub_block_id': sub_block_id
+                                    }">
+                                <tree string="Harvest" editable="bottom">
+                                    <field name="activity_line_sequence" invisible="1"/>
+                                    <field name="daily_activity_harvest_id" invisible="1"/>
+                                    <field name="allowed_activity_line_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="activity_line_harvest_id" string="Plantation Lines" domain="[('id', 'in', allowed_activity_line_ids)]" required="1"/>
+                                    <field name="activity_harvest_id" invisible="1"/>
+                                    <field name="block_id" invisible="1"/>
+                                    <field name="sub_block_id" invisible="1"/>
+                                    <field name="sequence" invisible="1"/>
+                                    <field name="name" invisible="1"/>
+                                    <field name="date" invisible="1"/>
+                                    <field name="date_deadline" invisible="1"/>
+                                    <field name="location_id" invisible="1"/>
+                                    <field name="location_dest_id" invisible="1"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="branch_id" invisible="1"/>
+                                    <field name="origin" invisible="1"/>
+                                    <field name="warehouse_id" invisible="1"/>
+                                    <field name="product_id" force_save="1" attrs="{'readonly': [('activity_harvest_id', '!=', False)]}"/>
+                                    <field name="product_uom_qty" string="To Produce"/>
+                                    <field name="quantity_done" string="Produced" force_save="1" readonly="1"/>
+                                    <field name="product_uom"/>
+                                    <field name="bunch"/>
+                                    <field name="product_uom_category_id" invisible="1"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'done'"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="material_ids" string="Material">
+                            <field name="material_ids" 
+                                   attrs="{'readonly': [('state', '!=', 'draft')]}" 
+                                   context="{
+                                        'default_location_id': location_id,
+                                        'default_location_dest_id': production_location_id,
+                                        'default_date': date_scheduled,
+                                        'default_date_deadline': date_scheduled,
+                                        'default_company_id': company_id,
+                                        'default_branch_id': branch_id,
+                                        'default_name': name,
+                                        'default_origin': name,
+                                        'default_warehouse_id': warehouse_id,
+                                        'default_picking_type_id': picking_type_id
+                                   }">
+                                <tree string="Material" editable="bottom">
+                                    <field name="activity_line_sequence" invisible="1"/>
+                                    <field name="daily_activity_material_id" invisible="1"/>
+                                    <field name="allowed_activity_line_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="activity_line_material_id" string="Plantation Lines" domain="[('id', 'in', allowed_activity_line_ids)]" required="1" options="{'no_create_edit': True, 'no_create': True}"/>
+                                    <field name="activity_material_id" invisible="1"/>
+                                    <field name="sequence" invisible="1"/>
+                                    <field name="name" invisible="1"/>
+                                    <field name="date" invisible="1"/>
+                                    <field name="date_deadline" invisible="1"/>
+                                    <field name="location_id" invisible="1"/>
+                                    <field name="location_dest_id" invisible="1"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="branch_id" invisible="1"/>
+                                    <field name="origin" invisible="1"/>
+                                    <field name="warehouse_id" invisible="1"/>
+                                    <field name="product_id" force_save="1" attrs="{'readonly': [('activity_material_id', '!=', False)]}" options="{'no_create_edit': True, 'no_create': True}"/>
+                                    <field name="product_uom_qty" string="To Consume"/>
+                                    <field name="quantity_done" string="Consumed" force_save="1" readonly="1"/>
+                                    <field name="product_uom" options="{'no_create_edit': True, 'no_create': True}"/>
+                                    <field name="product_uom_category_id" invisible="1"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'done'"/>
+                                    <field name="picking_type_id" invisible="1"/>
+                                    <button name="action_show_details" type="object" class="oe_highlight" attrs="{'invisible': [('parent.state', '!=', 'draft')]}" string="Details"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="crop_ids" string="Crops">
+                            <field name="crop_ids" force_save="1">
+                                <tree string="Crops">
+                                    <field name="crop"/>
+                                    <field name="crop_date"/>
+                                    <field name="lot_id"/>
+                                    <field name="crop_count"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="assets_ids" string="Asset">
+                            <field name="asset_ids" attrs="{'readonly': [('state', '!=', 'draft')]}" context="{'default_original_move': True}">
+                                <tree string="Asset" editable="bottom">
+                                    <field name="activity_line_sequence" invisible="1"/>
+                                    <field name="daily_activity_id" invisible="1"/>
+                                    <field name="allowed_activity_line_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="activity_line_id" string="Plantation Lines" required="1" domain="[('id', 'in', allowed_activity_line_ids)]" options="{'no_create_edit': True, 'no_create': True}"/>
+                                    <field name="activity_asset_id" invisible="1"/>
+                                    <field name="asset_id" string="Asset" options="{'no_create': 1, 'no_create_edit': 1}"/>
+                                    <field name="user_id" string="Responsible" options="{'no_create': 1, 'no_create_edit': 1}"/>
+                                    <field name="original_move" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="worker_group_ids" string="Worker Group">
+                            <field name="worker_group_ids" attrs="{'readonly': [('state', '!=', 'draft')]}" context="{'default_original_move': True}">
+                                <tree string="Worker Group" editable="bottom">
+                                    <field name="daily_activity_id" invisible="1"/>
+                                    <field name="allowed_activity_line_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="activity_line_id" string="Plantation Lines" required="1" domain="[('id', 'in', allowed_activity_line_ids)]" options="{'no_create_edit': True, 'no_create': True}"/>
+                                    <field name="group_id" string="Name" options="{'no_create_edit': True, 'no_create': True}" attrs="{'column_invisible': [('parent.worker_type', '!=', 'with_group')], 'required': [('parent.worker_type', '=', 'with_group')]}"/>
+                                    <field name="head_id" options="{'no_create_edit': True, 'no_create': True}" attrs="{'column_invisible': [('parent.worker_type', '!=', 'with_group')], 'required': [('parent.worker_type', '=', 'with_group')]}"/>
+                                    <field name="worker_ids" widget="many2many_tags" options="{'no_create_edit': True, 'no_create': True}"/>
+                                    <field name="original_move" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="approval_matrix_lines" string="Approval Matrix Lines" attrs="{'invisible': [('is_matrix_on', '!=', True)]}">
+                            <field name="approval_matrix_line_ids" context="{
+                                'tree_view_ref': 'equip3_agri_accessright_settings.view_agri_approval_matrix_entry_tree',
+                                'form_view_ref': 'equip3_agri_accessright_settings.view_agri_approval_matrix_entry_form',
+                            }"/>
+                        </page>
+                        <page name="cost_details" string="Cost Details" attrs="{'invisible': [('stock_valuation_layer_ids', '=', [])]}">
+                            <field name="stock_valuation_layer_ids">
+                                <tree string="Cost Details" default_order="activity_line_id,activity_record_id">
+                                    <field name="activity_line_id"/>
+                                    <field name="activity_record_id"/>
+                                    <field name="product_id"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="value" string="Value"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="miscellaneous" string="Miscellaneous" invisible="1">
+                            <group>
+                                <group>
+                                    <field name="estate_id"/>
+                                    <field name="datetime_scheduled"/>
+                                    <field name="location_id"/>
+                                    <field name="production_location_id"/>
+                                    <field name="warehouse_id"/>
+                                    <field name="next_sequence"/>
+                                    <field name="harvest"/>
+                                    <field name="nursery"/>
+                                    <field name="picking_type_id"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_daily_activity_search" model="ir.ui.view">
+        <field name="name">view.daily.activity.search</field>
+        <field name="model">agriculture.daily.activity</field>
+        <field name="arch" type="xml">
+            <search string="Plantation Plan">
+                <field name="name"/>
+                <field name="block_id"/>
+                <field name="crop_ids"/>
+                <field name="user_id" string="PPIC"/>
+                <field name="date_scheduled"/>
+                <field name="state"/>
+
+                <filter name="starred" string="Starred" domain="[('priority', '=', 1)]"/>
+
+                <separator/>
+                <filter name="state_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="state_to_be_approved" string="To be Approved" domain="[('state', '=', 'to_be_approved')]"/>
+                <filter name="state_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="state_rejected" string="Rejected" domain="[('state', '=', 'rejected')]"/>
+                <filter name="state_confirm" string="Confirmed" domain="[('state', '=', 'confirm')]"/>
+                <filter name="state_progress" string="In Progress" domain="[('state', '=', 'progress')]"/>
+                <filter name="state_done" string="Done" domain="[('state', '=', 'done')]"/>
+                <filter name="state_cancel" string="Cancelled" domain="[('state', '=', 'cancel')]"/>
+                <filter name="state_available" string="Available" domain="[('state', 'in', ('draft', 'progress'))]"/>
+
+                <separator/>
+                <filter name="filter_date_scheduled" string="Scheduled Date" date="date_scheduled"/>
+
+                <group string="Group By...">
+                    <filter name="groupby_block_id" string="Block" domain="[]" context="{'group_by': 'block_id'}"/>
+                    <filter name="groupby_user_id" string="PPIC" domain="[]" context="{'group_by': 'user_id'}"/>
+                    <filter name="groupby_state" string="Status" domain="[]" context="{'group_by': 'state'}"/>
+                </group>
+
+                <searchpanel view_types="tree,kanban,pivot,graph">
+                    <field name="block_id"/>
+                    <field name="user_id" string="PPIC"/>
+                    <!-- <field name="crop_ids"/> -->
+                    <field name="state"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_daily_activity_calendar" model="ir.ui.view">
+        <field name="name">view.daily.activity.calendar</field>
+        <field name="model">agriculture.daily.activity</field>
+        <field name="arch" type="xml">
+            <calendar date_start="date_scheduled" date_stop="date_scheduled_end" string="Plantation Plan" event_limit="5" quick_add="False">
+                <field name="user_id" avatar_field="image_128"/>
+                <field name="block_id"/>
+                <field name="crop_ids"/>
+                <field name="date_scheduled"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_daily_activity_pivot" model="ir.ui.view">
+        <field name="name">view.daily.activity.pivot</field>
+        <field name="model">agriculture.daily.activity</field>
+        <field name="arch" type="xml">
+            <pivot string="Plantation Plan" sample="1">
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_view_daily_activity" model="ir.actions.act_window">
+        <field name="name">Plantation Plan</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">agriculture.daily.activity</field>
+        <field name="view_mode">tree,form,pivot,calendar</field>
+        <field name="context">{'search_default_to_do': 1, 'default_daily_activity_type': 'plantation'}</field>
+        <field name="domain">[('daily_activity_type', '=', 'plantation')]</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+           Create a new Plantation Plan
+          </p>
+        </field>
+    </record>
+
+</odoo>

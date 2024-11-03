@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--Pivot View of Exams Information-->
+    <!-- <record id="view_exam_exam_pivot" model="ir.ui.view">
+        <field name="name">exam.exam.pivot</field>
+        <field name="model">exam.exam</field>
+        <field name="arch" type="xml">
+            <pivot string="Additional Exam Pivot View">
+                <field name="name" type="col"/>
+                <field name="exam_code" type="row"/>
+            </pivot>
+        </field>
+    </record> -->
+
+    <!--Change The Exam Code-->
+    <record id="seq_exam_exam" model="ir.sequence">
+            <field name="name">Exam</field>
+            <field name="code">exam.exam</field>
+            <field name="prefix">EXM/%(y)s/%(month)s/%(day)s/</field>
+            <field name="padding">3</field>
+            <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- Tree View Of Exam Information -->
+    <record id="view_exam_exam_tree_custom" model="ir.ui.view">
+        <field name="name">exam.exam.tree.custom</field>
+        <field name="model">exam.exam</field>
+        <field name="arch" type="xml">
+            <tree string="Exam Information">
+                <field name="name" select="1"/>
+                <field name="type"/>
+                <field name="teacher_id"/>
+                <field name="intake_id"/>
+                <field name="subject_id"/>
+                <field name="start_time" widget="float_time"/>
+                <field name="end_time" widget="float_time"/>
+                <field name="exam_date"/>
+                <field name="state" string="Status" widget="badge" decoration-info="state in ('draft')"
+                                                                   decoration-success="state in ('running','finished')"
+                                                                   decoration-danger="state in ('cancelled')"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <!-- EXAM NEW VIEWS 15 SEPT 22 -->
+    <record id="exam_exam_view_form_custom2" model="ir.ui.view">
+        <field name="name">exam.exam.view.form.custom2</field>
+        <field name="model">exam.exam</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <form string="Exam Form">
+                <header>
+                    <button name="set_running" string="Start" type="object" class="oe_highlight" states="draft" groups="school.group_school_administration,school.group_school_teacher" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="set_finish" string="Finish" type="object" states="running" class="oe_highlight" groups="school.group_school_administration,school.group_school_teacher" attrs="{'invisible': [('state', '!=', 'running')]}"/>
+                    <button name="set_cancel" string="Cancel" type="object" states="running" confirm="Are you sure to cancel this Exam?" groups="school.group_school_administration,school.group_school_teacher" attrs="{'invisible': [('state', '!=', 'running')]}"/>
+                    <button name="print_result" string="Print Result" type="object" states="finished" class="oe_highlight" groups="school.group_school_administration,school.group_school_teacher" attrs="{'invisible': [('state', 'in',['hide', 'draft','running','cancelled'])]}"/>
+                    <button name="generate_exam_classes" string="Generate Exam Classes" type="object" states="draft" class="oe_highlight" groups="school.group_school_administration,school.group_school_teacher" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="finished,running,draft"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_show_survey" type="object" class="btn oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': [('question_id', '=', False)]}">
+                            <field string="Answers" name="exam_count" widget="statinfo"/>
+                        </button>
+                        <button name="action_open_view_exam" type="object" icon="fa-pencil-square-o" class="oe_stat_button" attrs="{'invisible': [('state','in',['draft'])]}">
+                            <span>Exam Result</span>
+                        </button>
+                        <button name="action_view_classes" type="object" class="oe_stat_button" icon="fa-calendar-check-o" attrs="{'invisible': [('ems_classes_count', '=', 0)]}">
+                            <field name="ems_classes_count" string="Classes" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group string="Exam Detail">
+                        <group>
+                            <field name="exam_code" required="1"/>
+                            <field name="name" required="1"/>
+                            <field name="school_id" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="program_id" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="intake_id" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="group_class" required="1" widget="many2many_tags" options="{'no_create': True, 'no_create_edit':True}" domain="[('id', 'in', related_group_class_ids), ('state', '=', 'validated')]"/>
+                            <field name="academic_year" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="term_id" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="grade_system" required="1"/>
+                            <field name="type" required="1"/>                     
+                            <field name="exam_attachment" filename="file_name" attrs="{'invisible': [('type', 'not in', ['softcopy', 'hardcopy'])], 'required': [('type','in', ['softcopy', 'hardcopy'])]}"/>
+                            <field name="file_name" invisible="1"/>
+                            <field name="related_group_class_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="is_teacher" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="related_subject_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="related_teacher_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="subject_id" required="1" domain="[('id', 'in', related_subject_ids)]" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="teacher_id" options="{'no_create': True, 'no_create_edit': True}" attrs="{'invisible': [('is_teacher', '=', True)], 'required': [('is_teacher', '=', False)]}"/>
+                            <field name="classroom_id" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="exam_date" required="1"/>
+                            <field name="exam_day" required="1"/>
+                            <field name="start_time" required="1" widget="float_time"/>
+                            <field name="end_time" required="1" widget="float_time"/>
+                            <field name="timetable_type"/>
+                            <field name="exam_percentage" widget="percentage" readonly="1"/>
+                            <field name="question_id" attrs="{'invisible': [('type', '!=', 'online')], 'required': [('type','=', 'online')]}"/>
+                            <field name="branch_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="students" string="Students">
+                            <field name="student_ids" readonly="1" force_save="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="program_id" invisible="1"/>
+                                    <field name="academic_code" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="student_page" string="Student Results" attrs="{'invisible': [('state', 'not in', ['running', 'finished'])]}">
+                            <field name="exam_student_ids">
+                                <tree editable="bottom" delete="0" create="0">
+                                    <field name="student_id" readonly="1" force_save="1"/>
+                                    <field name="state" readonly="1" force_save="1"/>
+                                    <button string="Mark as Done" name="button_done" type="object" icon="fa-check text-success" states="active"/>
+                                    <button string="Mark as Reject" name="button_reject" type="object" icon="fa-times-circle text-danger" states="active"/>
+                                    <button string="Re-assign" name="button_reassigned" type="object" icon="fa-recycle" states="reject"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="program_page" string="Program" invisible="1">
+                            <field name="standard_id" widget="many2many_tags"/>
+                        </page>
+                        <page name="exam_schedule_page" string="Exam Schedule" invisible="1">
+                            <field name="exam_schedule_ids">
+                                <tree string="" editable="bottom">
+                                    <field name="standard_id" required="1"></field>
+                                    <field name="timetable_id"></field>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="program_page" string="Program" invisible="1">
+                            <field name="standard_id" widget="many2many_tags"/>
+                        </page>
+                        <page name="exam_schedule_page" string="Exam Schedule" invisible="1">
+                            <field name="exam_schedule_ids">
+                                <tree string="" editable="bottom">
+                                    <field name="standard_id" required="1"></field>
+                                    <field name="timetable_id"></field>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_exam_exam_calendar_inherit" model="ir.ui.view">
+        <field name="name">exam.exam.calendar</field>
+        <field name="model">exam.exam</field>
+        <field name="inherit_id" ref="exam.view_exam_exam_calendar"/>
+        <field name="arch" type="xml">
+            <xpath expr="//calendar" position="replace">
+                <calendar string="Exam Information Calendar" color="name" date_start="exam_date">
+                    <field name="name"/>
+                </calendar>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="exam.action_exam_exam_form" model="ir.actions.act_window">
+        <field name="name">Regular Exam</field>
+        <field name="res_model">exam.exam</field>
+        <field name="view_mode">tree,calendar,form</field>
+        <field name="context">{'search_default_groupby_intake': 1, 'search_default_groupby_state': 1}</field>
+    </record>
+
+    <record id="view_exam_exam_search_inherit" model="ir.ui.view">
+        <field name="name">exam.exam.search</field>
+        <field name="model">exam.exam</field>
+        <field name="inherit_id" ref="exam.view_exam_exam_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="groupby_intake" string="Intake" context="{'group_by': 'intake_id'}"/>
+                <filter name="groupby_state" string="States" context="{'group_by': 'state'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="exam.menu_exam" model="ir.ui.menu">
+        <field name="equip_icon_class">o-hm-sidebar-sub-school-exam</field>
+    </record>
+
+    <record id="exam.additional_exam" model="ir.ui.menu">
+        <field name="equip_icon_class">o-hm-sidebar-sub-school-exam</field>
+    </record>
+
+    <record id="exam.regular_exams_details" model="ir.ui.menu">
+        <field name="equip_icon_class">o-hm-sidebar-sub-school-exam</field>
+    </record>
+
+    <!-- Inherit Form View to Modify it -->
+    <record id="additional_exam_form_inherit" model="ir.ui.view">
+        <field name="name">additional.exam.form.inherit</field>
+        <field name="model">additional.exam</field>
+        <field name="inherit_id" ref="exam.view_additional_exam_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="replace">
+                <header>
+                    <button name="print_result" string="Print Result" type="object" states="finished" class="oe_highlight" groups="school.group_school_administration,school.group_school_teacher" attrs="{'invisible': [('state', 'in',['draft','running', 'cancelled'])]}"/>
+                    <button name="active_assignment" string="Start" class="oe_highlight" type="object" states="draft" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="done_assignments" string="Done" type="object" class="oe_highlight" states="active" attrs="{'invisible': [('state', '!=', 'running')]}"/>
+                    <button name="action_cancel" string="Cancel" confirm="Are you sure to cancel this Additional Exam?" type="object" attrs="{'invisible': [('state', '!=', 'running')]}"/>
+                    <button name="generate_exam_classes" string="Generate Exam Classes" type="object" states="draft" class="oe_highlight" groups="school.group_school_administration,school.group_school_teacher" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="running,finished,draft"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_view_assignment" type="object" icon="fa-pencil-square-o" class="oe_stat_button" attrs="{'invisible': ['|',('type_submission', '!=', 'online'),('state','in',['draft'])]}">
+                            <span>Exam Result</span>
+                        </button>
+                        <button name="action_open_view_assignment" type="object" icon="fa-pencil-square-o" class="oe_stat_button" attrs="{'invisible': ['|',('type_submission', '!=', 'softcopy'),('state','in',['draft'])]}">
+                            <span>Exam Result</span>
+                        </button>
+                        <button name="action_open_view_assignment" type="object" icon="fa-pencil-square-o" class="oe_stat_button" attrs="{'invisible': ['|',('type_submission', '!=', 'hardcopy'),('state','in',['draft'])]}">
+                            <span>Exam Result</span>
+                        </button>
+                        <button name="action_view_classes" type="object" class="oe_stat_button" icon="fa-calendar-check-o" attrs="{'invisible': [('ems_classes_count', '=', 0)]}">
+                            <field name="ems_classes_count" string="Classes" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group string="Additional Exam">
+                        <group>
+                            <field name="addtional_exam_code" required="1"/>
+                            <field name="name" required="1"/>
+                            <field name="school_id" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="program_id" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="standard_id" string="Intake" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="group_class" required="1" widget="many2many_tags" domain="[('id', 'in', related_group_class_ids), ('state', '=', 'validated')]"/>
+                            <field name="academic_year" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="term_id" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="related_subject_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="subject_id" required="1" options="{'no_create': True, 'no_create_edit':True}" domain="[('id', 'in', related_subject_ids)]"/>
+                            <field name="related_group_class_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="related_teacher_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="is_teacher" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="teacher_id" options="{'no_create': True, 'no_create_edit':True}" attrs="{'invisible': [('is_teacher', '=', True)], 'required': [('is_teacher', '=', False)]}"/>
+                            <field name="classroom_id" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="exam_date" required="1"/>
+                            <field name="exam_day" required="1"/>
+                            <field name="start_time" required="1" widget="float_time"/>
+                            <field name="end_time" required="1" widget="float_time"/>
+                            <field name="attach_files" invisible="1" attrs="{'readonly':[('state','!=','hide')], 'invisible': [('type_submission', 'in', ['online', False])]}"/>
+                            <field name="grade_system" required="1" options="{'no_create': True, 'no_create_edit':True}"/>
+                            <field name="type_submission" required="1"/>
+                            <field name="attached_homework" placeholder="Attachment File" attrs="{'invisible': [('type_submission', 'in', ['online', False])]}" filename="attach_files" />
+                            <field name="question_id" attrs="{'invisible': [('type_submission', '!=', 'online')], 'required': [('type_submission','=', 'online')]}"/>
+                            <field name="percentage" widget="percentage" readonly="1"/>
+                            <field name="branch_id" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="students" string="Student">
+                            <field name="student_ids" readonly="1" force_save="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="program_id" invisible="1"/>
+                                    <field name="academic_code" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page name="student_results" string="Student Results" attrs="{'invisible': [('state', 'not in', ['running', 'finished'])]}">
+                            <field name="additional_exam_ids" readonly="1" force_save="1">
+                                <tree>
+                                    <field name="student_id"/>
+                                    <field name="state"/>
+                                    <button name="done_done" string="Mark as Done" type="object" icon="fa-check text-success" help="done assigment" states="active"/>
+                                    <button name="reassign_assignment" string="Reassign" type="object" icon="fa-recycle" help="Re-assign assigment" states="reject"/>
+                                    <button name="done_reject" string="Mark as Reject" icon="fa-times-circle text-danger" help="reject assignment" type="object" states="active"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="additional_exam_tree_inherit" model="ir.ui.view">
+        <field name="name">additional.exam.tree.inherit</field>
+        <field name="model">additional.exam</field>
+        <field name="inherit_id" ref="exam.view_additional_exam_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='exam_date']" position="after">
+                <field name="state" widget="badge" decoration-info="state in ('draft')" decoration-success="state in ('running','finished')"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_additional_exam_search_inherit" model="ir.ui.view">
+        <field name="name">additional.exam.search.inherit</field>
+        <field name="model">additional.exam</field>
+        <field name="inherit_id" ref="exam.view_additional_exam_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="groupby_intake" string="Intake" context="{'group_by': 'standard_id'}"/>
+                <filter name="groupby_state" string="States" context="{'group_by': 'state'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Actions Of Form, Tree, Calendar Views Of Additional Exam Information -->
+    <record id="exam.action_additional_exam_form" model="ir.actions.act_window">
+        <field name="name">Additional Exam</field>
+        <field name="res_model">additional.exam</field>
+        <field name="view_mode">calendar,tree,form</field>
+        <field name="view_id" ref="additional_exam_tree_inherit"/>
+        <field name="search_view_id" ref="view_additional_exam_search_inherit"/>
+        <field name="context">{'search_default_groupby_intake': 1, 'search_default_groupby_state': 1}</field>
+    </record>
+
+</odoo>

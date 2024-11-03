@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Prescription Line -->
+    <record id="view_hms_prescription_line_tree" model="ir.ui.view">
+        <field name="name">prescription.line.tree</field>
+        <field name="model">prescription.line</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="Prescription Line" editable="bottom">
+                <field name="product_id" string="Medicine Name"/>
+                <field name="active_component_ids" widget="many2many_tags"/>
+                <field name="allow_substitution"/>
+                <field name="dose" required="1" string="Qty Dose"/>
+                <field name="qty_per_day" required="1"/>
+                <field name="days" required="1"/>
+                <field name="manual_prescription_qty" invisible="1"/>
+                <field name="manual_quantity" invisible="1"/>
+                <field name="quantity" required="1" string="Total Qty" attrs="{'readonly': [('manual_prescription_qty', '=', False)]}"/>
+                <field name="qty_available" readonly="1" optional="hide"/>
+                <field name="common_dosage_id" required="1"/>
+                <field name="prnt" invisible="1"/>
+                <field name="short_comment"/>
+                <field name="treatment_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hms_prescription_line_form" model="ir.ui.view">
+        <field name="name">prescription.line.form</field>
+        <field name="model">prescription.line</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <form string="Prescription Line">
+                <group>
+                    <group>
+                        <field name="product_id"/>
+                        <field name="active_component_ids" widget="many2many_tags" />
+                        <field name="prnt" colspan="2"/>
+                        <field name="dose"/>
+                        <field name="common_dosage_id" />
+                    </group>
+                    <group>
+                        <field name="allow_substitution"/>
+                        <field name="route_id" invisible="1" />
+                        <field name="treatment_id"/>
+                    </group>
+                    <group>
+                        <field name="quantity"/>
+                        <field name="short_comment"/>
+                    </group>
+                </group>
+
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hms_prescription_line_search" model="ir.ui.view">
+        <field name="name">prescription.line.search</field>
+        <field name="model">prescription.line</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <search string="ACS Prescription Line">
+                <field name="prescription_id"/>
+                <field name="allow_substitution"/>
+                <field name="prnt"/>
+                <field name="short_comment"/>
+                <field name="product_id"/>
+                <field name="quantity"/>
+                <newline/>
+                <group expand="0" string="Group By...">
+                    <filter string="Prescription ID" name="name_groupby" domain="[]" context="{'group_by':'prescription_id'}"/>
+                    <filter string="Allow substitution" name="allow_substitution_groupby" domain="[]" context="{'group_by':'allow_substitution'}"/>
+                    <filter string="Print" name="prnt_groupby" domain="[]" context="{'group_by':'prnt'}"/>
+                    <filter string="Comment" name="short_comment_groupby" domain="[]" context="{'group_by':'short_comment'}"/>
+                    <filter string="Medication Template" name="product_id_groupby" domain="[]" context="{'group_by':'product_id'}"/>
+                    <filter string="Quantity" name="quantity_groupby" domain="[]" context="{'group_by':'quantity'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Prescription -->
+    <record id="view_hms_prescription_order_tree" model="ir.ui.view">
+        <field name="name">prescription.order.tree</field>
+        <field name="model">prescription.order</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <tree string="ACS Prescription Order" decoration-info="state=='prescription'" decoration-muted="state=='canceled'">
+                <field name="prescription_date"/>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="physician_id"/>
+                <field name="state"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hms_prescription_order_form" model="ir.ui.view">
+        <field name="name">prescription.order.form</field>
+        <field name="model">prescription.order</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <form string="ACS Prescription Order" >
+                <header>
+                    <button name="button_confirm" states="draft" string="Confirm" type="object" class="oe_highlight" groups="acs_hms.group_hms_jr_doctor"/>
+                    <button name="print_report" string="Print" type="object" states="prescription"/>
+                    <button name="action_prescription_send" string="Send by Email" type="object" states="prescription"/>
+                    <button name="button_reset" states="prescription" string="Reset to Draft" type="object" groups="acs_hms.group_hms_jr_doctor"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,prescription"/>
+                </header>
+                <div class="alert alert-error text-center" role="alert" style="margin-bottom:0px; background-color:#f8b9b9;"  attrs="{'invisible': [('alert_count','=',0)]}">
+                    <field name="medical_alert_ids" nolabel="1" widget="many2many_tags"/>
+                </div>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" class="oe_inline"/>
+                        </h1>
+                    </div>
+                        
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="patient_age" invisible="1"/>
+                            <field name="physician_id"/>
+                            <field name="group_id" domain="[('physician_id','=',physician_id),'|',('diseases_id','in',diseases_ids),('diseases_id','=',False)]"/>
+                            <label for="old_prescription_id"/>
+                            <div name='old_prescription_id'>
+                                <field name="old_prescription_id" domain="[('patient_id','=',patient_id),('state','=','prescription')]" nolabel="1" options="{'no_create': True}"/>
+                                <button name="get_prescription_lines" string="Get Lines" type="object" class="oe_inline fa fa-arrow-right oe_link" attrs="{'invisible': ['|',('old_prescription_id','=', False), ('state','!=', 'draft')]}"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="diseases_ids" widget="many2many_tags"/>
+                            <field name="prescription_date"/>
+                            <field name="alert_count" invisible="1"/>
+                            <field name="pregnancy_warning"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="prescription_lines" string="Prescription Lines">
+                            <field name="prescription_line_ids" nolabel="1" colspan="4" context="{'default_appointment_id': appointment_id}"/>
+                        </page>
+                        <page name="info" string="General Information">
+                            <group>
+                                <group>
+                                    <field name="appointment_id" domain="[('patient_id','=',patient_id)]"/>
+                                </group>
+                                <group>
+                                    <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                                    <field name="treatment_id" domain="[('patient_id','=',patient_id)]"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                    <group>
+                        <field name="notes" colspan="4"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hms_prescription_order_search" model="ir.ui.view">
+        <field name="name">prescription.order.search</field>
+        <field name="model">prescription.order</field>
+        <field name="priority" eval="8"/>
+        <field name="arch" type="xml">
+            <search string="ACS Prescription Order">
+                <field name="name"/>
+                <field name="prescription_date"/>
+                <field name="patient_id"/>
+                <field name="prescription_line_ids" string="Medicine" filter_domain="[('prescription_line_ids.product_id', 'ilike', self)]"/>
+                <field name="physician_id"/>
+                <field name="treatment_id"/>
+                <field name="company_id"/>
+                <filter name="Pregancy Warning" string="Pregancy Warning" domain="[('pregnancy_warning','=',1)]"/>
+                <newline/>
+                <group expand="0" string="Group By...">
+                    <filter string="Patient" name="patient_id_groupby" domain="[]" context="{'group_by':'patient_id'}"/>
+                    <filter string="Prescription Notes" name="notes_groupby" domain="[]" context="{'group_by':'notes'}"/>
+                    <filter string="Prescription Date" name="prescription_date_groupby" domain="[]" context="{'group_by':'prescription_date'}"/>
+                    <filter string="Prescribing Doctor" name="physician_id_groupby" domain="[]" context="{'group_by':'physician_id'}"/>
+                    <filter name="today" string="Today's Prescription" domain="[('prescription_date','&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))), ('prescription_date','&lt;=', datetime.datetime.combine(context_today(), datetime.time(23,59,59)))]"/>
+                    <filter string="Company" name="company_group" domain="[]" context="{'group_by':'company_id'}"/>
+                    <filter string="Appointment" name="appointment_id_groupby" domain="[]" context="{'group_by':'appointment_id'}"/>
+                    <filter string="Treatment" name="treatment_id_groupby" domain="[]" context="{'group_by':'treatment_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_hms_prescription_order_kanban">
+        <field name="name">acs.Prescription Order kanban</field>
+        <field name="model">prescription.order</field>
+        <field name="type">kanban</field>
+        <field name="arch" type="xml">
+            <kanban  class="oe_background_grey">
+                <field name="name"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_content">
+                            <div class="oe_kanban_vignette oe_semantic_html_override">
+                                <div class="oe_kanban_details">
+                                    <h3>
+                                        <a type="open">
+                                            <field name="name"/>
+                                        </a>
+                                    </h3>
+                                    <ul>
+                                        <li t-if="record.prescription_date.raw_value">
+                                            <b>Date:</b>
+                                            <field name="prescription_date"/>
+                                        </li>
+                                        <li t-if="record.patient_id.raw_value">
+                                            <b>Patient:</b>
+                                            <field name="patient_id"/>
+                                        </li>
+                                        <li t-if="record.physician_id.raw_value">
+                                            <b>Physician:</b>
+                                            <field name="physician_id"/>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_acs_prescription_calendar" model="ir.ui.view">
+        <field name="name">prescription.order.calendar</field>
+        <field name="model">prescription.order</field>
+        <field name="type">calendar</field>
+        <field name="arch" type="xml">
+            <calendar string="Prescriptions" color="patient_id" date_start="prescription_date">
+                <field name="physician_id"/>
+                <field name="patient_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_prescription_pivot" model="ir.ui.view">
+        <field name="name">prescription.order.pivot</field>
+        <field name="model">prescription.order</field>
+        <field name="arch" type="xml">
+            <pivot string="Prescription Orders">
+                <field name="prescription_date" type="row"/>
+                <field name="physician_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_open_hms_prescription_order_view">
+        <field name="name">Prescription Order</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">prescription.order</field>
+        <field name="view_mode">tree,kanban,form,calendar,pivot</field>
+        <field name="search_view_id" ref="view_hms_prescription_order_search"/>
+        <field name="view_id" ref="view_hms_prescription_order_tree"/>
+        <field name="context">{'search_default_today': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record Found
+            </p>
+            <p>
+                Click to add Prescrition.
+            </p>
+        </field>
+    </record>
+
+</odoo>

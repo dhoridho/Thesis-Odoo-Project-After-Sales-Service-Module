@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+     <template id="account.portal_my_home_invoice" inherit_id="portal.portal_my_home" customize_show="True" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-if="is_customer">
+                <t t-call="portal.portal_docs_entry">
+                    <t t-set="title">Invoices</t>
+                    <t t-set="url" t-value="'/my/invoices'"/>
+                    <t t-set="placeholder_count" t-value="'invoice_count'"/>
+                </t>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="purchase.portal_my_home_menu_purchase" inherit_id="portal.portal_breadcrumbs" >
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+          <li t-if="page_name == 'purchase' or purchase_order" t-attf-class="breadcrumb-item #{'active ' if not purchase_order else ''}">
+            <a t-if="purchase_order" t-attf-href="/my/purchase?{{ keep_query() }}">Sales Orders</a>
+            <t t-else="">Sales Orders</t>
+          </li>
+          <li t-if="purchase_order" class="breadcrumb-item active">
+            <t t-esc="purchase_order.name"/>
+          </li>
+        </xpath>
+      </template>
+
+    <template id="vendor_pricelist_form_view">
+        <t name="Vendor Pricelist" t-name="website.vendor_pricelist">
+            <t t-call="website.layout">
+                <div id="wrap">
+                    <div class="oe_structure">
+                        <section id='vendor_pricelist_form_section'>
+                            <div class='container' >
+                                <div class='heading'>
+                                    <h1>Vendor Pricelist Registration Form</h1>
+                                </div>
+
+                                <form action="/vendor_pricelist" method="post" enctype="multipart/form-data" class="checkout_autoformat">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                    <div class='sub_heading'>
+                                        <h5><b>Vendor Pricelist Details</b></h5>
+                                    </div>
+
+                                    <div class='row' style='padding-top: 24px;'>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="vendor_product_name"><b>Vendor Product Name :</b></label>
+                                                <input type="text" class="form-control" id="vendor_product_name" name="vendor_product_name" required="required"/>
+                                            </div>
+                                        </div>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="vendor_product_code"><b>Vendor Product Code :</b></label>
+                                                <input type="text" class="form-control" id="vendor_product_code" name="vendor_product_code" required="required"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class='row'>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="delivery_lead_time"><b>Delivery Lead Time :</b></label>
+                                                <input type="text" class="form-control" id="delivery_lead_time" name="delivery_lead_time"/>
+                                            </div>
+                                        </div>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="quantity"><b>Minimal Quantity :</b></label>
+                                                <input type="text" class="form-control" id="quantity" name="quantity"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class='row'>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="unit_price"><b>Unit Price :</b></label>
+                                                <input type="text" class="form-control" id="unit_price" name="unit_price"/>
+                                            </div>
+                                        </div>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="vendor_uom"><b>Unit of Measure :</b></label>
+                                                <input type="text" class="form-control" id="vendor_uom" name="vendor_uom"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class='row'>
+                                        <div class='col-md-3'>
+                                            <label for="validity_start"><b>Validity :</b></label>
+                                            <input type="date" class="form-control" id="validity_start" name="validity_start"/>
+                                        </div>
+                                        <div class='col-md-3'>
+                                            <label class="col-form-label col-sm-auto s_website_form_label" style="height: 25px" for="validity_end">
+                                            </label>
+                                            <input type="date" class="form-control" id="validity_end" name="validity_end"/>
+                                        </div>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="branch_id"><b>Branch :</b></label>
+                                                <select id="branch_id" name="branch_id" class="form-control">
+                                                    <option value="">Branch...</option>
+                                                    <t t-foreach="request.env['res.branch'].sudo().search([]) or []" t-as="int_branch">
+                                                        <option t-att-value="int_branch.id">
+                                                            <t t-esc="int_branch.name"/>
+                                                        </option>
+                                                    </t>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <t t-if="quote_msg and quote_msg.get('success',False)">
+                                        <div class="alert alert-success" style='margin-top: 22px;'><strong>Success!</strong> <span t-esc="quote_msg.get('success',False)" /></div>
+                                    </t>
+                                    <t t-if="quote_msg and quote_msg.get('fail',False)">
+                                        <div class="alert alert-danger" style='margin-top: 22px;'><strong>Fail!</strong> <span t-esc="quote_msg.get('fail',False)" /></div>
+                                    </t>
+                                    <div class='row' style='margin-top: 22px;'>
+                                        <div class='col-lg-12 text-center'>
+                                            <button class='btn btn-primary' id='create_vendor_pricelist' type='submit'>Submit</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="vendor_pricelist_form_view_new">
+        <t name="Vendor Pricelist" t-name="website.vendor_pricelist">
+            <t t-call="website.layout">
+                <div id="wrap">
+                    <div class="oe_structure">
+                        <section id='vendor_pricelist_form_section'>
+                            <div class='container mt-5 mb-5' >
+                                <div class='heading'>
+                                    <h1 class="mb-4 ml-4 mt-4">Vendor Pricelist Registration Form</h1>
+                                </div>
+                                <hr/>
+
+                                <form action="/vendor_pricelist" method="post" enctype="multipart/form-data" class="checkout_autoformat mb-5">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                    <div class='sub_heading'>
+                                        <h3><b>Vendor Pricelist Details</b></h3>
+                                    </div>
+
+                                    <div class='row' style='padding-top: 24px;'>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="vendor_product_name"><b>Vendor Product Name :</b></label>
+                                                <input type="text" class="form-control" id="vendor_product_name" name="vendor_product_name" t-att-value="vendor_pricelist.product_name" required="required"/>
+                                            </div>
+                                        </div>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="vendor_product_code"><b>Vendor Product Code :</b></label>
+                                                <input type="text" class="form-control" id="vendor_product_code" name="vendor_product_code" t-att-value="vendor_pricelist.product_code" required="required"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class='row'>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="delivery_lead_time"><b>Delivery Lead Time :</b></label>
+                                                <input type="text" class="form-control" id="delivery_lead_time" t-att-value="vendor_pricelist.delay" name="delivery_lead_time"/>
+                                            </div>
+                                        </div>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="quantity"><b>Minimal Quantity :</b></label>
+                                                <input type="text" class="form-control" id="quantity" t-att-value="vendor_pricelist.min_qty" name="quantity"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class='row'>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="unit_price"><b>Unit Price :</b></label>
+                                                <input type="text" class="form-control" id="unit_price" t-att-value="vendor_pricelist.price" name="unit_price"/>
+                                            </div>
+                                        </div>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="branch_id"><b>Branch :</b></label>
+                                                <select id="branch_id" name="branch_id" class="form-control">
+                                                    <option t-att-value="vendor_pricelist.branch_id.id">
+                                                        <t t-esc="vendor_pricelist.branch_id.name"/>
+                                                    </option>
+                                                    <t t-foreach="request.env['res.branch'].sudo().search([('id', '!=', vendor_pricelist.branch_id.id)]) or []" t-as="int_branch">
+                                                        <option t-att-value="int_branch.id">
+                                                            <t t-esc="int_branch.name"/>
+                                                        </option>
+                                                    </t>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class='d-flex' style="margin-left:-15px;">
+                                        <div class='col-lg-6'>
+                                            <label for="validity_start"><b>Validity :</b></label>
+                                            <input type="date" class="form-control" id="validity_start" t-att-value="vendor_pricelist.date_start" name="validity_start"/>
+                                        </div>
+                                        <span class="validity">to</span>
+                                        <div class='col-lg-6'>
+                                            <label class="col-form-label col-sm-auto s_website_form_label" style="height: 25px" for="validity_end">
+                                            </label>
+                                            <input type="date" class="form-control" id="validity_end" t-att-value="vendor_pricelist.date_end" name="validity_end"/>
+                                        </div>
+                                    </div>
+
+                                    <div class='row' style="display:none;">
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="changes"><b>Changes :</b></label>
+                                                <input type="text" class="form-control" id="changes" t-att-value="True" name="changes"/>
+                                            </div>
+                                        </div>
+                                        <div class='col-lg-6'>
+                                            <div class="form-group">
+                                                <label for="changes_id"><b>Changes ID:</b></label>
+                                                <input type="text" class="form-control" id="changes_id" t-att-value="vendor_pricelist.id" name="changes_id"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <t t-if="quote_msg and quote_msg.get('success',False)">
+                                        <div class="alert alert-success" style='margin-top: 22px;'><strong>Success!</strong> <span t-esc="quote_msg.get('success',False)" /></div>
+                                    </t>
+                                    <t t-if="quote_msg and quote_msg.get('fail',False)">
+                                        <div class="alert alert-danger" style='margin-top: 22px;'><strong>Fail!</strong> <span t-esc="quote_msg.get('fail',False)" /></div>
+                                    </t>
+                                    <div class='row' style='margin-top: 22px;'>
+                                        <div class='col-lg-12 text-center'>
+                                            <button class='btn btn-primary' id='create_vendor_pricelists' type='submit'>Submit</button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="user_select_vendor_customer">
+        <div class="modal fade" id="user_vendor_customer" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content text-center" style="height:500px;border-radius: 25px !important;border: 4px solid #fff;">
+              <div class="modal-body">
+                <h3>Select your Portal Type</h3>
+                <div class="d-flex mt-5" style="height:250px;justify-content: center;">
+                    <div style="padding:45px;" class="vendor_user">
+                        <img src="/equip3_purchase_vendor_portal/static/src/img/vendor.png" alt="Vendor"/>
+                        <br/>
+                        <p class="mt-3" style="color:#934646;font-weight:bolder;"><b>Vendor</b></p>
+                        <img class="vendor-ok-img d-none" style="position: absolute;margin-left: 75px;" src="/equip3_purchase_vendor_portal/static/src/img/Ok.png" alt="OK"></img>
+                    </div>
+                    <div class="ml-5 customer_user" style="padding:45px;width:200px;">
+                        <img src="/equip3_purchase_vendor_portal/static/src/img/user.png" alt="Customer" class="mt-3"/>
+                        <br/>
+                        <p style="margin-top:31px;color:#934646;font-weight:bolder;"><b>Customer</b></p>
+                        <img class="customer-ok-img d-none" style="position: absolute;margin-left: 75px;" src="/equip3_purchase_vendor_portal/static/src/img/Ok.png" alt="OK"></img>
+                    </div>
+                </div>
+                <div class="lds-ring d-none"><div></div><div></div><div></div><div></div></div>
+                <div class="lets-get-started mt-5 d-none">
+                    <p style="color:#934646;font-weight:bolder;"><b>Let's Get Started</b></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </template>
+
+    <template id="vendor_sign_up_form_view" inherit_id="sh_vendor_signup.vendor_sign_up_form_view">
+        <xpath expr="//form/div[@class='row']" position="replace">
+            <div class='row' style='align-items: center;'>
+                <div class='col-lg-12 col-sm-12 vendor_type' style='display:flex;align-items: center;margin: 16px 0;'>
+                    <div class="form-check-inline">
+                        <label class="form-check-label" style='font-weight: 500;'>
+                            <input type="radio" value='person' class="form-check-input" name="vendor_type" required="required"/>Individual
+                        </label>
+                    </div><br/>
+                    <div class="form-check-inline">
+                        <label class="form-check-label" style='font-weight: 500;'>
+                            <input type="radio" value='company' class="form-check-input" name="vendor_type" required="required"/>Company
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('heading')]/h4" position="replace">
+            <h1>Vendor Registration Form</h1>
+        </xpath>
+        <xpath expr="//input[@id='vendor_phone']" position="attributes">
+            <attribute name="required">required</attribute>
+        </xpath>
+        <xpath expr="//input[@id='vendor_mobile']" position="attributes">
+            <attribute name="required">required</attribute>
+        </xpath>
+<!--        <xpath expr="//input[@id='vendor_street']" position="attributes">-->
+<!--            <attribute name="required">required</attribute>-->
+<!--        </xpath>-->
+<!--        <xpath expr="//input[@id='vendor_street2']" position="attributes">-->
+<!--            <attribute name="required">required</attribute>-->
+<!--        </xpath>-->
+<!--        <xpath expr="//input[@id='vendor_city']" position="attributes">-->
+<!--            <attribute name="required">required</attribute>-->
+<!--        </xpath>-->
+<!--        <xpath expr="//input[@id='vendor_zip_code']" position="attributes">-->
+<!--            <attribute name="required">required</attribute>-->
+<!--        </xpath>-->
+        <xpath expr="//select[@id='country_id']" position="replace">
+            <select id="country_id" name="country_id" class="form-control" required="required">
+                <option value="">Country...</option>
+                <t t-foreach="countries" t-as="c">
+                    <option t-att-value="c.id" t-att-selected="c.id == (country and country.id or 100)">
+                        <t t-esc="c.name" />
+                    </option>
+                </t>
+            </select>
+        </xpath>
+        <xpath expr="//select[@name='state_id']" position="replace">
+            <select name="state_id" class="form-control " data-init="1" required="required">
+                <t t-if="country_states">
+                    <t t-foreach="country_states" t-as="s">
+                        <option t-att-value="s.id" t-att-selected="s.id == country_states[0]">
+                            <t t-esc="s.name" />
+                        </option>
+                    </t>
+                </t>
+                <t t-else="">
+                    <option value="">State / Province...</option>
+                </t>
+            </select>
+        </xpath>
+    </template>
+
+    <template id="rfq_portal_update_content" inherit_id="sh_rfq_portal.rfq_portal_update_content">
+        <xpath expr="//section[@id='details']/div[@class='row']" position="replace">
+            <div class="row">
+                <div class="col-lg-3" id='product_name_lbl'>
+                    <strong>Product</strong>
+                </div>
+                <div class="col-lg-2" id='unit_price_lbl'>
+                    <strong>Unit Price</strong>
+                </div>
+                <div class="col-lg-3">
+                    <strong>Note/Comment</strong>
+                </div>
+                <div class="col-lg-2">
+                    <strong>Quantity</strong>
+                </div>
+                <div class="col-lg-2 text-right">
+                    <strong>Subtotal</strong>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[@class='row purchases_vertical_align']" position="replace">
+            <div class="row purchases_vertical_align">
+                <div class="col-lg-1 text-center">
+                    <img t-if="ol.product_id.image_128" class="rounded-circle mt-1 o_portal_contact_img" t-att-src="image_data_uri(ol.product_id.image_128)" alt="Product" />
+                    <img t-if="not ol.product_id.image_128" class="rounded-circle mt-1 o_portal_contact_img" src="/web/static/src/img/placeholder.png" alt="Product" />
+                </div>
+                <div id="product_name" class="col-lg-2">
+                    <span t-field="ol.product_id" />
+                </div>
+                <div class="col-lg-2" id="update_product_qty">
+                    <input type="text" pattern="[0-9]+([\.,][0-9]+)?" class="form-control quantity" id="unit_price" t-att-name="ol.id" t-att-value="str(ol.price_unit)" readonly="True"/>
+                </div>
+                <div class="col-lg-3" id="update_note">
+                    <t t-set="tender_note" t-value=""/>
+                    <t t-if="ol.sh_tender_note">
+                        <t t-set="tender_note" t-value="str(ol.sh_tender_note)"/>
+                    </t>
+                    <input type="text" class="form-control note" id="note" t-attf-name="#{ol.id}_note" t-att-value="tender_note" readonly="True" />
+                </div>
+                <div class="col-lg-2 text-left">
+                    <input type="text" pattern="[0-9]+([\.,][0-9]+)?" class="form-control" id="product_qty" t-attf-name="#{ol.id}_qty" t-att-value="str(ol.product_qty)" readonly="True" />
+                </div>
+                <div class="col-lg-2 text-right">
+                    <span t-field="ol.price_subtotal" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}' />
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="rfq_portal_content" inherit_id="sh_rfq_portal.rfq_portal_content">
+        <xpath expr="//section[@id='details']/div[@class='container']/div[@class='row']" position="replace">
+            <div class="row">
+                <div class="col-lg-3" id='product_name_lbl'>
+                    <strong>Product</strong>
+                </div>
+                <div class="col-lg-2" id='unit_price_lbl'>
+                    <strong>Unit Price</strong>
+                </div>
+                <div class="col-lg-3">
+                    <strong>Note/Comment</strong>
+                </div>
+                <div class="col-lg-2">
+                    <strong>Quantity</strong>
+                </div>
+                <div class="col-lg-2 text-right">
+                    <strong>Subtotal</strong>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[@class='row purchases_vertical_align']" position="replace">
+            <div class="row purchases_vertical_align">
+                <div class="col-lg-1 text-center">
+                    <img t-if="ol.product_id.image_128" class="rounded-circle mt-1 o_portal_contact_img" t-att-src="image_data_uri(ol.product_id.image_128)" alt="Product" />
+                    <img t-if="not ol.product_id.image_128" class="rounded-circle mt-1 o_portal_contact_img" src="/web/static/src/img/placeholder.png" alt="Product" />
+                </div>
+                <div id="product_name" class="col-lg-2">
+                    <span t-field="ol.product_id" />
+                </div>
+                <div class="col-lg-2" id="update_product_qty">
+                    <input type="text" pattern="[0-9]+([\.,][0-9]+)?" class="form-control quantity" id="unit_price" t-att-name="ol.id" t-att-value="str(ol.price_unit)"/>
+                </div>
+                <div class="col-lg-3" id="update_note">
+                    <t t-set="tender_note" t-value=""/>
+                    <t t-if="ol.sh_tender_note">
+                        <t t-set="tender_note" t-value="str(ol.sh_tender_note)"/>
+                    </t>
+                    <input type="text" class="form-control note" id="note" t-attf-name="#{ol.id}_note" t-att-value="tender_note"/>
+                </div>
+                <div class="col-lg-2 text-left">
+                    <input type="text" pattern="[0-9]+([\.,][0-9]+)?" class="form-control" id="product_qty" t-attf-name="#{ol.id}_qty" t-att-value="str(ol.product_qty)"/>
+                </div>
+                <div class="col-lg-2 text-right">
+                    <span t-field="ol.price_subtotal" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}' />
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

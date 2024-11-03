@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="order_items_card" name="Order Items">
+        <div class="table-responsive replace_table">
+            <table id="display-order-items">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="order.order_line" t-as="line">
+                        <td> <t t-esc="line.product_id.name"/> </td>
+                        <td> <t t-esc="line.product_uom_qty" /> </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </template>
+
+    <template id="order_card" name="Order Card">
+        <div class="card" t-attf-id="card-#{order.id}">
+            <div t-attf-class="card-header #{'collapsed' if not is_first else ''}" t-attf-id="heading-{{order.id}}" data-toggle="collapse" t-attf-data-target="#collapse-{{order.id}}"
+                 t-attf-aria-expanded="#{'true' if is_first else 'false'}" t-attf-aria-controls="collapse-{{order.id}}">
+                <h5 class="mb-0" t-att-data-order_id="order.id">
+                    <i t-attf-class="fa fa-#{'plus' if not is_first else 'minus'}"></i>
+                    <button class="btn btn-link" type="button">
+                        Order-<t t-esc="order.name"/>
+                    </button>
+                    <button t-attf-class="btn btn-primary start-btn pull-right #{'hidden' if order.state != 'sale' else ''}" t-attf-id="start-btn-#{order.id}" type="button">Start</button>
+                    <button t-attf-class="btn btn-primary complete-btn pull-right #{'hidden' if order.state != 'progress' else ''}" t-attf-id="complete-btn-#{order.id}" type="button">Complete</button>
+                    <p t-attf-class="text-success pull-right done #{'hidden' if order.state != 'ready' else ''}" t-attf-id="done-#{order.id}">
+                        Done<i class="fa fa-lg fa-check-square-o text-success"></i>
+                    </p>
+                </h5>
+            </div>
+            <div t-attf-id="collapse-{{order.id}}" t-attf-class="collapse #{'show' if is_first else ''}" t-attf-aria-labelledby="heading-{{order.name}}" data-parent="#orderList">
+                <div class="card-body">
+                    <t t-call="pragmatic_odoo_website_order_display.order_items_card"/>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="order_display" name="Order Display">
+        <t t-call="website.layout">
+            <div id="wrap" class="col-md-12">
+                <div class="order-display panel panel-primary col-md-12">
+                    <h5 class="background">
+                        <span>Order Display</span>
+                    </h5>
+                    <br />
+                    <br />
+                    <div class="accordion" id="orderList">
+                        <t t-set="is_first" t-value="true"/>
+                        <t t-foreach="orders" t-as="order">
+                            <t t-call="pragmatic_odoo_website_order_display.order_card"/>
+                            <t t-set="is_first" t-value="false"/>
+                        </t>
+                    </div>
+                </div>
+                <div class="order-display-pager">
+                    <t t-call="website.pager" />
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

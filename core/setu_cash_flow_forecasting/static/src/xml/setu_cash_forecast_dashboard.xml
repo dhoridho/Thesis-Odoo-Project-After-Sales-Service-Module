@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="SetuCashForecastDashboard">
+        <div class="o_dashboards">
+            <!-- Modal -->
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Cash Flow Forecasting</h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                        </div>
+                        <div class="modal-body">
+<!--                            <input type="text" name="daterange" class="py-2 px-2 f-12"/>-->
+                            <p>Please Choose Fiscal Period</p>
+                            <div class="d-flex align-items-center">
+                                <select class="selectpicker form-control" id="filterFiscalPeriodStart"
+                                        title="Selecione uma opçao">
+                                <t t-foreach="widget.dashboardData[9]" t-as="options">
+                                            <option t-att-start-date="options[1]" t-att-end-date="options[2]">
+                                                <t t-esc="options[0]"/>
+                                            </option>
+
+                                </t>
+                            </select>
+                                <i class="fa fa-arrow-right px-4"></i>
+                                <select class="selectpicker form-control" id="filterFiscalPeriodEnd"
+                                        title="Selecione uma opçao">
+                                <t t-foreach="widget.dashboardData[9]" t-as="options">
+                                            <option t-att-start-date="options[1]" t-att-end-date="options[2]">
+                                                <t t-esc="options[0]"/>
+                                            </option>
+
+                                </t>
+                            </select>
+                            </div>
+                            <div class="alert alert-danger mt-3" id="filterAlert" role="alert">
+                                Please Select Proper Date
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" id="apply_filter" class="btn btn-primary">Apply Filter</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--            <div class="min-height-300 bg-primary position-absolute w-100"></div>-->
+            <div class="container-fluid py-4">
+
+
+                <t t-call="setu_cash_flow_forecasting_dashboard.cards"/>
+                <t t-call="setu_cash_flow_forecasting_dashboard.income_vas_expense_value_chart"/>
+<!--                <t t-call="setu_cash_flow_forecasting_dashboard.navbar"/>-->
+                <t t-call="setu_cash_flow_forecasting_dashboard.cash_out_forecast_vs_real"/>
+                <t t-call="setu_cash_flow_forecasting_dashboard.cash_in_forecast_vs_real"/>
+
+
+            </div>
+        </div>
+    </t>
+
+    <t t-name="setu_cash_flow_forecasting_dashboard.navbar">
+        <nav class="navbar pt-4 pb-4 justify-content-end ">
+<!--            <a class="navbar-brand text-uppercase font-weight-bold">Dashboard</a>-->
+            <form class="form-inline pr-3 filter-navbar">
+                <span class="current_filter_msg mr-3 font-weight-bold-700"></span>
+                <div class="select">
+                <div class="selectBtn">
+                            Current Fiscal Year
+                        </div>
+                    <div class="selectDropdown">
+                    <span>
+                        <div class="option">
+                            Current Fiscal Year
+                        </div>
+                    </span>
+                        <span>
+                        <div class="option">
+                             Current Fiscal Period
+                        </div>
+                    </span>
+                        <span>
+                        <div class="option" href="#myModal" data-toggle="modal">
+                           Custom Fiscal Period
+                        </div>
+                    </span>
+                </div>
+            </div>
+            </form>
+        </nav>
+    </t>
+
+    <t t-name="setu_cash_flow_forecasting_dashboard.cards">
+        <div class="row mt-4 m-0">
+            <div class="col-xl-6 col-sm-6 mb-xl-0 mb-4">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="d-flex mb-4">
+                                <p class="view_expanse view_action text-sm text-uppercase card-heading heading-color f-15 ml-4 m-0 p-0"
+                                   data-view="expense">Cash-Out</p>
+                                <span class="info-badge"><i class="fa fa-info"/></span>
+                            </div>
+                            <div class="alert alert-info mt-1 ml-4 mr-4 tooltip-dialog w-100" role="alert">
+                               Overall forecasted Cash-Out will be displayed in this Graph.
+                            </div>
+                            <div class="col-md-12 d-flex justify-content-center expansesChart">
+                            </div>
+                            <div class="col-xl-12">
+                                <div class="numbers">
+
+                                    <div id="expansesChartLegend"
+                                         class="rounded-legend legend-horizontal legend-top-right"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6 col-sm-6 mb-xl-0 mb-4">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <div class="row">
+                     
+                                <div class="d-flex">
+                                     <p class="view_income view_action text-sm mb-4 text-uppercase card-heading heading-color f-15 ml-4"
+                                        data-view="income">Cash-In</p>
+                                    <span class="info-badge"><i class="fa fa-info"/></span>
+                                </div>
+                            <div class="alert alert-info mt-1 ml-4 mr-4 tooltip-dialog w-100" role="alert">
+                                    Overall forecasted Cash-In will be displayed in this Graph.
+                                </div>
+
+                            <div class="col-md-12 d-flex justify-content-center incomeChart">
+                            </div>
+                            <div class="col-xl-12">
+                                <div class="numbers">
+
+
+                                    <div id="incomeChartLegend"
+                                         class="rounded-legend legend-horizontal legend-top-right"></div>
+                                    <!--                                    <p class="mb-0">-->
+                                    <!--                                        <span class="text-success text-sm font-weight-bolder">+55%</span>-->
+                                    <!--                                        since yesterday-->
+                                    <!--                                    </p>-->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--            <div class="col-xl-4 col-sm-6 mb-xl-0 mb-4">-->
+            <!--                <div class="card">-->
+            <!--                    <div class="card-body p-4">-->
+            <!--                        <div class="row">-->
+            <!--                            <p class="view_expanse_income text-sm mb-0 text-uppercase card-heading heading-color f-15">Income Vs Expense</p>-->
+            <!--                            <div class="col-md-12 d-flex justify-content-center incomeVsExpanseChart">-->
+            <!--                            </div>-->
+            <!--                            <div class="col-xl-12">-->
+            <!--                                <div class="numbers">-->
+            <!--                                    -->
+            <!--                                    <div id="incomeVsExpanseChartLegend"-->
+            <!--                                         class="rounded-legend legend-horizontal legend-top-right"></div>-->
+            <!--                                    &lt;!&ndash;                                    <p class="text-sm mb-0 font-weight-bold heading-color f-12">Forecast Income Vs Expanses ratio</p>&ndash;&gt;-->
+            <!--                                    &lt;!&ndash;                                    <h5 class="font-weight-bolder">&ndash;&gt;-->
+            <!--                                    &lt;!&ndash;                                       <span class="text-success text-sm font-weight-bolder">+5%</span>&ndash;&gt;-->
+            <!--                                    &lt;!&ndash;                                    </h5>&ndash;&gt;-->
+            <!--                                    &lt;!&ndash;                                    <p class="text-sm mb-0 font-weight-bold heading-color f-12">Real Income Vs Expanses ratio</p>&ndash;&gt;-->
+            <!--                                    &lt;!&ndash;                                    <h5 class="font-weight-bolder">&ndash;&gt;-->
+            <!--                                    &lt;!&ndash;                                       <span class="text-danger text-sm font-weight-bolder">+5%</span>&ndash;&gt;-->
+            <!--                                    &lt;!&ndash;                                    </h5>&ndash;&gt;-->
+
+            <!--                                </div>-->
+            <!--                            </div>-->
+
+            <!--                        </div>-->
+            <!--                    </div>-->
+            <!--                </div>-->
+            <!--            </div>-->
+        </div>
+    </t>
+
+    <t t-name="setu_cash_flow_forecasting_dashboard.chart">
+         <div class="row mt-4 case-flow-chart">
+             <div class="col-lg-12 mb-lg-0 mb-4">
+                 <div class="card z-index-2 h-100">
+                     <div class="card-header row pb-0 pt-3 bg-transparent setu-z-index">
+                         <div class="title">
+                                <div class="d-flex">
+                                     <p class="text-sm mb-4 text-uppercase card-heading heading-color f-15 ml-4">Cash-Out Forecast V/S Real</p>
+                                    <span class="info-badge"><i class="fa fa-info"/></span>
+                                </div>
+                             <div class="alert alert-info mt-1 ml-4 mr-4 tooltip-dialog" role="alert">
+                                    This graph compares forecasted Cash-Out versus Real Cash-Out of each type for the duration that user selects.
+                                </div>
+                            </div>
+                         <div class="col-4 switches-container">
+                             <input type="radio" id="switchBar" name="switchPlan2" value="bar" checked="checked"/>
+                             <input type="radio" id="switchLine" name="switchPlan2" value="line"/>
+                             <label class="cursor-pointer" for="switchBar" data-toggle="tooltip" data-placement="top"
+                                    title="Bar Chart">
+                                 <i class="fa fa-bar-chart"/>
+                             </label>
+                             <label class="cursor-pointer" for="switchLine" data-toggle="tooltip" data-placement="top"
+                                    title="Line Chart">
+                                 <i class="fa fa-line-chart"/>
+                             </label>
+                             <div class="switch-wrapper">
+                                 <div class="switch">
+                                     <div class="cursor-pointer" data-toggle="tooltip" data-placement="top"
+                                          title="Bar Chart"><i class="fa fa-bar-chart"/></div>
+                                     <div class="cursor-pointer" data-toggle="tooltip" data-placement="top"
+                                          title="Line Chart"><i class="fa fa-line-chart"/></div>
+                                 </div>
+                             </div>
+                         </div>
+                         <!--                         <p class="text-sm mb-0">-->
+                         <!--                             <i class="fa fa-arrow-up text-success"></i>-->
+                         <!--                             <span class="font-weight-bold">4% more</span>-->
+                         <!--                             in 2021-->
+                         <!--                         </p>-->
+                     </div>
+                     <div class="card-body p-4">
+                         <div class="chart expanse" id="chart_income_expanse">
+<!--                             <canvas id="chart-line" class="chart-canvas" height="300"></canvas>-->
+                         </div>
+                         <div class="d-none no_data" id="expanse_no_data">
+                             <p class="text-capitalize card-heading heading-color f-18">No Data Found</p>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+             <div class="col-lg-12 mt-4 mb-lg-0 mb-4">
+                 <div class="card z-index-2 h-100">
+                     <div class="card-header row pb-0 pt-3 bg-transparent setu-z-index">
+                         <div class="title">
+                                <div class="d-flex">
+                                     <p class="text-sm mb-4 text-uppercase card-heading heading-color f-15 ml-4">Cash-In Forecast V/S Real</p>
+                                    <span class="info-badge"><i class="fa fa-info"/></span>
+                                </div>
+                             <div class="alert alert-info mt-1 ml-4 mr-4 tooltip-dialog" role="alert">
+                                    This graph compares forecasted Cash-In versus Real Cash-In of each type for the duration that user selects.
+                                </div>
+                            </div>
+                         <div class="col-4 switches-container">
+                             <input type="radio" id="switchIncomeBar" name="switchPlan" value="bar" checked="checked"/>
+                             <input type="radio" id="switchIncomeLine" name="switchPlan" value="line"/>
+                             <label class="cursor-pointer" for="switchIncomeBar" data-toggle="tooltip"
+                                    data-placement="top"
+                                    title="Bar Chart">
+                                 <i class="fa fa-bar-chart"/>
+                             </label>
+                             <label class="cursor-pointer" for="switchIncomeLine" data-toggle="tooltip"
+                                    data-placement="top"
+                                    title="Line Chart">
+                                 <i class="fa fa-line-chart"/>
+                             </label>
+                             <div class="switch-wrapper">
+                                 <div class="switch">
+                                     <div class="cursor-pointer" data-toggle="tooltip" data-placement="top"
+                                          title="Bar Chart"><i class="fa fa-bar-chart"/></div>
+                                     <div class="cursor-pointer" data-toggle="tooltip" data-placement="top"
+                                          title="Line Chart"><i class="fa fa-line-chart"/></div>
+                                 </div>
+                             </div>
+                         </div>
+                         <!--                         <p class="text-sm mb-0">-->
+                         <!--                             <i class="fa fa-arrow-up text-success"></i>-->
+                         <!--                             <span class="font-weight-bold">4% more</span>-->
+                         <!--                             in 2021-->
+                         <!--                         </p>-->
+                     </div>
+                     <div class="card-body p-4">
+                         <div class="chart income" id="chart_income_expanse2">
+<!--                             <canvas id="chart-line" class="chart-canvas" height="300"></canvas>-->
+                         </div>
+                         <div class="d-none no_data" id="income_no_data">
+                             <p class="text-capitalize card-heading heading-color f-18">No Data Found</p>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+    </t>
+
+    <t t-name="setu_cash_flow_forecasting_dashboard.cash_out_forecast_vs_real">
+         <div class="row case-flow-chart m-0 mt-4">
+             <div class="col-lg-12 mb-8">
+                 <div class="card z-index-2 h-100">
+                     <div class="card-header row pb-0 pt-3 bg-transparent setu-z-index m-0">
+                         <div class="title">
+                                <div class="d-flex pt-2">
+                                     <p class="text-sm mb-4 text-uppercase card-heading heading-color f-15 ml-4">Cash-Out Forecast V/S Real</p>
+                                    <span class="info-badge"><i class="fa fa-info"/></span>
+                                </div>
+                             <div class="alert alert-info mt-1 ml-4 mr-4 tooltip-dialog" role="alert">
+                                    This graph compares forecasted Cash-Out versus Real Cash-Out of each type for the duration that user selects.
+                                </div>
+                            </div>
+                         <div class="col-4 switches-container">
+                             <input type="radio" id="switchBar" name="switchPlan2" value="bar" checked="checked"/>
+                             <input type="radio" id="switchLine" name="switchPlan2" value="line"/>
+                             <label class="cursor-pointer" for="switchBar" data-toggle="tooltip" data-placement="top"
+                                    title="Bar Chart">
+                                 <i class="fa fa-bar-chart"/>
+                             </label>
+                             <label class="cursor-pointer" for="switchLine" data-toggle="tooltip" data-placement="top"
+                                    title="Line Chart">
+                                 <i class="fa fa-line-chart"/>
+                             </label>
+                             <div class="switch-wrapper">
+                                 <div class="switch">
+                                     <div class="cursor-pointer" data-toggle="tooltip" data-placement="top"
+                                          title="Bar Chart"><i class="fa fa-bar-chart"/></div>
+                                     <div class="cursor-pointer" data-toggle="tooltip" data-placement="top"
+                                          title="Line Chart"><i class="fa fa-line-chart"/></div>
+                                 </div>
+                             </div>
+                         </div>
+                          <form class="form-inline pr-3 filter-navbar">
+                <span class="option-cashout-message current_filter_msg mr-3 font-weight-bold-700"></span>
+                <div class="select">
+                <div class="selectBtn">
+                            Current Fiscal Year
+                        </div>
+                    <div class="selectDropdown">
+                    <span>
+                        <div class="option option-cashout">
+                            Current Fiscal Year
+                        </div>
+                    </span>
+                        <span>
+                        <div class="option option-cashout">
+                             Current Fiscal Period
+                        </div>
+                    </span>
+                        <span>
+                        <div class="option option-cashout" href="#myModal" data-toggle="modal">
+                           Custom Fiscal Period
+                        </div>
+                    </span>
+                </div>
+            </div>
+            </form>
+                     </div>
+                     <div class="card-body p-4">
+                         <div class="chart expanse" id="chart_income_expanse">
+<!--                             <canvas id="chart-line" class="chart-canvas" height="300"></canvas>-->
+                         </div>
+                         <div class="d-none no_data" id="expanse_no_data">
+                             <p class="text-capitalize card-heading heading-color f-18">No Data Found</p>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+    </t>
+
+    <t t-name="setu_cash_flow_forecasting_dashboard.cash_in_forecast_vs_real">
+         <div class="row mt-4 case-flow-chart m-0">
+             <div class="col-lg-12  mb-8">
+                 <div class="card z-index-2 h-100">
+                     <div class="card-header row pb-0 pt-3 bg-transparent setu-z-index m-0">
+                         <div class="title">
+                                <div class="d-flex  pt-2">
+                                     <p class="text-sm mb-4 text-uppercase card-heading heading-color f-15 ml-4">Cash-In Forecast V/S Real</p>
+                                    <span class="info-badge"><i class="fa fa-info"/></span>
+                                </div>
+                             <div class="alert alert-info mt-1 ml-4 mr-4 tooltip-dialog" role="alert">
+                                    This graph compares forecasted Cash-In versus Real Cash-In of each type for the duration that user selects.
+                                </div>
+                            </div>
+                         <div class="col-4 switches-container">
+                             <input type="radio" id="switchIncomeBar" name="switchPlan" value="bar" checked="checked"/>
+                             <input type="radio" id="switchIncomeLine" name="switchPlan" value="line"/>
+                             <label class="cursor-pointer" for="switchIncomeBar" data-toggle="tooltip"
+                                    data-placement="top"
+                                    title="Bar Chart">
+                                 <i class="fa fa-bar-chart"/>
+                             </label>
+                             <label class="cursor-pointer" for="switchIncomeLine" data-toggle="tooltip"
+                                    data-placement="top"
+                                    title="Line Chart">
+                                 <i class="fa fa-line-chart"/>
+                             </label>
+                             <div class="switch-wrapper">
+                                 <div class="switch">
+                                     <div class="cursor-pointer" data-toggle="tooltip" data-placement="top"
+                                          title="Bar Chart"><i class="fa fa-bar-chart"/></div>
+                                     <div class="cursor-pointer" data-toggle="tooltip" data-placement="top"
+                                          title="Line Chart"><i class="fa fa-line-chart"/></div>
+                                 </div>
+                             </div>
+                         </div>
+                          <form class="form-inline pr-3 filter-navbar">
+                                <span class="option-cashin-message current_filter_msg mr-3 font-weight-bold-700"></span>
+                                <div class="select">
+                                <div class="selectBtn">
+                                            Current Fiscal Year
+                                        </div>
+                                    <div class="selectDropdown">
+                                    <span>
+                                        <div class="option option-cashin" data-type="casein">
+                                            Current Fiscal Year
+                                        </div>
+                                    </span>
+                                        <span>
+                                        <div class="option option-cashin"  data-type="casein">
+                                             Current Fiscal Period
+                                        </div>
+                                    </span>
+                                        <span>
+                                        <div class="option option-cashin" href="#myModal" data-toggle="modal"  data-type="casein">
+                                           Custom Fiscal Period
+                                        </div>
+                                    </span>
+                                </div>
+                            </div>
+                            </form>
+
+                     </div>
+                     <div class="card-body p-4">
+                         <div class="chart income" id="chart_income_expanse2">
+<!--                             <canvas id="chart-line" class="chart-canvas" height="300"></canvas>-->
+                         </div>
+                         <div class="d-none no_data" id="income_no_data">
+                             <p class="text-capitalize card-heading heading-color f-18">No Data Found</p>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+    </t>
+
+    <!--    <t t-name="setu_cash_flow_forecasting_dashboard.income_vas_expense_ratio_chart">-->
+    <!--        <div class="row mt-4 m-0">-->
+    <!--            <div class="col-xl-12 col-sm-12 mb-xl-0 mb-4">-->
+    <!--                <div class="card">-->
+    <!--                    <div class="card-body p-4">-->
+    <!--                        <div class="row">-->
+    <!--                            <div class="d-flex mb-4">-->
+    <!--                                <p class="text-sm text-uppercase card-heading heading-color f-15 ml-4 m-0 p-0"-->
+    <!--                                   data-view="expense">Cash In V/S Cash Out Forecasted Ratio</p>-->
+    <!--                                <span class="info-badge"><i class="fa fa-info"/></span>-->
+    <!--                            </div>-->
+    <!--                            <div class="alert alert-info mt-1 ml-4 mr-4 tooltip-dialog w-100" role="alert">-->
+    <!--                               Overall forecasted Cash-Out will be displayed in this Graph.-->
+    <!--                            </div>-->
+    <!--                            <div class="col-xl-12">-->
+    <!--                                <div class="numbers">-->
+    <!--                                    <div class="rounded-legend legend-horizontal legend-top-right income_vs_expense_ratio"></div>-->
+    <!--                                </div>-->
+    <!--                            </div>-->
+    <!--                        </div>-->
+    <!--                    </div>-->
+    <!--                </div>-->
+    <!--            </div>-->
+    <!--        </div>-->
+    <!--    </t>-->
+
+    <t t-name="setu_cash_flow_forecasting_dashboard.income_vas_expense_value_chart">
+        <div class="row mt-4 m-0">
+            <div class="col-xl-12 col-sm-12 mb-xl-0 mb-4">
+                <div class="card">
+
+                     <div class="card-header row pb-0 pt-3 bg-transparent setu-z-index m-0 case-flow-chart">
+                         <div class="title">
+                                <div class="d-flex  pt-2">
+                                     <p class="text-sm mb-4 text-uppercase card-heading heading-color f-15 ml-4 switch_header_text">Cash In V/S Cash Out Forecasted Value</p>
+                                    <span class="info-badge"><i class="fa fa-info"/></span>
+                                </div>
+                             <div class="alert alert-info mt-1 ml-4 mr-4 tooltip-dialog switch_header_tooltip"
+                                  role="alert">
+                                    This graph compares forecasted Cash-In versus Real Cash-In of each type for the duration that user selects.
+                                </div>
+                            </div>
+                         <div class="col-4 switches-container">
+                             <input type="radio" id="switchValueChart" name="switchMyChart" value="value_chart"
+                                    checked="checked"/>
+                             <input type="radio" id="switchRatioChart" name="switchMyChart" value="ratio_chart"/>
+                             <label class="cursor-pointer" for="switchValueChart" data-toggle="tooltip"
+                                    data-placement="top"
+                                    title="Forecasted Value Chart">
+                                 Value
+                             </label>
+                             <label class="cursor-pointer" for="switchRatioChart" data-toggle="tooltip"
+                                    data-placement="top"
+                                    title="Forecasted Ratio Chart">
+                                 Ratio
+                             </label>
+                             <div class="switch-wrapper">
+                                 <div class="switch">
+                                     <div class="cursor-pointer" data-toggle="tooltip" data-placement="top"
+                                          title="Forecasted Value Chart">Value</div>
+                                     <div class="cursor-pointer" data-toggle="tooltip" data-placement="top"
+                                          title="Forecasted Ratio Chart">Ratio</div>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-xl-12">
+                                <div class="numbers">
+                                    <div class="rounded-legend legend-horizontal legend-top-right income_vs_expense_value"></div>
+                                    <div class="rounded-legend legend-horizontal legend-top-right income_vs_expense_ratio"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+
+</templates>

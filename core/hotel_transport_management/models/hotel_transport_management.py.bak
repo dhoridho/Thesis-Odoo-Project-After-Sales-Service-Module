@@ -1,0 +1,1261 @@
+from odoo import fields, models, api
+from odoo.exceptions import ValidationError, Warning, UserError
+from odoo.exceptions import UserError
+from odoo.tools import config
+import odoo.addons.decimal_precision as dp
+from odoo.tools.translate import _
+import datetime
+import calendar
+import time
+from mx.DateTime import RelativeDateTime, now, DateTime, localtime
+from __builtin__ import round
+
+# from openerp.osv import fields, osv
+# import time
+# from openerp import netsvc
+#
+# from openerp import pooler
+# from openerp.tools import config
+# import odoo.addons.decimal_precision as dp
+# from openerp.tools.translate import _
+# from mx import DateTime
+
+
+@api.multi
+def get_price(self, pricelist_ids, price):
+    price_amt = 0.0
+    pricelist_item_ids = []
+    if self._context is None:
+        self._context = {}
+
+    date = time.strftime('%Y-%m-%d')
+    if 'date' in self._context:
+        date = self._context['date']
+
+    currency_obj = self.env['res.currency']
+    product_pricelist_version_obj = self.env['product.pricelist.item']
+    user_browse = self.env['res.users']
+    company_obj = self.env['res.company']
+    company_id = company_obj.browse(user_browse.company_id.id)
+    pricelist_obj = self.env[
+        'product.pricelist'].browse(pricelist_ids)
+    if pricelist_ids:
+        pricelist_item_ids.append(pricelist_ids)
+        pricelist_obj = self.env[
+            'product.pricelist'].browse(pricelist_ids)
+
+    pricelist_item_ids = list(set(pricelist_item_ids))
+    plversions_search_args = [
+        ('pricelist_id', 'in', pricelist_item_ids),
+        '|',
+        ('date_start', '=', False),
+        ('date_start', '<=', date),
+        '|',
+        ('date_end', '=', False),
+        ('date_end', '>=', date),
+    ]
+
+    plversion_ids = product_pricelist_version_obj.search(
+        plversions_search_args)
+    if not plversion_ids:
+        msg = "At least one pricelist item has not declared !\nPlease create pricelist item."
+        raise Warning(_('Warning !'), _(msg))
+
+    self._cr.execute(
+        'SELECT i.* '
+        'FROM product_pricelist_item AS i '
+        'WHERE id = ' + str(plversion_ids[0].id) + '')
+
+    res1 = self._cr.dictfetchall()
+    if pricelist_obj:
+        price = currency_obj.compute(
+            price, pricelist_obj.currency_id.id, round=False)
+    for res in res1:
+        if res:
+            price_limit = price
+            x = (1.0 + (res['price_discount'] or 0.0))
+            price = price * (1.0 + (res['price_discount'] or 0.0))
+            price += (res['price_surcharge'] or 0.0)
+            if res['price_min_margin']:
+                price = max(price, price_limit + res['price_min_margin'])
+            if res['price_max_margin']:
+                price = min(price, price_limit + res['price_max_margin'])
+            break
+
+    price_amt = price
+    return price_amt
+
+# def get_price(self, cr, uid, ids, pricelist_ids, price, context=None):
+#     price_amt = 0.0
+#     pricelist_item_ids = []
+#     if context is None:
+#         context = {}
+#
+#     date = time.strftime('%Y-%m-%d')
+#     if 'date' in context:
+#         date = context['date']
+#
+#     currency_obj = self.pool.get('res.currency')
+#     product_pricelist_version_obj = self.pool.get('product.pricelist.item')
+#     user_browse = self.pool.get('res.users').browse(cr, uid, uid)
+#     company_obj = self.pool.get('res.company')
+#     company_id = company_obj.browse(cr, uid, user_browse.company_id.id)
+#     print company_id, "company_id"
+#     pricelist_obj = self.pool.get(
+#         'product.pricelist').browse(cr, uid, pricelist_ids)
+#     if pricelist_ids:
+#         pricelist_item_ids.append(pricelist_ids)
+#         pricelist_obj = self.pool.get(
+#             'product.pricelist').browse(cr, uid, pricelist_ids)
+#
+#     pricelist_item_ids = list(set(pricelist_item_ids))
+#     plversions_search_args = [
+#         ('pricelist_id', 'in', pricelist_item_ids),
+#         '|',
+#         ('date_start', '=', False),
+#         ('date_start', '<=', date),
+#         '|',
+#         ('date_end', '=', False),
+#         ('date_end', '>=', date),
+#     ]
+#
+#     plversion_ids = product_pricelist_version_obj.search(
+#         cr, uid, plversions_search_args)
+#
+#     if not plversion_ids:
+#         msg = "At least one pricelist item has not declared !\nPlease create pricelist item."
+#         raise Warning(_('Warning !'), _(msg))
+#
+#     cr.execute(
+#         'SELECT i.* '
+#         'FROM product_pricelist_item AS i '
+#         'WHERE id = ' + str(plversion_ids[0]) + '')
+#
+#     res1 = cr.dictfetchall()
+#     print res1, "res1"
+#     if pricelist_obj:
+#         print pricelist_obj, "pricelist_obj"
+#         print pricelist_obj.currency_id.id, "pricelist_obj.currency_id.id"
+#         print price, "pricelist_obj.cprivee"
+#         price = currency_obj.compute(
+#             cr, uid, company_id.currency_id.id, pricelist_obj.currency_id.id, price, round=False)
+#         print price, "price"
+#     for res in res1:
+#         if res:
+#             price_limit = price
+#             x = (1.0 + (res['price_discount'] or 0.0))
+#             price = price * (1.0 + (res['price_discount'] or 0.0))
+#             price += (res['price_surcharge'] or 0.0)
+#             if res['price_min_margin']:
+#                 price = max(price, price_limit + res['price_min_margin'])
+#             if res['price_max_margin']:
+#                 price = min(price, price_limit + res['price_max_margin'])
+#             break
+#
+#     price_amt = price
+#     return price_amt
+
+
+class location_master(models.Model):
+    _name = 'location.master'
+    _description = 'Location details'
+
+    name = fields.Char('Location Name', size=30, required=True)
+    location_code = fields.Char('Location Code', size=30, required=True)
+#     _columns = {
+#                 'name':fields.char('Location Name',size=30,required=True),
+#                 'location_code':fields.char('Location Code',size=30,required=True),
+#                 }
+# location_master()
+
+
+class transport_partner(models.Model):
+    _name = 'transport.partner'
+    _description = 'Transport details'
+
+    @api.multi
+    def confirm_state(self):
+        date1 = datetime.date
+        date2 = date1.today()
+        for transport in self:
+            if transport.transport_info_ids == []:
+                raise Warning(
+                    "Warning! Please enter transport information details... !")
+        return self.write({'state': 'confirm', 'date_of_authorization': date2})
+#     def confirm_state(self, cr, uid, ids, vals=None):
+#         date1 = datetime.date
+#         date2 = date1.today()
+#
+#         for transport in self.browse(cr, uid, ids):
+#             if transport.transport_info_ids == []:
+#                 raise Warning(
+#                     'Warning!', "Please enter transport information details... !")
+# return self.write(cr, uid, ids, {'state': 'confirm',
+# 'date_of_authorization': date2})
+
+    @api.onchange('partner_id')
+    def onchange_partner_id(self):
+        if self.partner_id:
+            obj = self.env['res.partner'].browse(self.partner_id).id
+            self.name = obj.name
+#            res = self.pool.get('res.partner').address_get(cr, uid, [customer_id], ['delivery', 'invoice', 'contact'])
+#            if res['invoice']:
+#                invoice_addr_id = res['invoice']
+#            else:
+#                res_add = self.pool.get('res.partner.address').search(cr, uid, [('partner_id', '=', customer_id)])
+#                if res_add:
+#                    invoice_addr_id = res_add
+#            result['partner_address_id'] = invoice_addr_id
+#             print "result", result
+#         return {'value': result}
+
+#     def onchange_partner_id(self, cr, uid, ids, customer_id):
+#         result = {}
+#         invoice_addr_id = False
+#         if customer_id:
+#             obj = self.pool.get('res.partner').browse(cr, uid, customer_id)
+#             result['name'] = obj.name
+# #            res = self.pool.get('res.partner').address_get(cr, uid, [customer_id], ['delivery', 'invoice', 'contact'])
+# #            if res['invoice']:
+# #                invoice_addr_id = res['invoice']
+# #            else:
+# #                res_add = self.pool.get('res.partner.address').search(cr, uid, [('partner_id', '=', customer_id)])
+# #                if res_add:
+# #                    invoice_addr_id = res_add
+# #            result['partner_address_id'] = invoice_addr_id
+#             print "result", result
+#         return {'value': result}
+
+    name = fields.Char('Name', size=64)
+    partner_id = fields.Many2one(
+        'res.partner', 'Transporter Name', size=30, required=True)
+#                'partner_address_id':fields.Many2one('res.partner.address','Address'),
+    date_of_authorization = fields.Date(
+        'Authorization Date', size=30, readonly=True)
+    transport_info_ids = fields.One2many(
+        'transport.information', 'tran_info_id', 'Transport Type Information')
+    state = fields.Selection(
+        [('draft', 'Draft'), ('confirm', 'Confirmed')], 'State', readonly=True, size=30, default='draft')
+#     _columns = {
+#                 'name':fields.char('Name',size=64),
+#                 'partner_id':fields.Many2one('res.partner','Transporter Name',size=30,required=True),
+# #                'partner_address_id':fields.Many2one('res.partner.address','Address'),
+#                 'date_of_authorization':fields.date('Authorization Date',size=30,readonly=True),
+#                 'transport_info_ids':fields.one2many('transport.information','tran_info_id','Transport Type Information'),
+#                 'state': fields.Selection([('draft','Draft'),('confirm','Confirmed')],'State',readonly=True,size=30),
+#                 }
+#     _defaults = {
+#                   'state':'draft',
+#                   }
+# transport_partner()
+
+
+class transport_information(models.Model):
+    _name = 'transport.information'
+    _description = 'Transport Information'
+    name = fields.Many2one(
+        'transport.mode', 'Transport Mode', size=30, required=True)
+    from_location = fields.Many2one('location.master', 'Source', size=30)
+    to_location = fields.Many2one('location.master', 'Destination', size=30)
+    cost_price = fields.Float('Cost Price', size=30)
+    sale_price = fields.Float('Sale Price', size=30)
+    tran_info_id = fields.Many2one(
+        'transport.partner', 'Tranport Information ID')
+#     _columns = {
+#                 'name':fields.Many2one('transport.mode','Transport Mode',size=30,required=True),
+#                 'from_location':fields.Many2one('location.master','Source',size=30),
+#                 'to_location':fields.Many2one('location.master','Destination',size=30),
+#                 'cost_price':fields.Float('Cost Price',size=30),
+#                 'sale_price':fields.Float('Sale Price',size=30),
+#                 'tran_info_id':fields.Many2one('transport.partner','Tranport Information ID'),
+#                 }
+
+    _sql_constraints = [
+        ('name_uniq', 'unique(name,from_location,to_location,tran_info_id)',
+         'Root record is already created !'),
+    ]
+transport_information()
+
+
+class transport_mode(models.Model):
+    _name = 'transport.mode'
+    _description = 'Transport Mode'
+
+    name = fields.Char('Transport Mode', size=30, required=True)
+#     _columns = {
+#                 'name':fields.char('Transport Mode',size=30,required=True),
+#                 }
+# transport_mode()
+
+# class hotel_folio_transport_line(osv.osv):
+#     _name='hotel_folio_transport.line'
+#     _description='hotel folio transport line'
+#     _inherits={'sale.order.line':'transport_line_id'}
+#     _columns={
+#           'transport_line_id':fields.Many2one('sale.order.line','food_line_id',required=True,ondelete='cascade'),
+#           'folio_id':fields.Many2one('hotel.folio','Folio ref',ondelete='cascade'),
+#           "source_origin":fields.char('Source Origin', size=264),
+#     }
+#
+# class hotel_folio(osv.osv):
+#     _inherit = "hotel.folio"
+#     _decritpion = "Hotel Folio Inherit"
+#
+#     _columns = {
+#                 'transport_line_ids': fields.one2many('hotel_folio_transport.line','folio_id'),
+#                 }
+
+
+class hotel_reservation(models.Model):
+    _inherit = "hotel.reservation"
+    _description = "Reservation"
+
+    pick_up = fields.Selection([('yes', 'Yes'), ('no', 'No')], 'Is Pickup Required', readonly=True, states={
+                               'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=lambda *a: 'no')
+    chargeable = fields.Boolean('Is Chargeable', readonly=True, states={
+                                'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+    service_type = fields.Selection([('internal', 'Internal'), ('third_party', 'Third Party')], 'Service Type', readonly=True, states={
+                                    'draft': [('readonly', False)], 'confirm': [('readonly', False)]}, default=lambda *a: 'internal')
+    trans_partner_id = fields.Many2one('transport.partner', 'Transporter Name', readonly=True, states={
+                                       'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+    pickup_time = fields.Datetime('Pickup Time', readonly=True, states={
+                                  'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+    source_id = fields.Many2one('location.master', 'Pickup Location', readonly=True, states={
+                                'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+    destination_id = fields.Many2one('location.master', 'Destination', readonly=True, states={
+                                     'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+    trans_mode_id = fields.Many2one('transport.mode', 'Transport Mode', readonly=True, states={
+                                    'draft': [('readonly', False)], 'confirm': [('readonly', False)]})
+    trans_task_id = fields.Many2one('transport.task', 'Task ID')
+#     _columns = {
+#         'pick_up': fields.Selection([('yes', 'Yes'),('no','No')], 'Is Pickup Required',readonly=True,states={'draft':[('readonly',False)],'confirm':[('readonly',False)]}),
+#         'chargeable' : fields.boolean('Is Chargeable',readonly=True,states={'draft':[('readonly',False)],'confirm':[('readonly',False)]}),
+#         'service_type': fields.Selection([('internal', 'Internal'),('third_party','Third Party')], 'Service Type',readonly=True,states={'draft':[('readonly',False)],'confirm':[('readonly',False)]}),
+#         'trans_partner_id':fields.Many2one('transport.partner', 'Transporter Name', readonly=True, states={'draft':[('readonly',False)],'confirm':[('readonly',False)]}),
+#         'pickup_time': fields.datetime('Pickup Time',readonly=True, states={'draft':[('readonly',False)],'confirm':[('readonly',False)]}),
+#         'source_id':fields.Many2one('location.master', 'Pickup Location', readonly=True, states={'draft':[('readonly',False)],'confirm':[('readonly',False)]}),
+#         'destination_id':fields.Many2one('location.master', 'Destination', readonly=True, states={'draft':[('readonly',False)],'confirm':[('readonly',False)]}),
+#         'trans_mode_id':fields.Many2one('transport.mode', 'Transport Mode', readonly=True, states={'draft':[('readonly',False)],'confirm':[('readonly',False)]}),
+#         'trans_task_id':fields.Many2one('transport.task', 'Task ID'),
+#                 }
+
+#     _defaults = {
+#         'pick_up':lambda *a: 'no',
+#         'service_type':lambda *a: 'internal',
+#        }
+    @api.multi
+    def cancel_reservation(self):
+        for reservation in self:
+            if reservation.pick_up == 'yes' and reservation.trans_task_id:
+                reservation.trans_task_id.write({'state': 'cancelled'})
+        so = super(hotel_reservation, self).cancel_reservation()
+        return so
+#     def cancel_reservation(self, cr, uid, ids, *args):
+#         for reservation in self.browse(cr, uid, ids):
+#             if reservation.pick_up == 'yes' and reservation.trans_task_id:
+#                 self.pool.get('transport.task').write(
+#                     cr, uid, [reservation.trans_task_id.id], {'state': 'cancelled'})
+#         so = super(hotel_reservation, self).cancel_reservation(
+#             cr, uid, ids, *args)
+#         return so
+
+    @api.multi
+    def confirmed_reservation(self):
+        so = super(hotel_reservation, self).confirmed_reservation()
+        project_name = self.env['project.project'].search(
+            [('name', '=', 'Tranportation')])
+        for reservation in self:
+            if reservation.pick_up == 'yes':
+                task_id = self.env['transport.task'].create({
+                    'trans_partner_id': reservation.trans_partner_id.id,
+                    'pickup_time': reservation.pickup_time,
+                    'source_id': reservation.source_id.id,
+                    'destination_id': reservation.destination_id.id,
+                    'trans_mode_id': reservation.trans_mode_id.id,
+                    'guest_id': reservation.partner_id.id,
+                    'reservation_id': reservation.id,
+                    'service_type': reservation.service_type,
+                    'name': 'Pickup and Drop for Customer',
+                    'date_deadline': reservation.pickup_time[0:10] or '',
+                    'transport': 1,
+                    'project_id': project_name.id or 1,
+                })
+                self.write({'trans_task_id': task_id.id})
+        return True
+#     def confirmed_reservation(self, cr, uid, ids, context=None):
+#         so = super(hotel_reservation, self).confirmed_reservation(
+#             cr, uid, ids, context)
+#         for reservation in self.browse(cr, uid, ids):
+#             if reservation.pick_up == 'yes':
+#                 task_id = self.pool.get('transport.task').create(cr, uid, {
+#                     'trans_partner_id': reservation.trans_partner_id.id,
+#                     'pickup_time': reservation.pickup_time,
+#                     'source_id': reservation.source_id.id,
+#                     'destination_id': reservation.destination_id.id,
+#                     'trans_mode_id': reservation.trans_mode_id.id,
+#                     'guest_id': reservation.partner_id.id,
+#                     'reservation_id': reservation.id,
+#                     'service_type': reservation.service_type,
+#                     'name': 'Pickup and Drop for Customer',
+#                     'reservation_id': reservation.id,
+#                     'date_deadline': reservation.pickup_time[0:10] or '',
+#                     'transport': 1,
+#                     'project_id': 1,
+#                 })
+#                 print task_id, "task_id"
+#                 self.write(cr, uid, ids, {'trans_task_id': task_id})
+#        return True
+
+    @api.multi
+    def update_history(self):
+        so = super(hotel_reservation, self).update_history()
+        for reservation in self:
+            if reservation.pick_up == 'yes':
+                trans_id = self.env['transport.task'].search(
+                    [('reservation_id', '=', reservation.id)])
+                if trans_id:
+                    self.env['transport.task'].write({
+                        'trans_partner_id': reservation.trans_partner_id.id,
+                        'pickup_time': reservation.pickup_time,
+                        'source_id': reservation.source_id.id,
+                        'destination_id': reservation.destination_id.id,
+                        'trans_mode_id': reservation.trans_mode_id.id,
+                        'guest_id': reservation.partner_id.id,
+                        'service_type': reservation.service_type,
+                        'date_deadline': reservation.pickup_time[0:10] or '',
+                        'transport': 1,
+                        'project_id': 1,
+                    })
+                else:
+                    task_id = self.env['transport.task'].create({
+                        'trans_partner_id': reservation.trans_partner_id.id,
+                        'pickup_time': reservation.pickup_time,
+                        'source_id': reservation.source_id.id,
+                        'destination_id': reservation.destination_id.id,
+                        'trans_mode_id': reservation.trans_mode_id.id,
+                        'guest_id': reservation.partner_id.id,
+                        'reservation_id': reservation.id,
+                        'service_type': reservation.service_type,
+                        'name': 'Pickup and Drop for Customer',
+                        'date_deadline': reservation.pickup_time[0:10] or '',
+                        'transport': 1,
+                        'project_id': 1,
+                    })
+                    self.write({'trans_task_id': task_id.id})
+            if reservation.pick_up == 'no':
+                trans_id = self.env['transport.task'].search(
+                    [('reservation_id', '=', reservation.id)])
+                if trans_id:
+                    self.env['transport.task'].do_cancel(trans_id)
+        return True
+
+#     def update_history(self, cr, uid, ids, context=None):
+#         so = super(hotel_reservation, self).update_history(
+#             cr, uid, ids, context)
+#         for reservation in self.browse(cr, uid, ids):
+#             if reservation.pick_up == 'yes':
+#                 trans_id = self.pool.get('transport.task').search(
+#                     cr, uid, [('reservation_id', '=', reservation.id)])
+#                 print trans_id, "trans_id======================"
+#                 if trans_id:
+#                     self.pool.get('transport.task').write(cr, uid, trans_id, {
+#                         'trans_partner_id': reservation.trans_partner_id.id,
+#                         'pickup_time': reservation.pickup_time,
+#                         'source_id': reservation.source_id.id,
+#                         'destination_id': reservation.destination_id.id,
+#                         'trans_mode_id': reservation.trans_mode_id.id,
+#                         'guest_id': reservation.partner_id.id,
+#                         'service_type': reservation.service_type,
+#                         'date_deadline': reservation.pickup_time[0:10] or '',
+#                         'transport': 1,
+#                         'project_id': 1,
+#                     })
+#                 else:
+#                     task_id = self.pool.get('transport.task').create(cr, uid, {
+#                         'trans_partner_id': reservation.trans_partner_id.id,
+#                         'pickup_time': reservation.pickup_time,
+#                         'source_id': reservation.source_id.id,
+#                         'destination_id': reservation.destination_id.id,
+#                         'trans_mode_id': reservation.trans_mode_id.id,
+#                         'guest_id': reservation.partner_id.id,
+#                         'reservation_id': reservation.id,
+#                         'service_type': reservation.service_type,
+#                         'name': 'Pickup and Drop for Customer',
+#                         'date_deadline': reservation.pickup_time[0:10] or '',
+#                         'transport': 1,
+#                         'project_id': 1,
+#                     })
+#                     print task_id, "task_id"
+#                     self.write(cr, uid, ids, {'trans_task_id': task_id})
+#             if reservation.pick_up == 'no':
+#                 trans_id = self.pool.get('transport.task').search(
+#                     cr, uid, [('reservation_id', '=', reservation.id)])
+#                 print trans_id, "trans_id======================"
+#                 if trans_id:
+#                     self.pool.get('transport.task').do_cancel(
+#                         cr, uid, trans_id, context)
+#         return True
+
+hotel_reservation()
+
+
+class transport_task(models.Model):
+    _name = 'transport.task'
+    _inherits = {'project.task': 'task_id'}
+    _description = 'Transport Task'
+
+    def get_project_id(self):
+        obj = self.env['project.project'].search(
+            [('name', '=', 'Tranportation')])
+        if not obj:
+            raise Warning(
+                "Warning! There is no project name as Tranportation !")
+        return obj[0]
+#     def get_project_id(self, cr, uid, ids, context=None):
+#         obj = self.pool.get('project.project').search(
+#             cr, uid, [('name', '=', 'Tranportation')])
+#         print ">>>>>>>>..project ", obj
+#         if not obj:
+#             raise Warning(
+#                 'Warning!', "There is no project name as Tranportation !")
+#
+#         return obj[0]
+
+    @api.onchange('user_id')
+    def _onchange_user(self):
+        if self.user_id:
+            self.date_start = fields.Datetime.now()
+
+#     def onchange_user_id(self, cr, uid, ids, user_id, context=None):
+#         vals = {}
+#         if user_id:
+#             vals['date_start'] = fields.datetime.now()
+#         return {'value': vals}
+
+    task_id = fields.Many2one(
+        'project.task', 'Task ID', required=True, ondelete="cascade")
+    service_type = fields.Selection(
+        [('internal', 'Internal'), ('third_party', 'Third Party')], 'Service Type',)
+    trans_partner_id = fields.Many2one(
+        'transport.partner', 'Transporter Name', )
+    pickup_time = fields.Datetime('Pickup Time',)
+    source_id = fields.Many2one('location.master', 'Pickup Location', )
+    destination_id = fields.Many2one('location.master', 'Destination', )
+    trans_mode_id = fields.Many2one('transport.mode', 'Transport Mode', )
+    guest_id = fields.Many2one('res.partner', 'Guest Name', )
+    reservation_id = fields.Many2one('hotel.reservation', 'Reservation Ref', )
+    state = fields.Selection([('draft', 'New'), ('open', 'In Progress'), (
+        'done', 'Done'), ('cancelled', 'Cancelled')], 'State', default='draft')
+    project_id = fields.Many2one(
+        'project.project', 'Project', ondelete='set null', default=get_project_id)
+#     _columns = {
+#         'task_id':fields.Many2one('project.task','Task ID', required=True, ondelete="cascade"),
+#         'service_type': fields.Selection([('internal', 'Internal'),('third_party','Third Party')], 'Service Type',),
+#         'trans_partner_id':fields.Many2one('transport.partner', 'Transporter Name', ),
+#         'pickup_time': fields.datetime('Pickup Time',),
+#         'source_id':fields.Many2one('location.master', 'Pickup Location', ),
+#         'destination_id':fields.Many2one('location.master', 'Destination', ),
+#         'trans_mode_id':fields.Many2one('transport.mode', 'Transport Mode', ),
+#         'guest_id':fields.Many2one('res.partner', 'Guest Name', ),
+#         'reservation_id':fields.Many2one('hotel.reservation', 'Reservation Ref', ),
+#         'state': fields.Selection([('draft', 'New'),('open', 'In Progress'), ('done', 'Done'), ('cancelled', 'Cancelled')], 'State',),
+#         'project_id': fields.Many2one('project.project', 'Project', ondelete='set null', select=True, change_default=True),
+#         }
+#
+#     _defaults = {
+#         'state': 'draft',
+#         'project_id':get_project_id,
+#     }
+
+    def read_followers_data(self, follower_ids):
+        result = []
+        technical_group = self.env[
+            'ir.model.data'].get_object('base', 'group_no_one')
+        for follower in self.env['res.partner'].browse(follower_ids):
+            is_editable = self._uid in map(
+                lambda x: x.id, technical_group.users)
+            is_uid = self._uid in map(lambda x: x.id, follower.user_ids)
+            data = (follower.id,
+                    follower.name,
+                    {'is_editable': is_editable, 'is_uid': is_uid},
+                    )
+            result.append(data)
+        return result
+
+#     def read_followers_data(self, cr, uid, follower_ids, context=None):
+#         result = []
+#         technical_group = self.pool.get('ir.model.data').get_object(
+#             cr, uid, 'base', 'group_no_one', context=context)
+#         for follower in self.pool.get('res.partner').browse(cr, uid, follower_ids, context=context):
+#             is_editable = uid in map(lambda x: x.id, technical_group.users)
+#             is_uid = uid in map(lambda x: x.id, follower.user_ids)
+#             data = (follower.id,
+#                     follower.name,
+#                     {'is_editable': is_editable, 'is_uid': is_uid},
+#                     )
+#             result.append(data)
+#         return result
+
+    def message_get_subscription_data(self, user_pid=None):
+        """ Wrapper to get subtypes data. """
+        return self.env['mail.thread']._get_subscription_data(None, None, user_pid=user_pid)
+
+#     def message_get_subscription_data(self, cr, uid, ids, user_pid=None, context=None):
+#         """ Wrapper to get subtypes data. """
+# return self.pool.get('mail.thread')._get_subscription_data(cr, uid, ids,
+# None, None, user_pid=user_pid, context=context)
+
+    def _read_group_user_id(self, domain, read_group_order=None, access_rights_uid=None, context=None):
+        task_id = self.task_id
+        res = task_id._read_group_user_id()
+        return res
+
+#     def _read_group_user_id(self, cr, uid, ids, domain, read_group_order=None, access_rights_uid=None, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         res = self.pool.get('project.task')._read_group_user_id(
+#             cr, uid, [task_id], context)
+#         return res
+
+    def _hours_get(self, field_names):
+        task_id = self.task_id
+        res = task_id._hours_get()
+        return res
+
+#     def _hours_get(self, cr, uid, ids, field_names, args, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         res = self.pool.get('project.task')._hours_get(
+#             cr, uid, [task_id], context)
+#         return res
+
+    def onchange_remaining(self, remaining=0.0, planned=0.0):
+        task_id = self.task_id
+        res = task_id.onchange_remaining()
+        return res
+
+#     def onchange_remaining(self, cr, uid, ids, remaining=0.0, planned=0.0, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         res = self.pool.get('project.task').onchange_remaining(
+#             cr, uid, [task_id], context)
+#         return res
+
+    @api.onchange('planned_hours')
+    def onchange_planned(self, planned=0.0, effective=0.0):
+        remaining_hours = planned - effective
+        return {'value': remaining_hours}
+
+#     def onchange_planned(self, cr, uid, ids, planned=0.0, effective=0.0, context=None):
+#         task_id = self.browse(cr, uid, ids)
+#         res = {}
+#         if not task_id:
+#             return res
+#         else:
+#             task_id = task_id[0].task_id.id
+#             res = self.pool.get('project.task').onchange_planned(
+#                 cr, uid, [task_id], context)
+#             return res
+
+    @api.onchange('project_id')
+    def _onchange_project(self):
+        task_id = self
+        res = {}
+        if not task_id:
+            return res
+        else:
+            task_id = task_id[0].task_id
+            if task_id:
+                res = task_id._onchange_project()
+            return res
+
+#    def onchange_project(self, cr, uid, ids, project_id, context=None):
+#         task_id = self.browse(cr, uid, ids)
+#         print 'task id ===========', task
+#         res = {}
+#         if not task_id:
+#             return res
+#         else:
+#             task_id = task_id[0].task_id.id
+#             res = self.pool.get('project.task').onchange_project(cr, uid, [task_id], context)
+#             return  res
+    def duplicate_task(self, map_ids):
+        task_id = self.browse(map_ids)[0].task_id.id
+        res = task_id.duplicate_task()
+        return res
+
+#     def duplicate_task(self, cr, uid, map_ids, context=None):
+#         task_id = self.browse(cr, uid, map_ids)[0].task_id.id
+#         res = self.pool.get('project.task').duplicate_task(
+#             cr, uid, [task_id], context)
+#         return res
+
+#     @api.multi
+#     def copy(self, default=None):
+#         task_id = self.task_id
+#         print "task id", task_id
+#         res = task_id.copy(default=None)
+#         return res
+
+#     def copy_data(self, cr, uid, ids, default={}, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         res = self.pool.get('project.task').copy_data(
+#             cr, uid, [task_id], context)
+#         return res
+
+    def _is_template(self):
+        task_id = self.task_id
+        res = task_id._is_template()
+        return res
+
+#     def _is_template(self, cr, uid, ids, field_name, arg, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         res = self.pool.get('project.task')._is_template(
+#             cr, uid, [task_id], context)
+#         return res
+
+    def _get_task(self):
+        task_id = self.task_id
+        res = task_id._get_task()
+        return res
+
+#     def _get_task(self, cr, uid, ids, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         res = self.pool.get('project.task')._get_task(
+#             cr, uid, [task_id], context)
+#         return res
+
+    def _check_child_task(self):
+        task_id = self.task_id
+        res = task_id._check_child_task()
+        return res
+
+#     def _check_child_task(self, cr, uid, ids, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         res = self.pool.get('project.task')._check_child_task(
+#             cr, uid, [task_id], context)
+#         return res
+
+    def action_close(self):
+        task_id = self.task_id
+        for obj in self:
+            if obj.reservation_id:
+                product_id = self.env['product.product'].search(
+                    [('name', '=', 'Taxi')])
+                if not product_id:
+                    raise Warning(
+                        _("Warning! Product Taxi is not define."))
+                product = product_id
+                tax_ids = []
+                for tax_line in product.taxes_id:
+                    tax_ids.append(tax_line.id)
+                if obj.reservation_id.state != 'done':
+                    raise Warning(
+                        _("Warning! Folio is not created for this reservation."))
+                folio = self.env['hotel.folio'].search(
+                    [('reservation_id', '=', obj.reservation_id.id)])
+                folio_id = folio
+                acc_id = obj.guest_id.property_account_receivable_id.id
+                if not acc_id:
+                    raise Warning(
+                        _("Warning! Account Receivable is not defined for guest."))
+                journal_obj = self.env['account.journal']
+                journal_ids = journal_obj.search(
+                    [('type', '=', 'sale')], limit=1)
+                price_ids = self.env['transport.information'].search([('tran_info_id', '=', obj.trans_partner_id.id),
+                                                                      ('from_location', '=',
+                                                                       obj.source_id.id),
+                                                                      ('to_location', '=',
+                                                                       obj.destination_id.id),
+                                                                      ('name', '=', obj.trans_mode_id.id)])
+                if not price_ids:
+                    raise Warning(
+                        _("Warning! Pricing is not defined for these location and transport mode."))
+                price_id = price_ids
+                sale_price = get_price(
+                    self, obj.reservation_id.pricelist_id.id, price_id.sale_price)
+                if obj.service_type == 'internal' and obj.reservation_id.chargeable and obj.reservation_id.pick_up:
+                    so_line = {
+                        'product_id': product.id,
+                        'name': product.name,
+                        'product_uom': product.uom_id.id,
+                        'price_unit': sale_price,
+                        'product_uom_qty': 1,
+                        'tax_id': [(6, 0, tax_ids)],
+                        'order_id': folio_id.order_id.id,
+                    }
+                    so_line_id = self.env[
+                        'sale.order.line'].create(so_line)
+                    service_line = {
+                        'folio_id': folio_id.id,
+                        'transport_line_id': so_line_id.id,
+                        'source_origin': folio_id.reservation_id.name,
+                    }
+                    service_line_id = self.env[
+                        'hotel_folio_transport.line'].create(service_line)
+                if obj.service_type != 'internal' and obj.reservation_id.chargeable and obj.reservation_id.pick_up:
+                    so_line = {
+                        'product_id': product.id,
+                        'name': product.name,
+                        'product_uom': product.uom_id.id,
+                        'price_unit': sale_price,
+                        'product_uom_qty': 1,
+                        'tax_id': [(6, 0, tax_ids)],
+                        'order_id': folio_id.order_id.id,
+                    }
+                    so_line_id = self.env[
+                        'sale.order.line'].create(so_line)
+                    service_line = {
+                        'folio_id': folio_id.id,
+                        'transport_line_id': so_line_id.id
+                    }
+                    service_line_id = self.env[
+                        'hotel_folio_transport.line'].create(service_line)
+                    cost_price = get_price(
+                        self, obj.trans_partner_id.partner_id.property_product_pricelist.id, price_id.cost_price)
+                    if not obj.trans_partner_id.partner_id.property_account_payable_id:
+                        raise Warning(
+                            _("Warning! Accounting property is not define for Transport Supplier."))
+                    pur_journal_ids = journal_obj.search([('type', '=', 'purchase')], limit=1)
+                    invoice_data1 = {
+                        'name': obj.name,
+                        'origin': obj.reservation_id.name + ' - ' + folio_id.order_id.name,
+                        'type': 'in_invoice',
+                                'reference': "Transport Invoice",
+                                'account_id': obj.trans_partner_id.partner_id.property_account_payable_id.id,
+                                'partner_id': obj.trans_partner_id.partner_id.id,
+                                'currency_id':  obj.trans_partner_id.partner_id.property_product_pricelist.currency_id.id,
+                                'journal_id': len(pur_journal_ids) and pur_journal_ids[0].id or False,
+                    }
+                    invoice_data_id1 = self.env['account.move'].create(invoice_data1)
+                    product_exp_acc_id = product.property_account_expense_id
+                    if not product.property_account_expense_id:
+                        product_exp_acc_id = product.categ_id.property_account_expense_categ_id
+                        if not product.categ_id.property_account_expense_categ_id.id:
+                            raise Warning(
+                                _("Warning! Accounting property is not define for Taxi."))
+                    tax_ids = []
+                    for tax_line in product.taxes_id:
+                        tax_ids.append(tax_line.id)
+                    invoice_line = {
+                        'name': product.name,
+                        'product_id': product.id,
+                        'account_id': product_exp_acc_id.id,
+                        'price_unit': cost_price,
+                        'quantity': 1,
+                        'uom_id': product.uom_id.id,
+                        'uos_id': product.uom_id.id,
+                        'origin': product.name,
+                        'invoice_id': invoice_data_id1.id,
+                        'invoice_line_tax_id': [(6, 0, tax_ids)],
+                    }
+                    self.env['account.move.line'].create(invoice_line)
+                if obj.service_type != 'internal' and (not obj.reservation_id.chargeable) and obj.reservation_id.pick_up:
+                    cost_price = get_price(
+                        self, obj.trans_partner_id.partner_id.property_product_pricelist.id, price_id.cost_price)
+                    if not obj.trans_partner_id.partner_id.property_account_payable_id:
+                        raise Warning(
+                            _("Warning! Accounting property is not define for Transport Supplier."))
+                    pur_journal_ids = journal_obj.search([('type', '=', 'purchase')], limit=1)
+                    invoice_data1 = {
+                        'name': obj.name,
+                        'origin': obj.reservation_id.name + ' - ' + folio_id.order_id.name,
+                        'type': 'in_invoice',
+                                'reference': "Transport Invoice",
+                                'account_id': obj.trans_partner_id.partner_id.property_account_payable_id.id,
+                                'partner_id': obj.trans_partner_id.partner_id.id,
+                                'currency_id':  obj.trans_partner_id.partner_id.property_product_pricelist.currency_id.id,
+                                'journal_id': len(pur_journal_ids) and pur_journal_ids[0] or False,
+                    }
+                    invoice_data_id1 = self.env[
+                        'account.move'].create(invoice_data1)
+                    product_exp_acc_id = product.property_account_expense_id
+                    if not product.property_account_expense_id:
+                        product_exp_acc_id = product.categ_id.property_account_expense_categ_id
+                        if not product.categ_id.property_account_expense_categ_id.id:
+                            raise Warning(
+                                _("Warning! Accounting property is not define for Taxi."))
+                    tax_ids = []
+                    for tax_line in product.taxes_id:
+                        tax_ids.append(tax_line.id)
+                    invoice_line = {
+                        'name': product.name,
+                        'product_id': product.id,
+                        'account_id': product_exp_acc_id.id,
+                        'price_unit': cost_price,
+                        'quantity': 1,
+                        'uom_id': product.uom_id.id,
+                        'uos_id': product.uom_id.id,
+                        'origin': product.name,
+                        'invoice_id': invoice_data_id1,
+                        'invoice_line_tax_id': [(6, 0, tax_ids)],
+                    }
+                    self.env['account.move.line'].create(invoice_line)
+            else:
+                raise Warning(
+                    _("Warning! Reservation Ref is missing  for this task"))
+        self.write({'state': 'done'})
+        return True
+
+#     def action_close(self, cr, uid, ids, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         for obj in self.browse(cr, uid, ids):
+#             if obj.reservation_id:
+#                 product_id = self.pool.get('product.product').search(
+#                     cr, uid, [('name', '=', 'Taxi')])
+#                 if not product_id:
+#                     raise Warning(
+#                         _("Warning"), _("Product Taxi is not define."))
+#                 product = self.pool.get('product.product').browse(
+#                     cr, uid, product_id)[0]
+#                 tax_ids = []
+#                 for tax_line in product.taxes_id:
+#                     print tax_line, "tax_line"
+#                     tax_ids.append(tax_line.id)
+#                 if obj.reservation_id.state != 'done':
+#                     raise Warning(
+#                         _("Warning"), _("Folio is not created for this reservation."))
+#                 folio = self.pool.get('hotel.folio').search(
+#                     cr, uid, [('reservation_id', '=', obj.reservation_id.id)])
+#                 folio_id = self.pool.get(
+#                     'hotel.folio').browse(cr, uid, folio)[0]
+#                 print folio_id, "folio_id", folio_id.order_id
+#                 acc_id = obj.guest_id.property_account_receivable_id.id
+#                 if not acc_id:
+#                     raise Warning(
+#                         _("Warning"), _("Account Receivable is not define for guest."))
+#                 journal_obj = self.pool.get('account.journal')
+#                 journal_ids = journal_obj.search(
+#                     cr, uid, [('type', '=', 'sale')], limit=1)
+#                 price_ids = self.pool.get('transport.information').search(cr, uid, [('tran_info_id', '=', obj.trans_partner_id.id),
+#                                                                                     (
+#                                                                                         'from_location', '=', obj.source_id.id),
+#                                                                                     (
+#                                                                                         'to_location', '=', obj.destination_id.id),
+#                                                                                     ('name', '=', obj.trans_mode_id.id)])
+#                 if not price_ids:
+#                     raise Warning(
+#                         _("Warning"), _("Pricing is not define for these location and transport mode."))
+#                 price_id = self.pool.get('transport.information').browse(
+#                     cr, uid, price_ids)[0]
+#                 sale_price = get_price(
+#                     self, cr, uid, ids, obj.reservation_id.pricelist_id.id, price_id.sale_price)
+#                 if obj.service_type == 'internal' and obj.reservation_id.chargeable and obj.reservation_id.pick_up:
+#                     so_line = {
+#                         'product_id': product.id,
+#                         'name': product.name,
+#                         'product_uom': product.uom_id.id,
+#                         'price_unit': sale_price,
+#                         'product_uom_qty': 1,
+#                         'tax_id': [(6, 0, tax_ids)],
+#                         'order_id': folio_id.order_id.id,
+#                     }
+#                     so_line_id = self.pool.get(
+#                         'sale.order.line').create(cr, uid, so_line)
+#                     service_line = {
+#                         'folio_id': folio_id.id,
+#                         'transport_line_id': so_line_id,
+#                         'source_origin': folio_id.reservation_id.name,
+#                     }
+#                     service_line_id = self.pool.get(
+#                         'hotel_folio_transport.line').create(cr, uid, service_line)
+#                 if obj.service_type != 'internal' and obj.reservation_id.chargeable and obj.reservation_id.pick_up:
+#                     so_line = {
+#                         'product_id': product.id,
+#                         'name': product.name,
+#                         'product_uom': product.uom_id.id,
+#                         'price_unit': sale_price,
+#                         'product_uom_qty': 1,
+#                         'tax_id': [(6, 0, tax_ids)],
+#                         'order_id': folio_id.order_id.id,
+#                     }
+#                     so_line_id = self.pool.get(
+#                         'sale.order.line').create(cr, uid, so_line)
+#                     service_line = {
+#                         'folio_id': folio_id.id,
+#                         'transport_line_id': so_line_id
+#                     }
+#                     service_line_id = self.pool.get(
+#                         'hotel_folio_transport.line').create(cr, uid, service_line)
+#
+#                     cost_price = get_price(
+#                         self, cr, uid, ids, obj.trans_partner_id.partner_id.property_product_pricelist.id, price_id.cost_price)
+#                     if not obj.trans_partner_id.partner_id.property_account_payable_id:
+#                         raise Warning(
+#                             _("Warning"), _("Accounting property is not define for Transport Supplier."))
+#                     pur_journal_ids = journal_obj.search(
+#                         cr, uid, [('type', '=', 'purchase')], limit=1)
+#                     invoice_data1 = {
+#                         'name': obj.name,
+#                         'origin': obj.reservation_id.name + ' - ' + folio_id.order_id.name,
+#                         'type': 'in_invoice',
+#                                 'reference': "Transport Invoice",
+#                                 'account_id': obj.trans_partner_id.partner_id.property_account_payable_id.id,
+#                                 'partner_id': obj.trans_partner_id.partner_id.id,
+#                                 'currency_id':  obj.trans_partner_id.partner_id.property_product_pricelist.currency_id.id,
+#                                 'journal_id': len(pur_journal_ids) and pur_journal_ids[0] or False,
+#                     }
+#                     print "invoice_data", invoice_data1
+#                     invoice_data_id1 = self.pool.get(
+#                         'account.invoice').create(cr, uid, invoice_data1)
+#                     print invoice_data_id1, "invoice_data_id1"
+#                     product_exp_acc_id = product.property_account_expense_id
+#                     if not product.property_account_expense_id:
+#                         product_exp_acc_id = product.categ_id.property_account_expense_categ_id
+#                         if not product.categ_id.property_account_expense_categ_id.id:
+#                             raise Warning(
+#                                 _("Warning"), _("Accounting property is not define for Taxi."))
+#                     tax_ids = []
+#                     for tax_line in product.taxes_id:
+#                         print tax_line, "tax_line"
+#                         tax_ids.append(tax_line.id)
+#                     invoice_line = {
+#                         'name': product.name,
+#                         'product_id': product.id,
+#                         'account_id': product_exp_acc_id.id,
+#                         'price_unit': cost_price,
+#                         'quantity': 1,
+#                         'uom_id': product.uom_id.id,
+#                         'uos_id': product.uom_id.id,
+#                         'origin': product.name,
+#                         'invoice_id': invoice_data_id1,
+#                         'invoice_line_tax_id': [(6, 0, tax_ids)],
+#                     }
+#                     print "invoice_line", invoice_line
+#                     self.pool.get('account.invoice.line').create(
+#                         cr, uid, invoice_line,)
+#                 if obj.service_type != 'internal' and (not obj.reservation_id.chargeable) and obj.reservation_id.pick_up:
+#                     cost_price = get_price(
+#                         self, cr, uid, ids, obj.trans_partner_id.partner_id.property_product_pricelist.id, price_id.cost_price)
+#                     if not obj.trans_partner_id.partner_id.property_account_payable_id:
+#                         raise Warning(
+#                             _("Warning"), _("Accounting property is not define for Transport Supplier."))
+#                     pur_journal_ids = journal_obj.search(
+#                         cr, uid, [('type', '=', 'purchase')], limit=1)
+#                     invoice_data1 = {
+#                         'name': obj.name,
+#                         'origin': obj.reservation_id.name + ' - ' + folio_id.order_id.name,
+#                         'type': 'in_invoice',
+#                                 'reference': "Transport Invoice",
+#                                 'account_id': obj.trans_partner_id.partner_id.property_account_payable_id.id,
+#                                 'partner_id': obj.trans_partner_id.partner_id.id,
+#                                 'currency_id':  obj.trans_partner_id.partner_id.property_product_pricelist.currency_id.id,
+#                                 'journal_id': len(pur_journal_ids) and pur_journal_ids[0] or False,
+#                     }
+#                     print "invoice_data", invoice_data1
+#                     invoice_data_id1 = self.pool.get(
+#                         'account.invoice').create(cr, uid, invoice_data1)
+#                     print invoice_data_id1, "invoice_data_id1"
+#                     product_exp_acc_id = product.property_account_expense_id
+#                     if not product.property_account_expense_id:
+#                         product_exp_acc_id = product.categ_id.property_account_expense_categ_id
+#                         if not product.categ_id.property_account_expense_categ_id.id:
+#                             raise Warning(
+#                                 _("Warning"), _("Accounting property is not define for Taxi."))
+#                     tax_ids = []
+#                     for tax_line in product.taxes_id:
+#                         print tax_line, "tax_line"
+#                         tax_ids.append(tax_line.id)
+#                     invoice_line = {
+#                         'name': product.name,
+#                         'product_id': product.id,
+#                         'account_id': product_exp_acc_id.id,
+#                         'price_unit': cost_price,
+#                         'quantity': 1,
+#                         'uom_id': product.uom_id.id,
+#                         'uos_id': product.uom_id.id,
+#                         'origin': product.name,
+#                         'invoice_id': invoice_data_id1,
+#                         'invoice_line_tax_id': [(6, 0, tax_ids)],
+#                     }
+#                     print "invoice_line", invoice_line
+#                     self.pool.get('account.invoice.line').create(
+#                         cr, uid, invoice_line,)
+#             else:
+#                 raise Warning(
+#                     _("Warning"), _("Reservation Ref is missing  for this task"))
+#         self.write(cr, uid, ids, {'state': 'done'})
+#         return True
+#     def check_child_task(self):
+#         if self._context == None:
+#             self._context = {}
+#         tasks = self
+#         print "%%%%%%%%%%%%tasks%%%%%%",tasks
+#         for task in tasks:
+#             print '$$$$$$$$$$$$Task$$$$$$$$',task
+#             if task.child_ids:
+#                 for child in task.child_ids:
+#                     if child.state in ['draft', 'open']:
+#                         raise Warning(_("Warning!"), _(
+#                             "Child task still open.\nPlease cancel or complete child task first."))
+#         return True
+#     def check_child_task(self, cr, uid, ids, context=None):
+#         if context == None:
+#             context = {}
+#         tasks = self.browse(cr, uid, ids, context=context)
+#         for task in tasks:
+#             if task.child_ids:
+#                 for child in task.child_ids:
+#                     if child.state in ['draft', 'open']:
+#                         raise Warning(_("Warning!"), _(
+#                             "Child task still open.\nPlease cancel or complete child task first."))
+#         return True
+
+    def do_open(self):
+        """ Compatibility when changing to case_open. """
+        return self.case_open()
+#     def do_open(self, cr, uid, ids, context=None):
+#         """ Compatibility when changing to case_open. """
+#         return self.case_open(cr, uid, ids, context=context)
+
+    def case_open(self):
+        if not isinstance(self._ids, list):
+            ids = [self._ids]
+        return self.write({'state': 'open', 'date_start': fields.datetime.now()})
+#     def case_open(self, cr, uid, ids, context=None):
+#         if not isinstance(ids, list):
+#             ids = [ids]
+# return self.write(cr, uid, ids, {'state': 'open', 'date_start':
+# fields.datetime.now()}, context=context)
+
+    def do_cancel(self):
+        """ Compatibility when changing to case_cancel. """
+        return self.case_cancel()
+
+#     def do_cancel(self, cr, uid, ids, context=None):
+#         """ Compatibility when changing to case_cancel. """
+#         return self.case_cancel(cr, uid, ids, context=context)
+
+    def case_cancel(self):
+        tasks = self
+    #    self.check_child_task()
+        for task in tasks:
+            self.write({
+                       'state': 'cancelled', 'remaining_hours': 0.0})
+        return True
+#     def case_cancel(self, cr, uid, ids, context=None):
+#         tasks = self.browse(cr, uid, ids, context=context)
+#         self.check_child_task(cr, uid, ids, context=context)
+#         for task in tasks:
+#             self.write(cr, uid, [task.id], {
+#                        'state': 'cancelled', 'remaining_hours': 0.0}, context=context)
+#         return True
+
+    def do_close(self):
+        """ This action closes the task
+        """
+        task_id = len(self._ids) and self._ids[0] or False
+        self.check_child_task()
+        if not task_id:
+            return False
+        return self.case_close()
+
+#     def do_close(self, cr, uid, ids, context=None):
+#         """ This action closes the task
+#         """
+#         task_id = len(ids) and ids[0] or False
+#         self.check_child_task(cr, uid, ids, context=context)
+#         if not task_id:
+#             return False
+#         return self.case_close(cr, uid, [task_id], context=context)
+
+    def case_close(self):
+        """ Closes Task """
+        if not isinstance(self._ids, list):
+            ids = [self._ids]
+        for task in self:
+            vals = {}
+            for parent_id in task.parent_ids:
+                if parent_id.state in ('pending', 'draft'):
+                    reopen = True
+                    for child in parent_id.child_ids:
+                        if child.id != task.id and child.state not in ('done', 'cancelled'):
+                            reopen = False
+                    if reopen:
+                        self.do_reopen(parent_id.id)
+            # close task
+            vals['remaining_hours'] = 0.0
+            vals['state'] = 'done'
+            if not task.date_end:
+                vals['date_end'] = fields.datetime.now()
+            self.write([task.id], vals)
+        return True
+
+#     def case_close(self, cr, uid, ids, context=None):
+#         """ Closes Task """
+#         if not isinstance(ids, list):
+#             ids = [ids]
+#         for task in self.browse(cr, uid, ids, context=context):
+#             vals = {}
+#             for parent_id in task.parent_ids:
+#                 if parent_id.state in ('pending', 'draft'):
+#                     reopen = True
+#                     for child in parent_id.child_ids:
+#                         if child.id != task.id and child.state not in ('done', 'cancelled'):
+#                             reopen = False
+#                     if reopen:
+#                         self.do_reopen(
+#                             cr, uid, [parent_id.id], context=context)
+#             # close task
+#             vals['remaining_hours'] = 0.0
+#             vals['state'] = 'done'
+#             if not task.date_end:
+#                 vals['date_end'] = fields.datetime.now()
+#             self.write(cr, uid, [task.id], vals, context=context)
+#         return True
+
+    def do_reopen(self):
+        for task in self:
+            self.write({'state': 'done'})
+        return True
+
+#     def do_reopen(self, cr, uid, ids, context=None):
+#         for task in self.browse(cr, uid, ids, context=context):
+#             self.write(cr, uid, [task.id], {'state': 'done'}, context=context)
+#         return True
+
+    def do_delegate(self):
+        task_id = self.task_id
+        res = task_id.do_delegate()
+        return res
+#     def do_delegate(self, cr, uid, ids, delegate_data={}, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         res = self.pool.get('project.task').do_delegate(
+#             cr, uid, [task_id], context)
+#         return res
+
+    def set_remaining_time(self, remaining_time=1.0):
+        task_id = self.task_id
+        res = task_id.set_remaining_time()
+        return res
+
+#     def set_remaining_time(self, cr, uid, ids, remaining_time=1.0, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         res = self.pool.get('project.task').set_remaining_time(
+#             cr, uid, [task_id], context)
+#         return res
+
+    def _store_history(self):
+        task_id = self.task_id
+        res = task_id._store_history()
+        return res
+
+#     def _store_history(self, cr, uid, ids, context=None):
+#         task_id = self.browse(cr, uid, ids)[0].task_id.id
+#         res = self.pool.get('project.task')._store_history(
+#             cr, uid, [task_id], context)
+#         return res
+
+transport_task()
+
+
+class task(models.Model):
+    _inherit = "project.task"
+    _description = "Task"
+
+    transport = fields.Boolean('Transport Task', default=lambda *a: 0)
+#     _columns = {
+#         'transport' : fields.boolean('Transport Task',),
+#         }
+#
+#     _defaults = {
+#         'transport': lambda *a: 0,
+#         }
+task()

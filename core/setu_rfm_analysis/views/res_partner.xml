@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="add_rfm_segment_in_partner_kanban" model="ir.ui.view">
+            <field name="name">res.partner.kanban.extended</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.res_partner_kanban_view" />
+            <field name="arch" type="xml">
+                <field name="mobile" position="before">
+                    <field name="rfm_segment_id" />
+                </field>
+<!--                <xpath expr="//div[hasclass('oe_kanban_details')]" position="inside">-->
+<!--                    <t t-if="record.rfm_segment_id.row_value">-->
+<!--                        <span t-field="rfm_segment_id"/>-->
+<!--                    </t>-->
+<!--                </xpath>-->
+            </field>
+        </record>
+
+        <record id="add_rfm_segment_in_partner_tree" model="ir.ui.view">
+            <field name="name">res.partner.tree.extended</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_tree" />
+            <field name="arch" type="xml">
+                <field name="email" position="after">
+                    <field name="rfm_segment_id" readonly="1" />
+                </field>
+            </field>
+        </record>
+
+        <record id="add_rfm_segment_in_partner_search" model="ir.ui.view">
+            <field name="name">res.partner.search.extended</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_res_partner_filter" />
+            <field name="arch" type="xml">
+                <field name="user_id" position="after">
+                    <separator/>
+
+                    <filter string="Champions Customers" name="type_person" domain="[('rfm_segment_id', '=', 1)]"/>
+                    <filter string="Loyal Customers" name="Loyal" domain="[('rfm_segment_id', '=', 2)]"/>
+                    <filter string="Promising - Faithful Customers" name="Promising_Faithful" domain="[('rfm_segment_id', '=', 3)]"/>
+                    <filter string="Highest Paying Customers" name="Highest_Paying" domain="[('rfm_segment_id', '=', 4)]"/>
+                    <filter string="Needing Attention Customers" name="Needing_Attention" domain="[('rfm_segment_id', '=', 5)]"/>
+                    <filter string="Newest Customers" name="Newest" domain="[('rfm_segment_id', '=', 6)]"/>
+                    <filter string="Sleeping Customers" name="Sleeping" domain="[('rfm_segment_id', '=', 7)]"/>
+                    <separator/>
+                    <group expand="0" name="group_by" string="Group By">
+                        <filter name="rfm_segment_id" string="RFM Segment" domain="[]" context="{'group_by' : 'rfm_segment_id'}"/>
+                    </group>
+                </field>
+            </field>
+        </record>
+
+        <record id="res_partner_action_customer" model="ir.actions.act_window">
+            <field name="name">Customers</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="context">{'search_default_customer': 1,'res_partner_search_mode': 'customer', 'default_is_company': True, 'default_customer_rank': 1, 'search_default_rfm_segment_id': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new customer in your address book
+                </p><p>
+                Odoo helps you easily track all activities related to a customer.
+            </p>
+            </field>
+        </record>
+
+        <menuitem id="rfm_customer_segment" name="Customer by Segment" parent="rfm_main_menu" sequence="2"
+                  action="res_partner_action_customer"/>
+
+    </data>
+</odoo>

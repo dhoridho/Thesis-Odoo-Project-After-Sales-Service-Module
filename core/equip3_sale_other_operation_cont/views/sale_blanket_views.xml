@@ -1,0 +1,376 @@
+<odoo>
+  <data>
+    <record id="sale_blanket_form_view_inherit" model="ir.ui.view">
+      <field name="name">sale.blanket.form.view.inherit</field>
+      <field name="model">saleblanket.saleblanket</field>
+      <field name="inherit_id" ref="blanket_sale_order_app.sale_blanket_form_view"/>
+      <field name="arch" type="xml">
+          <xpath expr="//group" position="replace">
+              <div>
+                  <div class="row">
+                      <div class="col" name="col_1">
+                          <group>
+                              <field name="partner_id" required="1"/>
+                              <field name="invoice_address" required="1"/>
+                              <field name="delivery_address" required="1"/>
+                          </group>
+                      </div>
+                      <div class="col" name="col_2">
+                          <group>
+                              <field name="pricelist_id" required="1"/>
+                          </group>
+                      </div>
+                      <div class="col" name="col_3">
+                          <group>
+                              <field name="payment_term_id"/>
+                              <field name="expiry_date"/>
+                          </group>
+                      </div>
+                  </div>
+              </div>
+          </xpath>
+          <xpath expr="//field[@name='order_line_ids']/tree/field[@name='product_uom']" position="attributes">
+            <attribute name="options">{'no_create': True}</attribute>
+          </xpath>
+          <xpath expr="//field[@name='order_line_ids']/tree/field[@name='product_id']" position="attributes">
+            <attribute name="options">{'no_create': True}</attribute>
+          </xpath>
+          <xpath expr="//header/button[@name='button_cancel']" position="before">
+              <button name="action_print" type="object" string="Print" class="oe_highlight"/>
+          </xpath>
+          <xpath expr="//div[hasclass('oe_button_box')]/button[@name='action_view_sale_order']" position="attributes">
+              <attribute name="string">Orders</attribute>
+          </xpath>
+          <xpath expr="//field[@name='sale_order_count']" position="attributes">
+              <attribute name="string"> </attribute>
+          </xpath>
+		  <xpath expr="//header/button[@name='button_cancel']" position="before">
+			  <button name="done_bo" string="Done" class="oe_highlight" type="object" attrs="{'invisible':['|', ('state', '!=', 'open'),('delivery_status','=',True)]}"/>
+		  </xpath>
+          <xpath expr="//header/button[@name='%(blanket_sale_order_app.blanket_reservation_wizard)d']" position="attributes">
+            <attribute name="string">Create Sale Quotation</attribute>
+          </xpath>
+          <xpath expr="//header/button[@name='%(blanket_sale_order_app.blanket_reservation_wizard)d']" position="after">
+            <button name="action_wiz_1" string="Force Done" class="oe_highlight" type="object" attrs="{'invisible':['|', ('state', '!=', 'open'),('delivery_status','=',False)]}"/>
+          </xpath>
+          <xpath expr="//sheet/div[@name='button_box']/button[@name='action_view_sale_order']" position="attributes">
+            <attribute name="icon">o-hm-smart-all-invoices</attribute>
+          </xpath>
+        <field name="state" position="replace">
+          <field name="state1" widget="statusbar" statusbar_visible="new,open,done" align="right" readonly="1" attrs="{'invisible':['|', ('state','in', ('cancel', 'expired')), ('is_bo_approval_matrix', '=', True)]}"/>
+          <field name="state2" widget="statusbar" statusbar_visible="new,open,cancel" align="right" readonly="1" attrs="{'invisible':['|', ('state','!=','cancel'), ('is_bo_approval_matrix', '=', True)]}"/>
+			<field name="state3" widget="statusbar" statusbar_visible="new,open,expired" align="right" readonly="1" attrs="{'invisible':['|', ('state','!=','expired'), ('is_bo_approval_matrix', '=', True)]}"/>
+      <field name="bo_state" widget="statusbar" statusbar_visible="new,approved,open,done" align="right" readonly="1" attrs="{'invisible':['|', ('is_bo_approval_matrix', '=', False), ('state', '=', 'rejected')]}"/>
+      <field name="bo_state_1" widget="statusbar" statusbar_visible="new,rejected" align="right" readonly="1" attrs="{'invisible':['|', ('is_bo_approval_matrix', '=', False), ('state', '!=', 'rejected')]}"/>
+			<field name="state" invisible="1"/>
+        </field>
+        <field name="delivery_address" position="after">
+          <field name="company_id"/>
+        </field>
+          <field name="pricelist_id" position="after">
+              <field name="branch_id" domain="filter_branch"/>
+              <field name="filter_branch" invisible="1"/>
+              <field name="analytic_tag_ids" attrs="{'invisible': [('analytic_accounting', '=', False)]}" widget="many2many_tags"/>
+              <field name="qty" invisible="1"/>
+              <field name="remaining_qty" invisible="1"/>
+              <field name="delivery_qty" invisible="1"/>
+              <field name="delivery_status" invisible="1"/>
+          </field>
+          <field name="partner_id" position="replace">
+              <field name="partner_id" widget="res_partner_many2one" domain="[('customer_rank','>', 0)]" context="{'default_is_external_link': True, 'res_partner_search_mode': 'customer', 'show_address': 1, 'show_vat': True}" attrs="{'readonly':[('state', 'in', ('done', 'cancel', 'expired'))]}" options="{&quot;always_reload&quot;: True}" required="True"/>
+          </field>
+          <field name="partner_id" position="attributes">
+              <attribute name="options">{'no_create': True}</attribute>
+          </field>
+        <field name="invoice_address" position="attributes">
+            <attribute name="attrs">{'readonly':[('state', 'in', ('done', 'cancel', 'expired'))]}</attribute>
+            <attribute name="context">{'default_is_external_link': True}</attribute>
+            <attribute name="options">{'no_create': True}</attribute>
+        </field>
+        <field name="delivery_address" position="attributes">
+          <attribute name="attrs">{'readonly':[('state', 'in', ('done', 'cancel', 'expired'))]}</attribute>
+            <attribute name="context">{'default_is_external_link': True}</attribute>
+            <attribute name="options">{'no_create': True}</attribute>
+        </field>
+          <field name="branch_id" position="attributes">
+              <attribute name="context">{'default_is_external_link': True}</attribute>
+              <attribute name="options">{'no_create': True}</attribute>
+          </field>
+        <field name="payment_term_id" position="attributes">
+            <attribute name="attrs">{'readonly':[('state', 'in', ('done', 'cancel', 'expired'))]}</attribute>
+            <attribute name="options">{'no_create': True}</attribute>
+        </field>
+        <field name="pricelist_id" position="attributes">
+          <attribute name="attrs">{'readonly':[('state', 'in', ('done', 'cancel', 'expired'))]}</attribute>
+            <attribute name="context">{'default_is_external_link': True}</attribute>
+            <attribute name="options">{'no_create': True}</attribute>
+        </field>
+        <field name="expiry_date" position="attributes">
+          <attribute name="attrs">{'readonly':[('state', 'in', ('done', 'cancel', 'expired'))]}</attribute>
+        </field>
+        <field name="order_line_ids" position="attributes">
+          <attribute name="attrs">{'readonly':[('state', 'in', ('open', 'done', 'cancel', 'expired'))]}</attribute>
+        </field>
+        <field name="expiry_date" position="after">
+          <field name="is_bo_approval_matrix" invisible="1"/>
+          <field name="approving_matrix_bo_sale_id" attrs="{'invisible': [('is_bo_approval_matrix', '=', False)]}"/>
+          <field name="approval_matrix_line_id" invisible="1"/>
+          <field name="is_approve_button" invisible="1"/>
+          <field name="is_approval_matrix_filled" invisible="1"/>
+          <field name="is_product_filled" invisible="1"/>
+          <field name="reason" readonly="1" attrs="{'invisible':[('reason','=',False)]}"/>
+          <field name="analytic_accounting" invisible="1"/>
+        </field>
+        <field name="pricelist_id" position="before">
+          <field name="user_id"/>
+          <field name="creation_date"/>
+          <field name="currency_id" invisible="1"/>
+        </field>
+        <xpath expr="//button[@name='open_button']" position="attributes">
+          <attribute name="attrs">{'invisible':['|', '&amp;', ('is_bo_approval_matrix', '=', True), ('state', '!=', 'approved'), '&amp;', ('is_bo_approval_matrix', '=', False), ('state', '!=', 'new')]}</attribute> 
+          <attribute name="states"></attribute>
+        </xpath>
+        <xpath expr="//button[@name='to_draft']" position="attributes"> 
+          <attribute name="states">expired,done,cancel,rejected</attribute>
+        </xpath>
+        <xpath expr="//button[@name='open_button']" position="after">
+          <button name="action_request_for_approval_bo" string="Request For Approval" class="oe_highlight" type="object" attrs="{'invisible':['|', '|', '|', '|', ('state', '!=', 'new'), ('partner_id', '=', False), ('pricelist_id', '=', False), ('expiry_date', '=', False), ('approving_matrix_bo_sale_id', '=', False)]}"/>
+
+          <button name="action_approved_bo" string="Approve" class="oe_highlight" type="object" attrs="{'invisible':['|', '|', ('state', '!=', 'to_approve'), ('is_approve_button', '=', False), ('is_bo_approval_matrix', '=', False)]}"/>
+
+          <button name="action_approved_bo" string="Approve" class="oe_highlight" type="object" attrs="{'invisible':['|', '|', '|', '|', '|', ('state', '!=', 'new'), ('partner_id', '=', False), ('pricelist_id', '=', False), ('expiry_date', '=', False), ('is_product_filled', '=', False), ('is_approve_button', '=', True)]}"/>
+
+          <button name="action_reject_bo" string="Reject" type="object" attrs="{'invisible':['|', '|', ('state', '!=', 'to_approve'), ('is_approve_button', '=', False), ('is_bo_approval_matrix', '=', False)]}"/>
+
+          <button name="action_reject_bo" string="Reject" type="object" attrs="{'invisible':['|', '|', '|', '|', '|', ('state', '!=', 'new'), ('partner_id', '=', False), ('pricelist_id', '=', False), ('expiry_date', '=', False),  ('is_product_filled', '=', False), ('is_approve_button', '=', True)]}"/>
+        </xpath>
+        <xpath expr="//sheet/notebook/page[@name='order_line']/field[@name='order_line_ids']/tree/field[@name='reverse_id']" position="before">
+          <field name="sequence" widget="handle"/>
+          <field name="sequence2"/>
+        </xpath>
+        <xpath expr="//sheet/notebook/page[@name='order_line']/field[@name='order_line_ids']/tree/field[@name='quantity']" position="after">
+          <field name="ordered_qty"/>
+          <field name="delivered_qty"/>
+          <field name="undelivered_qty"/>
+          <field name="qty_invoiced"/>
+          <field name="price_tax" invisible="1"/>
+        </xpath>
+        <xpath expr="//field[@name='order_line_ids']/tree/field[@name='remaining_quantity']" position="attributes">
+          <attribute name="readonly">1</attribute>
+          <attribute name="force">1</attribute>
+          <attribute name="string">Remaining Order Qty</attribute>
+
+        </xpath>
+        <xpath expr="//sheet/notebook/page[@name='order_line']/field[@name='order_line_ids']/tree/field[@name='tax_id']" position="after">
+          <field name="company_id" invisible="1"/>
+          <field name="analytic_tag_ids" widget="many2many_tags" attrs="{'column_invisible': [('parent.analytic_accounting', '==', False)]}" required="1"/>
+        </xpath>
+        <xpath expr="//sheet" position="after">
+          <div class="oe_chatter">
+            <field name="message_follower_ids"/>
+            <field name="activity_ids"/>
+            <field name="message_ids"/>
+          </div>
+        </xpath>
+        <xpath expr="//sheet/notebook/page[@name='order_line']" position="inside">
+          <group name="note_group" col="6" class="mt-2 mt-md-0">
+              <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                  <field name="amount_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                  <field name="amount_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                  <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                      <label for="amount_total"/>
+                  </div>
+                  <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+              </group>
+              <div class="oe_clear"/>
+          </group>
+        </xpath>
+        <xpath expr="//sheet/notebook/page[@name='order_line']" position="after">
+          <page name="approved_matrix_ids" string="Approval Matrix Line" attrs="{'invisible': [('approving_matrix_bo_sale_id', '=', False)]}">
+            <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}">
+              <tree editable="bottom">
+                  <field name="sequence" />
+                  <field name="user_name_ids" widget="many2many_tags"/>
+                  <field name="approval_type" invisible="1"/>
+                  <field name="minimum_approver" />
+                  <field name="state_char" />
+                  <field name="time_stamp" />
+                  <field name="signature" widget="image" invisible="1"/>
+                  <field name="feedback" />
+              </tree>
+          </field>
+          </page>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="saleblanket_saleblanket_search" model="ir.ui.view">
+      <field name="name">saleblanket.saleblanket.search</field>
+      <field name="model">saleblanket.saleblanket</field>
+      <field name="arch" type="xml">
+        <search>
+          <field name="name"/>
+          <filter
+                  name="force_done"
+                  string="Force Done"
+                  domain="[('reason','!=', False)]"
+          />
+          <filter 
+                  name="active_company" 
+                  string="Active Company" 
+                  domain="[('is_active_company', '=', True)]" 
+          />
+        </search>
+      </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="blanket_sale_order_app.blanket_action_window">
+      <field name="search_view_id" ref="saleblanket_saleblanket_search"/>
+      <field name="context">{'search_default_active_company':1}</field>
+    </record>
+
+    <record id="blanket_reservation_form_inherit" model="ir.ui.view">
+      <field name="name">saleblanket.saleblanket.wizard.inherit</field>
+      <field name="model">blanketwiz.blanketwiz</field>
+      <field name="inherit_id" ref="blanket_sale_order_app.blanket_reservation_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//tree/field[@name='new_quatation_quantity']" position="attributes">
+          <attribute name="string">New Quotation Quantity</attribute>
+        </xpath>
+        <xpath expr="//tree/field[@name='product_id']" position="attributes">
+          <attribute name="force_save">1</attribute>
+          <attribute name="readonly">1</attribute>
+        </xpath>
+        <xpath expr="//tree/field[@name='partner_id']" position="attributes">
+          <attribute name="force_save">1</attribute>
+          <attribute name="readonly">1</attribute>
+        </xpath>
+        <xpath expr="//tree/field[@name='remaining_quantity']" position="attributes">
+          <attribute name="force_save">1</attribute>
+          <attribute name="readonly">1</attribute>
+        </xpath>
+        <xpath expr="//footer/button[@name='create_quatation']" position="attributes">
+          <attribute name="string">Create Quotation</attribute>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="sale_blanket_tree_view_inherit" model="ir.ui.view">
+      <field name="name">sale.blanket.form.view.inherit</field>
+      <field name="model">saleblanket.saleblanket</field>
+      <field name="inherit_id" ref="blanket_sale_order_app.sale_blanket_tree_view"/>
+      <field name="arch" type="xml">
+        <xpath expr="//tree" position="attributes">
+          <attribute name="default_order">id desc</attribute>
+        </xpath>
+        <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="decoration-secondary">state == 'cancel'</attribute>
+                <attribute name="decoration-primary">state == 'new'</attribute>
+                <attribute name="decoration-warning">state == 'to_approve'</attribute>
+                <attribute name="decoration-success">state == 'open'</attribute>
+                <attribute name="decoration-success2">state == 'done' </attribute>
+                <attribute name="decoration-success3">state == 'approved'</attribute>
+                <attribute name="decoration-danger">state == 'rejected'</attribute>
+                <attribute name="decoration-muted">state == 'expired'</attribute>
+                <attribute name="widget">badge</attribute>
+            </xpath>
+          <!-- <field name="current_company" position="after">
+              <field name="branch_id"/>
+          </field> -->
+          <xpath expr="//field[@name='state']" position="after">
+                <field name="branch_id" optional="show"/>
+                <field name="current_company" position="move" optional="show"/>
+          </xpath>
+      </field>
+    </record>
+
+    <record id="blanket_sale_order_app.blanket_reservation_wizard" model="ir.actions.act_window">
+      <field name="name">Create Sale Quotation</field>
+    </record>
+
+    <!--Blanket Order Lines-->
+    <record id="view_blanket_order_line_form" model="ir.ui.view">
+        <field name="name">orderline.orderline.from</field>
+        <field name="model">orderline.orderline</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" string="Blanket Order Lines">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="product_id" />
+                            <field name="price_unit" />
+                            <field name="ordered_qty"/>
+                            <field name="delivered_qty"/>
+                            <field name="undelivered_qty"/>
+                            <field name="qty_invoiced"/>
+                            <field name="price_tax"/>
+                            <field name="name"/>
+                        </group>
+                        <group>
+                            <field name="tax_id" widget="many2many_tags"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="create_date"/>
+                            <field name="price_subtotal"/>
+                            <field name="analytic_tag_ids" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_blanket_order_line_tree" model="ir.ui.view">
+        <field name="name">orderline.orderline.tree</field>
+        <field name="model">orderline.orderline</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <tree create="0" edit="0" string="Blanket Order Lines">
+                <field name="create_date"/>
+                <field name="product_id" />
+                <field name="ordered_qty" string="Ordered Qty"/>
+                <field name="delivered_qty" string="Delivered Qty"/>
+                <field name="undelivered_qty" string="Undelivered Qty"/>
+                <field name="qty_invoiced" string="Invoiced Qty"/>
+                <field name="price_tax" />
+                <field name="price_unit" />
+                <field name="analytic_tag_ids" optional="hide"/>
+                <field name="tax_id" widget="many2many_tags"/>
+                <field name="company_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_blanket_order_lines" model="ir.actions.act_window">
+        <field name="name">Blanket Order Lines</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">orderline.orderline</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('company_id', '=', allowed_company_ids[0])]</field>
+        <field name="help" type="html">
+          <p class="oe_views_nocontent_create">
+           Click to add a new test object.
+          </p>
+        </field>
+   </record>
+    <record id="blanket_order_line_form_view_action" model="ir.actions.act_window.view">
+        <field eval="2" name="sequence"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_blanket_order_line_form"/>
+        <field name="act_window_id" ref="action_blanket_order_lines"/>
+    </record>
+
+    <record id="blanket_order_line_tree_view_action" model="ir.actions.act_window.view">
+        <field eval="1" name="sequence"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_blanket_order_line_tree"/>
+        <field name="act_window_id" ref="action_blanket_order_lines"/>
+    </record>
+
+    <menuitem name="Blanket Order Lines"
+        id="menu_orders_blanket_order_line"
+        parent="equip3_sale_operation.menu_orders_order_line"
+        action="action_blanket_order_lines"
+        sequence="2"/>
+  </data>
+</odoo>

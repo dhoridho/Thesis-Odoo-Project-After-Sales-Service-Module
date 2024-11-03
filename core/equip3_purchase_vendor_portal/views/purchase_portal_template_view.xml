@@ -1,0 +1,1437 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="sh_portal_my_home_rfq" inherit_id="sh_rfq_portal.sh_portal_my_home_rfq">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+        </xpath>
+    </template>
+
+    <template id="sh_rfq_portal.sh_portal_my_home_rfq" name="Portal My Home : rfq entry" inherit_id="portal.portal_my_home" priority="25">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+   
+        </xpath>
+    </template>
+
+    <template id="purchase_tender_portal_my_rfq_order_update" name="RFQ Update Portal Template"
+              inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn"
+                                           t-att-href="quotes.get_portal_url(report_type='pdf', download=True)"
+                                           title="Download"><i class="fa fa-download"/> Download</a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav"></ul>
+                            </li>
+                            <li class="list-group-item flex-grow-1">
+                                <div class="small mb-1"><strong class="text-muted">Responsible</strong></div>
+                                <div class="row flex-nowrap">
+                                    <div class="col flex-grow-0 pr-2">
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img"
+                                             t-if="quotes.create_uid.image_1024"
+                                             t-att-src="image_data_uri(quotes.create_uid.image_1024)" alt="Contact"/>
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img"
+                                             t-if="not quotes.create_uid.image_1024"
+                                             src="/web/static/src/img/placeholder.png" alt="Contact"/>
+                                    </div>
+                                    <div class="col pl-0" style="min-width: 150px;">
+                                        <span t-field="quotes.create_uid"
+                                              t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}'/>
+                                        <a href="#discussion" class="small"><i class="fa fa-comment"></i> Send
+                                            message</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </t>
+                </t>
+                <div id="rfq_content" class="col-12 col-lg justify-content-end">
+                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="equip3_purchase_other_operation.purchase_rfq_portal_update_content"/>
+                    </div>
+                    <div id="rfq_communication" class="mt-4">
+                        <h2>History</h2>
+                        <t t-call="portal.message_thread">
+                            <t t-set="object" t-value="quotes"/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="purchase_rfq_portal_update_content" name="Update RFQ Portal Content">
+        <!-- Intro -->
+        <div id="introduction" t-attf-class="pb-2 pt-3 #{'card-header bg-white' if report_type == 'html' else ''}">
+            <h2 class="my-0">
+                <em t-esc="quotes.name"/>
+            </h2>
+        </div>
+        <br/>
+
+        <div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+            <!-- Informations -->
+            <div id="informations">
+                <div class="row">
+                    <div class="mb-3 col-6"><strong>Date:</strong> <span t-field="quotes.date_order"
+                                                                         t-options='{"widget": "date"}'/></div>
+                </div>
+            </div>
+            <section id="details" style="page-break-inside: auto;" class="mt32">
+                <h3 id="details">Products</h3>
+                <div class="row">
+                    <div class="col-lg-4" id='product_name_lbl'>
+                        <strong>Product</strong>
+                    </div>
+                    <div class="col-lg-2" id='unit_price_lbl'>
+                        <strong>Unit Price</strong>
+                    </div>
+                    <div class="col-lg-2">
+                        <strong>Note/Comment</strong>
+                    </div>
+                    <div class="col-lg-2">
+                        <strong>Quantity</strong>
+                    </div>
+                    <div class="col-lg-2 text-right">
+                        <strong>Subtotal</strong>
+                    </div>
+                </div>
+                <form action="/rfq/edit" method="post">
+                    <input type="hidden" name="order_id" t-att-value="quotes.id" id="order_id"/>
+                    <t t-foreach="quotes.order_line" t-as="ol">
+                        <div class="row purchases_vertical_align">
+                            <div class="col-lg-1 text-center">
+                                <img t-if="ol.product_id.image_128" class="rounded-circle mt-1 o_portal_contact_img"
+                                     t-att-src="image_data_uri(ol.product_id.image_128)" alt="Product"/>
+                                <img t-if="not ol.product_id.image_128" class="rounded-circle mt-1 o_portal_contact_img"
+                                     src="/web/static/src/img/placeholder.png" alt="Product"/>
+                            </div>
+                            <div id="product_name" class="col-lg-3">
+                                <span t-field="ol.product_id"/>
+                            </div>
+                            <div class="col-lg-2" id='update_product_qty'>
+                                <input type="text" pattern="[0-9]+([\.,][0-9]+)?" class="form-control quantity"
+                                       id="unit_price" t-att-name="ol.id" t-att-value="str(ol.price_unit)"
+                                       readonly="True"/>
+                            </div>
+                            <div class="col-lg-2" id="update_note">
+                                <t t-set="tender_note" t-value=""/>
+                                <t t-if="ol.sh_tender_note">
+                                    <t t-set="tender_note" t-value="str(ol.sh_tender_note)"/>
+                                </t>
+                                <input type="text" class="form-control note" id="note" t-attf-name="#{ol.id}_note"
+                                       t-att-value="tender_note" readonly="True"/>
+                            </div>
+                            <div class="col-lg-2 text-right">
+                                <span t-esc="ol.product_qty"/>
+                            </div>
+                            <div class="col-lg-2 text-right">
+                                <span t-field="ol.price_subtotal"
+                                      t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                            </div>
+                        </div>
+                    </t>
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="rfq_note" style="margin-top: 10px;">Note/Comment</label>
+                            <textarea type="text" name="rfq_note"
+                                      class="form-control o_survey_question_text_box bg-transparent text-dark rounded-0 p-0"
+                                      placeholder="Terms and conditions......" readonly="True"><t
+                                    t-raw="quotes.term_condition_box"/></textarea>
+                        </div>
+                    </div>
+                </form>
+                <div class="row">
+                    <div class="col-lg-12 text-right">
+                        <div class="row">
+                            <div class="col-lg-9 text-right">
+                                Untaxed Amount:
+                            </div>
+                            <div class="col-lg-3 text-right">
+                                <span t-field="quotes.amount_untaxed"
+                                      t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-9 text-right">
+                                Taxes:
+                            </div>
+                            <div class="col-lg-3 text-right">
+                                <span t-field="quotes.amount_tax"
+                                      t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-9 text-right">
+                                <strong>Total:</strong>
+                            </div>
+                            <div class="col-lg-3 text-right">
+                                <strong><span t-field="quotes.amount_total"
+                                              t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr/>
+            </section>
+        </div>
+    </template>
+    <!--    //////////////////////////////////////////////////////////////-->
+    <template id="portal_rfq_form_templates" name="RFQ Portal Template" inherit_id="portal.portal_sidebar"
+              primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn"
+                                           t-att-href="quotes.get_portal_url(report_type='pdf', download=True)"
+                                           title="Download"><i class="fa fa-download"/> Download</a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav"></ul>
+                            </li>
+                            <li class="list-group-item flex-grow-1">
+                                <div class="small mb-1"><strong class="text-muted">Responsible</strong></div>
+                                <div class="row flex-nowrap">
+                                    <div class="col flex-grow-0 pr-2">
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img"
+                                             t-if="quotes.create_uid.image_1024"
+                                             t-att-src="image_data_uri(quotes.create_uid.image_1024)" alt="Contact"/>
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img"
+                                             t-if="not quotes.create_uid.image_1024"
+                                             src="/web/static/src/img/placeholder.png" alt="Contact"/>
+                                    </div>
+                                    <div class="col pl-0" style="min-width: 150px;">
+                                        <span t-field="quotes.create_uid"
+                                              t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}'/>
+                                        <a href="#discussion" class="small"><i class="fa fa-comment"></i> Send
+                                            message</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </t>
+                </t>
+
+                <!-- Page content -->
+                <div id="rfq_content" class="col-12 col-lg-9 justify-content-end p-lg-0 ml-lg-2">
+                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="equip3_purchase_vendor_portal.rfq_portal_contents_new"/>
+                    </div>
+                    <div id="rfq_communication" class="mt-4">
+                        <h2>History</h2>
+                        <t t-call="portal.message_thread">
+                            <t t-set="object" t-value="quotes"/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+    <template id="rfq_portal_contents_new" name="Tender Portal Content">
+        <!-- Intro -->
+        <div id="introduction" t-attf-class="#{'card-header bg-white' if report_type == 'html' else ''}">
+
+            <div class="d-flex">
+                <div class="text-right">
+                    <h2>
+                        <em t-esc="quotes.name"/>
+                    </h2>
+                </div>
+                <!-- <div class="mt-2 text-left" style="position: absolute;right: 10px;">
+                    <t t-if="quotes.price_rating == 'competitive'">
+                        <t t-set="icon_rating" t-value="'check'"/>
+                        <t t-set="rating_color" t-value="'green'"/>
+                    </t>
+                    <t t-elif="quotes.price_rating == 'highest'">
+                        <t t-set="icon_rating" t-value="'cross'"/>
+                        <t t-set="rating_color" t-value="'red'"/>
+                    </t>
+                    <t t-else="">
+                        <t t-set="icon_rating" t-value="'circle'"/>
+                        <t t-set="rating_color" t-value="'orange'"/>
+                    </t>
+                    <span t-attf-style="color:{{rating_color}}">
+                        <img t-attf-src="/equip3_purchase_vendor_portal/static/src/img/{{icon_rating}}.svg" alt="check_harian" style="height:20px;weight:20px;"/>
+                        <t t-esc="quotes.price_rating"/>
+                    </span>
+                </div> -->
+            </div>
+        </div>
+        <!-- <div class="mb-3 col-6"></div> -->
+        <div class="card-body-parent">
+            <div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+                <!-- Informations -->
+                <div id="informations">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="col-5"><strong>Date:</strong></td>
+                                <td><span t-field="quotes.date_order" t-options='{"widget": "date"}'/></td>
+                            </tr>
+                            <tr>
+                                <td class="col-5"><strong>Vendor:</strong></td>
+                                <td><span t-field="quotes.partner_id"/></td>
+                            </tr>
+                            <tr>
+                                <td class="col-5"><strong>Vendor Bill Address:</strong></td>
+                                <td><span t-field="quotes.partner_invoice_id"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <section id="details" style="page-break-inside: auto;">
+                    <div class="container">
+                        <style>
+                            table {
+                            border-collapse: collapse;
+                            border-spacing: 0;
+                            width: 120%;
+                            }
+
+                            th, td {
+                            text-align: left;
+                            padding: 8px;
+                            }
+
+                        </style>
+                        <form action="/rfq/update" method="post">
+                            <input type="hidden" name="order_id" t-att-value="quotes.id" id="order_id"/>
+                            <div class="mb-3 col-6 vendor-payment-term mt-3">
+                                <strong>Vendor Payment Terms:</strong>
+                                <span class="ml-1">
+                                <div class="form-group">
+                                    <div class="input-group ">
+                                        <input type="text" class="form-control" id="vendor_payment_terms"
+                                               t-att-name="quotes.vendor_payment_terms"
+                                               t-attf-name="vendor_payment_terms"
+                                               t-att-value="(quotes.vendor_payment_terms)"
+                                               t-attf-value=" "
+                                        />
+                                    </div>
+                                </div>
+                                </span>
+                            </div>
+                            <h3 id="details" class="mt-5">Products</h3>
+                            <div style="overflow-x:auto;">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="2">Product</th>
+                                            <th>Description</th>
+                                            <th>Receipt Date</th>
+                                            <th>Destination</th>
+                                            <th>Discount</th>
+                                            <th>Quantity</th>
+                                            <th>UOM</th>
+                                            <th nowrap="nowrap" style="width:200px;">Unit Price</th>
+                                            <th>Taxes</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="quotes.order_line" t-as="ol">
+                                            <tr>
+                                                <td>
+                                                    <img t-if="ol.product_id.image_128"
+                                                         class="rounded-circle mt-1 o_portal_contact_img"
+                                                         t-att-src="image_data_uri(ol.product_id.image_128)" alt="Product"/>
+                                                    <img t-if="not ol.product_id.image_128"
+                                                         class="rounded-circle mt-1 o_portal_contact_img"
+                                                         src="/web/static/src/img/placeholder.png" alt="Product"/>
+                                                </td>
+                                                <td><span t-field="ol.product_id"/></td>
+                                                <td><span t-field="ol.name"/></td>
+                                                <td><span t-field="ol.date_planned"/></td>
+                                                <td><span t-field="ol.destination_warehouse_id"/></td>
+                                                <td>
+                                                    <t t-if="ol.discount_method == 'fix'">
+                                                        <span t-field="ol.discount_amount" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                                                    </t>
+                                                    <t t-if="ol.discount_method == 'per'">
+                                                        <span t-esc="'%.0f'% ol.discount_amount"/><span>%</span>
+                                                    </t>
+                                                    <t t-if="not ol.discount_method">
+                                                        <span t-field="ol.discount_amount"/>
+                                                    </t>
+                                                </td>
+                                                <td><input type="text" pattern="[0-9]+([\.,][0-9]+)?" class="form-control"
+                                                           id="quantity" t-attf-name="#{ol.id}_qty"
+                                                           t-att-value="str(ol.product_qty)"/></td>
+                                                <td><span t-field="ol.product_uom"/></td>
+                                                <td>
+                                                    <t t-set="price_unit" t-value="ol.price_unit % 1 and ol.price_unit or int(ol.price_unit)"/>
+                                                    <input type="text" class="form-control po_unitprice" id="unit_price"
+                                                           t-att-name="ol.id" t-att-value="str(price_unit)"
+                                                           nowrap="nowrap"/>
+                                                </td>
+                                                <td><span t-field="ol.taxes_id"/></td>
+                                                <td><span t-field="ol.price_subtotal"
+                                                          t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 mt-4">
+                                    <label for="rfq_note" style="margin-top: 10px;">Terms and Conditions</label>
+                                    <t t-set="notes" t-value=""/>
+                                    <t t-if="quotes.term_condition_box">
+                                        <t t-set="notes" t-value="quotes.set_notes()"/>
+                                    </t>
+                                    <!--                                Textarea hide because editing not required more. Logic change -->
+                                    <textarea type="text" name="rfq_note"
+                                              class="form-control o_survey_question_text_box bg-transparent text-dark rounded-0 p-0"
+                                              placeholder="Terms and conditions......" rows="10" cols="50"><t
+                                            t-raw="notes"/></textarea>
+                                    <!--                                Add below lines to show Terms and Conditions in HTML view-->
+                                    <!--                                <t t-raw="quotes.term_condition_box"/>-->
+                                    <!--                                <style>p {margin-bottom: 0;}</style>-->
+                                </div>
+                                <div class="col-12 mt-4">
+                                    <label for="agreement_note" style="margin-top: 10px;">Service Level Agreement</label>
+                                    <t t-if="quotes.service_level_agreement_box">
+                                        <t t-set="service_level_agreement_box" t-value="quotes.set_notes_service()"/>
+                                    </t>
+                                    <textarea type="text" name="agreement_note"
+                                              class="form-control o_survey_question_text_box bg-transparent text-dark rounded-0 p-0"
+                                              placeholder="Agreements......" rows="10" cols="50"><t
+                                                t-raw="service_level_agreement_box"/></textarea>
+                                    <!--                                Add below lines to show Terms and Conditions in HTML view-->
+                                    <!--                                <t t-raw="quotes.term_condition_box"/>-->
+                                    <!--                                <style>p {margin-bottom: 0;}</style>-->
+                                </div>
+                            </div>
+                            <button type="submit" id="btn_update_bid" class="btn btn-secondary mt-4" title="Update Bid">Update
+                                Bid</button>
+                            <hr/>
+                        </form>
+
+                        <div class="row" id="amount_div">
+                            <div class="col-lg-12 text-right">
+                                <div class="row">
+                                    <div class="col-lg-9 text-right">
+                                        Untaxed Amount:
+                                    </div>
+                                    <div class="col-lg-3 text-right">
+                                        <span t-field="quotes.amount_untaxed"
+                                              t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-9 text-right">
+                                        - Discount:
+                                    </div>
+                                    <div class="col-lg-3 text-right">
+                                        <span t-field="quotes.discount_amt"
+                                              t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-9 text-right">
+                                        Taxes:
+                                    </div>
+                                    <div class="col-lg-3 text-right">
+                                        <span t-field="quotes.amount_tax"
+                                              t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                                    </div>
+                                </div>
+                                <div class="row"
+                                     style="position:absolute;right:25px;border-top:2px solid black;width:325px;"></div>
+                                <div class="row">
+                                    <div class="col-lg-9 text-right" style="{'}">
+                                        <strong>Total:</strong>
+                                    </div>
+                                    <div class="col-lg-3 text-right">
+                                        <strong><span t-field="quotes.amount_total"
+                                                      t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/></strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </template>
+
+    <template id="sh_portal_my_rfq_order_update" name="RFQ Update Portal Template" inherit_id="portal.portal_sidebar"
+              primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn"
+                                           t-att-href="quotes.get_portal_url(report_type='pdf', download=True)"
+                                           title="Download"><i class="fa fa-download"/> Download</a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav"></ul>
+                            </li>
+                            <li class="list-group-item flex-grow-1">
+                                <div class="small mb-1"><strong class="text-muted">Responsible</strong></div>
+                                <div class="row flex-nowrap">
+                                    <div class="col flex-grow-0 pr-2">
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img"
+                                             t-if="quotes.create_uid.image_1024"
+                                             t-att-src="image_data_uri(quotes.create_uid.image_1024)" alt="Contact"/>
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img"
+                                             t-if="not quotes.create_uid.image_1024"
+                                             src="/web/static/src/img/placeholder.png" alt="Contact"/>
+                                    </div>
+                                    <div class="col pl-0" style="min-width: 150px;">
+                                        <span t-field="quotes.create_uid"
+                                              t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}'/>
+                                        <a href="#discussion" class="small"><i class="fa fa-comment"></i> Send
+                                            message</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </t>
+                </t>
+                <div id="rfq_content" class="col-12 col-lg-9 justify-content-end p-lg-0 ml-lg-2">
+                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="equip3_purchase_vendor_portal.rfq_portal_update_content_new"/>
+                    </div>
+                    <div id="rfq_communication" class="mt-4">
+                        <h2>History</h2>
+                        <t t-call="portal.message_thread">
+                            <t t-set="object" t-value="quotes"/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="rfq_portal_update_content_new" name="Update RFQ Portal Content">
+        <!-- Intro -->
+        <div id="introduction" t-attf-class="pb-2 pt-3 #{'card-header bg-white' if report_type == 'html' else ''}">
+            <h2 class="my-0">
+                <em t-esc="quotes.name"/>
+            </h2>
+        </div>
+        <br/>
+        <div id="update_message">
+            <div class="alert alert-success" t-if="quotes.state1 != 'retreat'">
+                <h4><strong>Bid Updated Successfully.</strong></h4>
+            </div>
+            <div class="alert alert-success" t-if="quotes.state1 == 'retreat'">
+                <h4><strong>RFQ Retreated Successfully.</strong></h4>
+            </div>
+        </div>
+        <div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+            <!-- Informations -->
+            <div id="informations">
+                <div class="row">
+                    <div class="mb-3 col-6"><strong>Date:</strong> <span t-field="quotes.date_order"
+                                                                         t-options='{"widget": "date"}'/></div>
+
+                    <div class="mb-3 col-6">
+
+                        <strong>Vendor Payment Terms:</strong>
+                        <span class="ml-1" t-field="quotes.vendor_payment_terms"/>
+                    </div>
+
+
+                </div>
+            </div>
+            <section id="details" style="page-break-inside: auto;" class="mt32">
+                <h3 id="details">Products</h3>
+                <style>
+                    table {
+                    border-collapse: collapse;
+                    border-spacing: 0;
+                    width: 120%;
+                    }
+
+                    th, td {
+                    text-align: left;
+                    padding: 8px;
+                    }
+
+                </style>
+                <form action="/rfq/edit" method="post">
+                    <input type="hidden" name="order_id" t-att-value="quotes.id" id="order_id"/>
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <tr>
+                                <th colspan="2">Product</th>
+                                <th>Description</th>
+                                <th>Receipt Date</th>
+                                <th>Destination</th>
+                                <th>Discount</th>
+                                <th>Quantity</th>
+                                <th>UOM</th>
+                                <th nowrap="nowrap" style="width:200px;">Unit Price</th>
+                                <th>Taxes</th>
+                                <th>Subtotal</th>
+                            </tr>
+                            <t t-foreach="quotes.order_line" t-as="ol">
+                                <tr>
+                                    <td>
+                                        <img t-if="ol.product_id.image_128"
+                                             class="rounded-circle mt-1 o_portal_contact_img"
+                                             t-att-src="image_data_uri(ol.product_id.image_128)" alt="Product"/>
+                                        <img t-if="not ol.product_id.image_128"
+                                             class="rounded-circle mt-1 o_portal_contact_img"
+                                             src="/web/static/src/img/placeholder.png" alt="Product"/>
+                                    </td>
+                                    <td><span t-field="ol.product_id"/></td>
+                                    <td><span t-field="ol.name"/></td>
+                                    <td><span t-field="ol.date_planned"/></td>
+                                    <td><span t-field="ol.destination_warehouse_id"/></td>
+                                    <td>
+                                        <t t-if="ol.discount_method == 'fix'">
+                                                <span t-field="ol.discount_amount" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                                        </t>
+                                        <t t-if="ol.discount_method == 'per'">
+                                            <span t-esc="'%.0f'% ol.discount_amount"/><span>%</span>
+                                        </t>
+                                        <t t-if="not ol.discount_method">
+                                            <span t-field="ol.discount_amount"/>
+                                        </t>
+                                    </td>
+                                    <td><input type="text" pattern="[0-9]+([\.,][0-9]+)?" class="form-control quantity"
+                                               id="quantity" t-attf-name="#{ol.id}_qty"
+                                               t-att-value="str(ol.product_qty)" readonly="True"/></td>
+                                    <td><span t-field="ol.product_uom"/></td>
+                                    <td><span t-field="ol.price_unit"
+                                              t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/></td>
+                                    <td><span t-field="ol.taxes_id"/></td>
+                                    <td><span t-field="ol.price_subtotal"
+                                              t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/></td>
+                                </tr>
+                            </t>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="rfq_note" style="margin-top: 10px;">Terms and Conditions</label>
+                            <br/>
+                            <t t-set="notes" t-value=""/>
+                            <t t-if="quotes.term_condition_box">
+                                <t t-set="notes" t-value="quotes.set_notes()"/>
+                            </t>
+                            <!--                        Textarea hide because editing not required more. Logic change-->
+                            <!--                            <textarea type="text" name="rfq_note" class="form-control o_survey_question_text_box bg-transparent text-dark rounded-0 p-0" placeholder="Terms and conditions......" readonly="True"><t t-esc="notes"/></textarea>-->
+                            <!--                        Add below lines to show Terms and Conditions in HTML view-->
+                            <t t-raw="quotes.term_condition_box"/>
+                            <style>p {margin-bottom: 0;}</style>
+                        </div>
+                        <div class="col-12">
+                            <label for="agreement_note" style="margin-top: 10px;">Service Level Agreement</label>
+                            <t t-if="quotes.service_level_agreement_box">
+                                <t t-set="service_level_agreement_box" t-value="quotes.set_notes_service()"/>
+                            </t>
+                            <t t-raw="quotes.service_level_agreement_box"/>
+                            <style>p {margin-bottom: 0;}</style>
+                        </div>
+                    </div>
+                    <button id="btn_edit_bid" class="btn btn-secondary" title="Edit Bid" t-if="quotes.state1 != 'retreat'">Edit Bid</button>
+                </form>
+                <div class="row">
+                    <div class="col-lg-12 text-right">
+                        <div class="row">
+                            <div class="col-lg-9 text-right">
+                                Untaxed Amount:
+                            </div>
+                            <div class="col-lg-3 text-right">
+                                <span t-field="quotes.amount_untaxed"
+                                      t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-9 text-right">
+                                Discount:
+                            </div>
+                            <div class="col-lg-3 text-right">
+                                <span t-field="quotes.discount_amt"
+                                      t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-9 text-right">
+                                Taxes:
+                            </div>
+                            <div class="col-lg-3 text-right">
+                                <span t-field="quotes.amount_tax"
+                                      t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/>
+                            </div>
+                        </div>
+                        <div class="row"
+                             style="position:absolute;right:25px;border-top:2px solid black;width:325px;"></div>
+                        <div class="row">
+                            <div class="col-lg-9 text-right">
+                                <strong>Total:</strong>
+                            </div>
+                            <div class="col-lg-3 text-right">
+                                <strong><span t-field="quotes.amount_total"
+                                              t-options='{"widget": "monetary", "display_currency": quotes.currency_id}'/></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr/>
+            </section>
+        </div>
+    </template>
+
+
+    <template id="custom_purchase_order_line_portal" inherit_id="purchase.portal_my_purchase_order">
+        <!--        Remove first part-->
+        <xpath expr="//t[@t-call='portal.portal_record_sidebar']//h2" position="replace">
+            <t t-if="len(str(purchase_order.amount_total)) > 10">
+                <h5 class="mb-0">
+                    <b t-field="purchase_order.amount_total" data-id="total_amount"/>
+                </h5>
+            </t>
+            <t t-elif="len(str(purchase_order.amount_total)) > 7">
+                <h3 class="mb-0">
+                    <b t-field="purchase_order.amount_total" data-id="total_amount"/>
+                </h3>
+            </t>
+            <t t-else="">
+                <h2 class="mb-0">
+                    <b t-field="purchase_order.amount_total" data-id="total_amount"/>
+                </h2>
+            </t>
+        </xpath>
+        <xpath expr="//t[@t-call='portal.portal_record_sidebar']//div[hasclass('o_download_pdf')]/div[2]" position="replace"/>
+        <xpath expr="//t[@t-call='portal.portal_record_sidebar']//div[hasclass('o_download_pdf')]" position="after">
+            <div class="btn-toolbar flex-sm-nowrap">
+                <div class="btn-group flex-grow-1 mr-1 mb-1">
+                    <a class="btn btn-secondary btn-block o_print_btn o_portal_invoice_print" t-att-href="purchase_order.get_portal_url(report_type='pdf')" id="print_invoice_report" title="Print" target="_blank"><i class="fa fa-print"/> Print</a>
+                </div>
+            </div>
+            <t t-set="user_document" t-value="request.env['ir.attachment'].sudo().search([('res_model','=','purchase.order'),('res_id','=',purchase_order.id)], limit=1)"/>
+            <t t-if="user_document">
+                <div class="btn-toolbar flex-sm-nowrap">
+                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                        <a style="font-size:15px" class="btn btn-secondary btn-block o_download_btn" t-att-href="'/attachment/download?attachment_id=%s' % user_document.id" title="Attachments"><i class="fa fa-paperclip" /> Download Attachments</a>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//div[hasclass('card-header')]/div[hasclass('row')]" position="inside">
+            <div class="ml-auto mr-2">
+                <button type="button" name="update_vendor_invoice" class="btn btn-primary update-vendor-invoice-form">Update Vendor Invoice</button>
+            </div>
+            <input type="hidden" id="purchase_order_id" t-att-value="order.id"/>
+        </xpath>
+        <xpath expr="//div[hasclass('card-body')]" position="before">
+            <div class="card-body-parent"></div>
+        </xpath>
+        <xpath expr="//div[hasclass('card-body-parent')]" position="inside">
+            <xpath expr="//div[hasclass('card-body')]" position="move"/>
+        </xpath>
+        <xpath expr="//div[hasclass('mb-4')]" position="replace">
+            <div class="row">
+                <div class="mb-3 col-6">
+                    <strong class="d-block mb-1">From:</strong>
+                    <address t-field="order.company_id.partner_id"
+                             t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                </div>
+                <div class="mb-3 col-6">
+                    <strong>Confirmation Date:</strong> <span t-field="order.date_approve"
+                                                              t-options='{"widget": "date"}'/> <br/>
+                    <div t-att-class="'d-inline' if order.date_planned else 'd-none'">
+                        <strong>Receipt Date:</strong><span class="ml-1" t-field="order.date_planned"
+                                                            t-options='{"widget": "date"}'/>
+                    </div> <br/>
+                    <strong>Source Document:</strong><a
+                        t-attf-href="/my/tender/#{order.agreement_id.id}?#{keep_query()}"><t
+                        t-esc="order.agreement_id.name"/></a><br/>
+                    <strong>Vendor Payment Terms:</strong>
+                    <span class="ml-1" t-field="order.vendor_payment_terms"/>
+                    <!--                    <span class="ml-1">-->
+                    <!--                    <form t-attf-action="/my/purchase/#{order.id}/update?access_token=#{order.access_token}"-->
+                    <!--                          method="post">-->
+                    <!--                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>-->
+                    <!--                        <div class="container">-->
+                    <!--                            <div class="form-group">-->
+                    <!--                                <div class="input-group date">-->
+                    <!--                                    <input type="text" class="form-control" id="vendor_payment_terms"-->
+                    <!--                                           t-att-name="order.vendor_payment_terms"-->
+                    <!--                                           t-attf-name="vendor_payment_terms"-->
+                    <!--                                           t-att-value="(order.vendor_payment_terms)"-->
+                    <!--                                    />-->
+
+                    <!--                                </div>-->
+                    <!--                            </div>-->
+                    <!--                        </div>-->
+                    <!--                        <button type="submit" class="btn btn-secondary" title="Update Bid">Update Vendor Terms</button>-->
+                    <!--                    </form>-->
+                    <!--                </span>-->
+                </div>
+            </div>
+            <div class="modal fade" id="updatevendorinvoice" tabindex="-1" role="dialog" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Upload Vendor Invoice</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">x</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                        <div class="d-flex">
+                            <label for="files">Upload files:</label>
+                            <input type="file" id="vendor_invoice_files" class="ml-2" name="files" multiple="multiple"/>
+                        </div>
+                        <input type="text" class="d-none" id="purchase_id"/>
+                        <textarea name="vendor_files" class="d-none"/>
+                        <ul class="d-none mt-3" style="list-style-type: none;">
+                            <li class="d-none">
+                                <a href="#" target="_blank"><span class="fa fa-download"/><span class="name ml-2"></span></a>
+                            </li>
+                        </ul>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-primary save_vendor_invoice">Upload</button>
+                    <button type="button" class="btn btn-fill-light" data-dismiss="modal">Discard</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </xpath>
+
+
+        <xpath expr="//h2[hasclass('font-weight-normal')]" position="replace">
+            <h2 class="font-weight-normal">
+                <t t-if="order.state in ['draft', 'sent']">Request for Quotation</t>
+                <span class="font-italic" t-esc="order.name"/>
+            </h2>
+        </xpath>
+        <xpath expr="//div[hasclass('justify-content-end')]" position="attributes">
+            <attribute name="class">col-12 col-lg-9 justify-content-end p-lg-0 ml-lg-2 w-100</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('card-body')]/table[1]" position="replace">
+            <style>
+                table {
+                border-collapse: collapse;
+                border-spacing: 0;
+                width: 120%;
+                }
+
+                th, td {
+                text-align: left;
+                padding: 8px;
+                }
+
+            </style>
+            <div style="overflow-x:auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Products</th>
+                            <th>Description</th>
+                            <th>Receipt Date</th>
+                            <th>Destination</th>
+                            <th>Discount</th>
+                            <th class="text-right">Quantity</th>
+                            <th>UOM</th>
+                            <th class="text-right d-none d-sm-table-cell">Unit Price</th>
+                            <th>Taxes</th>
+                            <th class="text-right">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="order.order_line" t-as="ol">
+                            <tr t-att-class="'bg-200 font-weight-bold o_line_section' if ol.display_type == 'line_section' else 'font-italic o_line_note' if ol.display_type == 'line_note' else ''">
+                                <t t-if="not ol.display_type">
+                                    <td>
+                                        <img t-att-src="image_data_uri(resize_to_48(ol.product_id.image_1024))"
+                                             alt="Product" class="d-none d-lg-inline"/>
+                                        <span t-esc="ol.name"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="ol.name"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="ol.date_planned"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="ol.destination_warehouse_id"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <t t-if="ol.discount_method == 'fix'">
+                                            <span t-field="ol.discount_amount" t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                                        </t>
+                                        <t t-if="ol.discount_method == 'per'">
+                                            <span t-esc="'%.0f'% ol.discount_amount"/><span>%</span>
+                                        </t>
+                                        <t t-if="not ol.discount_method">
+                                            <span t-field="ol.discount_amount"/>
+                                        </t>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-esc="ol.product_qty"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="ol.product_uom"/>
+                                    </td>
+                                    <td class="text-right d-none d-sm-table-cell">
+                                        <span t-field="ol.price_unit"
+                                              t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                                    </td>
+                                    <td>
+                                        <span t-field="ol.taxes_id"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="ol.price_subtotal"
+                                              t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                                    </td>
+                                </t>
+                                <t t-if="ol.display_type == 'line_section'">
+                                    <td colspan="99">
+                                        <span t-field="ol.name"/>
+                                    </td>
+                                    <t t-set="current_section" t-value="line"/>
+                                    <t t-set="current_subtotal" t-value="0"/>
+                                </t>
+                                <t t-if="ol.display_type == 'line_note'">
+                                    <td colspan="99">
+                                        <span t-field="ol.name"/>
+                                    </td>
+                                </t>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <label for="rfq_note" style="margin-top: 10px;">Terms and Conditions</label>
+                    <br/>
+                    <t t-set="notes" t-value=""/>
+                    <t t-if="order.term_condition_box">
+                        <t t-set="notes" t-value="order.set_notes()"/>
+                    </t>
+                    <!--                        Textarea hide because editing not required more. Logic change-->
+                    <!--                            <textarea type="text" name="rfq_note" class="form-control o_survey_question_text_box bg-transparent text-dark rounded-0 p-0" placeholder="Terms and conditions......" readonly="True"><t t-esc="notes"/></textarea>-->
+                    <!--                        Add below lines to show Terms and Conditions in HTML view-->
+                    <t t-raw="order.term_condition_box"/>
+                    <style>p {margin-bottom: 0;}</style>
+                </div>
+            </div>
+            <hr/>
+        </xpath>
+        <xpath expr="//div[hasclass('col-sm-7')]" position="replace">
+            <div class="col-lg-12 text-right">
+                <div class="row">
+                    <div class="col-lg-9 text-right">
+                        Untaxed Amount:
+                    </div>
+                    <div class="col-lg-3 text-right">
+                        <span t-field="order.amount_untaxed"
+                              t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-9 text-right">
+                        - Discount:
+                    </div>
+                    <div class="col-lg-3 text-right">
+                        <span t-field="order.discount_amt"
+                              t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-9 text-right">
+                        Taxes:
+                    </div>
+                    <div class="col-lg-3 text-right">
+                        <span t-field="order.amount_tax"
+                              t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                    </div>
+                </div>
+                <div class="row" style="position:absolute;right:25px;border-top:2px solid black;width:325px;"></div>
+                <div class="row">
+                    <div class="col-lg-9 text-right">
+                        <strong>Total:</strong>
+                    </div>
+                    <div class="col-lg-3 text-right">
+                        <strong><span t-field="order.amount_total"
+                                      t-options='{"widget": "monetary", "display_currency": order.currency_id}'/></strong>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+
+    <template id="po_tender_inherit" inherit_id="sh_po_tender_portal.purchase_order_template_custom_form">
+        <!--        <xpath expr="//div[hasclass('mb-4')][2]" position="replace">-->
+        <!--            <div class="mb-4">-->
+        <!--                <strong>Source Document:</strong><a t-attf-href="/my/tender/#{order.agreement_id.id}?#{keep_query()}"><t-->
+        <!--                    t-esc="order.agreement_id.name"/></a>-->
+        <!--            </div>-->
+        <!--        </xpath>-->
+        <xpath expr="//h3[hasclass('font-weight-normal')]" position="replace">
+        </xpath>
+    </template>
+
+    <template id="details_my_tender">
+        <div class="details_tender">
+            <div id="informations">
+                <div class="row">
+                    <div class="mb-3 col-6"><strong>Purchase Representative:</strong><span t-field="tender.sh_purchase_user_id" /></div>
+                    <div class="mb-3 col-6"><strong>Tender Deadline:</strong><span t-field="tender.sh_agreement_deadline" t-options='{"widget": "date"}' /></div>
+                </div>
+                <div class="row">
+                    <div class="mb-3 col-6"><strong>Tender Type:</strong><span t-field="tender.sh_agreement_type" /></div>
+                    <div class="mb-3 col-6"><strong>Ordering Date:</strong><span t-field="tender.sh_order_date" t-options='{"widget": "date"}' /></div>
+                </div>
+                <div class="row">
+                    <div class="mb-3 col-6"><strong>Source Document:</strong><span t-field="tender.sh_source" /></div>
+                    <div class="mb-3 col-6"><strong>Delivery Date:</strong><span t-field="tender.sh_delivery_date" t-options='{"widget": "date"}' /></div>
+                </div>
+            </div>
+            <section id="details" style="page-break-inside: auto;" class="mt32">
+                <h3 id="details">Operations</h3>
+                <table class="table" id="tender_table">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Products</th>
+                            <th class="text-right">Quantity</th>
+                            <th class="text-right">Ordered Quantities</th>
+                        </tr>
+                    </thead>
+                    <tbody class="sale_tbody">
+                        <t t-foreach="tender.sh_purchase_agreement_line_ids" t-as="line">
+                            <tr>
+                                <td id="product_name"><span t-field="line.sh_product_id" /></td>
+                                <td class="text-right">
+                                    <div id="quote_qty">
+                                        <span t-field="line.sh_qty" />
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <span t-field="line.sh_ordered_qty" />
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                <br/>
+                <h3>Terms and Conditions</h3>
+                <div class="mb-4 ml-3 mt-2">
+                    <div class="col-12">
+                        <t t-set="term_condition" t-value=""/>
+                        <t t-if="tender.term_condition_box">
+                            <t t-set="notes" t-value="tender.set_notes()"/>
+                        </t>
+                        <t t-raw="tender.term_condition_box"/>
+                        <style>p {margin-bottom: 0;}</style>
+                    </div>
+                </div>
+                <t t-if="request.env.company.sh_manage_tender_doc_portal">
+                <h3 id="sh_document">Documents</h3>
+                <div class="mb-4 ml-3 mt-2">
+                        <t t-foreach="request.env['ir.attachment'].sudo().search([('res_model','=','purchase.agreement'),('res_id','=',tender.id),('sh_is_publish_in_portal','=',True)])" t-as="user_document">
+                            <div class="col-4 my-2">
+                                <div style='display: flex;align-items: center;background: #3aadaa;border-radius: 3px;justify-content: space-between;overflow: hidden;'>
+                                    <div style='display: flex;align-items:center;width:89%;'>
+                                            <t t-set="img_src" t-value="'/web/image/' + str(user_document.id)"/>
+                                            <div style='display:block;'>
+                                                 <t t-set="webimage" t-value="user_document.mimetype"/>
+                                                 <div t-if="user_document.type == 'url'" class="o_url_image fa fa-link fa-3x text-muted" aria-label="Image is a link"/>
+                                                 <img t-elif="webimage=='image/jpeg' or webimage=='image/jpg' or webimage=='image/gif' or webimage=='image/png'" t-att-src="img_src" alt="Document" class="o_attachment_image" style='height:30px;width:30px;display:block;'/>
+                                                 <div t-else="webimage!='image/jpeg' or webimage!='image/jpg' or webimage!='image/gif' or webimage!='image/png'" class="o_image o_image_thumbnail" t-att-data-mimetype="user_document.mimetype" style='height:30px;width:30px;display:block;'/>
+                                            </div>
+                                        <div style='overflow: hidden;text-overflow: ellipsis;display: -webkit-box;-webkit-line-clamp: 1;-webkit-box-orient: vertical;color: #fff;width: 89%;    margin-left: 6px;'>
+                                            <span t-esc="user_document.name" t-att-title='user_document.name'/>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <input type="hidden" id="attachment_id" name="attachment_id" t-att-value="user_document.id" />
+                                        <a t-att-href="'/attachment/download?attachment_id=%i' % user_document.id" style='color: #fff;height: 100%;padding: 7px 9px;'>
+                                            <span class="fa fa-download" />
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                </div>
+                </t>
+            </section>
+        </div>
+    </template>
+
+    <template id="tender_my_quotation">
+        <div>
+            <table class="table">
+                <tr>
+                    <td>
+                        <strong>Reference</strong>
+                    </td>
+                    <td>
+                        <span t-field="purchase_order_id.name" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Source Document</strong>
+                    </td>
+                    <td>
+                        <span t-field="purchase_order_id.origin" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>RFQ Expiry Date</strong>
+                    </td>
+                    <td>
+                        <span t-field="purchase_order_id.date_order" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Vendor</strong>
+                    </td>
+                    <td>
+                        <span t-field="purchase_order_id.partner_id"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Vendor Bill Address</strong>
+                    </td>
+                    <td>
+                        <span t-field="purchase_order_id.partner_invoice_id"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th colspan="2">Product</th>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                        <th nowrap="nowrap" style="width:200px;">Price Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="purchase_order_id.order_line" t-as="ol">
+                        <tr>
+                            <td>
+                                <img t-if="ol.product_id.image_128"
+                                    class="rounded-circle mt-1 o_portal_contact_img"
+                                    t-att-src="image_data_uri(ol.product_id.image_128)" alt="Product"/>
+                                <img t-if="not ol.product_id.image_128"
+                                    class="rounded-circle mt-1 o_portal_contact_img"
+                                    src="/web/static/src/img/placeholder.png" alt="Product"/>
+                            </td>
+                            <td><span t-field="ol.product_id"/></td>
+                            <td><span t-field="ol.name"/></td>
+                            <td><span t-field="ol.product_qty"/></td>
+                            <td><span t-field="ol.price_total" t-options='{"widget": "monetary", "display_currency": purchase_order_id.currency_id}'/></td>
+                            <td><span t-field="purchase_order_id.price_rating"/></td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+        <hr/>
+        <div class="mt-4" id="amount_div">
+            <div class="col-lg-12 text-right">
+                <div class="row">
+                    <div class="col-lg-9 text-right">
+                        Untaxed Amount:
+                    </div>
+                    <div class="col-lg-3 text-right">
+                        <span t-field="purchase_order_id.amount_untaxed"
+                            t-options='{"widget": "monetary", "display_currency": purchase_order_id.currency_id}'/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-9 text-right">
+                        - Discount:
+                    </div>
+                    <div class="col-lg-3 text-right">
+                        <span t-field="purchase_order_id.discount_amt"
+                            t-options='{"widget": "monetary", "display_currency": purchase_order_id.currency_id}'/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-9 text-right">
+                        Taxes:
+                    </div>
+                    <div class="col-lg-3 text-right">
+                        <span t-field="purchase_order_id.amount_tax"
+                            t-options='{"widget": "monetary", "display_currency": purchase_order_id.currency_id}'/>
+                    </div>
+                </div>
+                <div class="row"
+                    style="position:absolute;right:25px;border-top:2px solid black;width:325px;"></div>
+                <div class="row total">
+                    <div class="col-lg-9 text-right" style="{'}">
+                        <strong>Total:</strong>
+                    </div>
+                    <div class="col-lg-3 text-right">
+                        <strong><span t-field="purchase_order_id.amount_total"
+                                    t-options='{"widget": "monetary", "display_currency": purchase_order_id.currency_id}'/></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="tender_content_inherit" inherit_id="sh_po_tender_portal.tender_portal_content">
+        <xpath expr="//div[@id='introduction']" position="attributes">
+            <attribute name="t-attf-class"></attribute>
+            <attribute name="class">card-header bg-white</attribute>
+        </xpath>
+<!--         <xpath expr="//div[@id='informations']/../.." position="before">
+            <div class="card-body-parent"></div>
+        </xpath>
+        <xpath expr="//div[hasclass('card-body-parent')]" position="inside">
+            <xpath expr="//div[@id='informations']/../.." position="move"/>
+        </xpath> -->
+        <xpath expr="//div[2]" position="attributes">
+            <attribute name="class">d-none</attribute>
+        </xpath>
+        <xpath expr="//div[3]" position="attributes">
+            <attribute name="t-attf-class"></attribute>
+            <attribute name="class">d-none</attribute>
+        </xpath>
+        <xpath expr="//div[3]" position="after">
+            <div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+                <section id="details" style="page-break-inside: auto;">
+                    <div class="row">
+                        <ul class="nav nav-tabs col-md-12" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="information-tab" data-toggle="tab" href="#information" role="tab" aria-controls="information" aria-selected="true">Details</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" t-if="purchase_order_id" id="quotation-tab" data-toggle="tab" href="#quotation" role="tab" aria-controls="quotation" aria-selected="false">Your Quotation</a>
+                            </li>
+                        </ul>
+                        <div class="container">
+                            <div class="tab-content mt-1" id="myTabContent">
+                                <div class="tab-pane fade show active" id="information" role="tabpanel" aria-labelledby="information-tab">
+                                    <t t-call="equip3_purchase_vendor_portal.details_my_tender"/>
+                                </div>
+                                <div class="tab-pane fade" t-if="purchase_order_id" id="quotation" role="tabpanel" aria-labelledby="quotation-tab">
+                                    <t t-call="equip3_purchase_vendor_portal.tender_my_quotation"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br/>
+                </section>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="table_tender_inherit" inherit_id="sh_po_tender_portal.portal_my_tenders">
+        <xpath expr="//thead/tr/th" position="replace">
+            <th>Tender</th>
+        </xpath>
+        <xpath expr="//thead/tr/th[3]" position="replace">
+            <th class="text-right">Tender Scope</th>
+        </xpath>
+        <xpath expr="//t/t/t/tr/td[3]" position="replace">
+            <td class="text-right"><span t-field="tender.pt_state"/></td>
+        </xpath>
+        <xpath expr="//td/a" position="replace">
+            <!-- Add your fields here -->
+            <t t-if="tender.tender_scope=='open_tender'">
+                <a t-att-href="'/open_tender/'+str(tender.id)"><t t-esc="tender.name" /></a>
+            </t>
+            <t t-else="">
+                <a t-att-href="'/my/tender/'+str(tender.id)"><t t-esc="tender.name" /></a>
+            </t>
+        </xpath>
+        <xpath expr="//t[contains(@t-call, 'portal.portal_layout')]" position="before">
+            <!-- <style>
+                td {
+                white-space:normal !important;
+                box-sizing:content-box !important;
+                }
+            </style> -->
+        </xpath>
+        <xpath expr="//t[contains(@t-if, 'tender.state')]" position="replace">
+            <t t-if="tender.pt_state == 'bid_submission'">
+                <td>
+                    <button class="btn_add_bid btn btn-secondary">Add/Update
+                        Bid</button>
+                </td>
+            </t>
+            <t t-else="">
+                <td>
+                </td>
+            </t>
+        </xpath>
+        <xpath expr="//t[contains(@t-if, 'tender.sh_vender_id')]" position="replace">
+            <td class="text-right"><span t-field="tender.tender_scope"/></td>
+        </xpath>
+        <xpath expr="//t[contains(@t-if, 'tender.sh_vender_id')]" position="replace">
+        </xpath>
+
+    </template>
+
+    <template id="table_po_inherit" inherit_id="purchase.portal_my_purchase_orders">
+        <xpath expr="//thead/tr/th" position="replace">
+            <th>Purchase Reference</th>
+        </xpath>
+        <xpath expr="//thead/tr/th[4]" position="replace">
+            <th class="text-right">Billing Status</th>
+        </xpath>
+        <xpath expr="//thead/tr/th[5]" position="after">
+            <th class="text-center">Action</th>
+        </xpath>
+        <xpath expr="//tbody/t/tr[1]/td[4]" position="replace">
+            <td class="text-right">
+                <t t-if="order.invoice_status == 'to invoice'">
+                    <span class="badge badge-info"><i class="fa fa-fw fa-file-text"/> Waiting for Bill</span>
+                </t>
+                <t t-if="order.state == 'cancel'">
+                    <span class="badge badge-secondary"><i class="fa fa-fw fa-remove"/> Cancelled</span>
+                </t>
+            </td>
+        </xpath>
+        <xpath expr="//tbody/t/tr[1]/td[5]" position="after">
+            <td>
+                <button type="button" name="update_vendor_invoice" class="btn btn-primary update-vendor-invoice">Update Vendor Invoice</button>
+            </td>
+        </xpath>
+        <xpath expr="//tbody/t/tr" position="attributes">
+            <attribute name='t-att-data-id'>order.id</attribute>
+        </xpath>
+        <xpath expr="//t/t[3]" position="after">
+            <div class="modal fade" id="updatevendorinvoice" tabindex="-1" role="dialog" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Upload Vendor Invoice</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">x</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                        <div class="d-flex">
+                            <label for="files">Upload files:</label>
+                            <input type="file" id="vendor_invoice_files" class="ml-2" name="files" multiple="multiple"/>
+                        </div>
+                        <input type="text" class="d-none" id="purchase_id"/>
+                        <textarea name="vendor_files" class="d-none"/>
+                        <ul class="d-none mt-3" style="list-style-type: none;">
+                            <li class="d-none">
+                                <a href="#" target="_blank"><span class="fa fa-download"/><span class="name ml-2"></span></a>
+                            </li>
+                        </ul>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-primary save_vendor_invoice">Upload</button>
+                    <button type="button" class="btn btn-fill-light" data-dismiss="modal">Discard</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </xpath>
+    </template>
+    <template id="table_rfq_inherit" inherit_id="sh_rfq_portal.sh_portal_my_rfqs">
+        <xpath expr="//t[contains(@t-call, 'portal.portal_table')]" position="replace">
+            <div class="vendor_portal_table_scroll">
+                <t t-if="rfqs" t-call="portal.portal_table">
+                    <t t-foreach="grouped_rfq" t-as="g_rfq">
+                        <thead>
+                            <tr class="thead-light" t-if="groupby and groupby!='none'">
+                                <th colspan="7">
+                                    <t t-if="groupby == 'period_by_day'">
+                                        <em class="font-weight-normal text-muted"></em>
+                                        <span t-field="g_rfq[0].date_order" t-options='{"widget": "date","format": "d MMMM Y"}'/>
+                                    </t>
+                                    <t t-if="groupby == 'period_by_month'">
+                                        <em class="font-weight-normal text-muted"></em>
+                                        <span t-field="g_rfq[0].date_order" t-options='{"widget": "date","format": "MMMM Y"}'/>
+                                    </t>
+                                    <t t-if="groupby == 'period_by_year'">
+                                        <em class="font-weight-normal text-muted"></em>
+                                        <span t-field="g_rfq[0].date_order" t-options='{"widget": "date","format": "Y"}'/>
+                                    </t>
+                                </th>
+                            </tr>
+                            <tr class="active">
+                                <th>Request For Quotation #</th>
+                                <th>Order Date</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="g_rfq" t-as="order">
+                                <tr>
+                                    <td>
+                                        <a t-attf-href="/my/rfq/#{order.id}?#{keep_query()}"><t t-esc="order.name"/></a>
+                                    </td>
+                                    <td><span t-field="order.date_order"/></td>
+                                    <td><span t-field="order.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: order.currency_id}"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </t>
+                </t>
+            </div>
+        </xpath>
+        <xpath expr="//t[contains(@t-call, 'portal.portal_searchbar')]" position="replace">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Purchase Tenders</t>
+            </t>
+        </xpath>
+        <xpath expr="//tr[hasclass('active')]/th[1]" position="replace">
+            <th>Request For Quotation</th>
+            <th>Vendor</th>
+            <th>Vendor Bill Address</th>
+        </xpath>
+        <xpath expr="//tr/td[1]" position="after">
+            <td><span t-field="order.partner_id" /></td>
+            <td><span t-field="order.partner_invoice_id" /></td>
+        </xpath>
+    </template>
+
+</odoo>

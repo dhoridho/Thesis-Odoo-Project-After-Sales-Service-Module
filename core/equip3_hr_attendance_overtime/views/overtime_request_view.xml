@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="overtime_requests_form_view" model="ir.ui.view">
+            <field name="name">hr.overtime.request.form</field>
+            <field name="model">hr.overtime.request</field>
+            <field name="arch" type="xml">
+                <form string="Overtime Requests">
+                    <header>
+                        <button name="confirm" string="Confirm"  attrs="{'invisible':[('state','not in',['draft'])]}" type="object" class="oe_highlight"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved,rejected" attrs="{'invisible':[('is_overtime_approval_matrix','=',False)]}"/>
+                        <field name="state1" widget="statusbar" statusbar_visible="draft,approved" attrs="{'invisible':[('is_overtime_approval_matrix','!=',False)]}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="request_type"  readonly="1" force_save="1"/>
+                                <field name="employee_id" readonly="1" force_save="1"/>
+                                <label for="period_start" string="Period Date"/>
+                                <div>
+                                    <field name="period_start" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}"/> to <field name="period_end" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                </div>
+                                <field name="description" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                <field name="total_hours" widget="float_time"/>
+                                <field name="employee_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                            </group>
+                            <group>
+                                <field name="company_id" readonly="1" force_save="1"/>
+                                <field name="create_date" readonly="1"/>
+                                <field name="create_uid" readonly="1"/>
+                                <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="is_overtime_approval_matrix" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Overtime Request Lines">
+                                <field name="request_line_ids" attrs="{'readonly':[('state','not in',['draft'])]}" context="{'default_request_type': 'by_employee'}">
+                                    <tree editable="bottom">
+                                        <field name="request_type" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="employee_id" readonly="1" force_save="1" invisible="0"/>
+                                        <field name="state" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="overtime_reason" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                        <field name="date" force_save="1" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                        <field name="name_of_day"/>
+                                        <field name="start_time" widget="float_time" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                        <field name="end_time" widget="float_time" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                        <field name="number_of_hours" widget="float_time" string="Hours" readonly="1" force_save="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string=" Approval Matrix Lines" attrs="{'invisible':[('is_overtime_approval_matrix','=',False)]}">
+                                <field name="request_approval_line_ids">
+                                    <tree editable="bottom" create="0" delete="0">
+                                        <field name="sequence" readonly="1" force_save="1"/>
+                                        <field name="approver_id" widget="many2many_tags" readonly="1" force_save="1"/>
+                                        <field name="matrix_user_ids" widget="many2many_tags" readonly="1" invisible="1" force_save="1"/>
+                                        <field name="is_delegation_mail_sent" invisible="1"/>
+                                        <field name="minimum_approver" readonly="1" force_save="1"/>
+                                        <field name="approval_status" readonly="1" force_save="1"/>
+                                        <field name="timestamp" readonly="1" force_save="1"/>
+                                        <field name="feedback" readonly="1" force_save="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="overtime_by_manager_form_view" model="ir.ui.view">
+            <field name="name">hr.overtime.by.manager.form</field>
+            <field name="model">hr.overtime.request</field>
+            <field name="arch" type="xml">
+                <form string="Overtime By Manager">
+                    <header>
+                        <button name="confirm" string="Confirm"  attrs="{'invisible':[('state','not in',['draft'])]}" type="object" class="oe_highlight"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved,rejected" attrs="{'invisible':[('is_overtime_approval_matrix','=',False)]}"/>
+                        <field name="state1" widget="statusbar" statusbar_visible="draft,approved" attrs="{'invisible':[('is_overtime_approval_matrix','!=',False)]}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="request_type"  readonly="1" force_save="1"/>
+                                <field name="employee_id" invisible="1" readonly="1" force_save="1"/>
+                                <label for="period_start" string="Period Date"/>
+                                <div>
+                                    <field name="period_start" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}"/> to <field name="period_end" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                </div>
+                                <field name="description" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                <field name="employee_ids" widget="many2many_tags" attrs="{'readonly':[('state','not in',['draft'])]}" options="{'no_open': True, 'no_create': True, 'no_quick_create': True, 'no_create_edit': True}" required="1"/>
+                            </group>
+                            <group>
+                                <field name="company_id" readonly="1" force_save="1"/>
+                                <field name="create_date" readonly="1"/>
+                                <field name="create_uid" readonly="1"/>
+                                <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="next_approver_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="is_overtime_approval_matrix" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Overtime Request Line">
+                                <field name="request_line_ids" attrs="{'readonly':[('state','not in',['draft'])]}" context="{'default_request_type': 'by_manager'}">
+                                    <tree editable="bottom">
+                                        <field name="request_type"  invisible="1" readonly="1" force_save="1"/>
+                                        <field name="employee_id" domain="[('id', 'in', parent.employee_ids)]" attrs="{'readonly':[('state','not in',['draft'])]}" options="{'no_open': True, 'no_create': True, 'no_quick_create': True, 'no_create_edit': True}"/>
+                                        <field name="state" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="overtime_reason" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                        <field name="date" force_save="1" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                        <field name="name_of_day"/>
+                                        <field name="start_time" widget="float_time" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                        <field name="end_time" widget="float_time" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                        <field name="number_of_hours" widget="float_time" string="Hours" readonly="1" force_save="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string=" Approval Matrix Lines" attrs="{'invisible':[('is_overtime_approval_matrix','=',False)]}">
+                                <field name="request_approval_line_ids">
+                                    <tree editable="bottom" create="0" delete="0">
+                                        <field name="sequence" readonly="1" force_save="1"/>
+                                        <field name="approver_id" widget="many2many_tags"  readonly="1" force_save="1"/>
+                                        <field name="matrix_user_ids" widget="many2many_tags" readonly="1" invisible="1" force_save="1"/>
+                                        <field name="is_delegation_mail_sent" invisible="1"/>
+                                        <field name="minimum_approver" readonly="1" force_save="1"/>
+                                        <field name="approval_status" readonly="1" force_save="1"/>
+                                        <field name="timestamp" readonly="1" force_save="1"/>
+                                        <field name="feedback" readonly="1" force_save="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="overtime_requests_approval_form_view" model="ir.ui.view">
+            <field name="name">hr.overtime.request.approval.form</field>
+            <field name="model">hr.overtime.request</field>
+            <field name="arch" type="xml">
+                <form string="Overtime Requests" create="0">
+                    <header>
+                        <button name="approve" string="Approve"  attrs="{'invisible':[('is_hide_approve','=',True)]}" type="object" class="oe_highlight"/>
+                        <button name="reject" string="Reject"  attrs="{'invisible':[('is_hide_reject','=',True)]}" type="object" class="oe_highlight"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved,rejected" attrs="{'invisible':[('is_overtime_approval_matrix','=',False)]}"/>
+                        <field name="state1" widget="statusbar" statusbar_visible="draft,approved" attrs="{'invisible':[('is_overtime_approval_matrix','!=',False)]}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="is_hide_approve" invisible="1"/>
+                                <field name="is_hide_reject" invisible="1"/>
+                                <field name="request_type"  readonly="1"/>
+                                <field name="employee_id" attrs="{'invisible':[('request_type','=','by_manager')]}" readonly="1"/>
+                                <label for="period_start" string="Period Date"/>
+                                <div>
+                                    <field name="period_start" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}"/> to <field name="period_end" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                                </div>
+                                <field name="description" readonly="1"/>
+                                <field name="total_hours" attrs="{'invisible':[('request_type','=','by_manager')]}"/>
+                                <field name="employee_ids" widget="many2many_tags" attrs="{'invisible':[('request_type','=','by_employee')]}" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="company_id" readonly="1" force_save="1"/>
+                                <field name="create_date" readonly="1"/>
+                                <field name="create_uid" readonly="1"/>
+                                <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="next_approver_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="is_overtime_approval_matrix" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Overtime Request Lines">
+                                <field name="request_line_ids">
+                                    <tree editable="bottom" create="0" delete="0">
+                                        <field name="employee_id" readonly="1"/>
+                                        <field name="overtime_reason" readonly="1"/>
+                                        <field name="date" force_save="1" readonly="1"/>
+                                        <field name="name_of_day"/>
+                                        <field name="start_time" widget="float_time" readonly="1"/>
+                                        <field name="end_time" widget="float_time" readonly="1"/>
+                                        <field name="number_of_hours" widget="float_time" string="Hours" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string=" Approval Matrix Lines" attrs="{'invisible':[('is_overtime_approval_matrix','=',False)]}">
+                                <field name="request_approval_line_ids">
+                                    <tree editable="bottom" create="0" delete="0">
+                                        <field name="sequence" readonly="1" force_save="1"/>
+                                        <field name="approver_id" widget="many2many_tags"  readonly="1" force_save="1"/>
+                                        <field name="matrix_user_ids" widget="many2many_tags" readonly="1" invisible="1" force_save="1"/>
+                                        <field name="is_delegation_mail_sent" invisible="1"/>
+                                        <field name="minimum_approver" readonly="1" force_save="1"/>
+                                        <field name="approval_status" readonly="1" force_save="1"/>
+                                        <field name="timestamp" readonly="1" force_save="1"/>
+                                        <field name="feedback" readonly="1" force_save="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="overtime_requests_tree_view" model="ir.ui.view">
+            <field name="name">hr.overtime.request.tree</field>
+            <field name="model">hr.overtime.request</field>
+            <field name="arch" type="xml">
+                <tree string="Overtime Request by Employee">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="description"/>
+                    <field name="period_start"/>
+                    <field name="period_end"/>
+                    <field name="total_hours"/>
+                    <field name="state" decoration-success="state == 'approved'" 
+                       decoration-danger="state == 'rejected'" 
+                       decoration-primary="state == 'draft'"
+                       decoration-warning="state == 'to_approve'"
+                       widget='badge'/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="overtime_request_lines_tree_view" model="ir.ui.view">
+            <field name="name">hr.overtime.request.line.tree</field>
+            <field name="model">hr.overtime.request.line</field>
+            <field name="arch" type="xml">
+                <tree string="Overtime Request Lines" create="0" edit="0">
+                    <field name="request_id" string="Number"/>
+                    <field name="employee_id"/>
+                    <field name="overtime_reason"/>
+                    <field name="date"/>
+                    <field name="name_of_day"/>
+                    <field name="start_time" widget="float_time"/>
+                    <field name="end_time" widget="float_time"/>
+                    <field name="number_of_hours" string="Hours" widget="float_time"/>
+                    <field name="state" decoration-danger="state == 'rejected'" 
+                       decoration-success="state == 'approved'" 
+                       decoration-warning="state == 'to_approve'" 
+                       decoration-primary="state == 'draft'" widget="badge"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="overtime_by_manager_tree_view" model="ir.ui.view">
+            <field name="name">hr.overtime.by.manager.tree</field>
+            <field name="model">hr.overtime.request</field>
+            <field name="arch" type="xml">
+                <tree string="Overtime Request by Manager">
+                    <field name="name"/>
+                    <field name="employee_ids" widget="many2many_tags"/>
+                    <field name="request_type"/>
+                    <field name="description"/>
+                    <field name="period_start"/>
+                    <field name="period_end"/>
+                    <field name="state" decoration-success="state == 'approved'" 
+                       decoration-danger="state == 'rejected'" 
+                       decoration-primary="state == 'draft'"
+                       decoration-warning="state == 'to_approve'"
+                       widget='badge'/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="overtime_requests_approval_tree_view" model="ir.ui.view">
+            <field name="name">hr.overtime.request.approval.tree</field>
+            <field name="model">hr.overtime.request</field>
+            <field name="arch" type="xml">
+                <tree string="Overtime Request to Approve" create="0">
+                    <field name="name"/>
+                    <field name="employee_ids" widget="many2many_tags"/>
+                    <field name="request_type"/>
+                    <field name="description"/>
+                    <field name="period_start"/>
+                    <field name="period_end"/>
+                    <!--<field name="total_hours"/>-->
+                    <field name="state" decoration-success="state == 'approved'" 
+                       decoration-danger="state == 'rejected'" 
+                       decoration-primary="state == 'draft'"
+                       decoration-warning="state == 'to_approve'"
+                       widget='badge'/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="overtime_requests_search_view" model="ir.ui.view">
+            <field name="name">hr.overtime.request.search</field>
+            <field name="model">hr.overtime.request</field>
+            <field name="arch" type="xml">
+                <search string="Overtime Requests">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="description"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="overtime_requests_act_window" model="ir.actions.act_window">
+            <field name="name">Overtime Request by Employee</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.overtime.request</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree','view_id':ref('overtime_requests_tree_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('overtime_requests_form_view')})]"/>
+            <field name="context">{'default_request_type':'by_employee'}</field>
+            <field name="domain">[('request_type','=','by_employee'),('employee_id.user_id','=',uid)]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click Create to add new Overtime Requests.
+                </p>
+            </field>
+        </record>
+
+        <record id="overtime_request_lines_act_window" model="ir.actions.act_window">
+            <field name="name">Overtime Request Lines</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.overtime.request.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree','view_id':ref('overtime_request_lines_tree_view')})]"/>
+            <field name="context">{}</field>
+            <field name="domain">[('employee_id.user_id','=',uid)]</field>
+        </record>
+
+        <record id="overtime_by_manager_act_window" model="ir.actions.act_window">
+            <field name="name">Overtime Request by Manager</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.overtime.request</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree','view_id':ref('overtime_by_manager_tree_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('overtime_by_manager_form_view')})]"/>
+            <field name="context">{'default_request_type':'by_manager'}</field>
+            <field name="domain">[('request_type','=','by_manager')]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click Create to add new Overtime.
+                </p>
+            </field>
+        </record>
+
+        <!-- <record id="overtime_requests_approval_act_window" model="ir.actions.act_window">
+            <field name="name">Overtime Request to Approve</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.overtime.request</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree','view_id':ref('overtime_requests_approval_tree_view')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('overtime_requests_approval_form_view')})]"/>
+            <field name="domain">[('state','=','to_approve')]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    No data found.
+                </p>
+            </field>
+        </record> -->
+
+        <record  model="ir.actions.server" id="overtime_requests_approval_act_window">
+            <field name="name">Overtime Request to Approve</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="model_hr_overtime_request"/>
+            <field name="code">action = model.custom_overtime_request_to_approve_menu()</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="equip3_hr_sg_report_payslip">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="sg_hr_report.external_layout">
+                    <div class="page">
+                        <h2 style="font-size: 38px;">Pay Slip</h2>
+                        <p t-field="o.name"/>
+
+                        <table width="100%" style="margin-top: 20px; margin-bottom: 20px;">
+                            <tr style="border: 1px solid black;">
+                                <td style="border: 1px solid black; padding: 4px"><strong>Name</strong></td>
+                                <td style="border: 1px solid black; padding: 4px"><span t-field="o.employee_id"/></td>
+                                <td style="border: 1px solid black; padding: 4px"><strong>Designation</strong></td>
+                                <td style="border: 1px solid black; padding: 4px"><span t-field="o.employee_id.job_id"/></td>
+                            </tr>
+                            <tr style="border: 1px solid black;">
+                                <td style="border: 1px solid black; padding: 4px"><strong>Email</strong></td>
+                                <td style="border: 1px solid black; padding: 4px"><span t-field="o.employee_id.work_email"/></td>
+                                <td style="border: 1px solid black; padding: 4px"><strong>Identification No</strong></td>
+                                <td style="border: 1px solid black; padding: 4px"><span t-field="o.employee_id.identification_id"/></td>
+                            </tr>
+                            <tr style="border: 1px solid black;">
+                                <td style="border: 1px solid black; padding: 4px"><strong>Reference</strong></td>
+                                <td style="border: 1px solid black; padding: 4px"><span t-field="o.number"/></td>
+                                <td style="border: 1px solid black; padding: 4px"><strong>Bank Account</strong></td>
+                                <td style="border: 1px solid black; padding: 4px"><span t-field="o.employee_id.bank_account_id"/></td>
+                            </tr>
+                            <tr style="border: 1px solid black;">
+                                <td style="border: 1px solid black; padding: 4px"><strong>Date From</strong></td>
+                                <td style="border: 1px solid black; padding: 4px"><span t-field="o.date_from"/></td>
+                                <td style="border: 1px solid black; padding: 4px"><strong>Date To</strong></td>
+                                <td style="border: 1px solid black; padding: 4px"><span t-field="o.date_to"/></td>
+                            </tr>
+                        </table>
+
+                        <table border="1" width="100%" style="margin-top: 20px; margin-bottom: 20px;border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid black;">
+                                    <th style="padding: 4px;">Code</th>
+                                    <th style="padding: 4px;">Name</th>
+                                    <th style="padding: 4px;">Quantity/rate</th>
+                                    <th style="padding: 4px;">Amount</th>
+                                    <th style="padding: 4px;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.line_ids.filtered(lambda line: line.appears_on_payslip)" t-as="line">
+                                    <tr style="border-bottom: 1px solid grey;">
+                                        <td style="padding: 4px;"><span t-field="line.code"/></td>
+                                        <td style="padding: 4px;"><span t-field="line.name"/></td>
+                                        <td style="padding: 4px;"><span t-field="line.quantity"/></td>
+                                        <td style="padding: 4px;"><span t-esc="line.amount"
+                                                t-esc-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                        <td style="padding: 4px;"><span t-esc="line.total"
+                                                t-esc-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <div style="margin-top:50px;">
+                            <p class="text-right"><strong>Authorized signature</strong></p>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="equip3_hr_sg_payslip_action_report" model="ir.actions.report">
+        <field name="name">Payslip</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_hr_sg_reports.equip3_hr_sg_report_payslip</field>
+        <field name="report_file">equip3_hr_sg_reports.equip3_hr_sg_report_payslip</field>
+        <field name="binding_model_id" ref="scs_hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+        <field name="print_report_name">('%s' % (object.report_file_name))</field>
+    </record>
+
+</odoo>

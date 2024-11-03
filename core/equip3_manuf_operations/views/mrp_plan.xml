@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record id="mrp_plan_form_view" model="ir.ui.view">
+            <field name="name">MRP Plan Form</field>
+            <field name="model">mrp.plan</field>
+            <field name="arch" type="xml">
+                <form string="Production Plan">
+                    <header>
+                        <field name="reserve_visible" invisible="1"/>
+                        <field name="unreserve_visible" invisible="1"/>
+                        <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" attrs="{'invisible': ['|', '&amp;', ('is_matrix_on', '=', True), ('state', '!=', 'approved'), '&amp;', ('is_matrix_on', '=', False), ('state', '!=', 'draft')]}"/>
+                        <button name="action_approval" string="Request Approval" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('is_matrix_on', '=', False)]}"/>
+                        <button name="action_approve" string="Approve" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('state', '!=', 'approval'), ('user_is_approver', '=', False), ('is_matrix_on', '=', False)]}"/>
+                        <button name="action_reject" string="Reject" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('state', '!=', 'approval'), ('user_is_approver', '=', False), ('is_matrix_on', '=', False)]}"/>
+                        <button name="action_cancel" string="Cancel"  type="object" class="oe_highlight" attrs="{'invisible': [('state', 'not in', ('draft', 'approval','approved', 'confirm'))]}"/>
+                        <button name="action_add" string="Add Production" states="draft" type="object" class="oe_highlight"/>
+                        <button name="action_done" string="Mark as Done" type="object" class="oe_highlight" attrs="{'invisible' : ['|',('state', 'not in', ['confirm','progress','to_close']),('mo_force_done', '!=', True)]}"/>
+                        <button name="action_done" string="Mark as Done" type="object" class="oe_highlight" attrs="{'invisible' : ['|',('state', '!=', 'to_close'),('mo_force_done', '!=', False)]}"/>
+                        <button name="action_check_availability" string="Check Availability" type="object" attrs="{'invisible': ['|', ('state', '!=', 'confirm'), ('reserve_visible', '=', False)]}"/>
+                        <button name="button_unreserve" type="object" string="Unreserve" attrs="{'invisible': ['|', ('state', '!=', 'confirm'), ('unreserve_visible', '=', False)]}"/>
+                        <button name="button_plan" type="object" string="Plan" attrs="{'invisible': ['|',('is_planned', '=', True), ('state', 'not in', ('confirm', 'progress'))]}" class="oe_highlight"/>
+                        <button name="button_unplan" type="object" string="Unplan" attrs="{'invisible': ['|', ('is_planned', '=', False), ('state', 'in', ('progress','to_close','done','cancel'))]}"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,approved,confirm,progress,done" attrs="{'invisible': [('is_matrix_on', '=', False)]}"/>
+                        <field name="state_no_approval_matrix" widget="statusbar" statusbar_visible="draft,confirm,progress,done" attrs="{'invisible': [('is_matrix_on', '=', True)]}"/>
+                        <field name="is_branch_required" invisible="1"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box"></div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="priority" widget="priority" nolabel="1" class="mr-3"/>
+                                <field name="plan_id" string="Production Plan" readonly="1" class="oe_inline"/>
+                            </h1>
+                        </div>
+                        <group name="group_prod_plan">
+                            <div name="container_prod_plan">
+                                <div class="row" name="row_prod_plan">
+                                    <div class="col" name="col_1">
+                                        <group name="group_col_1">
+                                            <field name="name" string="Plan Name" required="1"/>
+                                            <field name="product_ids" widget="many2many_tags" invisible="1"/>
+                                            <field name="is_matrix_on" invisible="1"/>
+                                            <field name="sale_order_id" attrs="{'invisible': [('sale_order_id', '=', False)]}"/>
+                                            <field name="ppic_id" options="{'no_create': True, 'no_create_edit':True}"/>
+                                            <field name="mrp_plan_order_creation" invisible="1"/>
+                                            <field name="is_auto_create_production_order" attrs="{'invisible': [('mrp_plan_order_creation', 'not in', ('auto_po_allow_manual', 'manual_po_allow_auto'))]}"/>
+                                        </group>
+                                    </div>
+                                    <div class="col" name="col_2">
+                                        <group name="group_col_2">
+                                            <label for="date_planned_start" string="Scheduled Date"/>
+                                            <div class="oe_inline">
+                                                <field name="date_planned_start" class="mr8 oe_inline" attrs="{'readonly': [('state', 'in', ('progress', 'done'))]}"/>
+                                                <strong class="mr8 oe_inline">to</strong>
+                                                <field name="date_planned_finished" class="oe_inline" readonly="1" force_save="1"/>
+                                            </div>
+                                            <field name="is_user_working" invisible="1"/>
+                                            <field name="workorder_working_count" invisible="1"/>
+                                            <label for="duration_expected" attrs="{'invisible': [('sale_order_id', '!=', False)]}"/>
+                                            <div attrs="{'invisible': [('sale_order_id', '!=', False)]}">
+                                                <field name="duration_expected" widget="float_time_hms" class="oe_inline"/> hours
+                                            </div>
+                                            <field name="reservation_state" invisible="1"/>
+                                            <field name="is_planned" invisible="1"/>
+                                            <label for="date_start" string="Actual Date" attrs="{'invisible': [('date_start', '=', False), ('date_finished', '=', False)]}"/>
+                                            <div class="oe_inline" attrs="{'invisible': [('date_start', '=', False), ('date_finished', '=', False)]}">
+                                                <field name="date_start" class="mr8 oe_inline"/>
+                                                <strong class="mr8 oe_inline">to</strong>
+                                                <field name="date_finished" class="oe_inline"/>
+                                            </div>
+                                            <label for="duration_expected" attrs="{'invisible': [('sale_order_id', '=', False)]}"/>
+                                            <div attrs="{'invisible': [('sale_order_id', '=', False)]}">
+                                                <field name="duration_expected" widget="float_time_hms" class="oe_inline"/> hours
+                                            </div>
+                                            <label for="duration"/>
+                                            <div>
+                                                <field name="duration" widget="equip_time_counter" class="oe_inline"/> hours
+                                            </div>
+                                            <field name="approval_matrix_id" attrs="{'invisible': [('is_matrix_on', '=', False)], 'required': [('is_matrix_on', '=', True)]}" readonly="1" force_save="1"/>
+                                        </group>
+                                    </div>
+                                    <div class="col" name="col_3">
+                                        <group name="group_col_3">
+                                            <field name="company_id" readonly="1" required="1"/>
+                                            <field name="branch_id" attrs="{'required': [('is_branch_required', '=', True)]}" options="{'no_create': True, 'no_create_edit':True}"/>
+                                            <field name="create_date" string="Created On" readonly="1"/>
+                                            <field name="create_uid" string="Created By" readonly="1"/>
+                                            <field name="user_is_approver" invisible="1"/>
+                                            <field name="mo_force_done" invisible="1"/>
+                                            <field name="is_mr_done" invisible="1"/>
+                                        </group>
+                                    </div>
+                                </div>
+                            </div>
+                        </group>
+<!--                        <group>-->
+<!--                            <group>-->
+<!--                                <field name="name" string="Plan Name"/>-->
+<!--                                <field name="product_ids" widget="many2many_tags" invisible="1"/>-->
+<!--                                <field name="is_matrix_on" invisible="1"/>-->
+<!--                                <field name="sale_order_id" attrs="{'invisible': [('sale_order_id', '=', False)]}"/>-->
+<!--                                <field name="ppic_id" options="{'no_create': True, 'no_create_edit':True}"/>-->
+<!--                                <label for="date_planned_start" string="Scheduled Date"/>-->
+<!--                                <div class="oe_inline">-->
+<!--                                    <field name="date_planned_start" class="mr8 oe_inline" attrs="{'readonly': ['|', ('state', 'in', ('progress', 'done')), ('is_planned', '=', True)]}"/>-->
+<!--                                    <strong class="mr8 oe_inline">to</strong>-->
+<!--                                    <field name="date_planned_finished" class="oe_inline" readonly="1" force_save="1"/>-->
+<!--                                </div>-->
+<!--                                <label for="date_start" string="Actual Date" attrs="{'invisible': [('date_start', '=', False), ('date_finished', '=', False)]}"/>-->
+<!--                                <div class="oe_inline" attrs="{'invisible': [('date_start', '=', False), ('date_finished', '=', False)]}">-->
+<!--                                    <field name="date_start" class="mr8 oe_inline"/>-->
+<!--                                    <strong class="mr8 oe_inline">to</strong>-->
+<!--                                    <field name="date_finished" class="oe_inline"/>-->
+<!--                                </div>-->
+<!--                                <field name="is_user_working" invisible="1"/>-->
+<!--                                <field name="workorder_working_count" invisible="1"/>-->
+<!--                                <label for="duration_expected"/>-->
+<!--                                <div>-->
+<!--                                    <field name="duration_expected" widget="float_time_hms" class="oe_inline"/> hours-->
+<!--                                </div>-->
+<!--                                <label for="duration"/>-->
+<!--                                <div>-->
+<!--                                    <field name="duration" widget="equip_time_counter" class="oe_inline"/> hours-->
+<!--                                </div>-->
+<!--                                <field name="hide_change_component_btn" invisible="1"/>-->
+<!--                                <field name="reservation_state" invisible="1"/>-->
+<!--                                <field name="is_planned" invisible="1"/>-->
+<!--                            </group>-->
+<!--                            <group>-->
+<!--                                <field name="analytic_tag_ids" optional="hide" groups="analytic.group_analytic_tags" widget="many2many_tags" string= "Analytic Group" required="1" options="{'no_create': True, 'no_create_edit':True}"/>-->
+<!--                                <field name="company_id" readonly="1" required="1"/>-->
+<!--                                <field name="branch_id" attrs="{'required': [('is_branch_required', '=', True)]}" options="{'no_create': True, 'no_create_edit':True}"/>-->
+<!--                                <field name="create_date" string="Created On" readonly="1"/>-->
+<!--                                <field name="create_uid" string="Created By" readonly="1"/>-->
+<!--                                <field name="approval_matrix_id" attrs="{'invisible': [('is_matrix_on', '=', False)], 'required': [('is_matrix_on', '=', True)]}" readonly="1" force_save="1"/>-->
+<!--                                <field name="user_is_approver" invisible="1"/>-->
+<!--                            </group>-->
+<!--                        </group>-->
+                        <notebook>
+                            <page string="To Produce" name="line_ids">
+                                <field name="line_ids">
+                                    <tree string="To Produce">
+                                        <field name="line_id" optional="hide"/>
+                                        <field name="sequence"/>
+                                        <field name="product_id"/>
+                                        <field name="bom_id"/>
+                                        <field name="to_produce_qty"/>
+                                        <field name="produced_qty"/>
+                                        <field name="created_qty"/>
+                                        <field name="remaining_qty"/>
+                                        <field name="uom_id"/>
+                                        <field name="order_ids" widget="many2many_tags"/>
+                                        <field name="no_of_mrp" optional="hide"/>
+                                        <field name="bom_line_id" optional="hide"/>
+                                        <field name="operation_id" optional="hide"/>
+                                        <field name="bom_datas" optional="hide"/>
+                                        <button name="action_create_production_order" type="object" class="oe_highlight" string="Create Production Order" attrs="{'invisible': ['|', '|', ('remaining_qty', '&lt;=', 0.0), ('parent.state', 'not in', ('confirm', 'progress')), ('parent.is_auto_create_production_order', '=', True)]}"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Plan Materials" name="material_ids">
+                                <field name="material_ids">
+                                    <tree string="Plan Materials">
+                                        <field name="product_id"/>
+                                        <field name="to_consume_qty"/>
+                                        <field name="reserved_qty" invisible="1"/>
+                                        <field name="uom_id"/>
+                                        <field name="location_id"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Materials" name="mo_stock_move_ids" attrs="{'invisible': [('state', 'in', ('draft', 'approval', 'approved'))]}">
+                                <field name="mo_stock_move_ids" nolabel="1" readonly="1">
+                                    <tree string="Components">
+                                        <field name="mrp_plan_id" invisible="1"/>
+                                        <field name="raw_material_production_id" string="Production Order"/>
+                                        <field name="workorder_id" string="Production Work Order"/>
+                                        <field name="product_id" string="Product"/>
+                                        <field name="move_line_ids" invisible="1">
+                                            <tree>
+                                                <field name="lot_id" invisible="1"/>
+                                                <field name="owner_id" invisible="1"/>
+                                                <field name="package_id" invisible="1"/>
+                                                <field name="result_package_id" invisible="1"/>
+                                                <field name="location_id" invisible="1"/>
+                                                <field name="location_dest_id" invisible="1"/>
+                                                <field name="qty_done" invisible="1"/>
+                                                <field name="product_id" invisible="1"/>
+                                                <field name="product_uom_id" invisible="1"/>
+                                                <field name="product_uom_qty" invisible="1"/>
+                                                <field name="state" invisible="1"/>
+                                                <field name="move_id" invisible="1"/>
+                                                <field name="id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                        <field name="lot_ids" widget="many2many_tags" string="Lot/ Serial Number" invisible="1"/>
+                                        <field name="product_uom_qty" string="To Consume" widget="mrp_should_consume" width="1"/>
+                                        <field name="product_type" invisible="1"/>
+                                        <field name="product_qty" invisible="1" readonly="1"/>
+                                        <field name="reserved_availability" invisible="1"/>
+                                        <field name="availability_uom_qty" string="Available" invisible="1"/>
+                                        <field name="forecast_availability" string="Reserved" widget="free_widget"/>
+                                        <field name="is_quantity_done_editable" invisible="1"/>
+                                        <field name="is_done" invisible="1"/>
+                                        <field name="should_consume_qty" invisible="1"/>
+                                        <field name="quantity_done" string="Consumed" 
+                                               decoration-success="not is_done and (quantity_done - should_consume_qty == 0)"
+                                               decoration-warning="not is_done and (quantity_done - should_consume_qty &gt; 0.0001)"
+                                               attrs="{'column_invisible': [('parent.state', 'in', ('draft', 'approval', 'approved'))], 'readonly': [('show_details_visible', '=', True)]}"/>
+                                        <field name="show_details_visible" invisible="1"/>
+                                        <field name="product_uom" string="Unit of Measure"/>
+                                        <field name="location_id" string="Production Location"/>
+                                        <field name="state" invisible="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Production Orders" name="mrp_order_ids">
+                                <field name="mrp_order_ids" nolabel="1" delete="0">
+                                    <tree string="Production Orders" create="false" default_order="id">
+                                        <field name="mrp_plan_id" string="Plan ID" invisible="1"/>
+                                        <field name="name" string="Production Order" decoration-bf="1"/>
+                                        <field name="workorder_ids" widget="many2many_tags" invisible="1"/>
+                                        <field name="product_id"/>
+                                        <field name="lot_producing_id" invisible="1"/>
+                                        <field name="product_qty" sum="Total Qty" string="To Produce" readonly="1"/>
+                                        <field name="qty_produced" string="Produced"/>
+                                        <field name="product_uom_id" string="Unit of Measure" options="{'no_open':True,'no_create':True}" groups="uom.group_uom"/>
+                                        <field name="date_planned_start"/>
+                                        <field name="date_planned_finished"/>
+                                        <field name="additional_mo" readonly="1"/>
+                                        <field name="parent_id" invisible="1"/>
+                                        <field name="child_ids" widget="many2many_tags"/>
+                                        <field name="state" widget="badge"/>
+                                        <field name="mrp_plan_state" invisible="1"/>
+                                        <field name="is_planned" invisible="1"/>
+                                        <button name="button_plan" attrs="{'invisible': ['|', '|', ('state', '!=', 'confirmed'), ('workorder_ids', '=', []), ('is_planned', '=', True)]}" type="object" string="Plan" class="oe_highlight"/>
+                                        <button name="button_unplan" type="object" string="Unplan" attrs="{'invisible': ['|', ('is_planned', '=', False), ('state', 'in', ('progress', 'to_close', 'done', 'cancel'))]}"/>
+                                        <button name="action_confirm" string="Confirm" type="object" attrs="{'invisible': ['|',('mrp_plan_state', '!=', 'confirm'),('state', '!=', 'draft')]}"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Production Work Orders" name="operations" groups="mrp.group_mrp_routings">
+                                <!-- PLEASE INHERIT VIA WORKORDER VIEW -->
+                                <field name="workorder_ids"
+                                       attrs="{'readonly': [('state','in', ('progress', 'to_close', 'done', 'cancel'))]}"
+                                       context="{
+                                       'tree_view_ref': 'equip3_manuf_operations.mrp_workorder_tree_editable_view_plan',
+                                       'form_view_ref': 'mrp.mrp_production_workorder_form_view_inherit'
+                                       }"/>
+                            </page>
+                            <page string="By-Products" name="move_byproduct_ids" groups="mrp.group_mrp_byproducts"
+                                attrs="{'invisible': [('move_byproduct_ids', '=', [])]}">
+                                <field name="move_byproduct_ids" readonly="1">
+                                    <tree default_order="is_done,sequence" decoration-muted="is_done" editable="bottom">
+                                        <field name="byproduct_id" invisible="1"/>
+                                        <field name="production_id" string="Production Order"/>
+                                        <field name="product_id"/>
+
+                                        <field name="move_line_ids" invisible="1">
+                                            <tree>
+                                                <field name="lot_id" invisible="1"/>
+                                                <field name="owner_id" invisible="1"/>
+                                                <field name="package_id" invisible="1"/>
+                                                <field name="result_package_id" invisible="1"/>
+                                                <field name="location_id" invisible="1"/>
+                                                <field name="location_dest_id" invisible="1"/>
+                                                <field name="qty_done" invisible="1"/>
+                                                <field name="product_id" invisible="1"/>
+                                                <field name="product_uom_id" invisible="1"/>
+                                                <field name="product_uom_qty" invisible="1"/>
+                                                <field name="state" invisible="1"/>
+                                                <field name="move_id" invisible="1"/>
+                                                <field name="id" invisible="1"/>
+                                            </tree>
+                                        </field>
+
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="product_uom_category_id" invisible="1"/>
+                                        <field name="name" invisible="1"/>
+                                        <field name="allowed_operation_ids" invisible="1"/>
+                                        <field name="unit_factor" invisible="1"/>
+                                        <field name="date" invisible="1"/>
+                                        <field name="additional" invisible="1"/>
+                                        <field name="picking_type_id" invisible="1"/>
+                                        <field name="has_tracking" invisible="1"/>
+                                        <field name="operation_id" invisible="1"/>
+                                        <field name="is_done" invisible="1"/>
+                                        <field name="bom_line_id" invisible="1"/>
+                                        <field name="sequence" invisible="1"/>
+                                        <field name="location_id" invisible="1"/>
+                                        <field name="warehouse_id" invisible="1"/>
+                                        <field name="is_locked" invisible="1"/>
+                                        <field name="has_move_lines" invisible="1"/>
+                                        <field name="location_dest_id"/>
+                                        <field name="state" invisible="1" force_save="1"/>
+                                        <field name="product_uom_qty" string="To Produce"/>
+                                        <field name="is_quantity_done_editable" invisible="1"/>
+                                        <field name="quantity_done" string="Produced"/>
+                                        <field name="product_uom" groups="uom.group_uom"/>
+                                        <field name="show_details_visible" invisible="1"/>
+                                        <field name="lot_ids" widget="many2many_tags"
+                                            groups="stock.group_production_lot"
+                                        />
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Labor" name="assign_ids">
+                                <group>
+                                    <field name="labor_allowed_workorder_ids" invisible="1"/>
+                                    <field name="labor_hide_assign_button" invisible="1"/>
+                                    <field name="labor_type" widget="radio"/>
+                                    <field name="labor_production_id" string="Production Order" options="{'no_create': True, 'no_create_edit': True}"/>
+                                    <field name="labor_workorder_id" string="Job Order" options="{'no_create': True, 'no_create_edit': True}"/>
+                                    <field name="labor_group_id" attrs="{'invisible': [('labor_type', '!=', 'with_group')]}" options="{'no_create': True, 'no_create_edit': True}"/>
+                                    <field name="labor_ids" attrs="{'invisible': [('labor_type', '!=', 'without_group')]}" widget="many2many_tags" options="{'no_create': True, 'no_create_edit': True}"/>
+                                </group>
+                                <div class="oe_edit_only mb-2">
+                                    <button name="action_assign_labor" type="object" class="oe_inline oe_highlight mr-2" string="Assign" attrs="{'invisible': [('labor_hide_assign_button', '=', True)]}"/>
+                                    <button name="action_remove_labor" type="object" class="oe_inline oe_highlight" string="Remove All" attrs="{'invisible': [('assign_ids', '=', [])]}"/>
+                                </div>
+                                <field name="assign_ids" attrs="{'invisible': [('assign_ids', '=', [])]}">
+                                    <tree editable="bottom" create="false" trash-icon="['pending', 'ready', 'cancel'].includes($workorder_state)">
+                                        <field name="plan_id" invisible="1"/>
+                                        <field name="production_id" invisible="1"/>
+                                        <field name="allowed_workorder_ids" invisible="1"/>
+                                        <field name="workorder_id" string="Production Work Order"/>
+                                        <field name="workorder_state" invisible="1"/>
+                                        <field name="labor_id"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Approval Matrix Lines" name="approval_matrix_lines" attrs="{'invisible': [('is_matrix_on', '=', False)]}">
+                                <field name="approval_matrix_line_ids" context="{
+                                    'tree_view_ref': 'equip3_manuf_operations.view_mrp_approval_matrix_entry_tree',
+                                    'form_view_ref': 'equip3_manuf_operations.view_mrp_approval_matrix_entry_form',
+                                }"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                     <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="mrp_plan_form_tree" model="ir.ui.view">
+            <field name="name">MRP Plan Tree</field>
+            <field name="model">mrp.plan</field>
+            <field name="arch" type="xml">
+                <tree string="Production Plan" default_order="priority desc, date_planned_start desc">
+                    <field name="priority" optional="show" widget="priority" nolabel="1"/>
+                    <field name="plan_id" string="PRODUCTION PLAN"/>
+                    <field name="name"/>
+                    <field name="ppic_id"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="branch_id" optional="hide" invisible="1"/>
+                    <field name="date_planned_start"/>
+                    <field name="date_planned_finished"/>
+                    <field name="reservation_state" optional="hide"/>
+                    <field name="state" optional="show" widget='badge' decoration-muted="state == 'draft'" decoration-warning3="state == 'approval'" decoration-warning2="state == 'approved'" decoration-danger="state == 'reject'" decoration-primary="state == 'confirm'" decoration-danger3="state == 'cancel'" decoration-warning="state == 'progress'" decoration-success3="state == 'to_close'" decoration-success="state == 'done'"/>
+                </tree>
+            </field>
+        </record>
+        <record id="mrp_plan_search" model="ir.ui.view">
+            <field name="name">MRP Plan Search</field>
+            <field name="model">mrp.plan</field>
+            <field name="arch" type="xml">
+                <search string="Search Plan">
+                    <field name="plan_id" string="Production Plan"/>
+                    <field name="name"/>
+                    <field name="create_date"/>
+                    <field name="ppic_id"/>
+                    <field name="reservation_state"/>
+                    <field name="date_planned_start"/>
+                    <field name="date_start"/>
+
+                    <separator/>
+                    <filter name="filter_create_date" date="create_date"/>
+
+                    <separator/>
+                    <filter name="state_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                    <filter name="state_approval" string="To be Approved" domain="[('state', '=', 'approval')]"/>
+                    <filter name="state_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                    <filter name="state_reject" string="Rejected" domain="[('state', '=', 'reject')]"/>
+                    <filter name="state_confirm" string="Confirmed" domain="[('state', '=', 'confirm')]"/>
+                    <filter name="state_cancel" string="Cancelled" domain="[('state', '=', 'cancel')]"/>
+                    <filter name="state_in progress" string="In Progress" domain="[('state', '=', 'progress')]"/>
+                    <filter name="state_done" string="Done" domain="[('state', '=', 'done')]"/>
+                    <separator/>
+                    <filter name="reservation_state_waiting" string="Waiting for Material" domain="[('reservation_state', '=', 'waiting')]"/>
+                    <filter name="reservation_state_available" string="Material Available" domain="[('reservation_state', '=', 'available')]"/>
+
+                    <separator/>
+                    <filter name="filter_date_planned_start" string="Scheduled Date" date="date_planned_start"/>
+
+                    <group expand="0" string="Group By...">
+                        <filter name="group_state" string="Status" domain="[]" context="{'group_by': 'state'}"/>
+                        <filter name="group_reservation_state" string="Material Availability" domain="[]" context="{'group_by': 'reservation_state'}"/>
+                        <filter string="Scheduled Date" name="scheduled_date" domain="[]" context="{'group_by': 'date_planned_start'}" help="Scheduled Date by Month"/>
+                    </group>
+
+                    <searchpanel view_types="tree,kanban,pivot,graph">
+                        <field name="product_ids"/>
+                        <field name="ppic_id"/>
+                        <field name="reservation_state"/>
+                        <field name="state"/>
+                    </searchpanel>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_mrp_plan">
+            <field name="name">Production Plan</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">mrp.plan</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+               Create a new Production Plan
+              </p>
+            </field>
+        </record>
+
+</odoo>

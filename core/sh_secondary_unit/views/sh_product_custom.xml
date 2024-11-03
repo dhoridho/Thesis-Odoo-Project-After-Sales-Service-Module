@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="sh_product_custom_view" model="ir.ui.view">
+        <field name="name">sh.product.custom.view</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='group_standard_price']/field[@name='uom_id']" position="after">
+                <field name="category_id" invisible="1" />
+                <field name="sh_is_secondary_unit" />
+                <field name="sh_secondary_uom" attrs="{'invisible': [('sh_is_secondary_unit', '=', False)],'required': [('sh_is_secondary_unit', '=', True)]}" domain="[('category_id','=',category_id)]" />
+            </xpath>
+        </field>
+    </record>
+    <record id="sh_stock_product_inherit_view" model="ir.ui.view">
+        <field name="name">sh.stock.product.inherit.view</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="stock.product_form_view_procurement_button" />
+        <field name="arch" type="xml">
+            <button name="action_open_quants" position="before">
+                <button type="object" name="action_open_quants" attrs="{'invisible':[('type', '!=', 'product')]}" class="oe_stat_button" icon="fa-th-large">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value" widget="statinfo">
+                            <field name="sh_secondary_uom_onhand" widget="statinfo" class="mr4" />
+                            <field name="sh_uom_name" />
+                        </span>
+                        <span class="o_stat_text">On Hand</span>
+                    </div>
+                </button>
+            </button>
+            <button name="action_open_quants" position="after">
+                <button type="object" name="action_product_forecast_report" attrs="{'invisible':[('type', '!=', 'product')]}" class="oe_stat_button" icon="fa-th-large">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="sh_secondary_uom_forecasted" widget="statinfo" />
+                            <field name="sh_uom_name" />
+                        </span>
+                        <span class="o_stat_text">Forecasted</span>
+                    </div>
+                </button>
+            </button>
+        </field>
+    </record>
+    <record id="sh_product_custom_tree_view" model="ir.ui.view">
+        <field name="name">sh.product.custom.tree.view</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='uom_id']" position="after">
+                <field name="sh_secondary_uom_onhand" />
+                <field name="sh_secondary_uom_forecasted" />
+                <field name="sh_secondary_uom" />
+            </xpath>
+        </field>
+    </record>
+</odoo>

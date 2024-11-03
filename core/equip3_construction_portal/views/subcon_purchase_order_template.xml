@@ -1,0 +1,268 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+        <!-- Add you code here -->
+        <template id="portal_my_home_menu_subcon_po" name="Portal layout : Subcon Purchase Order menu entries" inherit_id="portal.portal_breadcrumbs" priority="30">
+            <!--<xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+                <li t-if="page_name == 'subcon_po'" t-attf-class="breadcrumb-item #{'active ' if not subcon_po_quote else ''}">
+&lt;!&ndash;                <li t-if="page_name == 'subcon_po'" class="breadcrumb-item">&ndash;&gt;
+                    <a t-if="subcon_po_quote" t-attf-href="/my/subcon/purchase/order?{{ keep_query() }}">Subcon Purchase Order</a>
+                    <t t-else="">Subcon Purchase Order</t>
+                </li>
+                <li t-if="subcon_po_quote" class="breadcrumb-item active">
+                    <span t-field="subcon_po_quote.name" />
+                </li>
+            </xpath>-->
+
+            <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+                <li t-if="page_name == 'subcon_po' or subcon_po_quote" t-attf-class="breadcrumb-item #{'active ' if not subcon_po_quote else ''}">
+                    <a t-if="subcon_po_quote" t-attf-href="/my/subcon/purchase/order?{{ keep_query() }}">Subcon Purchase Order</a>
+                    <t t-else="">Subcon Purchase Order</t>
+                </li>
+                <li t-if="subcon_po_quote" class="breadcrumb-item active">
+                    <span t-field="subcon_po_quote.name" />
+                </li>
+            </xpath>
+        </template>
+
+        <template id="ba_subcon_purchase_order_template" name="Portal: Subcon Purchase Order">
+            <t t-call="portal.portal_layout">
+                <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+                <t t-call="portal.portal_searchbar">
+                    <t t-set="title">Subcon Purchase Order</t>
+                </t>
+                <t t-if="rfqs" t-call="portal.portal_table">
+                    <style>
+                        td {
+                        white-space:normal !important;
+                        box-sizing:content-box !important;
+                        }
+                    </style>
+                    <thead>
+                        <tr class="active">
+                            <th>Purchase Order</th>
+                            <th>Tender</th>
+                            <th>Confirmation Date</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="rfqs" t-as="order">
+                            <tr>
+                                <td>
+                                    <a t-attf-href="/my/subcon/purchase/order/#{order.id}?#{keep_query()}"><t t-esc="order.name" /></a>
+                                </td>
+                                <td>
+                                    <span><t t-esc="order.agreement_id.name"/></span>
+                                </td>
+                                <td><span t-field="order.date_order" /></td>
+                                <td><span t-field="order.total_all" t-options='{"widget": "monetary", "display_currency": order.currency_id}' /></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </t>
+            </t>
+        </template>
+        <!--   open quotation   -->
+        <template id="ba_portal_subcon_purchase_order_form_templates" name="subcon Tender submission Portal Template" inherit_id="portal.portal_sidebar"
+                primary="True">
+            <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+                <div class="row mt16 o_portal_sale_sidebar">
+                    <!-- Sidebar -->
+                    <t t-call="portal.portal_record_sidebar">
+                        <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+                        <t t-set="entries">
+                            <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                                <li class="list-group-item flex-grow-1">
+                                    <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                        <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                            <a class="btn btn-secondary btn-block o_download_btn"
+                                            t-att-href="subcon_po_quote.get_portal_url(report_type='pdf', download=True)"
+                                            title="Download"><i class="fa fa-download"/> Download</a>
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                    <ul class="nav flex-column bs-sidenav"></ul>
+                                </li>
+                                <li class="list-group-item flex-grow-1">
+                                    <div class="small mb-1"><strong class="text-muted">Responsible</strong></div>
+                                    <div class="row flex-nowrap">
+                                        <div class="col flex-grow-0 pr-2">
+                                            <img class="rounded-circle mr4 float-left o_portal_contact_img"
+                                                t-if="subcon_po_quote.create_uid.image_1024"
+                                                t-att-src="image_data_uri(subcon_po_quote.create_uid.image_1024)" alt="Contact"/>
+                                            <img class="rounded-circle mr4 float-left o_portal_contact_img"
+                                                t-if="not subcon_po_quote.create_uid.image_1024"
+                                                src="/web/static/src/img/placeholder.png" alt="Contact"/>
+                                        </div>
+                                        <div class="col pl-0" style="min-width: 150px;">
+                                            <span t-field="subcon_po_quote.create_uid"
+                                                t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}'/>
+                                            <a href="#discussion" class="small"><i class="fa fa-comment"></i> Send
+                                                message</a>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </t>
+                    </t>
+
+                    <!-- Page content -->
+                    <div id="rfq_content" class="col-12 col-lg-9 justify-content-end p-lg-0 ml-lg-2">
+                        <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                            <div t-call="equip3_construction_portal.ba_subcon_purchase_order_portal_contents_new"/>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </template>
+        <template id="ba_subcon_purchase_order_portal_contents_new" name="subcon Purchase order Portal Content">
+            <!-- Intro -->
+            <div id="introduction" t-attf-class="pb-2 pt-3 #{'card-header bg-white' if report_type == 'html' else ''}">
+                <h2 class="my-0">
+                    <em t-esc="subcon_po_quote.name"/>
+                </h2>
+            </div>
+            <br/>
+            <div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+                <!-- Informations -->
+                <div id="informations">
+                    <div class="row">
+                        <div class="mb-3 col-6"><strong>Date:</strong> <span t-field="subcon_po_quote.date_order"
+                                                                            t-options='{"widget": "date"}'/></div>
+                    </div>
+                </div>
+                <section id="details" style="page-break-inside: auto;" class="mt32">
+                    <div class="container">
+                        <style>
+                            table {
+                            border-collapse: collapse;
+                            border-spacing: 0;
+                            width: 120%;
+                            }
+
+                            th, td {
+                            text-align: left;
+                            padding: 8px;
+                            }
+
+                        </style>
+                        <form action="/subcon/purchase/order/update?is_subcon_tender=True" method="post">
+                            <input type="hidden" name="order_id" t-att-value="subcon_po_quote.id" id="order_id"/>
+                            <h3 id="details">Subcon Purchase Order</h3>
+                            <div style="overflow-x:auto;">
+                                <table>
+                                    <tr>
+                                        <th>Project scope</th>
+                                        <th>Section</th>
+                                        <th>Subcon job</th>
+                                        <th>Quantity</th>
+                                        <th>UOM</th>
+                                        <th nowrap="nowrap" style="width:200px;">Unit Price</th>
+                                        <th>Taxes</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                    <t t-foreach="subcon_po_quote.variable_line_ids" t-as="ol">
+                                        <tr>
+                                            <input type="hidden" name="variable_id" t-att-value="ol.id" id="order_id"/>
+                                            <td><span t-field="ol.project_scope.name"/></td>
+                                            <td><span t-field="ol.section.name"/></td>
+                                            <td><span t-field="ol.variable.name"/></td>
+                                            <td><span t-field="ol.quantity"/></td>
+                                            <td><span t-field="ol.uom.name"/></td>
+                                            <td><span t-field="ol.sub_total"/></td>
+                                            <td><span t-field="ol.progressive_claim_perc"/></td>
+                                            <td><span t-field="ol.total"
+                                                    t-options='{"widget": "monetary", "display_currency": subcon_po_quote.currency_id}'/></td>
+                                        </tr>
+                                    </t>
+                                </table>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <label for="rfq_note" style="margin-top: 10px;">Terms and Conditions</label>
+                                    <t t-set="notes" t-value=""/>
+                                    <t t-if="subcon_po_quote.term_condition_box">
+                                        <t t-set="notes" t-value="subcon_po_quote.set_notes()"/>
+                                    </t>
+                                    <!-- Textarea hide because editing not required more. Logic change -->
+                                    <div t-att-data-readonly="'1' if subcon_po_quote.state == 'retreat' else None" type="text" name="rfq_note"
+                                            class="form-control o_survey_question_text_box bg-transparent text-dark rounded-0 p-0"
+                                            placeholder="Terms and conditions......" rows="10" cols="50"><t
+                                            t-raw="notes"/></div>
+                                    <br/>
+                                    <!-- Add below lines to show Terms and Conditions in HTML view-->
+                                    <!--                                <t t-raw="rfq_tenders.term_condition_box"/>-->
+                                    <!--                                <style>p {margin-bottom: 0;}</style>-->
+                                </div>
+                                <div class="col-12">
+                                    <label for="agreement_note" style="margin-top: 10px;">Service Level Agreement</label>
+                                    <t t-if="subcon_po_quote.service_level_agreement_box">
+                                        <t t-set="service_level_agreement_box" t-value="subcon_po_quote.set_notes_service()"/>
+                                    </t>
+                                    <div t-att-data-readonly="'1' if subcon_po_quote.state == 'retreat' else None" type="text" name="agreement_note"
+                                            class="form-control o_survey_question_text_box bg-transparent text-dark rounded-0 p-0"
+                                            placeholder="Agreements......" rows="10" cols="50"><t
+                                                t-raw="service_level_agreement_box"/></div>
+                                    <!--                                Add below lines to show Terms and Conditions in HTML view-->
+                                    <!--                                <t t-raw="rfq_tenders.term_condition_box"/>-->
+                                    <!--                                <style>p {margin-bottom: 0;}</style>-->
+                                </div>
+                            </div>
+<!--                            <button type="submit" t-if="subcon_po_quote.state != 'retreat' and subcon_po_quote.agreement_id.state2 not in ('bid_selection','closed','cancel')" id="btn_update_bid" class="btn btn-secondary" title="Update Bid">Update-->
+<!--                                Bid</button>-->
+<!--                            <button type="submit" t-if="subcon_po_quote.state != 'retreat' and subcon_po_quote.agreement_id.state2 not in ('bid_selection','closed','cancel')" id="btn_retreat_subcon_tender" class="btn btn-secondary" title="Retreat">Retreat</button>-->
+                        </form>
+                        <div class="row mt-4" id="amount_div">
+                            <div class="col-lg-12 text-right">
+                                <div class="row">
+                                    <div class="col-lg-10 text-right">
+                                        Untaxed Amount:
+                                    </div>
+                                    <div class="col-lg-2 text-right">
+<!--                                        <span t-field="subcon_po_quote.amount_untaxed"-->
+                                        <span t-field="subcon_po_quote.total"
+                                            t-options='{"widget": "monetary", "display_currency": subcon_po_quote.currency_id}'/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-10 text-right">
+                                        Discount (-):
+                                    </div>
+                                    <div class="col-lg-2 text-right">
+                                        <span t-field="subcon_po_quote.discount_amount"
+                                            t-options='{"widget": "monetary", "display_currency": subcon_po_quote.currency_id}'/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-10 text-right">
+                                        Taxes:
+                                    </div>
+                                    <div class="col-lg-2 text-right">
+                                        <span t-field="subcon_po_quote.tax_amount"
+                                            t-options='{"widget": "monetary", "display_currency": subcon_po_quote.currency_id}'/>
+                                    </div>
+                                </div>
+                                <div class="row"
+                                    style="position:absolute;right:25px;border-top:2px solid black;width:275px;"></div>
+                                <div class="row">
+                                    <div class="col-lg-10 text-right" style="{'}">
+                                        <strong>Total:</strong>
+                                    </div>
+                                    <div class="col-lg-2 text-right">
+                                        <strong><span t-field="subcon_po_quote.total_all"
+                                                    t-options='{"widget": "monetary", "display_currency": subcon_po_quote.currency_id}'/></strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr/>
+                    </div>
+                </section>
+            </div>
+        </template>
+    </data>
+</odoo>

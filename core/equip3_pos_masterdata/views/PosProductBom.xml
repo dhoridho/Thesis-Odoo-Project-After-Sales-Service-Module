@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_product_bom_tree" model='ir.ui.view'>
+        <field name='name'>pos.product.bom.tree</field>
+        <field name='model'>pos.product.bom</field>
+        <field name='arch' type='xml'>
+            <tree string='POS Products BoM'>
+                <field name="name" />
+                <field name="product_id" />
+                <field name="product_uom_id" />
+                <field name="company_id"/>
+                <field name="branch_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_pos_product_bom_form" model='ir.ui.view'>
+        <field name='name'>pos.product.bom.form</field>
+        <field name='model'>pos.product.bom</field>
+        <field name='arch' type='xml'>
+            <form string='POS Products BoM'>
+                <header>
+                    <button name="set_to_draft" id="set_to_draft" string="Set to Draft" class="btn-primary" type="object" attrs="{'invisible': [('state', 'in', ['draft'])]}" groups="point_of_sale.group_pos_manager" />
+                    <button name="confirm_bom" id="confirm_bom" string="Confirm" class="btn-primary" type="object" attrs="{'invisible': [('state', 'not in', ['draft'])]}" groups="point_of_sale.group_pos_manager"/>
+                    <button name="cancel_bom" id="cancel_bom" string="Cancel" class="btn-primary" type="object" attrs="{'invisible': [('state', 'not in', ['confirmed'])]}" groups="point_of_sale.group_pos_manager" />
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,cancelled" />
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Structure Name" nolabel="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="product_id" attrs="{'readonly': [('state', 'in', ('confirmed','cancelled'))]}" />
+                        <field name="product_tmpl_id" invisible="1" />
+                        <field name="product_qty" attrs="{'readonly': [('state', 'in', ('confirmed','cancelled'))]}" />
+                        <field name="product_uom_id" attrs="{'readonly': [('state', 'in', ('confirmed','cancelled'))]}" />
+                        <field name="company_id"/>
+                        <field name="branch_id"/>
+                    </group>
+                    <notebook>
+                        <page string="Product Structure">
+                            <field name="product_bom_line_ids" widget="one2many_list" attrs="{'readonly': [('state', 'in', ('confirmed','cancelled'))]}">
+                                <tree string="Product Components" editable="bottom">
+                                    <field name="product_id" context="{'default_type': 'product'}" />
+                                    <field name="product_qty" />
+                                    <field name="product_uom_id" options="{'no_open':True,'no_create':True}" />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pos_product_bom_action" model="ir.actions.act_window">
+        <field name="name">POS Products BoM</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">pos.product.bom</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- <record id="product_template_form_view_inherited" model="ir.ui.view">
+        <field name="name">product.template.common.form.inherited</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='options']" position="inside">
+                <field name="is_pos_bom" /> 
+                <label for="is_pos_bom" /> 
+            </xpath>
+        </field>
+    </record> -->
+
+    <record id="product_product_form_view_inherited" model="ir.ui.view">
+        <field name="name">product.product.common.form.inherited</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='options']" position="inside">
+                <field name="is_pos_bom" invisible="1" />
+            </xpath>
+            <xpath expr="//field[@name='lst_price']" position="after">
+                <field name="product_bom_id" invisible="1" />
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="menu_pos_product_bom" 
+        name="POS Product BoM" 
+        parent="point_of_sale.pos_config_menu_catalog" 
+        sequence="13"
+        action="pos_product_bom_action" />
+
+</odoo>

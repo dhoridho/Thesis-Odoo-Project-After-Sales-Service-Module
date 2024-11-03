@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_rfq_tree_view_custom" model="ir.ui.view">
+        <field name="name">purchase.rfq.tree.view.custom</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_tree" />
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="agreement_id" />
+            </field>
+        </field>
+    </record>
+    <record id="purchase_order_tree_view_custom" model="ir.ui.view">
+        <field name="name">purchase.order.tree.view.custom</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree" />
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="agreement_id" />
+            </field>
+        </field>
+    </record>
+    <record id="view_purchase_order_form_view" model="ir.ui.view">
+        <field name="name">purchase.order.form.view</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form" />
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="agreement_id" />
+                <field name="cancel_lines" invisible="1" />
+                <field name="selected_order" invisible="1" />
+            </field>
+            <xpath expr="//field[@name='order_line']//tree//field[@name='name']" position="after">
+                <field name="agreement_id" />
+                <field name="status" />
+                <field name="cancel_lines" invisible="1" />
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="after">
+                <div class="row">
+                    <div class="col-12">
+                        <p width="100%" class="alert alert-danger" role="alert" attrs="{'invisible':['|',('sh_msg','=',''),('partner_id','=',False)]}"><field name="sh_msg" /></p>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    <record id="sh_purchase_order_search_view" model="ir.ui.view">
+        <field name="name">sh.purchase.order.search.view</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter" />
+        <field name="arch" type="xml">
+            <field name="partner_id" position="before">
+                <field name="agreement_id" />
+                <field name="selected_order" />
+            </field>
+            <filter name="my_purchases" position="before">
+                <filter string="Selected Orders" name="selected_orders" domain="[('selected_order','=',True)]" />
+            </filter>
+            <filter name="vendor" position="before">
+                <filter string="Tender" name="tedner" domain="[]" context="{'group_by':'agreement_id'}" />
+                <filter string="Selected Orders" name="selected_orders" domain="[('selected_order','=',True)]" context="{'group_by':'selected_order'}" />
+            </filter>
+        </field>
+    </record>
+    <record id="sh_bidline_form_view" model="ir.ui.view">
+        <field name="name">sh.bidline.form.view</field>
+        <field name="model">purchase.order.line</field>
+        <field name="arch" type="xml">
+            <form string="Tender Lines" create="0" edit="0">
+                <sheet>
+                    <group>
+                        <field name="order_id" />
+                        <field name="name" />
+                        <field name="partner_id" string="Vendor" />
+                        <field name="product_id" />
+                        <field name="price_unit" />
+                        <field name="product_qty" />
+                        <field name="price_subtotal" />
+                        <field name="price_subtotal" />
+                        <field name="status" />
+                        <field name="agreement_id" invisible="1" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="sh_bidline_tree_view" model="ir.ui.view">
+        <field name="name">sh.bidline.tree.view</field>
+        <field name="model">purchase.order.line</field>
+        <field name="arch" type="xml">
+            <tree string="Tender Lines" create="0" edit="0" decoration-danger="status=='cancel'" decoration-success="status=='confirm'">
+                <field name="order_id" />
+                <field name="name" />
+                <field name="partner_id" string="Vendor" />
+                <field name="product_id" />
+                <field name="price_unit" />
+                <field name="product_qty" />
+                <field name="price_subtotal" />
+                <field name="status" />
+                <field name="agreement_id" invisible="1" />
+                <button name="action_update_qty" icon="fa-shopping-cart" type="object" />
+                <button name="action_confirm" icon="fa-check" type="object" />
+                <button name="action_cancel" icon="fa-times" type="object" />
+            </tree>
+        </field>
+    </record>
+    <record id="sh_po_bidline_search_view" model="ir.ui.view">
+        <field name="name">sh.po.bidline.search.view</field>
+        <field name="model">purchase.order.line</field>
+        <field name="arch" type="xml">
+            <search string="Tender Lines Search View">
+                <field name="name" />
+                <filter name="hide_cancelled_lines" string="Hide cancelled Lines" domain="[('state', '!=', 'cancel')]" />
+                <group expand="0" string="Group By">
+                    <filter name="tender" string="Tender" domain="[('agreement_id','!=',False)]" context="{'group_by':'agreement_id'}" />
+                    <filter name="groupby_product" string="Product" domain="[]" context="{'group_by':'product_id'}" />
+                    <filter name="order" string="Purchase Order" domain="[]" context="{'group_by':'order_id'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="purchase_order_line_pivot_custom">
+        <field name="name">purchase.order.line.pivot.custom</field>
+        <field name="model">purchase.order.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Tender Lines">
+                <field name="product_id" type="row" />
+                <field name="partner_id" type="col" />
+                <field name="product_qty" type="measure" />
+                <field name="price_unit" type="measure" />
+            </pivot>
+        </field>
+    </record>
+    <record id="action_po_bidline_action" model="ir.actions.act_window">
+        <field name="name">Tender Lines</field>
+        <field name="res_model">purchase.order.line</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">tree,pivot,form</field>
+        <field name="domain">[('state','not in',['cancel']),('order_id.state','in',['draft'])]</field>
+        <field name="context">{'search_default_hide_cancelled_lines':1,'search_default_tender':1,'search_default_groupby_product':1}</field>
+        <field name="view_id" ref="sh_bidline_tree_view" />
+        <field name="search_view_id" ref="sh_po_bidline_search_view" />
+    </record>
+
+    <menuitem id="bidlines_menu" name="Analyze Multiple Tenders" action="action_po_bidline_action" parent="purchase.menu_procurement_management" />
+</odoo>

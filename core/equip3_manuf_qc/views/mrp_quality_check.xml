@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_quality_check_form_view" model="ir.ui.view">
+        <field name="name">sh.mrp.quality.check.form.view</field>
+        <field name="model">sh.mrp.quality.check</field>
+        <field name="inherit_id" ref="sh_inventory_mrp_qc.mrp_quality_check_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pass,fail"/>
+                </header>
+            </xpath>
+            <xpath expr="//field[@name='sh_mrp']" position="before">
+                <field name="sh_plan_id" attr="{'invisible': [('sh_plan_id', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//field[@name='sh_mrp']" position="attributes">
+                <attribute name="attrs">{'invisible': [('sh_mrp', '=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sh_workorder_id']" position="attributes">
+                <attribute name="attrs">{'invisible': [('sh_workorder_id', '=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sh_workorder_id']" position="after">
+                <field name="sh_consumption_id" attr="{'invisible': [('sh_consumption_id', '=', False)]}"/>
+                <field name="move_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='sh_control_point']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='qc_type']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='qc_type']" position="after">
+                <field name="type_of_qc"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp_quality_check_wizard_tree_view" model="ir.ui.view">
+        <field name="name">sh.mrp.quality.check.wizard.tree.view</field>
+        <field name="model">sh.mrp.quality.check</field>
+        <field name="arch" type="xml">
+            <tree string="Quality Check" create="false" export_xlsx="false">
+                <field name="move_id" invisible="1"/>
+                <field name="sh_consumption_id" invisible="1"/>
+                <field name="control_point_id" invisible="1"/>
+                <field name="sh_control_point" string="Reference"/>
+                <field name="description" string="Name"/>
+                <field name="product_id"/>
+                <field name="product_type"/>
+                <field name="qc_type" string="QC Type"/>
+                <field name="state" widget="badge" decoration-danger="state == 'fail'" decoration-success="state == 'pass'"/>
+                <button name="action_inspect" string="Inspect" class="oe_highlight" type="object" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="mrp_quality_check_wizard_search_view" model="ir.ui.view">
+        <field name="name">sh.mrp.quality.check.wizard.search.view</field>
+        <field name="model">sh.mrp.quality.check</field>
+        <field name="arch" type="xml">
+            <search string="Quality Check">
+                <field name="control_point_id" string="Reference"/>
+                <field name="product_id"/>
+                <field name="product_type"/>
+                <field name="qc_type" string="QC Type"/>
+                <field name="state"/>
+                <group expand="0" string="Group By">
+                    <filter string="Quality Control Point" name="control_point" context="{'group_by': 'sh_control_point'}"/>
+                    <filter string="Product" name="product" context="{'group_by': 'product_id'}"/>
+                    <filter string="Product Type" name="product_type" context="{'group_by': 'product_type'}"/>
+                    <filter string="QC Type" name="qc_type" context="{'group_by': 'qc_type'}"/>
+                    <filter string="Status" name="status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_wizard_quality_check_tree" model="ir.actions.act_window">
+        <field name="name">Quality Checks</field>
+        <field name="res_model">sh.mrp.quality.check</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="equip3_manuf_qc.mrp_quality_check_wizard_tree_view"/>
+        <field name="search_view_id" ref="equip3_manuf_qc.mrp_quality_check_wizard_search_view"/>
+        <field name="target">new</field>
+        <field name="context">{'no_breadcrumbs': True}</field>
+    </record>
+
+    <record id="mrp_quality_check_search_view" model="ir.ui.view">
+        <field name="name">sh.mrp.quality.check.search.view</field>
+        <field name="model">sh.mrp.quality.check</field>
+        <field name="inherit_id" ref="sh_inventory_mrp_qc.mrp_quality_check_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='control_point']" position="attributes">
+                <attribute name="context">{'group_by':'control_point_id'}</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

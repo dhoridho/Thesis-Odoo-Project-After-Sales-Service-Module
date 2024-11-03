@@ -1,0 +1,269 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+	<!-- inter.asset.transfer tree view -->
+	<record id="inter_asset_transfer_view_tree" model="ir.ui.view">
+		<field name="name">inter.asset.transfer.view.tree</field>
+		<field name="model">inter.asset.transfer</field>
+		<field name="arch" type="xml">
+			<tree>
+				<field name="name" />
+				<field name="source" />
+				<field name="destloc" />
+				<field name="state" />
+				<field name="created_date" />
+				<field name="created" />
+				<field name="branch_id" />
+			</tree>
+		</field>
+	</record>
+	<!-- inter.asset.transfer form view -->
+	<record id="inter_asset_transfer_view_form" model="ir.ui.view">
+		<field name="name">inter.asset.transfer.view.form</field>
+		<field name="model">inter.asset.transfer</field>
+		<field name="arch" type="xml">
+			<form string="">
+				<header>
+					<button type="object" name="action_waiting_approval"
+						string="Request for Approval" class="oe_highlight"
+						attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('is_approvalmatrix','=', False)]}"
+					/>
+
+					<button type="object" name="action_approve" states="waiting_approval"
+						string="Approve" class="oe_highlight"
+						attrs="{'invisible': ['|', ('state', '!=', 'waiting_approval'), ('is_approvalmatrix','=', False)]}"
+					/>
+
+					<button type="object" name="action_confirm" states="approved" string="Start"
+						class="oe_highlight"
+						attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('is_approvalmatrix','=', True)]}"
+					/>
+
+
+					<button type="object" name="action_done" states="in_progress" string="Done"
+						class="oe_highlight"
+						invisible="context.get('default_hide_done', False)"
+					/>
+
+					<button type="object" name="action_cancel" states="in_progress" string="Cancel"
+						invisible="context.get('default_hide_done', False)"
+					/>
+
+					<field name="state" widget="statusbar"
+						statusbar_visible="draft,waiting_approval,approved,in_progress,done,cancel"
+						invisible="1" />
+
+					<field name="state_a" widget="statusbar"
+						statusbar_visible="draft,waiting_approval,approved,in_progress,done,cancel"
+						attrs="{'invisible': [('is_approvalmatrix','=', False)]}" />
+
+					<field name="state_b" widget="statusbar"
+						statusbar_visible="draft,in_progress,done,cancel"
+						attrs="{'invisible': [('is_approvalmatrix','=', True)]}" />
+					<!-- <field name="state" widget="statusbar"
+					statusbar_visible="in_progress,done,cancel"
+					invisible="context.get('default_hide_button_done', False)"/> -->
+				</header>
+				<sheet>
+					<div class="oe_title">
+						<h1>
+							<field name="name" readonly="1" />
+						</h1>
+					</div>
+					<group>
+						<group>
+							<field name="source" required="1"
+								attrs="{'readonly': [('state', 'in', ['approved','in_progress','done','cancel'])]}" />
+							<field name="destloc" required="1"
+								attrs="{'readonly': [('state', 'in', ['approved','in_progress','done','cancel'])]}" />
+							<field name="description"
+								attrs="{'readonly': [('state', 'in', ['approved','in_progress','done','cancel'])]}" />
+						</group>
+						<group>
+							<field name="created" invisible="1"
+								attrs="{'readonly': [('state', 'in', ['approved','in_progress','done','cancel'])]}" />
+							<field name="created_date"
+								attrs="{'readonly': [('state', 'in', ['approved','in_progress','done','cancel'])]}" />
+							<field name="user_id" invisible="0"
+								attrs="{'readonly': [('state', 'in', ['approved','in_progress','done','cancel'])]}" />
+							<field name="company_id" invisible="1"
+								attrs="{'readonly': [('state', '=', 'in_progress')]}" />
+							<field name="partner_id" invisible="1"
+								attrs="{'readonly': [('state', '=', 'in_progress')]}" />
+							<field name="branch_id"
+								attrs="{'readonly': [('state', 'in', ['approved','in_progress','done','cancel'])]}" />
+							<field name="is_approvalmatrix" force_save="1" invisible="1" />
+							<field name="approvalmatrix" readonly="1"
+								attrs="{'invisible': [('is_approvalmatrix', '=', False)], 'required': [('is_approvalmatrix', '=', True)]}" />
+						</group>
+					</group>
+					<notebook>
+						<page string="Asset">
+							<field name="asset_ids" context="{'asset_ids': asset_ids}"
+								attrs="{'readonly': [('state', '=', 'in_progress')]}">
+								<tree string="Asset" editable="bottom">
+									<field name="no_asset_sequence" force_save="1" readonly="1"
+										invisible="1" />
+									<field name="asset_id" domain="[('fac_area', '=', source)]"
+										required="1" />
+									<!--<field
+									name="qty" />-->
+									<field name="source" />
+									<field name="dest" />
+									<field name="receive" invisible="1" />
+									<field name="asset_value" readonly="1" force_save="1" />
+								</tree>
+							</field>
+							<group class="oe_subtotal_footer oe_right">
+								<field name="total_asset_value" nolabel="1"
+									class="oe_subtotal_footer_separator" widget="monetary"
+									options="{'currency_field': 'currency_id'}" />
+							</group>
+						</page>
+					</notebook>
+				</sheet>
+				<div class="oe_chatter">
+					<field name="message_follower_ids" widget="mail_followers" />
+					<field name="activity_ids" widget="mail_activity" />
+					<field name="message_ids" widget="mail_thread" />
+				</div>
+			</form>
+		</field>
+	</record>
+	<record id="inter_asset_transfer_request_action" model="ir.actions.act_window">
+		<field name="name">Internal Asset Transfer</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">inter.asset.transfer</field>
+		<field name="view_mode">tree,form,kanban,activity</field>
+		<field name="context">{'default_hide_done' : True}</field>
+		<field name="help" type="html">
+			<p class="oe_view_nocontent_create">
+				<!-- Add Text Here -->
+			</p>
+			<p>
+				<!-- More details about what a user can do with this object will be OK -->
+			</p>
+		</field>
+	</record>
+
+	<record id="inter_asset_transfer_receival_action" model="ir.actions.act_window">
+		<field name="name">Internal Asset Transfer</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">inter.asset.transfer</field>
+		<field name="view_mode">tree,form,kanban,activity</field>
+		<field name="domain">[('state','in',('in_progress','done','cancel'))]</field>
+		<field name="context">{'create': False, 'default_hide_progress' : True}</field>
+		<field name="help" type="html">
+			<p class="oe_view_nocontent_create">
+				<!-- Add Text Here -->
+			</p>
+			<p>
+				<!-- More details about what a user can do with this object will be OK -->
+			</p>
+		</field>
+	</record>
+
+	<!--Inter
+	Asset Stage-->
+	<record id="inter_asset_stage_view_search" model="ir.ui.view">
+		<field name="name">inter.asset.transfer.stage.search</field>
+		<field name="model">inter.asset.transfer.stage</field>
+		<field name="arch" type="xml">
+			<search string="Asset Transfer Stages">
+				<field name="name" string="Maintenance Repairorder Stages" />
+			</search>
+		</field>
+	</record>
+	<record id="inter_asset_stage_view_tree" model="ir.ui.view">
+		<field name="name">inter.asset.transfer.stage.tree</field>
+		<field name="model">inter.asset.transfer.stage</field>
+		<field name="arch" type="xml">
+			<tree string="Internal Asset Stage" editable="top">
+				<field name="sequence" widget="handle" />
+				<field name="name" />
+				<field name="fold" invisible="1" />
+				<field name="done" invisible="1" />
+				<field name="custom_mail_template_id" />
+			</tree>
+		</field>
+	</record>
+	<record id="model_name_view_form" model="ir.ui.view">
+		<field name="name">inter.asset.transfer.stage.view.form</field>
+		<field name="model">inter.asset.transfer.stage</field>
+		<field name="arch" type="xml">
+			<form string="">
+				<sheet>
+					<group>
+						<group>
+							<field name="name" />
+							<field name="fold" invisible="1" />
+						</group>
+						<group>
+							<field name="sequence" />
+							<field name="done" invisible="1" />
+						</group>
+					</group>
+					<group>
+						<field name="custom_user_ids">
+							<tree string="Allow User">
+								<field name="name" />
+								<field name="login" />
+								<field name="lang" />
+								<field name="login_date" />
+								<field name="company_id" />
+								<field name="totp_enabled" />
+							</tree>
+						</field>
+						<field name="custom_mail_template_id" />
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+	<record id="inter_asset_stage_view_kanban" model="ir.ui.view">
+		<field name="name">inter.asset.transfer.stage.kanban</field>
+		<field name="model">inter.asset.transfer.stage</field>
+		<field name="arch" type="xml">
+			<kanban class="o_kanban_mobile">
+				<templates id="templates_company_details">
+					<t t-name="kanban-box">
+						<div t-attf-class="oe_kanban_global_click">
+							<div>
+								<strong>
+									<field name="name" />
+									<field name="custom_user_ids" widget="many2many_tags" />
+								</strong>
+							</div>
+						</div>
+					</t>
+				</templates>
+			</kanban>
+		</field>
+	</record>
+
+	<record id="inter_asset_transfer_stage_action" model="ir.actions.act_window">
+		<field name="name">Asset Transfer Stages</field>
+		<field name="res_model">inter.asset.transfer.stage</field>
+		<field name="view_mode">tree,kanban,form</field>
+		<field name="help" type="html">
+			<p class="o_view_nocontent_smiling_face">
+				Add a new stage in the maintenance Repairorder
+			</p>
+		</field>
+	</record>
+
+	<menuitem id="inter_asset_transfer_menu" name="Asset Transfer"
+		parent="maintenance.menu_m_request" sequence="11" />
+	<menuitem id="inter_asset_transfer_request" name="Asset Transfer Request"
+		action="inter_asset_transfer_request_action"
+		parent="equip3_asset_fms_operation.inter_asset_transfer_menu" sequence="1" />
+	<menuitem id="inter_asset_transfer_receival" name="Asset Transfer Receival"
+		action="inter_asset_transfer_receival_action"
+		parent="equip3_asset_fms_operation.inter_asset_transfer_menu" sequence="2" />
+	<!--	<menuitem>-->
+	<!-- id="menu_inter_asset_stage_configuration"-->
+	<!-- name="Internal Asset Transfer Stages"-->
+	<!-- parent="maintenance.menu_maintenance_stage_configuration"-->
+	<!-- action="inter_asset_transfer_stage_action"-->
+	<!-- groups="base.group_no_one"-->
+	<!-- sequence="3" />-->
+</odoo>

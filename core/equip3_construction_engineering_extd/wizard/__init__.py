@@ -1,0 +1,1 @@
+from . import purchase_tender_create_wizard_inherit

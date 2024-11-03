@@ -1,0 +1,28 @@
+# -*- coding: utf-8 -*-
+{
+    'name': "Contract Operation",
+    'summary': "Contract Operation",
+    'description': "Contract Operation",
+    'author': "Hashmicro",
+    'website': "https://www.hashmicro.com",
+    'category': 'Uncategorized',
+    'version': '1.1.1',
+    'depends': ['base', 'agreement', 'agreement_legal', 'account', 'equip3_contract_masterdata', 'mail'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/recurring_invoice_schedule.xml',
+        'data/mail_template.xml',
+        'data/ir_sequence.xml',
+        'views/agreement_view.xml',
+        'views/recurring_invoice_view.xml',
+        'views/agreement_stage_view.xml',
+        'views/renewal_contract_view.xml',
+        'views/recurring_expenses_view.xml',
+        'views/expense_plan.xml',
+        'views/approval_matrix_expense_plan.xml',
+        'wizard/renewal_contract_wizard.xml',
+    ],
+    'installable': True,
+    'auto_install': False,
+    'application': True,
+}

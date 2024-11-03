@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="hr_full_loan_payment_tree" model="ir.ui.view">
+            <field name="name">hr.full.loan.payment.tree</field>
+            <field name="model">hr.full.loan.payment</field>
+            <field name="arch" type="xml">
+                <tree string="Full Loan Payment">
+                    <field name="loan_id"/>
+                    <field name="employee_id"/>
+                    <field name="principal_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Principal" />
+                    <field name="interest_amount" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Interest" />
+                    <field name="emi_installment" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Emi" />
+                    <field name="state" decoration-primary="state == 'unpaid'"
+                            decoration-warning="state == 'to_approve'"
+                            decoration-warning2="state == 'approve'"
+                            decoration-success="state == 'paid'" 
+                            decoration-danger="state == 'rejected'" 
+                            widget='badge'/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="hr_full_loan_payment" model="ir.ui.view">
+            <field name="name">hr.full.loan.payment.form</field>
+            <field name="model">hr.full.loan.payment</field>
+            <field name="arch" type="xml">
+                <form string="Multiple Payment">
+                    <header>
+<!--                        <button string="Approve" type="object" name="loan_approve"-->
+<!--                                class="oe_highlight" attrs="{'invisible':[('state', '!=', 'unpaid')]}"/>-->
+<!--                        <button string="Pay" type="object" name="loan_pay"-->
+<!--                                class="oe_highlight" attrs="{'invisible':[('state', '!=', 'approve')]}"/>-->
+                        <field name="can_approve_installment" invisible="1"/>
+                        <button string="Confirm" name="action_confirm" type="object" class="oe_highlight"
+                                states="unpaid"/>
+                         <button name="wizard_approve" string="Approve" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_approver', '=', False), ('state', '!=', 'to_approve')]}"/>
+                        <button string="Pay" type="object" name="loan_pay"
+                                class="oe_highlight" attrs="{'invisible': ['|', '|', ('can_approve_installment', '=', False), ('state', '!=', 'approve'), ('loan_repayment_method', '=', 'payroll')]}"/>
+                        <button name="action_rejected" string="Reject" type="object"
+                                class="oe_highlight"
+                                attrs="{'invisible': ['|', ('is_approver', '=', False), ('state', '!=', 'to_approve')]}"/>
+                        <field name="state" widget="statusbar" attrs="{'invisible':[('is_loan_approval_matrix','=',False)]}"/>
+                        <field name="state1" widget="statusbar" statusbar_visible="unpaid,approve,paid" attrs="{'invisible':[('is_loan_approval_matrix','!=',False)]}"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="employee_id" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True}" attrs="{'readonly':['|',('is_readonly','=',True),('state','!=','unpaid')]}" domain="[('id','in',domain_employee_ids)]"/>
+                                <field name="is_readonly" invisible="1"/>
+                                <field name="domain_employee_ids" invisible="1"/>
+                                <field name="loan_id" attrs="{'readonly':[('state', '!=', 'unpaid')]}"/>
+                                <field name="loan_type_id"/>
+                                <field name="payment_date"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="principal_amount" invisible="1" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Principal" />
+                                <field name="interest_amount" invisible="1" widget="monetary" options="{'currency_field': 'currency_id'}" sum="interest" />
+                                <field name="emi_installment" invisible="1" widget="monetary" options="{'currency_field': 'currency_id'}" sum="emi" />
+
+                                <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                                <field name="is_approver" invisible="1"/>
+                                <field name="approved_user_text" invisible="1"/>
+                                <field name="approved_user" invisible="1" readonly="0"/>
+                                <field name="job_id" invisible="1"/>
+                                <field name="department_id" invisible="1"/>
+                                <field name="feedback_parent" invisible="1"/>
+                                <field name="loan_repayment_method" invisible="1"/>
+                                <field name="is_loan_approval_matrix" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Loan Installments Line">
+                                <field name="installment_lines" nolabel="1" widget="many2many"
+                                       attrs="{'readonly':[('state', '!=', 'unpaid')]}" options="{'no_create': True}}">
+                                    <tree editable="top" string="Installments">
+                                        <field name="install_no"/>
+                                        <field name="date_from"/>
+                                        <field name="date_to"/>
+                                        <field name="principal_amt" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" sum="Principal"/>
+                                        <field name="interest_amt" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" sum="Interest"/>
+                                        <field name="total" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}" sum="Total"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Approval Matrix Lines" attrs="{'invisible':[('is_loan_approval_matrix','=',False)]}">
+                        <field name="full_loan_approver_user_ids">
+                            <tree editable="bottom" create="false" delete="false">
+                                <field name="name"/>
+                                <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                <field name="is_delegation_mail_sent" invisible="1"/>
+                                <field name="minimum_approver" readonly="1" force_save="1"/>
+                                <field name="timestamp" invisible="1" force_save="1"/>
+                                <field name="approver_state" invisible="1" force_save="1"/>
+                                <field name="approval_status" readonly="1" force_save="1"/>
+                                <field name="approved_time" readonly="1" force_save="1"/>
+                                <field name="is_approve" invisible="1" force_save="1"/>
+                                <field name="approved_employee_ids" invisible="1"/>
+                                <field name="feedback" readonly="1" force_save="1"/>
+                            </tree>
+                        </field>
+                    </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="action_hr_full_loan_payment" model="ir.actions.act_window">
+            <field name="name">Multiple Payment</field>
+            <field name="res_model">hr.full.loan.payment</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Full Loan Payment!
+                </p>
+            </field>
+        </record>
+        <!-- <menuitem action="action_hr_full_loan_payment" groups="hr.group_hr_user,hr.group_hr_manager" sequence="100"
+                  id="full_loan_payment"
+                  parent="hr_employee_loan.loan_loans" name="Multiple Payment"/> -->
+    </data>
+</odoo>

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="report_sale_commission_report" model="ir.actions.report">
+        <field name="name">Sale Commission Report</field>
+        <field name="model">sale.commission.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_sale_team_commission.report_sale_commission_custom_exclusive</field>
+        <field name="report_file">equip3_sale_team_commission.report_sale_commission_custom_exclusive</field>
+        <field name="print_report_name">'Sale Commission Report'</field>
+        <field name="binding_model_id" ref="equip3_sale_team_commission.model_sale_commission_report"/>
+        <field name="binding_type">report</field>
+        <field name="binding_view_types">None</field>
+    </record>
+
+    <template id="sale_commission_report_template_external_layout">
+        <!-- Multicompany -->
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id"/>
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company"/>
+        </t>
+        <t t-call="equip3_sale_team_commission.sale_commission_template_header"/>
+        <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+            <t t-raw="0"/>
+        </div>
+        <t t-call="general_template.templates_footer"/>
+    </template>
+
+    <template id="sale_commission_template_header">
+        <div class="header" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <center>
+                                <table border="0" cellpadding="0" cellspacing="0" style="padding:0px 20px 0px 20px; margin:0; background:#fff; line-height:20px; vertical-align:middle; float:none;" width="100%">
+                                    <tr>
+                                        <td align="left" colspan="2" t-attf-style="vertical-align:middle; float:none; color:#{text_color or '#ffffff'}; padding:0 0px;" valign="top">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                <tr>
+                                                    <td align="left" style="color:#4D4D4F; padding: 0px 15px; border-right: 1px solid #D4D1D1; width:10%; vertical-align:middle; float:none;" valign="middle">
+                                                        <img style="max-height:50px; vertical-align: top; float:none;" t-att-src="'data:image/png;base64,%s'% to_text(o.company_id.logo)" t-if="o.company_id.logo"/>
+                                                        <br/>
+                                                    </td>
+                                                    <td style="padding:15px 0px 0px 15px; width:30%" valign="top">
+                                                        <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Address</p>
+                                                        <t t-call="general_template.templates_company_details"/>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </center>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </template>
+
+    <template id="sale_commission_template_lines">
+        <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+            <thead>
+                <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                    <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="8%">No.</td>
+                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Month</td>
+                    <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="42%">Product</td>
+                    <td align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%" t-if="o.commision_type == 'sales'">Sales Amount</td>
+                    <td align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="12%" t-if="o.commision_type == 'collection'">Collection Amount</td>
+                    <td align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="12%" >Commission</td>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-set="counter" t-value="1"/>
+                <t t-as="line" t-foreach="o._get_sale_commission_data(user_id)[0]"> 
+                    <t t-as="l" t-foreach="line.get('product_data')">
+                        <t t-if="l_odd">
+                            <t t-set="ol_color" t-value="o.company_id.even_party_color"/>
+                        </t>
+                        <t t-if="l_even">
+                            <t t-set="ol_color" t-value="o.company_id.odd_party_color"/>
+                        </t>
+                        <tr t-att-style="'page-break-inside: avoid !important;background-color: '+ ol_color + '; color: '+ text_color">
+                            <td align="left" class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-esc="counter"/>
+                                <t t-set="counter" t-value="counter + 1"/>
+                            </td>
+                            <td align="left" class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-esc="l.get('date')" t-options="{'widget': 'text'}"/>
+                            </td>
+                            <td align="center" class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-esc="l.get('product_id')"/>
+                            </td>
+                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'" t-if="o.commision_type == 'sales'">
+                                <span t-esc="sum(l.get('sales_amount')) or 0.0" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                            </td>
+                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'" t-if="o.commision_type == 'collection'">
+                                <span t-esc="sum(l.get('collection_amount') )or 0.0" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                            </td>
+                            <td align="right" class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-esc="sum(l.get('commission'))" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                            </td>
+                        </tr>
+                    </t>
+                </t>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="report_sale_commission_report_main">
+        <t t-call="equip3_sale_team_commission.sale_commission_report_template_external_layout">
+            <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+            <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+            <t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+            <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+            <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+            <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+            <t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+            <div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+                <div class="oe_structure"/>
+                <div t-attf-style="background-color:#f2f2f2;border-bottom:1px solid #{theme_color or '#ececec'}; overflow: visible; margin-bottom: 20px;"/>
+                <br/>
+                <div width="100%">
+                    <div  style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+                        <div>
+                        </div>
+                        <t t-if="o.commision_type in ('sales', 'collection')">
+                            <div align="left"  style="color:#4D4D4F; padding: 0px 0px 15px 0px;" valign="top">
+                                <h3 class="text-center">Sales Commission Report</h3>
+                                <table border="0" cellpadding="0" cellspacing="0" t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};" width="100%">
+                                    <tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+                                        <td t-attf-style="padding:9px 15px; font-weight:bold;">
+                                            <span>Printed On </span>
+                                            <br/>
+                                            <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/>
+                                        </td>
+                                        <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                            <strong>Sales Person:</strong>
+                                            <br/>
+                                            <span t-esc="user_id.name"></span>
+                                        </td>
+                                        <td t-attf-style="padding:5px 15px; font-weight:bold;" t-if="o.commision_type == 'sales'">
+                                            <strong>Grand Total Sale Amount:</strong>
+                                            <br/>
+                                            <span t-esc="o._get_sale_commission_data(user_id)[1]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                                        </td>
+                                        <td t-attf-style="padding:5px 15px; font-weight:bold;" t-if="o.commision_type == 'collection'">
+                                            <strong>Grand Total Collection Amount:</strong>
+                                            <br/>
+                                            <span t-esc="o._get_sale_commission_data(user_id)[3]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                                        </td>
+                                        <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                            <strong>Grand Total Commission Amount:</strong>
+                                            <br/>
+                                            <span t-esc="o._get_sale_commission_data(user_id)[2]" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <p  t-attf-style="padding:5px 0px 0px 0px; height:5px; border-bottom: 1px solid #{theme_color or '#000000'};"/>
+                            </div>
+                            <div>
+                                <t t-call="equip3_sale_team_commission.sale_commission_template_lines"/>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <t t-set="line_counter" t-value="1"/>
+                            <t t-foreach="o._get_sale_commission_data(user_id)" t-as="line_data">
+                                <div align="left"  style="color:#4D4D4F; padding: 0px 0px 15px 0px;" valign="top">
+                                    <h3 class="text-center" t-if="line_data.get('type') == 'sales'">Sales Commission Report</h3>
+                                    <table border="0" cellpadding="0" cellspacing="0" t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};" width="100%">
+                                        <tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+                                            <td t-attf-style="padding:9px 15px; font-weight:bold;">
+                                                <span>Printed On </span>
+                                                <br/>
+                                                <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M')"/>
+                                            </td>
+                                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                                <strong>Sales Person:</strong>
+                                                <br/>
+                                                <span t-esc="user_id.name"></span>
+                                            </td>
+                                            <td t-attf-style="padding:5px 15px; font-weight:bold;" t-if="line_data.get('type') == 'sales'">
+                                                <strong>Grand Total Achievement:</strong>
+                                                <br/>
+                                                <span t-esc="line_data.get('grand_total_achievement')" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                                            </td>
+                                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                                <strong>Grand Total Commission Amount:</strong>
+                                                <br/>
+                                                <span t-esc="line_data.get('grand_commission_total')" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div>
+                                    <p  t-attf-style="padding:5px 0px 0px 0px; height:5px; border-bottom: 1px solid #{theme_color or '#000000'};"/>
+                                </div>
+                                <div>
+                                    <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered mb-5" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+                                        <thead>
+                                            <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                                <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="8%">No.</td>
+                                                <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Periode</td>
+<!--                                                <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="42%">Product</td>-->
+                                                <td align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%" t-if="line_data.get('type') == 'sales'">Achievement</td>
+<!--                                                <td align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="12%" t-if="line_data.get('type') == 'collection'">Collection Amount</td>-->
+                                                <td align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="12%" >Commission</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-set="counter" t-value="1"/>
+                                            <t t-as="line" t-foreach="line_data.get('data')"> 
+                                                <t t-as="l" t-foreach="line.get('product_data')">
+                                                    <t t-if="l_odd">
+                                                        <t t-set="ol_color" t-value="o.company_id.even_party_color"/>
+                                                    </t>
+                                                    <t t-if="l_even">
+                                                        <t t-set="ol_color" t-value="o.company_id.odd_party_color"/>
+                                                    </t>
+                                                    <tr t-att-style="'page-break-inside: avoid !important;background-color: '+ ol_color + '; color: '+ text_color">
+                                                        <td align="left" class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="counter"/>
+                                                            <t t-set="counter" t-value="counter + 1"/>
+                                                        </td>
+                                                        <td align="left" class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="l.get('date')" t-options="{'widget': 'text'}"/>
+                                                        </td>
+<!--                                                        <td align="center" class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">-->
+<!--                                                            <span t-esc="l.get('product_id')"/>-->
+<!--                                                        </td>-->
+                                                        <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'" t-if="line_data.get('type') == 'sales'">
+                                                            <span t-esc="l.get('achievement')" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                                                        </td>
+                                                        <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'" t-if="line_data.get('type') == 'collection'">
+                                                            <span t-esc="l.get('collection_amount')" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                                                        </td>
+                                                        <td align="right" class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="l.get('commission')" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </t>
+                        </t>
+                    </div>
+                </div>
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+
+
+    <template id="report_sale_commission_custom_exclusive">
+        <t t-call="web.html_container">
+            <t t-as="o" t-foreach="docs">
+                <t t-if="o.sales_persons">
+                    <t t-as="user_id" t-foreach="o.sales_persons">
+                        <t t-if="o._get_sale_commission_data(user_id)">
+                            <t t-call="equip3_sale_team_commission.report_sale_commission_report_main"/>
+                        </t>
+                    </t>
+                </t>
+                <t t-else="">
+                    <t t-set="sales_persons" t-value="o.set_sales_persons()"/>
+                    <t t-as="user_id" t-foreach="sales_persons">
+                        <t t-if="o._get_sale_commission_data(user_id)">
+                            <t t-call="equip3_sale_team_commission.report_sale_commission_report_main"/>
+                        </t>
+                    </t>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,25 @@
+{
+    'name': 'Website Cash On Delivery',
+    'version': '1.1.1',
+    'author': 'Pragmatic TechSoft Pvt Ltd.',
+    'website': 'http://www.pragtech.co.in',
+    'category': 'Website',
+    'summary': '',
+    'description': """ """,
+    'depends': ['website','website_sale'],
+    'data': [
+        'security/ir.model.access.csv',
+        #'views/picking_order_view.xml',
+        #'views/res_config_settings_view.xml',
+        #'data/mail_template.xml',
+        #'views/delivery_boy_web_view.xml',
+        'data/account_data_cash.xml',
+        'views/payment_template.xml',
+        'views/cash_on_delivery_confi_view.xml',
+        'views/cash_on_delivery_form_view.xml',
+    ],
+   
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+}

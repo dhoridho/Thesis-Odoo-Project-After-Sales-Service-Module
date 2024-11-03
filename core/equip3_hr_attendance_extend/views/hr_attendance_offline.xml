@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_hr_attendance_offline_tree" model="ir.ui.view">
+        <field name="name">hr.attendance.offline.tree</field>
+        <field name="model">hr.attendance.offline</field>
+        <field name="arch" type="xml">
+            <tree string="Employee attendances Offline" edit="0" create="0" sample="1">
+                <field name="employee_id"/>
+                <field name="sequence_code"/>
+                <field name="department_id"/>
+                <field name="attendance_status"/>
+                <field name="start_working_date"/>
+                <field name="check_in"/>
+                <field name="checkin_status"/>
+                <field name="check_out"/>
+                <field name="checkout_status"/>
+                <field name="worked_hours" string="Work Hours" widget="float_time"/>
+                <field name="count_status"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hr_attendance_offline_form" model="ir.ui.view">
+        <field name="name">hr.attendance.offline.form</field>
+        <field name="model">hr.attendance.offline</field>
+        <field name="arch" type="xml">
+            <form string="Employee attendances Offline" edit="0" create="0">
+                <header>
+                    <button name="wizard_approve" string="Approve" attrs="{'invisible':['|',('state','not in',['to_approve']),('is_approver', '=', False)]}" type="object" class="oe_highlight"/>
+                    <button name="wizard_reject" string="Reject" attrs="{'invisible':['|',('state','not in',['to_approve']),('is_approver', '=', False)]}" type="object" class="oe_highlight"/>
+                    <field name="state" widget="statusbar" statusbar_visible="to_approve,approved"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="sequence_code"/>
+                        <field name="department_id"/>
+                        <field name="job_id"/>
+                        <field name="working_schedule_id"/>
+                        <field name="attendance_status"/>
+                        <field name="active_location_ids" widget="many2many_tags"/>
+                        <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                        <field name="approved_user_ids" widget="many2many_tags" invisible="1"/>
+                        <field name="is_approver" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="start_working_date"/>
+                        <field name="calendar_id"/>
+                        <field name="hour_from" widget="float_time"/>
+                        <field name="hour_to" widget="float_time"/>
+                        <field name="tolerance_late" widget="float_time"/>
+                        <field name="checkin_status"/>
+                        <field name="checkout_status"/>
+                    </group>
+                    <group>
+                        <field name="check_in"/>
+                        <field name="check_in_diff" widget="float_time"/>
+                        <field name="minimum_hours" widget="float_time"/>
+                        <field name="worked_hours" widget="float_time"/>
+                    </group>
+                    <group>
+                        <field name="check_out"/>
+                        <field name="manager_id" invisible="1"/>
+                        <field name="check_out_diff" widget="float_time"/>
+                    </group>
+                    <group col="8" string="Face control">
+                        <field name="employee_id" options="{'no_open':True,'no_create': True}"/>
+                        <field name="employee_id_image" widget="image" options='{"size": [100, 133]}'/>
+                        <span colspan="6">
+                        </span>
+                        <div>
+                        </div>
+                        <div colspan="2">
+                            <div class="o_squared_image">
+                                <field name="webcam_check_in" class="card-img-top face-recognition-origin" 
+                                widget="image_recognition"  readonly="0"/>
+                                <span class="oe_inline">
+                                    Distance: <field name="check_in_face_distance" nolabel="1"/>
+                                </span>
+                            </div>
+                        </div>
+                        <div colspan="2">
+                            <div class="o_squared_image">
+                                <field name="webcam_check_out" class="card-img-top face-recognition-origin" 
+                                widget="image_recognition"  readonly="0"/>
+                                <span class="oe_inline">
+                                    Distance: <field name="check_out_face_distance" nolabel="1"/>
+                                </span>
+                            </div>
+                        </div>
+                    </group>
+                    <newline/>
+                    <group>
+                        <group string="Check in">
+                            <group col="2" colspan="4">
+                                <label for="check_in_latitude" string="Check-in Location"/>
+                                <span class="oe_inline">
+                                    Latitude: <field name="check_in_latitude" nolabel="1"/><br/>
+                                    Longitude: <field name="check_in_longitude" nolabel="1"/><br/>
+                                    Map Check-in: <button name="open_map_check_in" type="object" string="Check-in" icon="fa-map-marker" class="oe_inline btn-info"/>
+                                </span>
+                                <field name="check_in_address"/>
+                            </group>
+                        </group>
+                        <group string="Check out">
+                            <group col="2" colspan="4">
+                                <label for="check_out_latitude" string="Check-out Location"/>
+                                <span class="oe_inline">
+                                    Latitude: <field name="check_out_latitude" nolabel="1" /><br/>
+                                    Longitude: <field name="check_out_longitude" nolabel="1"/><br/>
+                                    Map Check-out: <button name="open_map_check_out" type="object" string="Check-out" icon="fa-map-marker" class="oe_inline btn-info"/>
+                                </span>
+                                <field name="check_out_address"/>
+                            </group>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Approval Matrix Lines">
+                            <field name="approver_user_ids">
+                                <tree editable="bottom" create="0" delete="0">
+                                    <field name="sequence" readonly="1" force_save="1"/>
+                                    <field name="approver_ids" widget="many2many_tags"  readonly="1" force_save="1"/>
+                                    <field name="minimum_approver" readonly="1" force_save="1"/>
+                                    <field name="approver_state" invisible="1" force_save="1"/>
+                                    <field name="approval_status" readonly="1" force_save="1"/>
+                                    <field name="timestamp" readonly="1" force_save="1"/>
+                                    <field name="feedback" readonly="1" force_save="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_attendance_offline_action" model="ir.actions.act_window">
+        <field name="name">Attendances Offline</field>
+        <field name="res_model">hr.attendance.offline</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No attendances offline records found
+            </p><p>
+                The attendances offline records of your employees will be displayed here.
+            </p>
+        </field>
+    </record>
+
+    <record id="equip3_hr_attendance_extend.hr_attendance_offline_action" model="ir.actions.server">
+        <field name="name">Attendances</field>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <field name="model_id" ref="equip3_hr_attendance_extend.model_hr_attendance_offline"/>
+        <field name="code">action = model.custom_menu()</field>
+    </record>
+
+    <menuitem id="menu_hr_attendance_offline" name="Attendances Offline" parent="hr_attendance.menu_hr_attendance_manage_attendances" sequence="12" groups="hr_attendance.group_hr_attendance_user" action="equip3_hr_attendance_extend.hr_attendance_offline_action"/>
+
+</odoo>

@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="joint_event_view_search" model="ir.ui.view">
+        <field name="name">Joint Events</field>
+        <field name="model">joint.event</field>
+        <field name="arch" type="xml">
+            <search string="Joint Events">
+                <field name="name"
+                       string='Subject'
+                       filter_domain="[('name', 'ilike', self)]"
+                />
+                <field name="description"
+                       filter_domain="[('description', 'ilike', self)]"
+                />
+                <field name="partner_id"/>
+            </search>
+        </field>
+    </record>
+    <record id="joint_event_view_form" model="ir.ui.view" >
+        <field name="name">Joint Event</field>
+        <field name="model">joint.event</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <h1>
+                        <field name="name" class="oe_inline" placeholder='Event'/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="date_start" string="Starting at"/>
+                            <field name="date_stop" string="Ending at"/>
+                            <field name="all_day"  class="oe_inline"/>
+                        </group>
+                        <group>
+                            <field name='attendee' 
+                                   widget="many2many_tags"
+                                   attrs="{'readonly': [('rule_id', '!=', False)]}"
+                            />
+                            <field name='alarm_ids' 
+                                   widget="many2many_tags"
+                            />
+                            <field name='partner_id'/>
+                            <field name='privacy' 
+                                   attrs="{'invisible':[('rule_id', '!=', False)]}"
+                            />
+                            <field name='res_reference'
+                                   readonly='1'
+                                   attrs="{'invisible':[('rule_id', '=', False)]}"
+                            />
+                            <div col='6'
+                                 colspan='6'
+                                 attrs="{'invisible':[('rule_id', '=', False)]}">
+                                <p class="oe_grey">
+                                    Be cautious: changes in the parent object would lead to this event change only in a
+                                    while. Not immediately
+                                </p>
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string='Description'>
+                            <group>
+                                <field name='description' nolabel='1'/>
+                            </group>
+                        </page>
+                        <page string='Technical' invisible='1'>
+                            <group>
+                                <field name='action' 
+                                       options="{'no_quick_create': 1,'no_create_edit': 1}"
+                                />
+                                <field name='res_id'/>
+                                <field name='rule_id'/>
+                                <field name='res_model'/>
+                                <field name='res_model_domain'/>
+                                <field name='joint_calendar_id' />
+                                <field name="date_delay"
+                                       widget="float_time"
+                                />
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" />
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="joint_event_view_calendar" model="ir.ui.view">
+        <field name="name">Joint Event</field>
+        <field name="model">joint.event</field>
+        <field name="arch" type="xml">
+            <calendar string="Joint Events"
+                      date_start="date_start"
+                      date_stop="date_stop"
+                      date_delay="date_delay"
+                      all_day="all_day"
+                      color="rule_id"
+                      event_open_popup="0"
+                      mode="month"
+            >
+                <field name="name"/>
+                <field name="rule_id" filters="1"/>
+                <field name="attendee"
+                       write_model="calendar.contacts"
+                       write_field="partner_id"
+                       avatar_field="image_128"
+                />
+                <field name="partner_id"/>
+            </calendar>
+        </field>
+    </record>
+    <record id="joint_event_action" model="ir.actions.act_window">
+        <field name="name">Joint Event</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">joint.event</field>
+        <field name="view_mode">form,calendar</field>
+        <field name="domain">[]</field>
+    </record>
+    <record id="action_joint_event_form" model="ir.actions.act_window">
+        <field name="name">Joint Event</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">joint.event</field>
+        <field name="view_mode">form</field>
+        <field name="domain">[]</field>
+    </record>
+
+</odoo>

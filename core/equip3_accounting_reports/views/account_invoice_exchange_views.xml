@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_account_invoice_exchange_form" model="ir.ui.view">
+        <field name="name">view.account.invoice.exchange.form</field>
+        <field name="model">account.invoice.exchange</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" attrs="{'invisible' : [('stage', '!=', 'draft')]}" class="oe_highlight"/>
+                    <button name="action_approve" string="Approve" type="object" attrs="{'invisible' : [('stage', '!=', 'confirm')]}" class="oe_highlight"/>
+                    <button name="action_wizard_reject" string="Reject" type="object" attrs="{'invisible' : [('stage', '!=', 'confirm')]}" class="oe_highlight"/>
+                    <field name="stage" widget="statusbar" statusbar_visible="draft,confirm,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <field name="exchange_type" invisible="1" />
+                        <h1 class="mt0">
+                            <div class="o_td_label">
+                                <label for="name" string="AR Exchange" attrs="{'invisible': [('exchange_type', '!=', 'invoice')]}" />
+                                <label for="name" string="AP Exchange" attrs="{'invisible': [('exchange_type', '!=', 'bill')]}" />
+                            </div>
+                            <field name="name" readonly="1" nolabel="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group id="header_left_group">
+                            <div class="o_td_label">
+                                <label for="partner_id" string="Customer" style="font-weight:bold;"
+                                    attrs="{'invisible': [('exchange_type', '!=', 'invoice')]}"/>
+                                <label for="partner_id" string="Vendor" style="font-weight:bold;"
+                                    attrs="{'invisible': [('exchange_type', '!=', 'bill')]}"/>
+                            </div>
+                            <field name="partner_id" widget="res_partner_many2one" nolabel="1"
+                                   context="{'show_address': 1, 'default_is_company': True, 'show_vat': True}"
+                                   options='{"always_reload": True, "no_quick_create": True}' required="1" attrs="{'readonly': [('stage','!=','draft')]}" />
+                            <field name="date" attrs="{'readonly': [('stage','not in',['draft','confirm'])]}" />
+                            <!-- <field name="receive_date" invisible="1" /> -->
+                            <field name="create_uid" />
+                            <field name="create_date" />
+                        </group>
+                        <group id="header_right_group">
+                            <field name="filter_move_ids" invisible="1"/>
+                            <!-- <div class="o_td_label">
+                                <label for="move_ids" string="Customer Invoices" attrs="{'invisible': [('exchange_type', '!=', 'invoice')]}" />
+                                <label for="move_ids" string="Vendor Bills" attrs="{'invisible': [('exchange_type', '!=', 'bill')]}" />
+                            </div>
+                            <field name="move_ids" nolabel="1" widget="many2many_tags" domain="[('id', 'in', filter_move_ids)]" required="1" /> -->
+                            <field name="remarks" attrs="{'readonly': [('stage','!=','draft')]}" />
+                            <field name="reason" attrs="{'invisible': [('stage', '!=', 'rejected')], 'readonly': [('stage','!=','draft')]}" />
+                            <field name="company_id" readonly="1" />
+                            <field name="branch_id" attrs="{'readonly': [('stage','!=','draft')]}" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Exchange Lines" name="exchange_lines">
+                            <field name="move_ids" nolabel="1" attrs="{'readonly': [('stage','!=','draft')]}" options="{'no_create': True}" domain="[('id','in',filter_move_ids)]">
+                                <tree>
+                                    <field name="name" string="Invoice Number" />
+                                    <field name="invoice_date" string="Invoice Date" />
+                                    <field name="invoice_date_due" />
+                                    <field name="period_id" />
+                                    <field name="fiscal_year" />
+                                    <!-- <field name="l10n_id_tax_number" /> -->
+                                    <field name="amount_untaxed" />
+                                    <field name="currency_id" invisible="1" />
+                                    <field name="amount_total" widget="monetary" />
+                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'"/>
+                                    <field name="exchange_stage" decoration-primary="exchange_stage == 'draft'" decoration-warning="exchange_stage == 'confirm'" decoration-success="exchange_stage == 'approved'" decoration-danger="exchange_stage == 'rejected'" widget="badge" invisible='1' />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_invoice_exchange_tree" model="ir.ui.view">
+        <field name="name">view.invoice.exchange.tree</field>
+        <field name="model">account.invoice.exchange</field>
+        <field name="arch" type="xml">
+            <tree string="AR Exchange">
+                <field name="name" decoration-bf="1"/>
+                <field name="exchange_type" invisible="1" />
+                <field name="partner_id" string="Customer" />
+                <field name="date" string="Date"/>
+                <!-- <field name="receive_date" string="Receive Date" invisible="1" /> -->
+                <!-- <field name="move_ids" widget="many2many_tags" string="Customer Invoices" /> -->
+                <field name="company_id" />
+                <field name="branch_id" />
+                <field name="stage" decoration-primary="stage == 'draft'" decoration-warning="stage == 'confirm'" decoration-success="stage == 'approved'" decoration-danger="stage == 'rejected'" widget="badge" />
+            </tree>
+        </field>
+    </record>
+
+
+
+    <record id="action_invoice_exchange" model="ir.actions.act_window">
+        <field name="name">AR Exchange</field>
+        <field name="res_model">account.invoice.exchange</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('exchange_type', '=', 'invoice')]</field>
+        <field name="context">{'default_exchange_type': 'invoice'}</field>
+    </record>
+
+    <record model="ir.actions.act_window.view" id="action_invoice_exchange_tree">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_invoice_exchange_tree"/>
+        <field name="act_window_id" ref="action_invoice_exchange"/>
+    </record>
+
+    <record model="ir.actions.act_window.view" id="action_invoice_exchange_form">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_account_invoice_exchange_form"/>
+        <field name="act_window_id" ref="action_invoice_exchange"/>
+    </record>
+
+    <menuitem id="menu_invoice_exchange" action="action_invoice_exchange" name="AR Exchange" parent="account.menu_finance_receivables" sequence="9"/>
+
+    <record id="view_bill_exchange_form" model="ir.ui.view">
+        <field name="name">view.bill.exchange.form</field>
+        <field name="model">account.invoice.exchange</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" attrs="{'invisible' : [('stage', '!=', 'draft')]}" class="oe_highlight"/>
+                    <button name="action_approve" string="Approve" type="object" attrs="{'invisible' : [('stage', '!=', 'confirm')]}" class="oe_highlight"/>
+                    <button name="action_wizard_reject" string="Reject" type="object" attrs="{'invisible' : [('stage', '!=', 'confirm')]}" class="oe_highlight"/>
+                    <field name="stage" widget="statusbar" statusbar_visible="draft,confirm,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <field name="exchange_type" invisible="1" />
+                        <h1 class="mt0">
+                            <div class="o_td_label">
+                                <label for="name" string="AR Exchange" attrs="{'invisible': [('exchange_type', '!=', 'invoice')]}" />
+                                <label for="name" string="AP Exchange" attrs="{'invisible': [('exchange_type', '!=', 'bill')]}" />
+                            </div>
+                            <field name="name" readonly="1" nolabel="1" />
+                        </h1>
+                    </div>
+                    <group>
+                        <group id="header_left_group">
+                            <div class="o_td_label">
+                                <label for="partner_id" string="Customer" style="font-weight:bold;"
+                                    attrs="{'invisible': [('exchange_type', '!=', 'invoice')]}"/>
+                                <label for="partner_id" string="Vendor" style="font-weight:bold;"
+                                    attrs="{'invisible': [('exchange_type', '!=', 'bill')]}"/>
+                            </div>
+                            <field name="partner_id" widget="res_partner_many2one" nolabel="1"
+                                   context="{'show_address': 1, 'default_is_company': True, 'show_vat': True}"
+                                   options='{"always_reload": True, "no_quick_create": True}' required="1" attrs="{'readonly': [('stage','!=','draft')]}" />
+                            <field name="date" attrs="{'readonly': [('stage','not in',['draft','confirm'])]}" />
+                            <field name="create_uid" />
+                            <field name="create_date" />
+                        </group>
+                        <group id="header_right_group">
+                            <field name="filter_move_ids" invisible="1"/>
+                            <field name="remarks" attrs="{'readonly': [('stage','!=','draft')]}" />
+                            <field name="reason" attrs="{'invisible': [('stage', '!=', 'rejected')], 'readonly': [('stage','!=','draft')]}" />
+                            <field name="company_id" readonly="1" />
+                            <field name="branch_id" attrs="{'readonly': [('stage','!=','draft')]}" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Exchange Lines" name="exchange_lines">
+                            <field name="move_ids" nolabel="1" attrs="{'readonly': [('stage','!=','draft')]}" options="{'no_create': True}" domain="[('id','in',filter_move_ids)]">
+                                <tree>
+                                    <field name="name" string="Bill Number" />
+                                    <field name="invoice_date" string="Bill Date" />
+                                    <field name="invoice_date_due" />
+                                    <field name="period_id" />
+                                    <field name="fiscal_year" />
+                                    <!-- <field name="l10n_id_tax_number" /> -->
+                                    <field name="amount_untaxed" />
+                                    <field name="currency_id" invisible="1" />
+                                    <field name="amount_total" widget="monetary" />
+                                    <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'posted'"/>
+                                    <field name="exchange_stage" decoration-primary="exchange_stage == 'draft'" decoration-warning="exchange_stage == 'confirm'" decoration-success="exchange_stage == 'approved'" decoration-danger="exchange_stage == 'rejected'" widget="badge" invisible='1' />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bill_exchange_tree" model="ir.ui.view">
+        <field name="name">view.bill.exchange.tree</field>
+        <field name="model">account.invoice.exchange</field>
+        <field name="arch" type="xml">
+            <tree string="AP Exchange">
+                <field name="name" decoration-bf="1"/>
+                <field name="exchange_type" invisible="1" />
+                <field name="partner_id" string="Vendor" />
+                <field name="date" string="Date"/>
+                <!-- <field name="receive_date" string="Receive Date" invisible="1"/> -->
+                <!-- <field name="move_ids" widget="many2many_tags" string="Vendor Bills" /> -->
+                <field name="company_id" />
+                <field name="branch_id" />
+                <field name="stage" decoration-primary="stage == 'draft'" decoration-warning="stage == 'confirm'" decoration-success="stage == 'approved'" decoration-danger="stage == 'rejected'" widget="badge" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_bill_exchange" model="ir.actions.act_window">
+        <field name="name">AP Exchange</field>
+        <field name="res_model">account.invoice.exchange</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('exchange_type', '=', 'bill')]</field>
+        <field name="context">{'default_exchange_type': 'bill'}</field>
+    </record>
+
+    <record model="ir.actions.act_window.view" id="action_bill_exchange_tree">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_bill_exchange_tree"/>
+        <field name="act_window_id" ref="action_bill_exchange"/>
+    </record>
+
+    <record model="ir.actions.act_window.view" id="action_bill_exchange_form">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_bill_exchange_form"/>
+        <field name="act_window_id" ref="action_bill_exchange"/>
+    </record>
+
+    <menuitem id="menu_bill_exchange" action="action_bill_exchange" name="AP Exchange" parent="account.menu_finance_payables" sequence="1"/>
+
+</odoo>

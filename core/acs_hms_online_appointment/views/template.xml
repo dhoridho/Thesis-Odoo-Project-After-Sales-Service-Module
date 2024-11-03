@@ -1,0 +1,487 @@
+<odoo>
+
+    <!-- Invoice Template -->
+    <!-- Just removed opend state from condition -->
+    <template id="account_payment.portal_invoice_page_inherit_payment" name="Payment on My Invoices" inherit_id="account.portal_invoice_page">
+        <xpath expr="//t[@t-call='portal.portal_record_sidebar']//div[hasclass('o_download_pdf')]" position="before">
+            <t t-set="tx_ids" t-value="invoice.transaction_ids.filtered(lambda tx: tx.state in ('pending', 'authorized', 'done'))"/>
+            <t t-set="pending_manual_txs" t-value="tx_ids.filtered(lambda tx: tx.state == 'pending' and tx.acquirer_id.provider in ('transfer', 'manual'))"/>
+            <div>
+                <a href="#" t-if="invoice.amount_total and invoice.move_type == 'out_invoice' and (pending_manual_txs or not tx_ids)"
+                    class="btn btn-primary btn-block mb-2" data-toggle="modal" data-target="#pay_with">
+                    <i class="fa fa-fw fa-arrow-circle-right"/> Pay Now
+                </a>
+                <div t-if="tx_ids and not pending_manual_txs and invoice.state != 'paid'" class="alert alert-info py-1 mb-2" >
+                    <i class="fa fa-fw fa-check-circle"/> Pending
+                </div>
+                <div t-if="invoice.state == 'paid'" class="alert alert-success py-1 mb-2" >
+                    <i class="fa fa-fw fa-check-circle"/> Paid
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//div[@id='invoice_content']//div[hasclass('o_portal_html_view')]" position="before">
+            <div t-if="invoice.transaction_ids and invoice.amount_total and not success and not error" class="o_account_payment_tx_status" t-att-data-invoice-id="invoice.id">
+                <t t-call="payment.payment_confirmation_status">
+                    <t t-set="payment_tx_id" t-value="invoice.get_portal_last_transaction()"/>
+                    <t t-set="reference" t-value="invoice.ref"/>
+                </t>
+            </div>
+            <t t-set="tx_ids" t-value="invoice.transaction_ids.filtered(lambda tx: tx.state in ('authorized', 'done'))"/>
+            <div t-if="not tx_ids and invoice.amount_total" id="portal_pay">
+                <div t-if="pms or acquirers" id="payment_method">
+                    <t t-call="account_payment.portal_invoice_payment"/>
+                </div>
+            </div>
+            <div class="panel-body" t-if="existing_token">
+                <div class="offset-lg-3 col-lg-6">
+                    <i class="fa fa-info"></i> You have credits card registered, you can log-in to be able to use them.
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="account_payment.portal_invoice_payment" name="Invoice Payment">
+        <div class="row" t-if="not tx_ids and invoice.amount_total" id="portal_pay">
+            <div class="modal fade" id="pay_with" role="dialog">
+                <div class="modal-dialog modal-content">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Pay with</h3>
+                            <button type="button" class="close" data-dismiss="modal">&amp;times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div t-if="pms or acquirers" id="payment_method" class="text-left col-md-13">
+                                <t t-call="payment.payment_tokens_list">
+                                    <t t-set="mode" t-value="'payment'"/>
+                                    <t t-set="partner_id" t-value="invoice.partner_id.id"/>
+                                    <t t-set="success_url" t-value="invoice.get_portal_url()"/>
+                                    <t t-set="error_url" t-value="invoice.get_portal_url()"/>
+                                    <t t-set="access_token" t-value="access_token or ''"/>
+                                    <t t-set="callback_method" t-value="''"/>
+                                    <t t-set="form_action" t-value="'/invoice/pay/' + str(invoice.id) + '/s2s_token_tx/'"/>
+                                    <t t-set="prepare_tx_url" t-value="'/invoice/pay/' + str(invoice.id) + '/form_tx/'"/>
+                                    <t t-set="submit_txt">Pay Now</t>
+                                    <t t-set="icon_class" t-value="'fa-lock'"/>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Assets View -->
+    <template id="assets_frontend" inherit_id="website.assets_frontend"
+        name="Website HMS">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/acs_hms_online_appointment/static/src/js/hms_portal.js"/>
+            <link rel="stylesheet" type="text/scss" href="/acs_hms_online_appointment/static/src/scss/custom.scss"/>
+        </xpath>
+    </template>
+
+    <template id="physician_inside_data" name="Appoitnment Department Data">
+        <div class="card card-default appoint_person_panel" style="padding:10px;" t-att-id="physician.id">
+            <div class="row">
+                <div class="col-md-4 col-6">
+                    <t t-if="physician.image_1920">
+                        <img class="acs_user_image" t-attf-src="data:image/png;base64,{{physician.image_1920}}" alt="Physician"/>
+                    </t>
+                    <t t-else="">
+                        <img class="acs_user_image" src="/acs_hms/static/src/img/physician.png" alt="Physician"/>
+                    </t>
+                </div>
+                <div class="col-md-8">
+                    <div class="container">
+                        <div t-if="physician.name" class="acs_physician_name">
+                            <strong><span t-esc="physician.name"/></strong>
+                        </div>
+                        <div t-if="physician.specialty_id">
+                            <strong>Specialty:</strong>
+                            <span t-esc="physician.specialty_id.name"/>
+                        </div>
+                        <div t-if="physician.show_fee_on_booking and physician.consultaion_service_id">
+                            <strong>Fees:</strong>
+                            <span t-esc="physician.consultaion_service_id.lst_price"/>
+                        </div>
+                        <div class="acs_basic_info">
+                            <t t-if="physician.basic_info">
+                                <strong>About:</strong>
+                                <span t-esc="physician.basic_info"/>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="physician_data" name="Appoitnment Physician Data">
+        <div class="col-md-4 acs_radio_block acs_physician_block">
+            <input type="radio" name="physician_id" class="acs_checkbox sr-only" t-att-value="physician.id" t-att-id="physician.id"/>
+            <label t-att-for="physician.id">
+                <t t-call="acs_hms_online_appointment.physician_inside_data">
+                    <t t-set="physician" t-value="physician"/>
+                </t>
+            </label>
+        </div>
+    </template>
+
+    <template id="department_inside_data" name="Appoitnment Department Data">
+        <div class="card card-default appoint_department_panel" style="padding:10px;" t-att-id="department.id">
+            <div class="row">
+                <div class="col-md-4 col-6">
+                    <t t-if="department.image">
+                        <img class="acs_user_image" t-attf-src="data:image/png;base64,{{department.image}}" alt="Department"/>
+                    </t>
+                    <t t-else="">
+                        <img class="acs_user_image" src="/acs_hms/static/src/img/hospital.png" alt="Department"/>
+                    </t>
+                </div>
+                <div class="col-md-8">
+                    <div class="container">
+                        <div t-if="department.name">
+                            <strong><span t-esc="department.name"/></strong>
+                        </div>
+                        <div t-if="department.show_fee_on_booking and department.consultaion_service_id">
+                            <strong>Fees:</strong>
+                            <span t-esc="department.consultaion_service_id.lst_price"/>
+                        </div>
+                        <div class="acs_basic_info">
+                            <t t-if="department.basic_info">
+                                <strong>About:</strong>
+                                <span t-esc="department.basic_info"/>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="department_data" name="Appoitnment Department Data">
+        <div class="col-md-4 acs_radio_block">
+            <input type="radio" name="department_id" class="acs_checkbox sr-only" t-att-value="department.id" t-att-id="department.id"/>
+            <label t-att-for="department.id">
+                <t t-call="acs_hms_online_appointment.department_inside_data">
+                    <t t-set="department" t-value="department"/>
+                </t>
+            </label>
+        </div>
+
+    </template>
+
+    <template id="appointment_details" name="Online Appoitnment Booking AlmightyCS HMS">
+        <t t-call="website.layout">
+            <div id="wrap">
+                <div class="container">
+                    <div class="text-center mt32 mb32">
+                        <h3>Book your Appointment</h3>
+                    </div>
+                    <p t-if="appointment_tz">Timezone: <strong><span id="appointment_tz"/></strong></p>
+                    <form action="/get/appointment/data" method="post" role="form"
+                        class="tag_text js_website_submit_form acs_create_appointment">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                        <div class="row o_website_appointment_details">
+                            <div class="col-12">
+
+                                <div class="acs_appointment text-center col-md-12">
+                                    <t t-if="allow_department_selection">
+                                        <input type="radio" name="appoitment_by" class="sr-only" id="department" value="department"/>
+                                        <label for="department" class="mr8">
+                                            <img src="/acs_hms/static/src/img/hospital.png" alt="department" class="acs_image"/>
+                                        </label>
+                                    </t>
+                                    <t t-if="allow_physician_selection">
+                                        <input type="radio" name="appoitment_by" class="sr-only" id="physician" value="physician" t-att-checked="'checked' if appoitment_by=='physician' else None"/>
+                                        <label for="physician" class="ml8">
+                                            <img src="/acs_hms/static/src/img/physician.png" alt="physician" class="acs_image"/>
+                                        </label>
+                                    </t>
+                                    
+                                    <div class="clearfix" />
+                                    <input type="hidden" name="redirect" t-att-value="redirect" />
+                                </div>
+
+                                <div t-if="allow_department_selection or allow_physician_selection" class="text-center col-md-12 mt32">
+                                    <span>Select <t t-if="allow_department_selection">Department or</t> Physician and Book Appointment.<br/>
+                                    If you do not select Department or Physician All available slots will be shown.</span>
+                                </div>
+
+                                <div t-else="" class="text-center col-md-12 mt32">
+                                    <div class="col-12 alert alert-danger">
+                                        Online Appointment booking option is not published by Specific Department/Physician yet. Get Appointment Slots may show slots available generic Slots, if any available. (Not specific to Doctor or Department.)
+                                    </div>
+                                </div>
+
+                                <div class="row acs_hide mt32" id="acs_physician_datas">
+                                    <div class="text-center col-md-12 mt32 mb32">
+                                        <input type="text" placeholder="Search for Physician.." id="AcsRecordSearch" name="acs_physician_search" t-if="physician_ids" class="form-control text-center col-md-4 offset-md-4"/>
+                                    </div>
+                                    <t t-foreach="physician_ids" t-as="physician">
+                                        <t t-call="acs_hms_online_appointment.physician_data">
+                                            <t t-set="physician" t-value="physician.sudo()"/>
+                                        </t>
+                                    </t>
+                                    <t t-if="not physician_ids">
+                                        <div class="col-12 alert alert-danger">
+                                            No Physicians to book appointment, please do booking by selecting Department.
+                                        </div>
+                                    </t>
+                                </div>
+
+                                <div class="row acs_hide mt32" id="acs_department_datas">
+                                    <t t-foreach="department_ids" t-as="department">
+                                        <t t-call="acs_hms_online_appointment.department_data">
+                                            <t t-set="department" t-value="department.sudo()"/>
+                                        </t>
+                                    </t>
+                                    <t t-if="not department_ids">
+                                        <div class="col-12 alert alert-danger">
+                                            No Departments to book appointment, please do booking by selecting physician.
+                                        </div>
+                                    </t>
+                                </div>
+
+                                <div class="clearfix text-center mt32 mb32">
+                                    <button type="submit"
+                                        class="btn btn-default btn-primary mb32 ">
+                                        Get Appointment Slots
+                                        <span class="fa fa-long-arrow-right" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="appointment_slot_details" name="Online Appoitnment Booking AlmightyCS HMS">
+        <t t-call="website.layout">
+            <div id="wrap">
+                <div class="container">
+                    <div class="text-center mt32 mb32">
+                        <h1>Appointment Details</h1>
+                    </div>
+                    <p t-if="appointment_tz">Timezone: <strong><span id="appointment_tz"/></strong></p>
+                    <form action="/get/appointment/personaldata" method="post" role="form"
+                        class="tag_text js_website_submit_form acs_create_appointment">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                        <div class="row o_website_appointment_details">
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div t-if="error_message" class="alert alert-danger">
+                                            <t t-foreach="error_message" t-as="err">
+                                                <t t-esc="err" />
+                                                <br />
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt32 mb32" t-if="physician">
+                                    <div class="col-md-4"/>
+                                    <div class="col-md-4">
+                                        <t t-call="acs_hms_online_appointment.physician_inside_data">
+                                            <t t-set="physician" t-value="physician.sudo()"/>
+                                        </t>
+                                    </div>
+                                    <div class="col-md-4"/>
+                                </div>
+
+                                <div class="row mt32 mb32" t-if="department">
+                                    <div class="col-md-4"/>
+                                    <div class="col-md-4">
+                                        <t t-call="acs_hms_online_appointment.department_inside_data">
+                                            <t t-set="department" t-value="department.sudo()"/>
+                                        </t>
+                                    </div>
+                                    <div class="col-md-4"/>
+                                </div>
+
+                                <div class="row">                                    
+                                    <div class="clearfix" />
+                                    <input type="hidden" name="redirect" t-att-value="redirect" />
+                                    <input type="hidden" name="slot_date" id="acs_slot_date"/>
+                                    <input type="hidden" name="schedule_slot_id" id="acs_schedule_slot_id"/>
+                                    <input type="hidden" name="department_id" t-att-value="department_id"/>
+                                    <input type="hidden" name="physician_id" t-att-value="physician_id"/>
+                                </div>
+
+                                <!-- <div class="row"> -->
+                                    <t t-if="not slots_data">
+                                        <div class="col-12 alert alert-danger">
+                                            <span>There are no slots available to book appointment please check later or contact with Management.</span>
+                                        </div>
+                                    </t>
+                                    <t t-foreach="slots_data" t-as="slot_id">
+                                        <t t-set="slot_data" t-value="slots_data[slot_id]"/>
+                                        <div t-attf-class="col-sm-2 mt8 mb8 acs_slot_date #{slot_data['slots'] and ' acs_active_slot' or ' acs_inactive_slot'}" t-att-data-slotdate-id="slot_data['id']">
+                                            <t t-if="slot_data['slots']">
+                                                <div class="dropdown-toggle acs_slots_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    <strong>
+                                                        <span t-esc="slot_data['date']"/>
+                                                    </strong>
+                                                </div>
+                                                <div class="dropdown-menu" role="menu">
+                                                    <t t-foreach="slot_data['slots']" t-as="slot">
+                                                        <a t-if='slot' t-att-id="slot.id" role="menuitem" class="acs_appointment_slot dropdown-item" t-att-data-slotline-id="slot.id" t-esc="slot.name"/>
+                                                    </t>
+                                                </div>
+                                                <t t-if="department and slot_data['physician_name']">
+                                                    <span class="acs_small_font" t-esc="slot_data['physician_name']"/>
+                                                </t>
+                                                <div t-if="slot_data['show_fees']">
+                                                    <span class="acs_small_font">Fees: <t t-esc="slot_data['fees']"/></span>
+                                                </div>
+                                            </t>
+                                            <t t-if="not slot_data['slots']">
+                                                <div t-esc="slot_data['date']"/>
+                                            </t>
+                                        </div>
+                                    </t>
+                                <!-- </div> -->
+                                <div class="clearfix text-center mt32 mb32" t-if="slots_data">
+                                    <a class="btn btn-default btn-primary mb32" t-if="request.website.is_public_user()" href="/web/login?redirect=/create/appointment" help="Click here to login."> Login to book an Appointment</a>.
+                                    <button t-if="not request.website.is_public_user()" type="submit"
+                                        class="btn btn-default btn-primary mb32 ">
+                                        Confirm
+                                        <span class="fa fa-long-arrow-right" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="appointment_personal_details" name="Online Appoitnment Booking Data">
+        <t t-call="website.layout">
+            <div id="wrap">
+                <div class="container">
+                    <div class="text-center mt32 mb32">
+                        <h1>Appointment Details</h1>
+                    </div>
+                    <p t-if="appointment_tz">Timezone: <strong><span id="appointment_tz"/></strong></p>
+                    <form action="/save/appointment" method="post" role="form"
+                        class="tag_text js_website_submit_form acs_create_appointment">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                        <div class="row o_website_appointment_details">
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div t-if="error_message" class="alert alert-danger">
+                                            <t t-foreach="error_message" t-as="err">
+                                                <t t-esc="err" />
+                                                <br />
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt32 mb16" t-if="physician">
+                                    <div class="col-md-4"/>
+                                    <div class="col-md-4">
+                                        <t t-call="acs_hms_online_appointment.physician_inside_data">
+                                            <t t-set="physician" t-value="physician.sudo()"/>
+                                        </t>
+                                    </div>
+                                    <div class="col-md-4"/>
+                                </div>
+
+                                <div class="row mt32 mb16" t-if="department">
+                                    <div class="col-md-4"/>
+                                    <div class="col-md-4">
+                                        <t t-call="acs_hms_online_appointment.department_inside_data">
+                                            <t t-set="department" t-value="department.sudo()"/>
+                                        </t>
+                                    </div>
+                                    <div class="col-md-4"/>
+                                </div>
+
+                                <div class="row">
+                                    <div class="clearfix" />
+                                    <input type="hidden" name="redirect" t-att-value="redirect" />
+                                    <input type="hidden" name="slot_date" id="acs_slot_date"/>
+                                    <input type="hidden" name="department_id" t-att-value="department_id"/>
+                                    <input type="hidden" name="physician_id" t-att-value="physician_id"/>
+                                    <input type="hidden" name="schedule_slot_id" t-att-value="schedule_slot_id"/>
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                    <div class="col-12 text-center mt8" t-if="schedule_slot_date and schedule_slot_name">
+                                        <strong>
+                                            <h4>
+                                                <span t-esc="schedule_slot_date"/>
+                                                <span t-esc="schedule_slot_name"/>
+                                            </h4>
+                                        </strong>
+                                    </div>
+
+                                    <div class="col-12 text-center mt16" id="chief_complain">
+                                        <textarea name="chief_complain" rows="3" class="col-8 acs_gray_border" placeholder="Chief Complain. &#10;&#10;Example: Vomiting"/>
+                                    </div>
+
+                                    <div class="col-12 text-center mt16" id="present_illness">
+                                        <textarea name="present_illness" rows="3" class="col-8 acs_gray_border" placeholder="History of Present Illness &#10;&#10;Example: Vomiting Since last Night"/>
+                                    </div>
+
+                                    <div class="col-12 text-center mt16"  id="past_history">
+                                        <textarea name="past_history" rows="3" class="col-8 acs_gray_border" placeholder="Past History &#10;&#10;Example: Samething happen three times in last two months"/>
+                                    </div>
+
+                                    <div class="col-12 text-center mt16" t-if="allow_home_appointment">
+                                        <label class="col-8 text-left" for="location">Want to have Home Visit?</label>
+                                        <input class="col-8 acs_gray_border" type="text" name="location" placeholder="Mention your location by Google map url."/>
+                                    </div>
+
+                                    <div class="col-12 text-center mt16" t-if="terms_page_link">
+                                        <input type="checkbox" name="acs_appointment_tc" id="acs_appointment_tc" required="required"/>
+                                        <label for="acs_appointment_tc" class="form-group control-label">&#160;I Accept <a t-att-href="terms_page_link" target="_blank">Terms &amp; Conditions</a></label>
+                                    </div>
+
+                                </div>
+
+                                <div class="clearfix text-center mt32 mb32">
+                                    <button type="submit"
+                                        class="btn btn-default btn-primary mb32 ">
+                                        Confirm
+                                        <span class="fa fa-long-arrow-right" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="appointment_thank_you" name="Appointment Booked: Thank You">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure oe_empty">
+                <section>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb16 mt16">
+                                    <div style="text-align: center; color:green;font-size: 55px;">
+                                        Thank You!
+                                    </div><br/>
+                                    <div style="text-align: center; color:green;font-size: 25px;">
+                                        Your Appointment request has been successfully submitted, we will get back to you soon. Your reference number for this request is: <strong> <span t-field="appointment.name"/> </strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+</odoo>

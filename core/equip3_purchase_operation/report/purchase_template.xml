@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<template id="purchase_order_template_inherit" inherit_id="general_template.report_purchase_exclusive_main">
+		<xpath expr="//table/tr/td[1]" position="replace">
+			<td t-attf-style="padding:9px 15px; font-weight:bold;">
+				<span t-if="o.state not in ['draft']">Purchase Order Confirmation</span>
+				<span t-if="o.state in ['draft']">Request for Quotation</span>
+				<br/>
+				<span t-field="o.name"/>
+			</td>
+		</xpath>
+	</template>
+	
+	<template id="purchase_term_and_condition" inherit_id="general_template.report_purchase_main">
+		<xpath expr="//div[hasclass('page')]" position="replace">
+			<div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+				<div class="oe_structure"/>
+				<t t-call="general_template.templates_watermark"/>
+				<div width="100%">
+					<div style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+						<div t-attf-style="background-color:#f2f2f2;border-bottom:1px solid #{theme_color or '#ececec'}; overflow: visible; margin-bottom: 20px;">
+							<div align="left" style="padding:15px; width:50%; line-height:18px;float:left;" valign="top">
+								<t t-call="general_template.templates_warehouse_details"/>
+								<t t-call="general_template.templates_customer_details"/>
+							</div>
+							<div align="right" style="padding:15px; width:50%;float:right;" valign="top">
+								<table t-attf-style="text-transform:capitalize; background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+									<tr>
+										<td t-attf-style="padding:9px 15px; font-weight:bold;">
+											<span t-if="o.state not in ['draft']">Purchase Order Confirmation</span>
+											<span t-if="o.state in ['draft']">Request for Quotation</span>
+										</td>
+										<td t-attf-style="text-align:right; font-weight:bold; padding:9px 15px;">
+											<span t-field="o.name"/>
+										</td>
+									</tr>
+									<tr>
+										<td colspan="2" t-attf-style="background-color:#f2f2f2; height:4px;"/>
+										<td/>
+									</tr>
+									<tr>
+										<td t-attf-style="padding:5px 15px; font-weight:bold;">
+											<strong t-if="o.state not in ['draft']">Date Ordered:</strong>
+											<strong t-if="o.state in ['draft']">Quotation Date:</strong>
+										</td>
+										<td t-attf-style="text-align:right; padding:5px 15px; width:45%;">
+											<span t-field="o.date_order"/>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+						<div>
+							<t t-call="general_template.purchase_template_order_lines"/>
+						</div>
+						<div style="overflow:visible;">
+							<t t-call="general_template.purchase_template_order_subtotal"/>
+						</div>
+						<div t-attf-style="border-bottom:1px solid #{'#959595'}; padding:0px">
+							<t t-call="general_template.template_total_amount_word"/>
+						</div>
+						<div t-attf-style="color: #{text_color or '#000000'}; padding-top:5px; width:100%;" t-if="o.notes and o.company_id.is_show_notes == True">-->
+							<p t-field="o.notes"/>
+						</div>
+						<br/>
+						<div style="border:1px solid black; width:100%; padding-left:10px;">
+							<t t-if="o.payment_term_id">
+								<br/>
+								<div t-attf-style="color: #{text_color or '#000000'}; padding-top:5px; width:100%;">
+									<span>
+										Payment Terms:
+										<t t-esc="o.payment_term_id.name"/>
+									</span>
+								</div>
+							</t>
+							<t t-if="o.term_condition">
+								<br/>
+								<div t-attf-style="color: #{text_color or '#000000'}; padding-top:5px; width:100%;">
+									<span>
+										Terms and Conditions:
+										<t t-esc="o.term_condition.name"/>
+									</span>
+									<p t-field="o.term_condition_box"/>
+								</div>
+							</t>
+						</div>
+						<div class="oe_structure"/>
+					</div>
+				</div>
+			</div>
+		</xpath>
+	</template>
+	
+	<template id="quation_tc_template_order_lines" inherit_id="general_template.quotation_template_order_lines">	
+		<xpath expr="//table" position="after">
+			<div style="overflow:visible;">
+				<div class="row">
+					<div class="col-6" style="padding-left:20px;padding-top:30px;">
+						<t t-if="o.company_id.is_show_signature == True">
+							<span t-esc="o.sign_on.strftime('%d %B %Y')" t-if="o.sign_on"/>
+							<br />
+							<img style="max-height: 80px; padding:5px;" t-att-src="'data:image/png;base64,%s' %  to_text(o.digital_sign)"/>
+							<br />
+							<div class="row" style="position:absolute;left:25px;border-top:2px solid black;width:250px; margin-left:15px;"></div>
+							<strong t-field="o.sign_by" />
+							<br />
+							<span t-field="o.designation" />
+							<br />
+						</t>
+					</div>
+				</div>
+			</div>
+			<div t-attf-style="border-bottom:1px solid #{'#959595'}; padding:0px">
+				<t t-call="general_template.template_total_amount_word"/>
+			</div>
+			<br/>
+			<div style="border:1px solid black; width:100%; padding-left:10px;">
+				<t t-if="o.payment_term_id">
+					<br/>
+					<div t-attf-style="color: #{text_color or '#000000'}; padding-top:5px; width:100%;">
+						<span>
+							Payment Terms:
+							<t t-esc="o.payment_term_id.name"/>
+						</span>
+					</div>
+				</t>
+				<t t-if="o.term_condition">
+					<br/>
+					<div t-attf-style="color: #{text_color or '#000000'}; padding-top:5px; width:100%;">
+						<span>
+							Terms and Conditions:
+							<t t-esc="o.term_condition.name"/>
+						</span>
+						<p t-field="o.term_condition_box"/>
+					</div>
+				</t>
+			</div>
+		</xpath>
+	</template>
+
+	<template id="report_purchasequotation_document1">
+		<t t-call="web.external_layout">
+			<t t-set="o" t-value="doc.with_context(lang=o.requested_by.lang)"/>
+			<t t-set="address">
+				<div t-field="o.requested_by.partner_id"
+						t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+				<p t-if="o.requested_by.vat"><t t-esc="o.company_id.country_id.vat_label or 'Tax ID'"/>: <span t-field="o.requested_by.vat"/></p>
+			</t>
+			<t t-if="o.picking_type_id.company_id.partner_id">
+				<t t-set="information_block">
+					<strong>Shipping address:</strong>
+					<div t-field="o.picking_type_id.company_id.partner_id"
+							t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+					<p t-if="o.branch_id">Branch : <span t-field="o.branch_id"/></p>
+				</t>
+			</t>
+			<div class="page">
+				<div class="oe_structure"/>
+
+				<h2>Purchase Request <span t-field="o.name"/></h2>
+
+				<table class="table table-sm">
+					<thead>
+						<tr t-att-class="'bg-200 font-weight-bold o_line_section font-italic o_line_note'">
+							<th name="th_description"><strong>Description</strong></th>
+							<th name="th_expected_date" class="text-center"><strong>Expected Date</strong></th>
+							<th name="th_quantity" class="text-right"><strong>Qty</strong></th>
+							<th name="th_estimated_cost" class="text-right"><strong>Estimated Cost</strong></th>
+						</tr>
+					</thead>
+					<tbody>
+						<t t-foreach="o.line_ids" t-as="order_line">
+							<tr>
+								<td id="product">
+									<span t-field="order_line.name"/>
+								</td>
+								<td class="text-center">
+									<span t-field="order_line.date_required"/>
+								</td>
+								<td class="text-right">
+									<span t-field="order_line.product_qty"/>
+									<span t-field="order_line.product_uom_id" groups="uom.group_uom"/>
+								</td>
+								<td class="text-right">
+									<span t-field="order_line.estimated_cost"/>
+								</td>
+							</tr>
+						</t>
+					</tbody>
+				</table>
+
+				<div class="oe_structure"/>
+			</div>
+		</t>
+	</template>
+
+	<template id="report_purchaserequest">
+		<t t-call="web.html_container">
+			<t t-foreach="docs" t-as="doc">
+				<t t-call="equip3_purchase_operation.report_purchasequotation_document1" t-lang="doc.requested_by.lang"/>
+			</t>
+		</t>
+	</template>
+</odoo>

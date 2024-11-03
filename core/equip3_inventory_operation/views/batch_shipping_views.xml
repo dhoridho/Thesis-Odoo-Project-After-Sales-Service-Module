@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Batch shipping  -->
+    <record model="ir.ui.view" id="stock_picking_inherit_batch_shipping_tree">
+        <field name="name">batch_shipping_picking_tree</field>
+        <field name="model">stock.picking</field>
+        <field name="priority" eval="500"/>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="is_batch_shipping_picking" invisible="1"/>
+                <field name="is_batch_shipping_packing" invisible="1"/>
+                <field name="is_batch_shipping_delivery" invisible="1"/>
+                <field name="name"/>
+                <field name="location_id"/>
+                <field name="location_dest_id"/>
+                <field name="partner_id"/>
+                <field name="scheduled_date"/>
+                <field name="origin"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state not in ('done', 'cancel')" attrs="{'invisible': [('is_batch_shipping_picking', '!=', True), ('is_batch_shipping_packing', '!=', True), ('is_batch_shipping_delivery', '!=', True)]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="stock_picking_inherit_batch_shipping_form">
+        <field name="name">batch_shipping_picking_form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="is_batch_shipping_picking" invisible="1"/>
+                <field name="is_batch_shipping_packing" invisible="1"/>
+                <field name="is_batch_shipping_delivery" invisible="1"/>
+                <field name="warehouse_id" invisible="1"/>
+            </field>
+
+            <xpath expr="//header" position="inside">
+                <field name="is_deployed" invisible="1"/>
+            </xpath>
+
+            <field name="partner_id" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', '|', ('is_batch_shipping_picking','==', True), ('is_batch_shipping_packing','==', True), ('is_batch_shipping_delivery','==', True)]}</attribute>
+            </field>
+
+            <field name="move_ids_without_package" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('is_batch_shipping_packing','==', True), ('is_batch_shipping_delivery','==', True)]}</attribute>
+            </field>
+
+            <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='product_uom']" position="after">
+                <field name="source_picking_id"/>
+            </xpath>
+
+            <field name="move_ids_without_package" position="after">
+                <field name="batch_shipping_line" context="{'batch_shipping_line': batch_shipping_line, 'is_batch_shipping_packing': is_batch_shipping_packing, 'is_batch_shipping_delivery': is_batch_shipping_delivery}" attrs="{'invisible': [('is_batch_shipping_delivery', '!=', True), ('is_batch_shipping_packing', '!=', True)],'readonly':[('state', '!=','draft')]}">
+                    <tree editable="bottom">
+                        <field name="warehouse_id" invisible="1"/>
+                        <field name="serial_number"/>
+                        <field name="used_picking_ids" widget="many2many_tags" invisible="1"/>
+                        <field name="picking_id" required="1"/>
+                    </tree>
+                </field>
+            </field>
+
+            <xpath expr="//field[@name='location_dest_id']" position="attributes">
+                <attribute name="attrs">{'readonly': ['|', '|', ('is_batch_shipping_picking','==', True), ('is_batch_shipping_packing','==', True), ('is_batch_shipping_delivery','==', True)]}</attribute>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="stock_location_inherit_batch_shipping_picking_form">
+        <field name="name">stock_location_inherit</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+            <field name="usage" position="after">
+                <field name="warehouse_delivery_steps" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+
+<!--    xpath for source picking in detailed operation tab-->
+    <record model="ir.ui.view" id="batch_shipping_packing_detailed_operation_tree_view">
+        <field name="name">batch_shipping_packing_detailed_operation_tree_view</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='product_id']"
+                   position="after">
+                <field name="is_batch_shipping_packing" invisible="1"/>
+                <field name="is_batch_shipping_delivery" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='product_id']"
+                   position="after">
+                <field name='source_picking_id'/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!--    Batch Shipping Picking ActWindow-->
+    <record id="batch_shipping_picking_tree_action" model="ir.actions.act_window">
+        <field name="name">Batch Shipping Picking</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_id" ref="stock_picking_inherit_batch_shipping_tree"/>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_batch_shipping_picking', '=', True)]</field>
+        <field name="context">{'default_is_batch_shipping_picking' : True}</field>
+    </record>
+    <!--    Batch Shipping Packing ActWindow-->
+    <record id="batch_shipping_packing_tree_action" model="ir.actions.act_window">
+        <field name="name">Batch Shipping Packing</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_id" ref="stock_picking_inherit_batch_shipping_tree"/>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_batch_shipping_packing', '=', True)]</field>
+        <field name="context">{'default_is_batch_shipping_packing' : True}</field>
+    </record>
+    <!--    Batch Shipping Delivery ActWindow-->
+    <record id="batch_shipping_delivery_tree_action" model="ir.actions.act_window">
+        <field name="name">Batch Shipping Delivery</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_id" ref="stock_picking_inherit_batch_shipping_tree"/>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_batch_shipping_delivery', '=', True)]</field>
+        <field name="context">{'default_is_batch_shipping_delivery' : True}</field>
+    </record>
+
+    <menuitem id="batch_shipping_parent" name="Batch Shipping"
+              parent="stock.menu_stock_warehouse_mgmt" groups="equip3_inventory_operation.group_warehouse_shipments"
+              sequence="16"/>
+    <menuitem
+            id="batch_shipping_picking_child"
+            name="Batch Shipping Picking"
+            parent="equip3_inventory_operation.batch_shipping_parent"
+            action="batch_shipping_picking_tree_action"
+    />
+    <menuitem
+            id="batch_shipping_packing_child"
+            name="Batch Shipping Packing"
+            parent="equip3_inventory_operation.batch_shipping_parent"
+            action="batch_shipping_packing_tree_action"
+    />
+    <menuitem
+            id="batch_shipping_delivery_child"
+            name="Batch Shipping Delivery"
+            parent="equip3_inventory_operation.batch_shipping_parent"
+            action="batch_shipping_delivery_tree_action"
+    />
+
+</odoo>

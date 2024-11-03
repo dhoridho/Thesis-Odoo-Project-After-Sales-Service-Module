@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <record id="fleet_vehicle_inspection_search" model="ir.ui.view">
+            <field name="name">Vehicle Inspection</field>
+            <field name="model">fleet.vehicle.inspection</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="ref_number" filter_domain="[('name','ilike',self)]" string="Name"/>
+                    <field name="customer_id" filter_domain="[('customer_id','ilike',self)]" string="Customer"/>
+                    <filter string="Un Done" name="undone" domain="[('state','!=','done')]"/>
+                    <filter string="Reference Number" name="move_type" domain="[]"
+                            context="{'group_by': 'source_document'}"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="fleet_vehicle_inspection_form_id" model="ir.ui.view">
+            <field name="name">Vehicle Inspection</field>
+            <field name="model">fleet.vehicle.inspection</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <field name="state" widget="statusbar"/>
+                        <button name="done" string="Mark as Done" type="object" class="oe_highlight" states="ready"/>
+                        <button name="pause" string="Pause Inspection" type="object" class="oe_highlight"
+                                states="ready"/>
+                        <button name="resume" string="Resume Inspection" type="object" class="oe_highlight"
+                                states="pause"/>
+                        <button name="create_invoice" type="object" string="Create Invoice" class="oe_highlight"
+                                attrs="{'invisible':[('total_charged_amount', '=', 0.0), ('total_fuel_charged', '=', 0.0), ('total_delayed_amount', '=', 0.0)]}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="ref_number" placeholder="Inspection Number"/>
+                            </h1>
+                            <h1>
+                                <field name="vehicle_id"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="customer_id"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="phone"/>
+                                <field name="location_id"/>
+                                <field name="total_charged_amount" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="date"/>
+                                <field name="source_document"/>
+                                <field name="responsible_person_id"/>
+                                <field name="total_delayed_amount" invisible="1"/>
+                                <field name="total_fuel_charged" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Tools">
+                                <group>
+                                    <field name="inspection_tools_line_ids" nolabel="1">
+                                        <tree editable="bottom">
+                                            <field name="tools_line_id" invisible="1"/>
+                                            <field name="currency_id" invisible="1"/>
+                                            <field name="inspection"/>
+                                            <field name="result"/>
+                                            <field name="charge_amount"
+                                                   attrs="{'readonly': [('result', '=', 'present')]}"
+                                                   widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                            <field name="invoice_state" invisible="1"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Exteriors">
+                                <group>
+                                    <field name="inspection_exteriors_line_ids" nolabel="1">
+                                        <tree editable="bottom">
+                                            <field name="exterior_line_id" invisible="1"/>
+                                            <field name="currency_id" invisible="1"/>
+                                            <field name="inspection"/>
+                                            <field name="result"/>
+                                            <field name="charge_amount"
+                                                   attrs="{'readonly': [('result', 'in', ['passed', 'replaced', 'na'])]}"
+                                                   widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                            <field name="invoice_state" invisible="1"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Interiors">
+                                <group>
+                                    <field name="inspection_interiors_line_ids" nolabel="1">
+                                        <tree editable="bottom">
+                                            <field name="interior_line_id" invisible="1"/>
+                                            <field name="currency_id" invisible="1"/>
+                                            <field name="inspection"/>
+                                            <field name="result"/>
+                                            <field name="charge_amount"
+                                                   attrs="{'readonly': [('result', 'in', ['passed', 'replaced', 'na'])]}"
+                                                   widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                            <field name="invoice_state" invisible="1"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Mechanical">
+                                <group>
+                                    <field name="inspection_mechanical_line_ids" nolabel="1">
+                                        <tree editable="bottom">
+                                            <field name="mechanical_line_id" invisible="1"/>
+                                            <field name="currency_id" invisible="1"/>
+                                            <field name="inspection"/>
+                                            <field name="result"/>
+                                            <field name="charge_amount"
+                                                   attrs="{'readonly': [('result', 'in', ['passed', 'replaced', 'na'])]}"
+                                                   widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                            <field name="invoice_state" invisible="1"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Delayed" attrs="{'invisible': [('total_delayed_amount', '=', 0.0)]}">
+                                <group>
+                                    <field name="delayed_line_ids" nolabel="1">
+                                        <tree editable="bottom" create="false">
+                                            <field name="inspection_id" invisible="1"/>
+                                            <field name="name"/>
+                                            <field name="delay_cost_per_hour"/>
+                                            <field name="delayed_hours"/>
+                                            <field name="delayed_amount"/>
+                                            <field name="invoice_state" invisible="1"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Fuel Charge" attrs="{'invisible': [('total_fuel_charged', '=', 0.0)]}">
+                                <group>
+                                    <field name="fuel_line_ids" nolabel="1">
+                                        <tree editable="bottom" create="false">
+                                            <field name="vehicle_inspection_id" invisible="1"/>
+                                            <field name="name"/>
+                                            <field name="fuel_charge_amount"/>
+                                            <field name="invoice_state" invisible="1"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="fleet_vehicle_inspection_tree_id" model="ir.ui.view">
+            <field name="name">Vehicle Inspection</field>
+            <field name="model">fleet.vehicle.inspection</field>
+            <field name="arch" type="xml">
+                <tree decoration-muted="state=='done'" decoration-info="state=='pause'"
+                      decoration-danger="state=='ready'">
+                    <field name="ref_number"/>
+                    <field name="vehicle_id"/>
+                    <field name="source_document"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+        <record id="fleet_inspection_tools_tree" model="ir.ui.view">
+            <field name="name">Vehicle Tools</field>
+            <field name="model">vehicle.inspection.tools</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="tools_name"/>
+                </tree>
+            </field>
+        </record>
+        <record id="action_inspection_tools_info" model="ir.actions.act_window">
+            <field name="name">Vehicle Tools</field>
+            <field name="res_model">vehicle.inspection.tools</field>
+            <field name="view_mode">tree</field>
+        </record>
+        <record id="fleet_inspection_exterior_tree" model="ir.ui.view">
+            <field name="name">Vehicle Exterior</field>
+            <field name="model">vehicle.inspection.exteriors</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="exterior_inspection_name"/>
+                </tree>
+            </field>
+        </record>
+        <record id="action_inspection_exterior_info" model="ir.actions.act_window">
+            <field name="name">Vehicle Exterior</field>
+            <field name="res_model">vehicle.inspection.exteriors</field>
+            <field name="view_mode">tree</field>
+        </record>
+        <record id="fleet_inspection_interior_tree" model="ir.ui.view">
+            <field name="name">Vehicle Interior</field>
+            <field name="model">vehicle.inspection.interiors</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="interior_inspection_name"/>
+                </tree>
+            </field>
+        </record>
+        <record id="action_inspection_interior_info" model="ir.actions.act_window">
+            <field name="name">Vehicle Interior</field>
+            <field name="res_model">vehicle.inspection.interiors</field>
+            <field name="view_mode">tree</field>
+        </record>
+        <record id="fleet_inspection_mechanical_tree" model="ir.ui.view">
+            <field name="name">Vehicle Mechanical</field>
+            <field name="model">vehicle.inspection.mechanical</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="mechanical_inspection_name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_inspection_mechanical_info" model="ir.actions.act_window">
+            <field name="name">Vehicle Mechanical</field>
+            <field name="res_model">vehicle.inspection.mechanical</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <record model="ir.ui.view" id="view_rental_order_pivot">
+            <field name="name">fleet.vehicle.inspection.pivot</field>
+            <field name="model">fleet.vehicle.inspection</field>
+            <field name="arch" type="xml">
+                <pivot string="Inspection Analysis">
+                    <field name="vehicle_id" type="row"/>
+                    <field name="date" type="col"/>
+                </pivot>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_rental_order_graph">
+            <field name="name">fleet.vehicle.inspection.pivot</field>
+            <field name="model">fleet.vehicle.inspection</field>
+            <field name="arch" type="xml">
+                <graph string="Inspection Analysis">
+                    <field name="vehicle_id" type="row"/>
+                    <field name="date" type="col"/>
+                </graph>
+            </field>
+        </record>
+
+        <record id="action_fleet_inspection_move" model="ir.actions.act_window">
+            <field name="name">Vehicle Inspection</field>
+            <field name="res_model">fleet.vehicle.inspection</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_undone': 1}</field>
+        </record>
+
+        <record id="action_fleet_inspection_analysis" model="ir.actions.act_window">
+            <field name="name">Vehicle Inspection</field>
+            <field name="res_model">fleet.vehicle.inspection</field>
+            <field name="view_mode">pivot,graph</field>
+        </record>
+
+        <menuitem id="vehicle_inspection_menu" name="Inspections Types" parent="vehicle_configration_menu"/>
+        <menuitem id="vehicle_tools_inspection_menu" name="Tools " parent="vehicle_inspection_menu"
+                  action="action_inspection_tools_info"/>
+        <menuitem id="vehicle_exterior_inspection_menu" name="Exterior" parent="vehicle_inspection_menu"
+                  action="action_inspection_exterior_info"/>
+        <menuitem id="vehicle_interior_inspection_menu" name="Interior" parent="vehicle_inspection_menu"
+                  action="action_inspection_interior_info"/>
+        <menuitem id="vehicle_mechanical_inspection_menu" name="Mechanical" parent="vehicle_inspection_menu"
+                  action="action_inspection_mechanical_info"/>
+        <menuitem id="fleet_vehicle_location_menu" name="Vehicle Inspections" parent="fleet_vehicle_booking_menu"
+                  action="action_fleet_inspection_move" sequence="20"/>
+
+        <menuitem id="vehicle_inspection_analysis" name="Inspections" parent="fleet_vehicle_analysis"
+                  action="action_fleet_inspection_analysis" sequence="4"/>
+    </data>
+</odoo>

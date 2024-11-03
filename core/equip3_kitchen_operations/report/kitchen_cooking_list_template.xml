@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<template id="cooking_list_subtotal_tem">
+        <div class="clearfix">
+            <table class="pull-right" t-att-style="'font-weight:bold; text-transform:capitalize; color: '+ text_color">
+                <tr>
+                    <td colspan="3" style="border-bottom:1px solid #959595"/>
+                </tr>
+                <tr>
+                    <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;  text-transform:uppercase; '">Total To Produce</td>
+                    <td align="right" style="padding:9px 0px 7px 10px;text-transform:uppercase; ">
+                        <span t-esc="total[o.id]['to_produce']"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;  text-transform:uppercase; '">Total To Consume</td>
+                    <td align="right" style="padding:9px 0px 7px 10px;text-transform:uppercase; ">
+                        <span t-esc="total[o.id]['to_consume']"/>
+                    </td>
+                </tr>
+                <tr t-if="is_show_byproduct[o.id]">
+                    <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;  text-transform:uppercase; '">Total Quantity</td>
+                    <td align="right" style="padding:9px 0px 7px 10px;text-transform:uppercase; ">
+                        <span t-esc="total[o.id]['quantity']"/>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+	<template id="report_cooking_list_lines">
+        <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+            <thead>
+                <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                    <t t-if="o.company_id.add_product_image == True">
+                        <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Image</td>
+                    </t>
+                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Products</td>
+                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">To Produce</td>
+                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">UoM</td>
+                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Materials</td>
+                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">To Consume</td>
+                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">UoM</td>
+                    <t t-if="is_show_byproduct[o.id]">
+	                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">By-Product</td>
+	                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Quantity</td>
+	                </t>
+                </tr>
+            </thead>
+            <tbody>
+            	<t t-as="l" t-foreach="lines[o.id]">
+                    <t t-if="l_odd">
+                        <t t-set="ol_color" t-value="o.company_id.even_party_color"/>
+                    </t>
+                    <t t-if="l_even">
+                        <t t-set="ol_color" t-value="o.company_id.odd_party_color"/>
+                    </t>
+                    <tr t-att-style="'page-break-inside: avoid !important; color: %s; background-color: %s '%(text_color, ol_color)  ">
+                        <t t-if="o.company_id.add_product_image == True">
+                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                                <span style="width: 64px;height: 64px;margin: auto;display: -webkit-box;display: -ms-flexbox;display: flex;-webkit-box-pack: center;-ms-flex-pack: center;justify-content: center;-webkit-box-align: center;-ms-flex-align: center;align-items: center;" t-field="l_value['product_obj'].image_256" t-if="l_value['product_obj'] and l_value['product_obj'].image_256" t-options="{&quot;widget&quot;:&quot;image&quot;,&quot;class&quot;:&quot;img-rounded mh-100&quot;}"/>
+                            </td>
+                        </t>
+                        <td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                            <span t-esc="l_value['product']"/>
+                        </td>
+                        <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                            <span t-esc="l_value['to_produce']"/>
+                        </td>
+                        <td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                            <span t-esc="l_value['finished_uom']"/>
+                        </td>
+                        <td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                            <span t-esc="l_value['material']"/>
+                        </td>
+                        <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                            <span t-esc="l_value['to_consume']"/>
+                        </td>
+                        <td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                            <span t-esc="l_value['material_uom']"/>
+                        </td>
+                        <t t-if="is_show_byproduct[o.id]">
+                        	<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                            <span t-esc="l_value['byproduct']"/>
+                            </td>
+                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                                <span t-esc="l_value['quantity']"/>
+                            </td>
+                        </t>
+                    </tr>
+                </t>
+
+                <tr t-att-style="'page-break-inside: avoid !important; color: %s; background-color: %s '%(text_color, o.company_id.odd_party_color) ">
+                    <td colspan="8" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; border-left:0px solid #ccc !important;'"/>
+                </tr>
+
+                <tr t-att-style="'page-break-inside: avoid !important; color: %s; background-color: %s '%(text_color, o.company_id.even_party_color)  ">
+
+                    <td class="text-left" t-att-style="'padding:10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; text-transform:uppercase; '">
+                        Total To Produce
+                    </td>
+                    <td class="text-right" t-att-style="'padding:10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                        <span t-esc="total[o.id]['to_produce']"/>
+                    </td>
+                    <td t-att-style="'padding:10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; text-transform:uppercase; '"/>
+
+                    <td class="text-left" t-att-style="'padding:10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; text-transform:uppercase; '">
+                        Total To Consume
+                    </td>
+                    <td class="text-right" t-att-style="'padding:10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; text-transform:uppercase; '">
+                        <span t-esc="total[o.id]['to_consume']"/>
+                    </td>
+                    <td t-att-style="'padding:10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; text-transform:uppercase; '"/>
+
+                    <t t-if="is_show_byproduct[o.id]">
+                        <td class="text-left" t-att-style="'padding:10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; text-transform:uppercase; '">
+                            Total Quantity
+                        </td>
+                        <td class="text-right" t-att-style="'padding:10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; text-transform:uppercase; '">
+                            <span t-esc="total[o.id]['quantity']"/>
+                        </td>
+                    </t>
+                </tr>
+            </tbody>
+        </table>
+    </template>
+
+	<template id="report_cooking_list_document">
+		<t t-call="equip3_kitchen_operations.exclusive_external_layout">
+			<!-- <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/> -->
+			<t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+			<t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+			<t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+			<t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+			<t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+			<t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+			<t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+			<div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+
+				<div class="oe_structure"/>
+                <t t-call="general_template.template_watermark"/>
+                <div>
+                    <div style="padding:0px 20px 20px 20px; margin:0; background:#fff; text-transform:uppercase;" width="100%">
+                        <div>
+                            <div colspan="3" t-attf-style="padding:95px 0px 0px 0px; height:5px; border-bottom: 1px solid #{theme_color or '#000000'};"/>
+                        </div>
+                        <div align="left" style="color:#4D4D4F; padding:10px 0px 0px 0px;" valign="top">
+                            <table border="0" cellpadding="0" cellspacing="0" t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};" width="100%">
+                                <tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+                                    <td colspan="2" style="padding:9px 15px; font-weight:bold;">
+                                        <h5><b>Cooking List</b></h5>
+                                    </td>
+                                </tr>
+                                <tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+                                    <td style="padding:5px 15px;">
+                                        <b>Date:</b>
+                                        <br/>
+                                        <span t-esc="o._get_formatted_date(o.from_date)"/> - <span t-esc="o._get_formatted_date(o.to_date)"/>
+                                    </td>
+                                </tr>
+                                <tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+                                    <td style="padding:5px 15px;">
+                                        <b>Warehouse:</b>
+                                        <br/>
+                                        <span t-esc="o.warehouse_id.name"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div style="padding:20px 0px 0 0; font-weight:bold; width:100%;" >
+                            <t t-call="equip3_kitchen_operations.report_cooking_list_lines"/>
+                        </div>
+                        <!-- <div>
+                            <t t-call="equip3_kitchen_operations.cooking_list_subtotal_tem" />
+                        </div> -->
+                    </div>
+                </div>
+                <div class="oe_structure"/>
+			</div>
+		</t>
+	</template>
+
+	<template id="report_cooking_list">
+		<t t-call="web.html_container">
+			<t t-foreach="docs" t-as="o">
+				<t t-call="equip3_kitchen_operations.report_cooking_list_document"/>
+			</t>
+		</t>
+	</template>
+
+</odoo>

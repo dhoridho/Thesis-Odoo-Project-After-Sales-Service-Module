@@ -1,0 +1,516 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+    <!-- maintenance.hour tree view -->
+    <record id="maintenance_hour_meter_view_tree" model="ir.ui.view">
+        <field name="name">maintenance.hour.meter.view.tree</field>
+        <field name="model">maintenance.hour.meter</field>
+        <field name="arch" type="xml">
+            <tree string="Maintenance Hour Meter" create="0" editable="top">
+                <field name="date" />
+                <field name="maintenance_asset"/>
+                <field name="value"/>
+                <field name="unit" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- maintenance.hour.meter action window -->
+    <record id="maintenance_hour_meter_action" model="ir.actions.act_window">
+        <field name="name">Maintenance Hour Meter</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.hour.meter</field>
+        <field name="view_mode">tree</field>
+        <field name="view_ids" eval="[(5,0,0), 
+                    (0,0, {'sequence':2, 'view_mode':'tree', 'view_id':ref('equip3_asset_fms_masterdata.maintenance_hour_meter_view_tree')})]
+                    " />
+        <field name="context"></field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            Create a new odometer log
+            </p>
+            <p>
+            You can add various odometer entries for all vehicles.
+            </p>
+        </field>
+    </record>
+
+    <!-- maintenance.Odometer tree view -->
+    <record id="maintenance_odometer_view_tree" model="ir.ui.view">
+        <field name="name">maintenance.odometer.view.tree</field>
+        <field name="model">maintenance.vehicle</field>
+        <field name="arch" type="xml">
+            <tree string="Maintenance Odometer" create="0" editable="top">
+                <field name="date" />
+                <field name="maintenance_vehicle"/>
+                <field name="value"/>
+                <field name="unit" />
+            </tree>
+        </field>
+    </record>
+
+    <!-- Odometer Smart Button -->
+    <record id="odometer_action_link" model="ir.actions.act_window">
+        <field name="name">Maintenance Odometer</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.vehicle</field>
+        <field name="binding_model_id" ref="maintenance.model_maintenance_equipment"/>
+        <field name="view_mode">tree</field>
+        <field name="view_ids" eval="[(5,0,0), 
+                    (0,0, {'sequence':2, 'view_mode':'tree', 'view_id':ref('equip3_asset_fms_masterdata.maintenance_odometer_view_tree')})]
+                    " />
+        <!-- <field name="context">{
+            'default_maintenance_vehicle': active_id,
+        }</field>
+        <field name="domain">[('maintenance_vehicle','=',active_id)]</field> -->
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a new maintenance request
+            </p>
+            <p>
+                Follow the process of the request and communicate with the collaborator.
+            </p>
+        </field>
+    </record>
+
+    <!-- Fuel Logs Smart Button -->
+    <record id="fuel_logs_action_link" model="ir.actions.act_window">
+        <field name="name">Fuel Logs</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.fuel.logs</field>
+        <field name="binding_model_id" ref="maintenance.model_maintenance_equipment"/>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{
+            'default_vehicle': active_id,
+        }</field>
+        <field name="domain">[('vehicle','=',active_id)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a new maintenance request
+            </p>
+            <p>
+                Follow the process of the request and communicate with the collaborator.
+            </p>
+        </field>
+    </record>
+
+
+    <!-- maintenance.Odometer action window -->
+    <record id="maintenance_odometer_action" model="ir.actions.act_window">
+        <field name="name">Maintenance Odometer</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.vehicle</field>
+        <field name="view_mode">tree</field>
+        <field name="context"></field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            Create a new odometer log
+            </p>
+            <p>
+            You can add various odometer entries for all vehicles.
+            </p>
+        </field>
+    </record>
+
+    <!-- maintenance.vehicle form view -->
+    <record id="maintenance_vehicle_view_form" model="ir.ui.view">
+        <field name="name">vehicle.view.form</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="priority" eval='10'/>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="equip3_asset_fms_masterdata.inherit_equip_view_id"/>
+        <field name="arch" type="xml">
+
+
+            <xpath expr="//button[@name='asset_moves_link']" position="replace">
+                <button name="asset_moves_link" type="object" class="oe_stat_button" icon="fa-exchange">
+                    <div class="o_stat_info">
+                        <field name="am_count" class="o_stat_value"/>
+                        <span class="o_stat_text">Vehicle Moves</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//button[@name='%(equip3_asset_fms_masterdata.odometer_action_link)d']" position="before">
+
+                <button name="%(equip3_asset_fms_masterdata.odometer_action_link)d" type="action" class="oe_stat_button" icon="fa-dashboard">
+                    <div class="o_stat_info">
+                        <field name="odometer_count" class="o_stat_value"/>
+                        <span class="o_stat_text">Odometer</span>
+                    </div>
+                </button>
+            </xpath>
+            <label for="name" position="replace">
+                <label string="Vehicle Name" for="name"/>
+
+            </label>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="placeholder">Vehicle Name</attribute>
+                <attribute name="string">Vehicle Name</attribute>
+            </xpath>
+
+            <div class="oe_button_box" name="button_box">
+                <button name="%(equip3_asset_fms_masterdata.fuel_logs_action_link)d" type="action" class="oe_stat_button" icon="fa-list">
+                    <div class="o_stat_info">
+                        <field name="fuel_logs_count" class="o_stat_value"/>
+                        <span class="o_stat_text">Fuel Logs</span>
+                    </div>
+                </button>
+            </div>
+
+            <field name="fac_area" position="after">
+                <field name="driver_1"/>
+                <field name="driver_2"/>
+            </field>
+
+            <xpath expr="//group[@name='grup3']" position="after">
+                <group string="Additional Properties" name="grup2">
+                    <group>
+                        <field name="engine_number"/>
+                        <field name="chassis_number"/>
+                        <field name="transmission"/>
+                        <field name="fuel_type"/>
+                        <field name="horsepower"/>
+                    </group>
+                    <group>
+                        <field name="capacity"/>
+                        <field name="volume"/>
+                        <field name="manufacture_year"/>
+                        <field name="model_year"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- maintenance.equipment inherit form view -->
+    <record id="vehicle_equipment_inherit_view_form_frequency" model="ir.ui.view">
+        <field name="name">vehicle.equipment.inherit.view.form.frequency</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="equip3_asset_fms_masterdata.maintenance_vehicle_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[5]" position="replace"></xpath>
+            <xpath expr="//page[last()]" position="replace"></xpath>
+            <xpath expr="//notebook/page[last()]" position="after">
+                <page name='frequency' string='Frequency'>
+                    <field name="frequency_hourmeter_ids" nolabel="1">
+                        <tree editable="True">
+                            <field name='is_hourmeter_m_plan'/>
+                            <field name="floorhour_value"/>
+                        </tree>
+                    </field>
+                    <field name="frequency_odoometer_ids" nolabel="1">
+                        <tree editable="True">
+                            <field name='is_odometer_m_plan' />
+                            <field name="floorodoo_value"/>
+                        </tree>
+                    </field>
+                </page>
+                <page name='Threshold' string='Threshold'>
+                    <field name="threshold_hourmeter_ids" nolabel="1">
+                        <tree editable="True">
+                            <field name='is_hourmeter'/>
+                            <field name='last_threshold'/>
+                        </tree>
+                    </field>
+                    <field name="threshold_odoometer_ids" nolabel="1">
+                        <tree editable="True">
+                            <field name='is_odometer' />
+                            <field name='last_threshold'/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+
+    <!-- maintenance.vehicle tree view -->
+    <record id="maintenance_vehicle_view_kanban" model="ir.ui.view">
+        <field name="name">maintenance.vehicle.view.kanban</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="name"/>
+                <field name="color"/>
+                <field name="technician_user_id"/>
+                <field name="owner_user_id"/>
+                <field name="category_id"/>
+                <field name="serial_no"/>
+                <field name="model"/>
+                <field name="maintenance_ids"/>
+                <field name="maintenance_open_count"/>
+                <field name="next_action_date"/>
+                <field name="activity_ids"/>
+                <field name="activity_state"/>
+                <field name="held_by_id"/>
+                <field name="id"/>
+                <field name="fac_area"/>
+                <field name="equipmt_image1_custom"/>
+                <field name="expired_type"/>
+                <field name="state"/>
+                <progressbar field="activity_state"
+                             colors='{"planned": "success", "today": "warning", "overdue": "danger"}'/>
+                <templates>
+                    <t t-name="kanban-tooltip">
+                        <ul class="oe_kanban_tooltip">
+                            <li t-if="record.serial_no.raw_value">
+                                <b>Serial Number:</b>
+                                <t t-esc="record.serial_no.value"/>
+                            </li>
+                            <li t-if="record.model.raw_value">
+                                <b>Model Number:</b>
+                                <t t-esc="record.model.value"/>
+                            </li>
+                        </ul>
+                    </t>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="{{!selection_mode ? 'oe_kanban_color_' + kanban_getcolor(record.color.raw_value) : ''}} oe_kanban_card oe_kanban_global_click">
+                            <div class="o_dropdown_kanban dropdown" t-if="!selection_mode">
+
+                                <a role="button" class="dropdown-toggle o-no-caret btn" data-toggle="dropdown"
+                                   data-display="static" href="#" aria-label="Dropdown menu" title="Dropdown menu">
+                                    <span class="fa fa-ellipsis-v"/>
+                                </a>
+                                <div class="dropdown-menu" role="menu">
+                                    <t t-if="widget.editable">
+                                        <a role="menuitem" type="edit" class="dropdown-item">Edit...</a>
+                                    </t>
+                                    <t t-if="widget.deletable">
+                                        <a role="menuitem" type="delete" class="dropdown-item">Delete</a>
+                                    </t>
+                                    <div role="separator" class="dropdown-divider"></div>
+                                    <div role="separator" class="dropdown-header">Record Colour</div>
+                                    <ul class="oe_kanban_colorpicker" data-field="color"/>
+                                </div>
+                            </div>
+                            <div class="oe_kanban_content" tooltip="kanban-tooltip">
+                                <div class="o_kanban_record_top">
+                                    <b class="o_kanban_record_title" style="position:absolute;">
+                                        <field name="name"/>
+                                        <small>
+                                            <span t-if="record.model.raw_value">(<field name="model"/>)
+                                            </span>
+                                        </small>
+                                    </b>
+                                    <div t-if="record.expired_type.raw_value == 'both'">
+                                        <span style="position:absolute;text-align:right;right:5%;">
+                                            <img src="/equip3_asset_fms_masterdata/static/img/warning_red.png" height="20px" width="25px"/> <b style="font-size: 12px;color:black"><field name="total_expired_document"/></b>
+                                        </span>
+                                    </div>
+                                    <div t-if="record.expired_type.raw_value == 'expired'">
+                                        <span style="position:absolute;text-align:right;right:5%;">
+                                            <img src="/equip3_asset_fms_masterdata/static/img/warning_red.png" height="20px" width="25px"/> <b style="font-size: 12px;color:black"><field name="total_expired_document"/></b>
+                                        </span>
+                                    </div>
+                                    <div t-if="record.expired_type.raw_value == 'soon'">
+                                        <span style="position:absolute;text-align:right;right:5%;">
+                                            <img src="/equip3_asset_fms_masterdata/static/img/warning_yellow.png" height="20px" width="25px"/> <b style="font-size: 12px;color:black"><field name="total_expired_document"/></b>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_body" style="position:relative; margin-top:10%;">
+                                    <div t-if="record.serial_no.raw_value">
+                                        <field name="serial_no"/>
+                                        <div class="o_kanban_image"
+                                             style="position:absolute;right:10%;top:10%;bottom:15%;">
+                                            <img t-att-src="kanban_image('maintenance.equipment', 'equipmt_image1_custom', record.id.raw_value)"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <field name="held_by_id" style="display:block;"/>
+                                    <br/>
+                                    <field name="fac_area"/>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <div class="o_kanban_inline_block" t-if="!selection_mode">
+                                            <field name="activity_ids" widget="kanban_activity"/>
+                                        </div>
+                                        <field name="owner_user_id" widget="many2one_avatar_user"/>
+                                        <div class="badge badge-danger"
+                                             t-if="!selection_mode and record.maintenance_open_count.raw_value">
+                                            <t t-raw="record.maintenance_open_count.raw_value"/>
+                                            Request
+                                        </div>
+                                        <div class="badge badge-secondary"
+                                             t-if="!selection_mode and record.next_action_date.raw_value">
+                                            <t t-raw="moment(record.next_action_date.raw_value).format('MMMM Do')"/>
+                                        </div>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <div t-if="record.state.raw_value == 'operative'" style="background-color:#33cc00; color:white; border:1.5px solid green; padding:2%;border-radius:7px;text-align:center;vertical-align:middle;width:75px">
+                                            <span style="font-size:11.5px">
+                                                <field name="state"/>
+                                            </span>
+                                        </div>
+                                        <div t-if="record.state.raw_value == 'breakdown'" style="background-color:#e60000; color:white; border:1.5px solid black; padding:2%;border-radius:7px;text-align:center;vertical-align:middle;width:75px">
+                                            <span style="font-size:11.5px">
+                                                <field name="state"/>
+                                            </span>
+                                        </div>
+                                        <div t-if="record.state.raw_value == 'maintenance'" style="background-color:#FDFF9C; color:black; border:1.5px solid black; padding:2%;border-radius:7px;text-align:center;vertical-align:middle;width:75px">
+                                            <span style="font-size:11.5px">
+                                                <field name="state"/>
+                                            </span>
+                                        </div>
+                                        <div t-if="record.state.raw_value == 'scrapped'" style="background-color:#767171; color:white; border:1.5px solid white; padding:2%;border-radius:7px;text-align:center;vertical-align:middle;width:75px">
+                                            <span style="font-size:11.5px">
+                                                <field name="state"/>
+                                            </span>
+                                        </div>
+                                        <div t-if="record.state.raw_value == 'sold'" style="background-color:#e42313; color:white; border:1.5px solid white; padding:2%;border-radius:7px;text-align:center;vertical-align:middle;width:75px">
+                                            <span style="font-size:11.5px">
+                                                <field name="state"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="oe_clear"></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- maintenance.vehicle tree view -->
+    <record id="maintenance_vehicle_view_tree" model="ir.ui.view">
+        <field name="name">maintenance.vehicle.view.tree</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="mode">primary</field>
+        <field name="inherit_id" ref="equip3_asset_fms_masterdata.asset_view_tree"/>
+        <field name="arch" type="xml">
+            <tree>
+                <!-- Add your fields here -->
+
+            </tree>
+        </field>
+    </record>
+
+    <!-- maintenance.vehicle action window -->
+    <record id="maintenance_vehicle_action" model="ir.actions.act_window">
+        <field name="name">Vehicle</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.equipment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('vehicle_checkbox', '=', True)]</field>
+        <field name="context">{"default_vehicle_checkbox" : "True for vehicle_checkbox field", 'search_default_category' : 1}</field>
+        <field name="view_ids" eval="[(5,0,0), 
+                    (0,0, {'sequence':1, 'view_mode':'kanban', 'view_id':ref('equip3_asset_fms_masterdata.maintenance_vehicle_view_kanban')}),
+                    (0,0, {'sequence':2, 'view_mode':'tree', 'view_id':ref('equip3_asset_fms_masterdata.maintenance_vehicle_view_tree')}),
+                    (0,0, {'sequence':3, 'view_mode':'form', 'view_id':ref('equip3_asset_fms_masterdata.maintenance_vehicle_view_form')})]
+                    " />
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                <!-- Add Text Here -->
+            </p>
+            <p>
+                <!-- More details about what a user can do with this object will be OK -->
+            </p>
+        </field>
+    </record>
+
+    <record id="view_maintenance_vehicle_search" model="ir.ui.view">
+        <field name="name">maintenance.vehicle.search</field>
+        <field name="model">maintenance.vehicle</field>
+        <field name="arch" type="xml">
+            <search>
+                <group expand="1" string="Group By">
+                    <filter string="Vehicle" name="group_vehicle" context="{'group_by':'maintenance_vehicle'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_maintenance_hour_meter_search" model="ir.ui.view">
+        <field name="name">maintenance.hour.meter.search</field>
+        <field name="model">maintenance.hour.meter</field>
+        <field name="arch" type="xml">
+            <search>
+                <group expand="1" string="Group By">
+                    <filter string="Asset" name="group_asset" context="{'group_by':'maintenance_asset'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="maintenance_hour_meter_view_tree_new" model="ir.ui.view">
+        <field name="name">maintenance.hour.meter.view.tree</field>
+        <field name="model">maintenance.hour.meter</field>
+        <field name="arch" type="xml">
+            <tree string="Maintenance Hour Meter" editable="bottom">
+                <field name="date" attrs="{'readonly': [('id', '!=', False)]}"/>
+                <field name="maintenance_asset" attrs="{'readonly': [('id', '!=', False)]}"/>
+                <field name="value" attrs="{'readonly': [('id', '!=', False)]}"/>
+                <field name="unit" attrs="{'readonly': [('id', '!=', False)]}"/>
+                <field name="total_value" attrs="{'readonly': [('id', '!=', False)]}" required="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="maintenance_hour_meter_action_new" model="ir.actions.act_window">
+        <field name="name">Maintenance Hour Meter</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.hour.meter</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{"default_is_hourmeter_m_plan" : True,'search_default_group_asset': 1,'create': True}</field>
+        <field name="search_view_id" ref="view_maintenance_hour_meter_search"/>
+        <field name="view_ids" eval="[(5,0,0), 
+                    (0,0, {'sequence':2, 'view_mode':'tree', 'view_id':ref('equip3_asset_fms_masterdata.maintenance_hour_meter_view_tree_new')})]
+                    " />
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+            </p>
+            <p>
+            </p>
+        </field>
+    </record>
+
+    <record id="maintenance_odometer_vehicle_view_tree_new" model="ir.ui.view">
+        <field name="name">maintenance.odometer.view.tree.new</field>
+        <field name="model">maintenance.vehicle</field>
+        <field name="arch" type="xml">
+            <tree string="Maintenance Odometer" editable="bottom">
+                <field name="date" attrs="{'readonly': [('id', '!=', False)]}"/>
+                <field name="maintenance_vehicle" attrs="{'readonly': [('id', '!=', False)]}"/>
+                <field name="value" attrs="{'readonly': ['|', ('id', '!=', False), ('total_value', '&gt;', 0)]}"/>
+                <field name="unit" attrs="{'readonly': [('id', '!=', False)]}"/>
+                <field name="total_value" attrs="{'readonly': ['|', ('id', '!=', False), ('value', '&gt;', 0)]}"/> 
+            </tree>
+        </field>
+    </record>
+
+    <!-- <record id="create_agreement_from_template_action" model="ir.actions.act_window">
+        <field name="name">Create From Template</field>
+        <field name="res_model">create.agreement.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record> -->
+
+    <record id="maintenance_odomoeter_vehicle_action_new" model="ir.actions.act_window">
+        <field name="name">Maintenance Vehicle</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.vehicle</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{"default_is_odometer_m_plan" : True,'search_default_group_vehicle': 1,'create': True}</field>
+        <field name="search_view_id" ref="view_maintenance_vehicle_search"/>
+        <field name="view_ids" eval="[(5,0,0), 
+                    (0,0, {'sequence':2, 'view_mode':'tree', 'view_id':ref('equip3_asset_fms_masterdata.maintenance_odometer_vehicle_view_tree_new')})]
+                    " />
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+            </p>
+            <p>
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="maintenance_vehicle_acts" name="Vehicle" action="maintenance_vehicle_action" parent="maintenance.menu_equipment_form" sequence="2"/>
+
+    <menuitem id="maintenance_vehicle_acts_new" name="Odometer" action="maintenance_odomoeter_vehicle_action_new" parent="maintenance.menu_equipment_form" sequence="5"/>
+
+    <menuitem id="maintenance_odometer_acts_new" name="Hour Meter" action="maintenance_hour_meter_action_new" parent="maintenance.menu_equipment_form" sequence="6"/>
+
+</odoo>

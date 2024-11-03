@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_ward_tree" model="ir.ui.view">
+        <field name="name">ward.tree</field>
+        <field name="model">hospital.ward</field>
+        <field name="arch" type="xml">
+            <tree string="Ward Tree" decoration-success="state=='available'" decoration-danger="state=='full'">
+                <field name="name"/>
+                <field name="ward_room_type"/>
+                <field name="bed_count"/>
+                <field name="building_id"/>
+                <field name="telephone"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_ward_form" model="ir.ui.view">
+        <field name="name">ward.form</field>
+        <field name="model">hospital.ward</field>
+        <field name="arch" type="xml">
+            <form string="Ward Form">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" name="action_bed" context="{'search_default_ward': active_id,'default_ward': active_id}" icon="fa-bed" type="object" >
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value" widget="statinfo">
+                                    <field name="bed_available_count" widget="statinfo" nolabel="1" class="mr4"/>/
+                                    <field name="bed_count"/>
+                                </span>
+                                <span class="o_stat_text">Available Beds</span>
+                            </div>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="floor" required="True"/>
+                            <field name="ward_room_type"/>
+                            <field name="state" required="True"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="building_id"/>
+                            <field name="private"/>
+                            <field name="gender"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="facility" string="Facility">
+                            <group>
+                                <group>
+                                    <field name="internet"/>
+                                    <field name="air_conditioning"/>
+                                    <field name="private_bathroom"/>
+                                    <field name="television"/>
+                                    <field name="telephone"/>
+                                </group>
+                                <group>
+                                    <field name="guest_sofa"/>
+                                    <field name="microwave"/>
+                                    <field name="bio_hazard"/>
+                                    <field name="refrigerator"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                    <field name="notes" nolabel="1" placeholder="Notes..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="ward_search" model="ir.ui.view">
+        <field name="name">ward.search</field>
+        <field name="model">hospital.ward</field>
+        <field name="arch" type="xml">
+            <search string="Ward Search">
+                <field name="name"/>
+                <field name="floor"/>
+                <field name="building_id"/>
+                <filter name="private" string="Private" domain="[('private','=',1)]"/>
+                <filter name="available" string="Available Rooms" domain="[('state','=','available')]"/>
+                <filter name="full" string="Full Rooms" domain="[('state','=','full')]"/>
+                <newline/>
+                <group expand="0" string="Group By...">
+                    <filter name="group_by_building" string="Building" domain="[]" context="{'group_by':'building_id'}"/>
+                    <filter name="group_by_type" string="Group By Ward Room" context="{'group_by':'ward_room_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="actions_ward">
+        <field name="name">Hospital Ward/Room</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">hospital.ward</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="ward_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add a Ward/Room.
+            </p>
+        </field>
+    </record>
+</odoo>

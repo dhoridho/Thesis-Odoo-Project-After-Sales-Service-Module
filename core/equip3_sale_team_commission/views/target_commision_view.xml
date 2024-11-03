@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="sh_target_commision_view_form_inherit" model="ir.ui.view">
+		<field name="name">sh.target.commision.view.form</field>
+		<field name="model">sh.target.commision</field>
+		<field name="inherit_id" ref="sh_sales_commission_target.sh_target_commision_view_form" />
+		<field name="arch" type="xml">
+			<!-- <xpath expr="//form//sheet//div[@class='oe_title']" position="after">
+				<div class="alert alert-danger" role="alert"
+					 style="position: absolute; margin-top: -90px; margin-left: 340px; width: 450px;"
+					 attrs="{'invisible': [('type', '!=', 'total_amount')]}">
+					Can't use quantity as parameter in Total Amount type !!
+				</div>
+			</xpath> -->
+			<field name="user_id" position="before">
+				<field name="sales_team"/>
+			</field>
+			<field name="user_id" position="attributes">
+				<attribute name="string">Sales Person</attribute>
+			</field>
+			<field name="company_id" position="attributes">
+				<attribute name="readonly">True</attribute>
+			</field>
+			<field name="from_date" position="before">
+				<field name="create_date"/>
+				<field name="create_uid"/>
+			</field>
+			<xpath expr="//sheet" position="after">
+				<div class="oe_chatter">
+					<field name="message_follower_ids"/>
+					<field name="activity_ids"/>
+					<field name="message_ids"/>
+				</div>
+			</xpath>
+			<xpath expr="//field[@name='achieved_collection_target']/.." position="after">
+				<label for="deduction"/>
+				<div class="o_row">
+					<field name="deduction"/>
+				</div>
+			</xpath>
+
+			<!-- Modification by Muhammad Saleem -->
+ 			<xpath expr="//button[@name='create_bill']" position="attributes">
+				<attribute name="attrs">{'invisible': [('is_target_posted','=',True)]}</attribute>
+			</xpath>
+            <field name="sales_target_achieved" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="collection_target_achieved" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="commision_calculator" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="percentage_on" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="company_id" position="after">
+                <field name="main_traget"/>
+                <field name="current_achievement" readonly="1" force_save="1"/>
+                <field name="current_achievement_formula" readonly="1" force_save="1" nolabel="1" style="display: none"/>
+            </field>
+            <field name="target_on" position="after">
+                <field name="target_left" readonly="1" force_save="1"/>
+				<label for="current_commission"/>
+				<div class="o_row"><field name="current_commission" readonly="1" force_save="1"/><span>%</span></div>
+                <field name="deduction"/>
+				<field id="is_target_posted" name="is_target_posted" readonly="1" force_save="1" nolabel="1" style="display: none"/>
+			</field>
+
+			<xpath expr="//field[@name='product_ids']" position="after">
+				<xpath expr="//field[@name='category_ids']" position="move"/>
+				<field name="brand_id" attrs="{'invisible':[('type', 'not in', ['brand'])], 'readonly': [('is_target_posted','=',True)]}"/>
+			</xpath>
+			<xpath expr="//field[@name='product_ids']" position="attributes">
+				<attribute name="attrs">{'invisible': [('type','not in',['product'])], 'readonly': [('is_target_posted','=',True)]}</attribute>
+			</xpath>
+			<xpath expr="//field[@name='category_ids']" position="attributes">
+				<attribute name="attrs">{'invisible': [('type','not in',['category'])], 'readonly': [('is_target_posted','=',True)]}</attribute>
+			</xpath>
+
+<!--		Make fields read only if bill on draft/posted-->
+			<xpath expr="//field[@name='sales_team']" position="attributes">
+				<attribute name="attrs">{'readonly': [('is_target_posted','=',True)]}</attribute>
+			</xpath>
+			<xpath expr="//field[@name='user_id']" position="attributes">
+				<attribute name="attrs">{'readonly': [('is_target_posted','=',True)]}</attribute>
+			</xpath>
+			<xpath expr="//field[@name='type']" position="attributes">
+				<attribute name="attrs">{'readonly': [('is_target_posted','=',True)]}</attribute>
+			</xpath>
+			<xpath expr="//field[@name='target_on']" position="attributes">
+				<attribute name="attrs">{'readonly': [('is_target_posted','=',True)]}</attribute>
+			</xpath>
+			<xpath expr="//field[@name='from_date']" position="attributes">
+				<attribute name="attrs">{'readonly': [('is_target_posted','=',True)]}</attribute>
+			</xpath>
+			<xpath expr="//field[@name='to_date']" position="attributes">
+				<attribute name="attrs">{'readonly': [('is_target_posted','=',True)]}</attribute>
+			</xpath>
+			<xpath expr="//field[@name='main_traget']" position="attributes">
+				<attribute name="attrs">{'readonly': [('is_target_posted','=',True)]}</attribute>
+			</xpath>
+
+			<!-- Hide and add New tab -->
+            <xpath expr="//notebook/page[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+			<xpath expr="//notebook/page[2]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+			<xpath expr="//page[last()]" position="after">
+				<page string="Commission Tier">
+					<group>
+						<group>
+							<label for="target_based_on1"/>
+							<div class="o_row">
+								<field name="target_based_on1" attrs="{'invisible': [('type','=','total_amount')],'readonly': [('is_target_posted','=',True)]}"/>
+								<field name="target_based_on2" attrs="{'invisible': [('type','!=','total_amount')],'readonly': [('is_target_posted','=',True)]}"/>
+							</div>
+						</group>
+						<group>
+							<label for="target_based_on" style="display: none"/>
+							<div class="o_row">
+								<field name="target_based_on" style="display: none"/>
+							</div>
+						</group>
+					</group>
+					<field name= "commision_detail_line" attrs="{'readonly': [('is_target_posted','=',True)]}">
+						<tree editable = "bottom">
+							<field name = "sales_amount" string="Target"/>
+							<field name="commision"  string = "Commission (%)"/>
+						</tree>
+					</field>
+				</page>
+			</xpath>
+			<xpath expr="//field[@name='current_achievement']" position="after">
+				<field name="curr_achieve" invisible="1"/>
+			</xpath>
+		</field>
+	</record>
+
+	<record id="sh_target_commision_view_form_inherit_tree" model="ir.ui.view">
+		<field name="name">sh.target.commision.view.form</field>
+		<field name="model">sh.target.commision</field>
+		<field name="inherit_id" ref="sh_sales_commission_target.sh_target_commision_view_tree" />
+		<field name="arch" type="xml">
+			<xpath expr="//tree/field[@name='user_id']" position="attributes">
+                <attribute name="string">Salesperson</attribute>
+            </xpath>
+			<xpath expr="//tree/field[@name='user_id']" position="before">
+                <field name="name" />
+            </xpath>
+			
+		</field>
+	</record>
+
+	<record model="ir.ui.view" id="sh_target_commision_graph">
+		<field name="name">sh.target.commision.graph</field>
+		<field name="model">sh.target.commision</field>
+		<field name="arch" type="xml">
+			<graph type="line">
+				<field name="create_date" interval="month"/>
+				<field name="user_id" string="Sales Person"/>
+<!--				<field name="sales_target" type="measure"/>-->
+<!--				<field name="collection_target" type="measure"/>-->
+<!--				<field name="sales_actual" type="measure"/>-->
+<!--				<field name="collection_actual" type="measure"/>-->
+			</graph>
+		</field>
+	</record>
+
+	<record model="ir.ui.view" id="sh_target_commision_pivot">
+		<field name="name">sh.target.commision.pivot</field>
+		<field name="model">sh.target.commision</field>
+		<field name="arch" type="xml">
+			<pivot>
+				<field name="create_date" interval="month" type="col"/>
+				<field name="user_id" string="Sales Person" type="row"/>
+<!--				<field name="sales_target" type="measure"/>-->
+<!--				<field name="collection_target" type="measure"/>-->
+<!--				<field name="sales_actual" type="measure"/>-->
+<!--				<field name="collection_actual" type="measure"/>-->
+			</pivot>
+		</field>
+	</record>
+
+<!--	<record id="target_commission_action" model="ir.actions.act_window">-->
+<!--		<field name="name">Target &amp; Actual Pivot Analysis</field>-->
+<!--		<field name="res_model">sh.target.commision</field>-->
+<!--		<field name="view_mode">graph,pivot</field>-->
+<!--	</record>-->
+
+	<record id="inherit_sh_sale_comission_view_id" model="ir.ui.view">
+		<field name="name">sh.sales.commision.target.inherit.view.tree</field>
+		<field name="model">sh.target.commision</field>
+		<field name="inherit_id" ref="sh_sales_commission_target.sh_target_commision_view_tree"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='commision_calculator']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='target_on']" position="after">
+				<field name="company_id"/>
+			</xpath>
+		</field>
+	</record>
+
+	<record id="inherit_sh_sales_commission_target_view_target_commision_filter_view_id" model="ir.ui.view">
+		<field name="name">sh.sales.commission.target.inherit.view.search</field>
+		<field name="model">sh.target.commision</field>
+		<field name="inherit_id" ref="sh_sales_commission_target.view_target_commision_filter"/>
+		<field name="arch" type="xml">
+			<xpath expr="//filter[@name='group_by_commision_calculator']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='active']" position="after">
+				<field name="name"/>
+			</xpath>
+		</field>
+	</record>
+
+	<record model="ir.ui.view" id="sh_target_commision_new_graph">
+		<field name="name">sh.target.commision.new.graph</field>
+		<field name="model">sh.target.commision.new</field>
+		<field name="arch" type="xml">
+			<graph type="line">
+				<field name="create_date" interval="month"/>
+				<field name="user_id" string="Sales Person"/>
+				<field name="main_target" type="measure"/>
+				<field name="current_achievement" type="measure"/>
+			</graph>
+		</field>
+	</record>
+
+	<record model="ir.ui.view" id="sh_target_commision_new_pivot">
+		<field name="name">sh.target.commision.new.pivot</field>
+		<field name="model">sh.target.commision.new</field>
+		<field name="arch" type="xml">
+			<pivot>
+				<field name="create_date" interval="month" type="col"/>
+				<field name="main_target" type="measure"/>
+				<field name="current_achievement" type="measure"/>
+				<field name="user_id" string="Sales Person" type="row"/>
+<!--				<field name="target_based_on" string="Sales Person" type="row"/>-->
+			</pivot>
+		</field>
+	</record>
+
+	<record id="target_commission_action_new" model="ir.actions.act_window">
+		<field name="name">Target &amp; Actual Pivot Analysis</field>
+		<field name="res_model">sh.target.commision.new</field>
+		<field name="view_mode">graph,pivot</field>
+	</record>
+
+	<record id="sh_sales_commission_target.sh_target_commision_action" model="ir.actions.act_window">
+        <field name="name">Target &amp; Commission</field>
+    </record>
+	<record id="sh_sales_commission_target.menu_sh_target_commision_action" model="ir.ui.menu">
+		<field name="name">TARGET &amp; COMMISSION</field>
+		<field name="sequence">4</field>
+	</record>
+
+	<menuitem
+			id="sale_commission_menu"
+			name="Target &amp; Commission Analysis"
+			parent="sale.menu_sale_report"/>
+
+	<menuitem id="target_commission_menuitem_new" action="target_commission_action_new" parent="sale_commission_menu" sequence="1"/>
+<!--	<menuitem id="target_commission_menuitem" action="target_commission_action" parent="sale_commission_menu" sequence="1"/>-->
+	<menuitem id="sale_commission_report_menuitem" action="equip3_sale_team_commission.sale_commission_report_action" parent="sale_commission_menu" sequence="2"/>
+	<menuitem id="sale_summary_commission_report_menuitem" action="equip3_sale_team_commission.sale_summary_commission_report_action" parent="sale_commission_menu" sequence="3"/>
+	<menuitem
+        id="sh_sales_commission_target.menu_sh_target_commision_action"
+        name="Target &amp; Commission"
+        parent="sale.report_sales_team"
+        sequence="2"
+        action="sh_sales_commission_target.sh_target_commision_action"
+    /> 
+</odoo>

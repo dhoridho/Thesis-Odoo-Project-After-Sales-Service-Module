@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="sp_checklist_template">
+        <t t-call="web.html_container">
+            <t t-call="general_template.picking_exclusive_external_layout">
+                <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+                <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+                <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+                <t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+                <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+                <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+                <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+                <t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+                <div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+                    <div class="oe_structure"/>
+                    <t t-call="general_template.templates_watermark"/>
+                    <div width="100%">
+                        <div>
+                            <div style="clear: both;display: table;width: 100%;">
+                                <div  t-attf-style="padding:10px 0px 0px 0px; height:5px; border-bottom: 1px solid #{theme_color or '#000000'};border-top: 1px solid #{theme_color or '#000000'};"/>
+                                <div style="margin-top: 20px;">
+                                    <h3>
+                                        <span t-field="o.name"/>
+                                    </h3>
+                                </div>
+                                <div class="text-right" t-att-style="'margin-top: -50px;padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                    <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s&amp;quiet=%s' % ('Code128', o.name, 400, 100, 0)" style="width:200px;height:50px" alt="Barcode"/>
+                                </div>
+                            </div>
+                            <br/>
+                            <div align="left"  style="color:#4D4D4F; padding:0 0px;" valign="top">
+                                
+                                <table border="0" cellpadding="0" cellspacing="0" t-attf-style="color: #{theme_text_color or '#000000'}; border: 1px solid #{theme_color or '#000000'};" width="100%">
+                                    <tr t-attf-style="background-color: #{theme_color or '#000000'};">
+                                        <td name="td_sched_date_h" t-attf-style="padding:5px 15px; font-weight:bold;">
+                                            <strong>
+                                                <span class="text-left">Scheduled Date</span>
+                                            </strong>
+                                            <br/>
+                                            <span t-field="o.scheduled_date"/>
+                                        </td>
+                                        <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                            <strong>Source Document</strong>
+                                            <br/>
+                                            <span t-field="o.origin"/>
+                                        </td>
+                                        <td t-attf-style="padding:5px 15px; font-weight:bold;" t-if="o._check_delivery_installed()">
+                                            <strong>
+                                                <span class="text-left">Weight</span>
+                                            </strong>
+                                            <br/>
+                                            <span t-field="o.weight"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <p t-attf-style="border-bottom:1px solid #{theme_color or '#ececec'}; padding:0px 0px 10px 0px; width:100%;"/>
+                            </div>
+                            <div align="left"  style="padding:20px 0px 0 0; font-weight:bold; width:100%;" valign="top">
+                                <table cellpadding="0" cellspacing="0" class="table" style="border:0.5px solid #ccc;  border-collapse: collapse; padding:15px; border-bottom:1px solid #ccc;" width="100%">
+                                    <thead>
+                                        <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                            <th t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" name="th_sp_name"><strong>Name</strong></th>
+                                            <th t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" name="th_sp_is_available"><strong>Out Item</strong></th>
+                                            <th t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" name="th_sp_is_available"><strong>In Item</strong></th>
+                                            <th t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" name="th_sp_price"><strong>Price</strong></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="lines" t-value="o.checklist_line_rental"/>
+                                        <tr t-foreach="lines" t-as="move">
+                                            <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                <span t-field="move.item_id"/>
+                                            </td>
+                                            <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                <span t-esc="'True' if move.is_outitem else 'False'"/>
+                                            </td>
+                                            <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                <span t-esc="'True' if move.is_initem else 'False'"/>
+                                            </td>
+                                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                <span t-field="move.price"/>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="oe_structure"/>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="checklist_report_call">
+        <t t-foreach="docs" t-as="o">
+            <t t-call="equip3_rental_operation.sp_checklist_template"/>
+        </t>
+    </template>
+
+</odoo>

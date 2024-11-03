@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="stock_scrap_header">
+        <div class="header">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <center>
+                                <table border="0" cellpadding="0" cellspacing="0"
+                                    style="padding:0px 20px 0px 20px; margin:0; background:#fff; line-height:20px;"
+                                    width="100%">
+                                    <tr>
+                                        <td align="left" colspan="2"
+                                            t-attf-style="color:#{text_color or '#ffffff'}; padding:0 0px;"
+                                            valign="top">
+                                            <table border="0" cellpadding="0" cellspacing="0"
+                                                width="100%">
+                                                <tr>
+                                                    <td align="left"
+                                                        style="color:#4D4D4F; padding: 0px 15px; border-right: 1px solid #D4D1D1;"
+                                                        valign="top">
+                                                        <img
+                                                            style="max-height: 50px; margin-top: 10%;"
+                                                            t-att-src="'data:image/png;base64,%s' % to_text(doc.company_id.logo)"
+                                                            t-if="doc.company_id.logo" />
+                                                    </td>
+                                                    <td style="padding:15px; width:30%" valign="top">
+                                                        <t
+                                                            t-call="equip3_inventory_reports.templates_company_details_2" />
+                                                    </td>
+                                                    <td align="left"
+                                                        style="width:30%; padding:15px;"
+                                                        valign="top">
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" style="height:5px;" />
+                                    </tr>
+                                </table>
+                            </center>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <div class="text-center" style="border-top: 1px solid black;">
+                <ul class="list-inline mb4">
+                    <li t-if="doc.company_id.phone">Phone: <span t-field="doc.company_id.phone" /></li>
+                    <li t-if="doc.company_id.email">Email: <span t-field="doc.company_id.email" /></li>
+                    <li t-if="doc.company_id.website">Web: <span t-field="doc.company_id.website" /></li>
+                    <li t-if="doc.company_id.vat">
+                        <t t-esc="doc.company_id.country_id.vat_label or 'TIN'" />: <span
+                            t-field="doc.company_id.vat" /></li>
+                </ul>
+                <div name="financial_infos">
+                    <span t-field="doc.company_id.report_footer" />
+                </div>
+                <div class="text-muted">Page: <span class="page" /> / <span class="topage" /></div>
+            </div>
+        </div>
+    </template>
+
+    <template id="templates_company_details_2">
+        <span style="text-transform:capitalize; padding:0px; margin:0; color: #51565b;">
+            <strong>Address:</strong>
+            <br />
+            <t t-if="doc.company_id and doc.company_id.is_company_bold">
+                <strong>
+                    <span t-field="doc.company_id.partner_id" />
+                </strong>
+            </t>
+            <t t-if="not doc.company_id.is_company_bold">
+                <span t-field="doc.company_id.partner_id" />
+            </t>
+        </span>
+        <div style="color: #51565b;">
+            <span t-esc="doc._get_street(doc.company_id.partner_id)" />
+            <br />
+            <span t-esc="doc._get_address_details(doc.company_id.partner_id)" />
+            <br />
+        </div>
+        <div style="color: #51565b;">
+            <t t-if="doc.company_id.partner_id.mobile">
+                <strong>Mobile:</strong>
+                <span t-field="doc.company_id.partner_id.mobile" />
+                <br />
+            </t>
+            <t t-if="doc.company_id.partner_id.email">
+                <strong>Email:</strong>
+                <span t-field="doc.company_id.partner_id.email" />
+                <br />
+            </t>
+        </div>
+    </template>
+
+    <template id="action_report_stock_scrap_request_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="equip3_inventory_reports.stock_scrap_header" />
+                <t t-set="theme_color" t-value="doc.company_id and doc.company_id.theme_color" />
+                <t t-set="theme_text_color"
+                    t-value="doc.company_id and doc.company_id.theme_text_color" />
+                <t t-set="company_color" t-value="doc.company_id and doc.company_id.company_color" />
+                <t t-set="company_address_color"
+                    t-value="doc.company_id and doc.company_id.company_address_color" />
+                <t t-set="customer_color" t-value="doc.company_id and doc.company_id.customer_color" />
+                <t t-set="customer_address_color"
+                    t-value="doc.company_id and doc.company_id.customer_address_color" />
+                <t t-set="text_color" t-value="doc.company_id and doc.company_id.text_color" />
+                <div class="page"
+                    t-att-style="'font-family:'+doc.company_id.font_id.family+';font-size:'+str(doc.company_id.font_size)+'px;'">
+                    <div width="100%">
+                        <p
+                            t-attf-style="border-bottom:1px solid #{theme_color or '#ececec'}; padding:0px 0px 10px 0px; width:100%;" />
+                        <div style="margin:0; background:#fff;" width="100%">
+                            <div class="oe_structure" />
+                            <div style="clear: both;display: table;width: 100%;">
+                                <div
+                                    t-attf-style="padding:10px 0px 0px 0px; height:5px;border-top: 1px solid #{theme_color or '#000000'};    margin-top: 25px;margin-bottom: 25px;" />
+                            </div>
+                            <h1 t-field="doc.name" class="mt0 float-left"
+                                style="padding-bottom: 25px !important;" />
+                            <div align="left" style="color:#4D4D4F; padding:0 0px;" valign="top">
+                                <table border="0" cellpadding="0" cellspacing="0"
+                                    t-attf-style="color: #{theme_text_color or '#000000'}; border: 1px solid #{theme_color or '#000000'};"
+                                    width="100%">
+                                    <tr
+                                        t-attf-style="background-color: #{theme_color or '#000000'};">
+                                        <td name="td_sched_date_h"
+                                            t-attf-style="padding:5px 15px; font-weight:bold;">
+                                            <strong>
+                                                <span class="text-left">Usage Type</span>
+                                            </strong>
+                                            <br />
+                                            <span t-field="doc.scrap_type" />
+                                        </td>
+                                        <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                            <strong>
+                                                <span class="text-left">Warehouse</span>
+                                            </strong>
+                                            <br />
+                                            <span t-field="doc.warehouse_id.name" />
+                                        </td>
+                                        <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                            <strong>
+                                                <span class="text-left">Done Date</span>
+                                            </strong>
+                                            <br />
+                                            <span t-field="doc.date_done" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <p
+                                    t-attf-style="border-bottom:1px solid #{theme_color or '#ececec'}; padding:0px 0px 10px 0px; width:100%;" />
+                            </div>
+                            <div align="left"
+                                style="padding:20px 0px 0 0; font-weight:bold; width:100%;"
+                                valign="top">
+                                <table class="table table-sm"
+                                    style="border:0.5px solid #ccc;  border-collapse: collapse; padding:15px; border-bottom:1px solid #ccc;"
+                                    width="100%" t-if="doc.scrap_ids">
+                                    <t t-set="has_barcode"
+                                        t-value="any(scrap.product_id and scrap.product_id.sudo().barcode or scrap.package_id for scrap in doc.scrap_ids)" />
+                                    <t t-set="has_serial_number"
+                                        t-value="any(scrap.lot_id for scrap in doc.scrap_ids)"
+                                        groups="stock.group_production_lot" />
+                                    <thead>
+                                        <tr
+                                            t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                            <th name="th_serial_no"
+                                                t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"
+                                                width="8%">No.</th>
+                                            <th name="th_product"
+                                                t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"
+                                                width="22%">
+                                                <strong>Product</strong>
+                                            </th>
+                                            <th name="th_serial_number" class="text-center"
+                                                t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"
+                                                width="15%">
+                                                <strong>Lot/Serial Number</strong>
+                                            </th>
+                                            <th name="th_name" class="text-center"
+                                                t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"
+                                                width="15%">
+                                                <strong>Description</strong>
+                                            </th>
+                                            <th name="th_destination" class="text-center"
+                                                t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"
+                                                width="10%">
+                                                <strong>Destination</strong>
+                                            </th>
+                                            <th name="th_done_qty" class="text-right"
+                                                t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"
+                                                width="10%">
+                                                <strong>Done</strong>
+                                            </th>
+                                            <th name="th_uom" class="text-center"
+                                                t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"
+                                                width="10%">
+                                                <strong>Unit of Measure</strong>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="count" t-value="0" />
+                                        <t t-foreach="doc.scrap_ids" t-as="move">
+                                            <t t-set="count" t-value="count+1" />
+                                            <t t-set="po_color"
+                                                t-value="doc.company_id.even_party_color" />
+                                            <tr
+                                                t-att-style="'page-break-inside: avoid !important;background-color: '+ po_color + '; color: ' + text_color ">
+                                                <td
+                                                    t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'"
+                                                    valign="top">
+                                                    <span t-esc="count" />
+                                                </td>
+                                                <td
+                                                    t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'"
+                                                    valign="top">
+                                                    <span t-field="move.product_id.display_name" />
+                                                    <br />
+                                                    <img t-if="move.product_id.image_128"
+                                                        class="mt-1"
+                                                        t-att-src="image_data_uri(move.product_id.image_128)"
+                                                        alt="Product" />
+                                                </td>
+                                                <td class=" text-center h6"
+                                                    t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'"
+                                                    valign="top">
+                                                    <span t-field="move.lot_id" />
+                                                </td>
+                                                <td class="text-center"
+                                                    t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'"
+                                                    valign="top">
+                                                    <span t-field="move.product_id.display_name" />
+                                                </td>
+                                                <td class="text-center"
+                                                    t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'"
+                                                    valign="top">
+                                                    <span t-field="move.location_id" />
+                                                </td>
+                                                <td class="text-right"
+                                                    t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'"
+                                                    valign="top">
+                                                    <span t-field="move.scrap_qty" />
+                                                </td>
+                                                <td class="text-center"
+                                                    t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'"
+                                                    valign="top">
+                                                    <span t-field="move.product_uom_id" />
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <report id="action_report_stock_scrap_request"
+        model="stock.scrap.request"
+        string="Stock Scrap"
+        report_type="qweb-pdf"
+        name="equip3_inventory_reports.action_report_stock_scrap_request_template"
+        print_report_name="('Stock Scrap Request - %s' % (object.name))"
+        menu="False" />
+
+</odoo>

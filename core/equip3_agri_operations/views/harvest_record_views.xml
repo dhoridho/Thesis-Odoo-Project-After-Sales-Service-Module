@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_harvest_record_tree" model="ir.ui.view">
+        <field name="name">view.harvest.line.tree</field>
+        <field name="model">agriculture.daily.activity.record</field>
+        <field name="inherit_id" ref="equip3_agri_operations.view_daily_activity_record_tree"/>
+        <field name="mode">primary</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="string">Harvest Record</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='block_id']" position="attributes">
+                <attribute name="string">Block</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='activity_line_id']" position="attributes">
+                <attribute name="string">Harvest Lines</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_harvest_record_form" model="ir.ui.view">
+        <field name="name">view.harvest.line.form</field>
+        <field name="model">agriculture.daily.activity.record</field>
+        <field name="inherit_id" ref="equip3_agri_operations.view_daily_activity_record_form"/>
+        <field name="mode">primary</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="string">Harvest Record</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='block_id']" position="attributes">
+                <attribute name="string">Block</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='activity_type']" position="after">
+                <field name="activity_harvest_type" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" name="action_view_harvest_internal_transfer" type="object" icon="o-hm-smart-all-product-move" attrs="{'invisible': [('harvest_transfer_count', '=', 0)]}">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value"><field name="harvest_transfer_count"/></span>
+                        <span class="o_stat_text">Transfers</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <xpath expr="//page[@name='harvest_ids']" position="attributes">
+                <attribute name="attrs">{'invisible': [('activity_type', '!=', 'harvest')]}</attribute>
+            </xpath>
+
+            <xpath expr="//page[@name='harvest_ids']" position="before">
+                <page name="harvest_transfer" string="Transfer" attrs="{'invisible': ['|', ('category_type', '!=', 'harvest'), ('activity_type', '!=', 'transfer')]}">
+                    <field name="harvest_transfer_line_ids" attrs="{'readonly': [('state', '!=', 'draft')]}"
+                           context="{
+                                'default_block_id': block_id
+                           }">
+                        <tree string="Transfer" editable="bottom">
+                            <field name="block_crop_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="crop_id" domain="[('id', 'in', block_crop_ids)]"/>
+                            <field name="block_id" invisible="1"/>
+                            <field name="location_id"/>
+                            <field name="location_dest_id"/>
+                            <field name="quantity"/>
+                            <field name="uom_id" readonly="1" force_save="1"/>
+                            <field name="transfer_id" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+
+            <xpath expr="//page[@name='harvest_ids']//field[@name='product_id']" position="before">
+                <field name="crop_ids" widget="many2many_tags" invisible="1"/>
+                <field name="crop_id" domain="[('id', 'in', crop_ids)]" attrs="{'required': [('parent.activity_harvest_type', '=', 'logging')]}"/>
+            </xpath>
+
+            <xpath expr="//page[@name='crop_location']" position="attributes">
+                <attribute name="invisible">1</attribute> 
+            </xpath>
+
+            <xpath expr="//field[@name='harvest_ids']/tree" position="inside">
+                <field name="agri_product_tracking" invisible="1"/>
+                <button name="action_agri_show_details" class="oe_highlight" type="object" width="0.1" attrs="{'invisible': ['|', ('agri_product_tracking', 'not in', ('lot', 'serial')), ('state', '=', 'done')]}" options='{"warn": true}' string="Lot/Serial Number" style="padding: 5px;"/>
+            </xpath>
+
+            <xpath expr="//header" position="inside">
+                <field name="can_serialize_harvest" invisible="1"/>
+                <button name="action_harvest_serializer" string="Serializer" type="object" class="oe_highlight" attrs="{'invisible': [('can_serialize_harvest', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_harvest_record_search" model="ir.ui.view">
+        <field name="name">view.harvest.line.search</field>
+        <field name="model">agriculture.daily.activity.record</field>
+        <field name="inherit_id" ref="equip3_agri_operations.view_daily_activity_record_search"/>
+        <field name="mode">primary</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="attributes">
+                <attribute name="string">Harvest Record</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='block_id']" position="attributes">
+                <attribute name="string">Block</attribute>
+            </xpath>
+
+            <xpath expr="//filter[@name='groupby_activity_line_id']" position="attributes">
+                <attribute name="string">Harvest Lines</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_view_harvest_record" model="ir.actions.act_window">
+        <field name="name">Harvest Record</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">agriculture.daily.activity.record</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5,),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('equip3_agri_operations.view_harvest_record_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('equip3_agri_operations.view_harvest_record_form')})
+        ]"/>
+        <field name="search_view_id" ref="equip3_agri_operations.view_harvest_record_search"/>
+        <field name="domain">[('daily_activity_type', '=', 'harvest')]</field>
+        <field name="context">{'default_daily_activity_type': 'harvest'}</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+           Create a new Harvest Record
+          </p>
+        </field>
+    </record>
+
+</odoo>

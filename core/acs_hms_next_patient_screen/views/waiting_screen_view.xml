@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="medical_represntative_kanban" model="ir.ui.view">
+        <field name="name">acs.hms.waiting.screen.kanban</field>
+        <field name="model">acs.hms.waiting.screen</field>
+        <field name="type">kanban</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="name"/>
+                <field name="physician_ids"/>
+                <field name="code"/>
+                <field name="id"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_res_partner_kanban">
+                            <div class="o_kanban_tags_section oe_kanban_partner_categories">
+                                <strong class="oe_partner_heading">
+                                    <field name="name"/> 
+                                    <t t-if="record.code.raw_value">
+                                        [<field name="code"/>]
+                                    </t>
+                                </strong>
+                                <span class="oe_kanban_list_many2many">
+                                    <field name="physician_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="acs_hms_waiting_screen_tree" model="ir.ui.view">
+        <field name="name">acs.hms.waiting.screen.tree</field>
+        <field name="model">acs.hms.waiting.screen</field>
+        <field name="arch" type="xml">
+            <tree string="Waiting Screen">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="physician_ids"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="acs_hms_waiting_screen_form" model="ir.ui.view">
+        <field name="name">acs.hms.waiting.screen.form</field>
+        <field name="model">acs.hms.waiting.screen</field>
+        <field name="arch" type="xml">
+            <form string="Waiting Screen">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="open_website_url" string="Open Screen" type="object" class="oe_stat_button" icon="fa-desktop"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" default_focus="1" placeholder="Screen Name" required="True"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="physician_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                            <field name="res_model_id" domain="[('field_id.name','in',['acs_show_in_wc'])]"/>
+                        </group>
+                        <group>
+                            <field name="acs_refresh_time" required="1"/>
+                            <field name="acs_number_of_records" required="1"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Other Information" groups="base.group_no_one">
+                            <group>
+                                <group>
+                                    <field name="show_patient_name_image" />
+                                    <field name="acs_patient_field_id"/>
+                                </group>
+                                <group>
+                                    <field name="acs_physician_field_id"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="show_cabin"/>
+                                </group>
+                                <group>
+                                    <field name="acs_cabin_field_id" attrs="{'invisible': [('show_cabin','=',False)], 'required': [('show_cabin','=',True)]}"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="acs_states_to_include"/>
+                                    <field name="acs_state_field_id"/>
+                                </group>
+                                <group>
+                                    <field name="in_progress_state"/>
+                                    <field name="in_progress_color" widget="color" attrs="{'invisible': [('in_progress_state','=',False)]}"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_acs_hms_waiting_screen" model="ir.actions.act_window">
+        <field name="name">Waiting Screen</field>
+        <field name="res_model">acs.hms.waiting.screen</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add new waiting screen.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="main_menu_hms_waiting_screen" name="Waiting Screen" sequence="200" web_icon="acs_hms_next_patient_screen,static/description/icon.png" groups="acs_hms.group_hms_receptionist"/>
+
+    <menuitem id="menu_hms_waiting_screen" name="Waiting Screen" parent="main_menu_hms_waiting_screen" sequence="0" groups="acs_hms_next_patient_screen.group_waiting_screen" action="action_acs_hms_waiting_screen"/>
+
+</odoo>

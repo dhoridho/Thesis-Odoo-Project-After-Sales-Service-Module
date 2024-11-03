@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    
+    <template id="report_mrp_bom_line_inherited" inherit_id="mrp.report_mrp_bom_line">
+        <xpath expr='//t[@t-if="data[&#39;operations&#39;]"]' position="before">
+            <t t-foreach="data['byproducts']" t-as="l">
+                <t t-set="space_td" t-value="'margin-left: '+ str(l['level'] * 20) + 'px;'"/>
+                <tr class="o_mrp_bom_report_line" t-att-parent_id="l['parent_id']" t-att-data-line="l['line_id']" t-att-data-product_id="l['prod_id']" t-att-data-qty="l['prod_qty']" t-att-data-level="l['level']">
+                    <td>
+                        <div t-att-style="space_td">
+                            <div t-att-class="'o_mrp_bom_no_fold'" style="display:inline-block;">
+                                <a href="#" t-att-data-res-id="l['prod_id']" t-att-data-model="'product.product'" class="o_mrp_bom_action"><t t-esc="l['prod_name']"/></a>
+                            </div>
+                        </div>
+                    </td>
+                    <td name="td_mrp_bom"/>
+                    <td class="text-right">
+                        <span>
+                            <t t-esc="l['prod_qty']" t-options='{"widget": "float", "decimal_precision": "Product Unit of Measure"}'/>
+                        </span>
+                    </td>
+                    <td groups="uom.group_uom">
+                        <span>
+                            <t t-esc="l['prod_uom']"/>
+                        </span>
+                    </td>
+
+                    <!-- remove byproduct product cost -->
+                    <!-- <td class="o_mrp_prod_cost text-right">
+                        <span t-esc="l['prod_cost']" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                    </td> -->
+                    <td class="o_mrp_bom_cost text-right">
+                        <span t-esc="l['total']" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                    </td>
+                    <td/>
+                </tr>
+            </t>
+        </xpath>
+
+        <xpath expr='//t[@t-if="data[&#39;operations&#39;]"]' position="after">
+            <t t-if="data['labors']">
+                <t t-set="space_td" t-value="'margin-left: '+ str(data['level'] * 20) + 'px;'"/>
+                <tr class="o_mrp_bom_report_line o_mrp_bom_cost" t-att-data-id="'labor-' + str(data['bom'].id)" t-att-data-bom-id="data['bom'].id" t-att-parent_id="data['bom'].id" t-att-data-qty="data['bom_qty']" t-att-data-level="data['level']">
+                    <td name="td_labor">
+                        <span t-att-style="space_td"/>
+                        <span class="o_mrp_bom_unfoldable fa fa-fw fa-caret-right" t-att-data-function="'get_labors'" role="img" aria-label="Unfold" title="Unfold"/>
+                        Labors
+                    </td>
+                    <td/>
+                    <td class="text-right">
+                        <span t-esc="data['labors_time']" t-options='{"widget": "float_time"}'/>
+                    </td>
+                    <td groups="uom.group_uom"><span>Minutes</span></td>
+                    <td class="o_mrp_bom_cost text-right">
+                        <span t-esc="data['labors_cost']" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                    </td>
+                    <td/>
+                </tr>
+            </t>
+        </xpath>
+
+        <!-- remove bom line product cost -->
+        <xpath expr='//t[@t-foreach="data[&#39;components&#39;]"]//td[hasclass("o_mrp_prod_cost")]' position="replace"/>
+        
+        <!-- remove operation parent product cost -->
+        <xpath expr='//t[@t-if="data[&#39;operations&#39;]"]//td[hasclass("o_mrp_prod_cost")]' position="replace"/>
+    </template>
+
+    <!-- remove operation line product cost -->
+    <template id="report_mrp_operation_line_inherited" inherit_id="mrp.report_mrp_operation_line">
+        <xpath expr="//td[hasclass('o_mrp_prod_cost')]" position="replace"/>
+    </template>
+
+    <!-- remove operation line pdf product cost -->
+    <template id="report_mrp_bom_pdf_line_inherited" inherit_id="mrp.report_mrp_bom_pdf_line">
+        <xpath expr="//td[hasclass('o_mrp_prod_cost')]" position="replace"/>
+    </template>
+
+    <template id="report_mrp_labor_line">
+        <t t-set="currency" t-value="data['currency']"/>
+        <t t-foreach="data['labors']" t-as="labor">
+            <t t-set="space_td" t-value="'margin-left: '+ str(labor['level'] * 20) + 'px;'"/>
+            <tr class="o_mrp_bom_report_line o_mrp_bom_cost" t-att-parent_id="'labor-' + str(data['bom_id'])">
+                <td name="td_labor_line">
+                    <span t-att-style="space_td"/>
+                    <a href="#" t-att-data-res-id="labor['labor'].id" t-att-data-model="'mrp.workcenter.labor'" class="o_mrp_bom_action"><t t-esc="labor['name']"/></a>
+                </td>
+                <td/>
+                <td class="text-right">
+                    <span t-esc="labor['duration_expected']" t-options='{"widget": "float_time"}'/>
+                </td>
+                <td groups="uom.group_uom"><span>Minutes</span></td>
+                <td class="o_mrp_bom_cost text-right">
+                    <span t-esc="labor['total']" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                </td>
+                <td/>
+            </tr>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+  <record id="chart_employee_form" model="ir.ui.view">
+    <field name="name">Employee Form Chart</field>
+    <field name="model">hr.employee</field>
+    <field name="inherit_id" ref="hr.view_employee_form"/>
+    <field name="mode">primary</field>
+    <field name="priority">10000</field>
+    <field name="arch" type="xml">
+      <xpath expr="//form" position="inside">
+        <footer>
+          <button string="Save" type="object" name="action_to_save" class="oe_highlight"/>
+          <button special="cancel" string="Close" type="object" />
+	      </footer>
+      </xpath>
+    </field>
+  </record>
+
+  <record id="slife_employee_wizard" model="ir.ui.view">
+    <field name="name">slife.employee.form</field>
+    <field name="model">slife.employee</field>
+    <field name="arch" type="xml">
+      <form>
+        <h4 attrs="{'invisible': [('childs_number','!=',1)]}" style="text-align: center;"><field name="parent_id"/> has <field name="childs_number" style="color:red;"/> direct subordinate. Please Fill the new Line Manager of this Employee.</h4>
+        <h4 attrs="{'invisible': [('childs_number','=',1)]}" style="text-align: center;"><field name="parent_id"/> has <field name="childs_number" style="color:red;"/> direct subordinates. Please Fill the new Line Manager of these Employees.</h4>
+        <table style="width: 100%;text-align: center;">
+          <tr>
+            <td>
+              <div class="oe_title">
+                <field name="parent_image" widget='image' class="oe_right oe_manager" nolabel="1"/><br/>
+                <field name="parent_id" string="Manager" class="oe_right" style="margin: 10px;" options="{'no_open': true, 'no_create_edit': true}"/>
+              </div>
+            </td>
+            <td style="width: 5px;">
+              <img src="/org_chart_premium/static/src/img/to.gif" style="max-height: 30px;margin: 40px;"/>
+            </td>
+            <td>
+              <div class="oe_title">
+                <field name="new_parent_image" widget='image' class="oe_left oe_manager" nolabel="1"/>
+                <field name="new_parent_id" string="Manager" style="margin: 10px;width: 50%;" options="{'no_open': true, 'no_create_edit': true}"
+                  placeholder="New Parent of subordinate"/>
+              </div>
+            </td>
+          </tr>
+        </table>
+        <footer>
+          <button string="Change Hierarchy" name="action_to_save_parent" type="object" class="oe_highlight" context="{'save': 'yes'}"/>
+          <button string="Keep Hierarchy" name="action_to_save_parent" type="object" class="oe_highlight"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_org_chart_employee" model="ir.actions.client">
+      <field name="name">Employee Chart</field>
+      <field name="tag">org_chart_premium.org_chart_employee</field>
+  </record>
+
+  <menuitem id="menu_org_chart_pro_employee"
+    name="Employee Hierarchy"
+    action="action_org_chart_employee"
+    web_icon="org_chart_premium,static/src/img/icon.png"
+    groups="hr.group_hr_user"/>
+
+  <!-- Organization Chart Config -->
+  <record id="slife_org_chart_config_form" model="ir.ui.view">
+    <field name="name">slife.org.chart.config.form</field>
+    <field name="model">slife.org.chart.config</field>
+    <field name="arch" type="xml">
+      <form duplicate="false" delete="false" create="false">
+        <sheet>
+          <h1>Organization Chart Configuration</h1>
+          <group>
+            <group>
+              <field name="direction" />
+            </group>
+            <group>
+              <field name="vertical_level" />
+            </group>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="slife_org_chart_config_action" model="ir.actions.act_window">
+    <field name="name">Organization Chart Configuration</field>
+    <field name="res_model">slife.org.chart.config</field>
+    <field name="view_mode">form</field>
+    <field name="res_id" ref="org_chart_premium.slife_org_chart_config_data"/>
+  </record>
+
+  <menuitem id="slife_org_chart_config_menu"
+    name="Org Chart Configuration"
+    action="slife_org_chart_config_action"
+    parent="base.menu_administration"
+    sequence="1"/>
+
+    <template id="assets_backend" name="Org Chart Employee assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+          <script src="/org_chart_premium/static/js/org_chart_employee.js"></script>
+          <script src="/org_chart_premium/static/js/jquery_orgchart.js"></script>
+          <script src="/org_chart_premium/static/js/other.js"></script>
+          <script src="/org_chart_premium/static/js/jspdf_min.js"></script>
+          <script src="/org_chart_premium/static/js/html2canvas_min.js"></script>
+          <link href="/org_chart_premium/static/src/css/jquery_orgchart.css" rel="stylesheet" />
+          <link href="/org_chart_premium/static/src/css/style.css" rel="stylesheet" />
+      </xpath>
+    </template>
+</odoo>

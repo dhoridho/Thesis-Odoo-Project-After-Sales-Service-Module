@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+<!-- Doamin Templates -->
+<t t-name="TerabitsFieldDomain.content">
+    <div t-if="hasModel" class="o_field_domain_panel">
+        <i class="fa fa-arrow-right" role="img" aria-label="Domain" title="Domain"/>
+
+        <button t-if="isValid" class="btn btn-sm btn-secondary o_domain_show_selection_button" type="button">
+            <t t-esc="nbRecords"/> record(s)
+        </button>
+        <t t-else="">
+            <span class="text-warning" role="alert"><i class="fa fa-exclamation-triangle" role="img" aria-label="Warning" title="Warning"/> Invalid domain</span>
+        </t>
+
+        <button t-if="inDialogEdit" class="btn btn-sm btn-primary o_field_domain_dialog_button">Edit Domain</button>
+    </div>
+    <div t-else="">Select a model to add a filter.</div>
+</t>
+
+<t t-name="TerabitsFieldDomain.content2">
+    <div t-if="hasModel" class="o_field_domain_panel">
+        <!-- <i class="fa fa-arrow-right" role="img" aria-label="Domain" title="Domain"/>
+
+        <button t-if="isValid" class="btn btn-sm btn-secondary o_domain_show_selection_button" type="button">
+            <t t-esc="nbRecords"/> record(s)
+        </button> -->
+        <t t-if="!isValid">
+            <span class="text-warning" role="alert"><i class="fa fa-exclamation-triangle" role="img" aria-label="Warning" title="Warning"/> Invalid domain</span>
+        </t>
+
+        <button t-if="inDialogEdit" class="btn btn-sm btn-primary o_field_domain_dialog_button">Edit Domain</button>
+    </div>
+    <div t-else="">Select a model to add a filter.</div>
+</t>
+<t t-name="TerabitsDomainNode.ControlPanel">
+    <div t-if="!widget.readonly &amp;&amp; !widget.noControlPanel" class="o_domain_node_control_panel" role="toolbar" aria-label="Domain node">
+        <button class="btn o_domain_delete_node_button" title="Delete node" aria-label="Delete node"><i class="fa fa-times"/></button>
+        <button class="btn o_domain_add_node_button" title="Add node" aria-label="Add node"><i class="fa fa-plus-circle"/></button>
+        <button class="btn o_domain_add_node_button" title="Add branch" aria-label="Add branch" data-branch="1"><i class="fa fa-ellipsis-h"/></button>
+    </div>
+</t>
+<t t-name="TerabitsDomainTree.OperatorSelector">
+    <div t-if="!widget.readonly" class="btn-group o_domain_tree_operator_selector" aria-atomic="true">
+        <button class="btn btn-sm btn-primary o_domain_tree_operator_caret" data-toggle="dropdown">
+            <t t-if="widget.operator === '&amp;'">All</t>
+            <t t-if="widget.operator === '|'">Any</t>
+            <t t-if="widget.operator === '!'">None</t>
+        </button>
+        <div class="dropdown-menu" role="menu">
+            <a role="menuitem" href="#" class="dropdown-item" data-operator="&amp;">All</a>
+            <a role="menuitem" href="#" class="dropdown-item" data-operator="|">Any</a>
+        </div>
+    </div>
+    <strong t-else="">
+        <t t-if="widget.operator === '&amp;'">ALL</t>
+        <t t-if="widget.operator === '|'">ANY</t>
+        <t t-if="widget.operator === '!'">NONE</t>
+    </strong>
+</t>
+<div aria-atomic="true" t-name="TerabitsDomainSelector" t-attf-class="o_domain_node o_domain_tree o_domain_selector #{widget.readonly ? 'o_read_mode' : 'o_edit_mode'}">
+    <t t-if="widget.children.length === 0">
+        <span>Match <strong>all records</strong></span>
+        <button t-if="!widget.readonly" class="btn btn-sm btn-primary o_domain_add_first_node_button"><i class="fa fa-plus"/> Add filter</button>
+    </t>
+    <t t-else="">
+        <div class="o_domain_tree_header">
+            <t t-if="widget.children.length === 1">Match records with the following rule:</t>
+            <t t-else="">
+                <span>Match records with</span>
+                <t t-call="TerabitsDomainTree.OperatorSelector"/>
+                <span>of the following rules:</span>
+            </t>
+        </div>
+
+        <div class="o_domain_node_children_container"/>
+    </t>
+    <label t-if="widget.debug &amp;&amp; !widget.readonly" class="o_domain_debug_container">
+        <span class="small"># Code editor</span>
+        <input type="text" class="o_domain_debug_input"/>
+    </label>
+</div>
+<div t-name="TerabitsDomainTree" class="o_domain_node o_domain_tree">
+    <div class="o_domain_tree_header o_domain_selector_row">
+        <t t-call="TerabitsDomainNode.ControlPanel"/>
+        <t t-call="TerabitsDomainTree.OperatorSelector"/>
+        <span class="ml4">of:</span>
+    </div>
+
+    <div class="o_domain_node_children_container"/>
+</div>
+<div t-name="TerabitsDomainLeaf" t-attf-class="o_domain_node o_domain_leaf o_domain_selector_row #{widget.readonly ? 'o_read_mode' : 'o_edit_mode'}">
+    <t t-call="TerabitsDomainNode.ControlPanel"/>
+
+    <div t-if="!widget.readonly" class="o_domain_leaf_edition">
+        <!-- field selector will be instantiated here -->
+        <div> <!-- used for flex stretching -->
+            <select class="o_domain_leaf_operator_select o_input">
+                <option t-foreach="widget.operators" t-as="key"
+                        t-att-value="key"
+                        t-att-selected="widget.displayOperator === key ? 'selected' : None">
+                    <t t-esc="key_value"/>
+                </option>
+            </select>
+        </div>
+        <div t-attf-class="o_ds_value_cell#{_.contains(['set', 'not set'], widget.displayOperator) ? ' d-none' : ''}">
+            <t t-if="widget.selectionChoices !== null">
+                <select class="o_domain_leaf_value_input o_input">
+                    <option t-foreach="widget.selectionChoices" t-as="val"
+                            t-att-value="val[0]"
+                            t-att-selected="_.contains(val, widget.displayValue) ? 'selected' : None">
+                        <t t-esc="val[1]"/>
+                    </option>
+                </select>
+            </t>
+            <t t-else="">
+                <t t-if="_.contains(['in', 'not in'], widget.operator) &amp;&amp; (!_.contains(['many2many', 'one2many','many2one'], widget.operator) || widget.chain != 'id')">
+                    <div class="o_domain_leaf_value_input">
+                        <span class="badge badge-pill" t-foreach="widget.displayValue" t-as="val">
+                            <t t-esc="val"/> <i class="o_domain_leaf_value_remove_tag_button fa fa-times" t-att-data-value="val" role="img" aria-label="Remove tag" title="Remove tag"/>
+                        </span>
+                        <span class="badge badge-pill" t-foreach="widget.tagsvalues" t-as="val">
+                            <t t-esc="val[1]"/> <i class="o_domain_leaf_value_remove_tag_button fa fa-times" t-att-data-value="val[0]" t-att-data-id="val[0]" role="img" aria-label="Remove tag" title="Remove tag"/>
+                        </span>
+                    </div>
+                    <div class="o_domain_leaf_value_tags">
+                        <input placeholder="Add new value" type="text" class="o_input"/>
+                        <button class="btn btn-sm btn-primary fa fa-plus o_domain_leaf_value_add_tag_button" aria-label="Add tag" title="Add tag"/>
+                    </div>
+                </t>
+                <t t-else="">
+                    <t t-if="_.contains(['date_filter'], widget.operator)">
+                        <select class="o_domain_leaf_value_input o_input text-truncate pe-1">
+                            <option t-att-selected="widget.value == 'today' ? 'selected' : None" value="today">Today</option>
+                                <option t-att-selected="widget.value == 'this_week' ? 'selected' : None" value="this_week">This Week</option>
+                                <option t-att-selected="widget.value == 'this_month' ? 'selected' : None" value="this_month">This Month</option>
+                                <option t-att-selected="widget.value == 'this_quarter' ? 'selected' : None" value="this_quarter">This Quarter</option>
+                                <option t-att-selected="widget.value == 'this_year' ? 'selected' : None" value="this_year">This Year</option>
+                                <option t-att-selected="widget.value == 'last_day' ? 'selected' : None" value="last_day">Last Day</option>
+                                <option t-att-selected="widget.value == 'last_week' ? 'selected' : None" value="last_week">Last Week</option>
+                                <option t-att-selected="widget.value == 'last_month' ? 'selected' : None" value="last_month">Last Month</option>
+                                <option t-att-selected="widget.value == 'last_quarter' ? 'selected' : None" value="last_quarter">Last Quarter</option>
+                                <option t-att-selected="widget.value == 'last_year' ? 'selected' : None" value="last_year">Last Year</option>
+                                <option t-att-selected="widget.value == 'last_7_days' ? 'selected' : None" value="last_7_days">Last 7 Days</option>
+                                <option t-att-selected="widget.value == 'last_30_days' ? 'selected' : None" value="last_30_days">Last 30 Days</option>
+                                <option t-att-selected="widget.value == 'last_90_days' ? 'selected' : None" value="last_90_days">Last 90 Days</option>
+                                <option t-att-selected="widget.value == 'last_365_days' ? 'selected' : None" value="last_365_days">Last 365 Days</option>
+                                <option t-att-selected="widget.value == 'next_day' ? 'selected' : None" value="next_day">Next Day</option>
+                                <option t-att-selected="widget.value == 'next_week' ? 'selected' : None" value="next_week">Next Week</option>
+                                <option t-att-selected="widget.value == 'next_month' ? 'selected' : None" value="next_month">Next Month</option>
+                                <option t-att-selected="widget.value == 'next_quarter' ? 'selected' : None" value="next_quarter">Next Quarter</option>
+                                <option t-att-selected="widget.value == 'next_year' ? 'selected' : None" value="next_year">Next Year</option>
+                            </select>
+                    </t>
+                    <input t-else="" class="o_domain_leaf_value_input o_input" type="text" t-att-value="widget.displayValue"/>
+                </t>
+            </t>
+        </div>
+    </div>
+    <div t-else="" class="o_domain_leaf_info">
+        <!-- field selector will be instantiated here -->
+        <t t-if="_.isString(widget.value)">
+            <span class="o_domain_leaf_operator"><t t-esc="widget.operator_mapping[widget.operator]"/></span>
+            <span class="o_domain_leaf_value text-primary">"<t t-esc="widget.value"/>"</span>
+        </t>
+        <t t-if="_.isArray(widget.value)">
+            <span class="o_domain_leaf_operator"><t t-esc="widget.operator_mapping[widget.operator]"/></span>
+            <t t-foreach="widget.value" t-as="v">
+                <span class="o_domain_leaf_value text-primary">"<t t-esc="v"/>"</span>
+                <t t-if="!v_last"> or </t>
+            </t>
+        </t>
+        <t t-if="_.isNumber(widget.value)">
+            <span class="o_domain_leaf_operator"><t t-esc="widget.operator_mapping[widget.operator]"/></span>
+            <span class="o_domain_leaf_value text-primary"><t t-esc="widget.value"></t></span>
+        </t>
+        <t t-if="_.isBoolean(widget.value)">
+            is
+            <t t-if="widget.operator === '=' &amp;&amp; widget.value === false || widget.operator === '!=' &amp;&amp; widget.value === true">not</t>
+            set
+        </t>
+    </div>
+</div>
+<div aria-atomic="true" t-name="TerabitsModelFieldSelector" t-attf-class="o_field_selector#{!widget.options.readonly ? ' o_edit_mode o_input' : ''}">
+    <div class="o_field_selector_value" tabindex="0"/>
+    <div class="o_field_selector_controls" tabindex="0">
+        <i role="alert" class="fa fa-exclamation-triangle o_field_selector_warning d-none" title="Invalid field chain" aria-label="Invalid field chain"/>
+    </div>
+    <div t-if="!widget.options.readonly" class="o_field_selector_popover d-none" tabindex="0">
+        <div class="o_field_selector_popover_header text-center">
+            <i class="fa fa-arrow-left o_field_selector_popover_option o_field_selector_prev_page" title="Previous" role="img" aria-label="Previous"/>
+            <div class="o_field_selector_title"/>
+            <i class="fa fa-times o_field_selector_popover_option o_field_selector_close" title="Close" role="img" aria-label="Close"/>
+            <div t-if="widget.options.showSearchInput" class="o_field_selector_search mt-2">
+                <input type="text" placeholder='Search...' class="o_input"/>
+            </div>
+        </div>
+        <div class="o_field_selector_popover_body">
+            <ul class="o_field_selector_page"/>
+        </div>
+        <div t-if="widget.options.debugMode" class="o_field_selector_popover_footer">
+            <input type="text" class="o_input o_field_selector_debug"/>
+        </div>
+    </div>
+</div>
+<div aria-atomic="true" t-name="TerabitsModelRecordSelector" t-attf-class="o_record_selector #{!widget.options.readonly ? ' o_edit_mode o_input' : ''}">
+    <div class="o_record_selector_value" tabindex="0"/>
+    <div class="o_record_selector_controls" tabindex="0">
+        <i role="alert" class="fa fa-exclamation-triangle o_field_selector_warning d-none" title="Invalid field chain" aria-label="Invalid field chain"/>
+    </div>
+    <div t-if="!widget.options.readonly" class="o_record_selector_popover d-none" tabindex="0">
+        <div class="o_record_selector_popover_header text-center">
+            <div class="o_field_selector_title"/>
+            <i class="fa fa-times o_record_selector_popover_option o_record_selector_close" title="Close" role="img" aria-label="Close"/>
+            <!-- <i class="fa fa-arrow-left o_field_selector_popover_option o_field_selector_prev_page" title="Previous" role="img" aria-label="Previous"/>
+            <div class="o_field_selector_title"/>
+            <i class="fa fa-times o_field_selector_popover_option o_field_selector_close" title="Close" role="img" aria-label="Close"/> -->
+            <div t-if="widget.options.showSearchInput" class="o_field_selector_search mt-2">
+                <input type="text" placeholder='Search...' class="o_input"/>
+            </div>
+        </div>
+        <div class="o_record_selector_popover_body">
+            <ul class="o_record_selector_page"/>
+        </div>
+        <!-- <div t-if="widget.options.debugMode" class="o_field_selector_popover_footer">
+            <input type="text" class="o_input o_field_selector_debug"/>
+        </div> -->
+    </div>
+</div>
+<t t-name="TerabitsModelFieldSelector.value">
+    <t t-foreach="chain" t-as="fieldName">
+        <t t-if="fieldName_index > 0">
+            <i class="fa fa-chevron-right" role="img" aria-label="Followed by" title="Followed by"/>
+        </t>
+        <span class="o_field_selector_chain_part">
+            <t t-if="fieldName === '1'">
+                <t t-esc="fieldName"/>
+            </t>
+            <t t-elif="fieldName === '0'">
+                <t t-esc="fieldName"/>
+            </t>
+            <t t-else="">
+                <t t-set="fieldInfo" t-value="_.findWhere(pages[fieldName_index], {'name': fieldName})"/>
+                <t t-esc="fieldInfo &amp;&amp; fieldInfo.string || '?'"/>
+            </t>
+        </span>
+    </t>
+</t>
+<t t-name="TerabitsModelRecordSelector.value">
+    <t t-foreach="chain" t-as="fieldName">
+        <t t-if="fieldName_index > 0">
+            <i class="fa fa-chevron-right" role="img" aria-label="Followed by" title="Followed by"/>
+        </t>
+        <span class="o_field_selector_chain_part">
+            <t t-if="fieldName === '1'">
+                <t t-esc="fieldName"/>
+            </t>
+            <t t-elif="fieldName === '0'">
+                <t t-esc="fieldName"/>
+            </t>
+            <t t-else="">
+                <t t-set="fieldInfo" t-value="_.findWhere(pages[fieldName_index], {'name': fieldName})"/>
+                <t t-esc="fieldInfo &amp;&amp; fieldInfo.string || '?'"/>
+            </t>
+        </span>
+    </t>
+</t>
+<ul t-name="TerabitsModelFieldSelector.page" class="o_field_selector_page">
+    <t t-foreach="lines" t-as="line">
+        <t t-set="relationToFollow" t-value="followRelations(line) &amp;&amp; line.relation"/>
+        <li t-attf-class="o_field_selector_item #{relationToFollow and 'o_field_selector_next_page' or 'o_field_selector_select_button'}#{line_index == 0 and ' active' or ''}"
+            t-att-data-name="line.name">
+            <t t-esc="line.string"/>
+            <div t-if="debug" class="text-muted o_field_selector_item_title"><t t-esc="line.name"/> (<t t-esc="line.type"/>)</div>
+            <i t-if="relationToFollow" class="fa fa-chevron-right o_field_selector_relation_icon" role="img" aria-label="Relation to follow" title="Relation to follow"/>
+        </li>
+    </t>
+</ul>
+
+<ul t-name="TerabitsModelFieldSelector.page2" class="o_field_selector_page">
+    <t t-foreach="lines" t-as="line">
+        <t t-set="relationToFollow" t-value="followRelations(line) &amp;&amp; line.relation"/>
+        <li t-attf-class="o_field_selector_item #{relationToFollow and 'o_field_selector_next_page' or 'o_field_selector_select_button'}#{line_index == 0 and ' active' or ''}"
+            t-att-data-name="line.name">
+            <t t-esc="line.string"/>
+            <div t-if="debug" class="text-muted o_field_selector_item_title"><t t-esc="line.name"/> (<t t-esc="line.type"/>)</div>
+            <!-- <i t-if="relationToFollow" class="fa fa-chevron-right o_field_selector_relation_icon" role="img" aria-label="Relation to follow" title="Relation to follow"/> -->
+        </li>
+    </t>
+</ul>
+<ul t-name="TerabitsModelRecordSelector.page" class="o_record_selector_page">
+    <t t-foreach="lines" t-as="line">
+        <!-- <t t-set="relationToFollow" t-value="followRelations(line) &amp;&amp; line.relation"/> -->
+        <!-- <li t-if="!line" t-attf-class="o_record_selector_item" >
+            No Records Available
+        </li> -->
+        <li t-if="line" t-attf-class="o_record_selector_item" t-att-data-id="line.id" t-att-data-name="line.display_name">
+            <t t-esc="line.display_name"/>
+            <!-- <i t-if="relationToFollow" class="fa fa-chevron-right o_field_selector_relation_icon" role="img" aria-label="Relation to follow" title="Relation to follow"/> -->
+        </li>
+    </t>
+</ul>
+</templates>

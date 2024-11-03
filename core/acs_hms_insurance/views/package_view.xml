@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Package -->
+    <record id="hospitalization_package_search" model="ir.ui.view">
+        <field name="name">hospitalization.package.search</field>
+        <field name="model">hospitalization.package</field>
+        <field name="arch" type="xml">
+            <search string="Package">
+                <field name="name"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="create_date"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="hospitalization_package_form_view" model="ir.ui.view">
+        <field name="name">hospitalization.package.form</field>
+        <field name="model">hospitalization.package</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_claims"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-pencil-square-o"
+                            attrs="{'invisible': [('claim_count', '=', 0)]}">
+                            <field name="claim_count" widget="statinfo" string="Claims"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" nolable="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                        <group>
+                            <field name="pricelist_id" groups="product.group_product_pricelist" options="{'no_open':True,'no_create': True}"/>
+                            <field name="company_id" groups="base.group_multi_company" string="Hospital" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="lines" string="Lines">
+                            <field name="order_line" widget="section_and_note_one2many">
+                                <tree string="Workorder Lines" editable="bottom">
+                                    <control>
+                                        <create string="Add a line"/>
+                                        <create string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                    </control>
+                                    <field name="display_type" invisible="1"/>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id" attrs="{'required': [('display_type', '=', False)]}"/>
+                                    <field name="name" widget="section_and_note_text"/>
+                                    <field name="product_uom_qty" string="Qty" attrs="{'required': [('display_type', '=', False)]}"/>
+                                    <field name="product_uom" options='{"no_open": True}' attrs="{'required': [('display_type', '=', False)]}"/>
+                                    <field name="price_unit"/>
+                                    <field name="discount"/>
+                                    <field name="tax_id" widget="many2many_tags"/>
+                                    <field name="price_subtotal"/>
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                <field name="amount_untaxed" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_tax" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                    <label for="amount_total" />
+                                </div>
+                                <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </page>
+                        <page name="description" string="Description">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="hospitalization_package_list_view" model="ir.ui.view">
+        <field name="name">hospitalization.package.list</field>
+        <field name="model">hospitalization.package</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <tree string="Package">
+                <field name="name"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="hospitalization_package_action" model="ir.actions.act_window">
+        <field name="name">Package</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">hospitalization.package</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="hospitalization_package_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to define a new Package.
+            </p>
+        </field>
+    </record>
+
+</odoo>

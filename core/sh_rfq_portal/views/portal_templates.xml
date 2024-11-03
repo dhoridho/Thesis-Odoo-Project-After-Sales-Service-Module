@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="sh_portal_my_home_menu_rfq" name="Portal layout : rfq menu entries" inherit_id="portal.portal_breadcrumbs" priority="25">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'quotes' or quotes" t-attf-class="breadcrumb-item #{'active ' if not quotes else ''}">
+                <a t-if="quotes" t-attf-href="/my/rfq?{{ keep_query() }}">Request For Quotation</a>
+                <t t-else="">Request For Quotation</t>
+            </li>
+            <li t-if="quotes" class="breadcrumb-item active">
+                <span t-field="quotes.name" />
+            </li>
+        </xpath>
+    </template>
+    <template id="sh_portal_my_home_rfq" name="Portal My Home : rfq entry" inherit_id="portal.portal_my_home" priority="25">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-if="rfq_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Request For Quotation</t>
+                <t t-set="url" t-value="'/my/rfq'" />
+                <t t-set="count" t-value="rfq_count" />
+            </t>
+        </xpath>
+    </template>
+
+    <template id="sh_portal_my_rfqs" name="Portal: My RFQ's">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Request For Quotation</t>
+            </t>
+            <t t-if="rfqs" t-call="portal.portal_table">
+                <thead>
+                    <tr class="active">
+                        <th>Request For Quotation #</th>
+                        <th>Order Date</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="rfqs" t-as="order">
+                        <tr>
+                            <td>
+                                <a t-attf-href="/my/rfq/#{order.id}?#{keep_query()}"><t t-esc="order.name" /></a>
+                            </td>
+                            <td><span t-field="order.date_order" /></td>
+                            <td><span t-field="order.amount_total" t-options='{"widget": "monetary", "display_currency": order.currency_id}' /></td>
+                        </tr>
+                    </t>
+                </tbody>
+            </t>
+        </t>
+    </template>
+    <template id="portal_rfq_form_template" name="RFQ Portal Template" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'" />
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="quotes.get_portal_url(report_type='pdf', download=True)" title="Download"><i class="fa fa-download" /> Download</a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav"></ul>
+                            </li>
+                            <li class="list-group-item flex-grow-1">
+                                <div class="small mb-1"><strong class="text-muted">Responsible</strong></div>
+                                <div class="row flex-nowrap">
+                                    <div class="col flex-grow-0 pr-2">
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="quotes.create_uid.image_1024" t-att-src="image_data_uri(quotes.create_uid.image_1024)" alt="Contact" />
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="not quotes.create_uid.image_1024" src="/web/static/src/img/placeholder.png" alt="Contact" />
+                                    </div>
+                                    <div class="col pl-0" style="min-width: 150px;">
+                                        <span t-field="quotes.create_uid" t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}' />
+                                        <a href="#discussion" class="small"><i class="fa fa-comment"></i> Send message</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </t>
+                </t>
+
+                <!-- Page content -->
+                <div id="rfq_content" class="col-12 col-lg justify-content-end">
+                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="sh_rfq_portal.rfq_portal_content" />
+                    </div>
+                    <div id="rfq_communication" class="mt-4">
+                        <h2>History</h2>
+                        <t t-call="portal.message_thread">
+                            <t t-set="object" t-value="quotes" />
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+    <template id="rfq_portal_content" name="Tender Portal Content">
+        <!-- Intro -->
+        <div id="introduction" t-attf-class="pb-2 pt-3 #{'card-header bg-white' if report_type == 'html' else ''}">
+            <h2 class="my-0">
+                <em t-esc="quotes.name" />
+            </h2>
+        </div>
+        <div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+            <!-- Informations -->
+            <div id="informations">
+                <div class="row">
+                    <div class="mb-3 col-6"><strong>Date:</strong> <span t-field="quotes.date_order" t-options='{"widget": "date"}' /></div>
+                </div>
+            </div>
+            <section id="details" style="page-break-inside: auto;" class="mt32">
+                <h3 id="details">Products</h3>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-4" id="product_name_lbl">
+                            <strong>Product</strong>
+                        </div>
+                        <div class="col-lg-2" id="unit_price_lbl">
+                            <strong>Unit Price</strong>
+                        </div>
+                        <div class="col-lg-2">
+			                <strong>Note/Comment</strong>
+			            </div>
+                        <div class="col-lg-2 text-right" id="qty_lbl">
+                            <strong>Quantity</strong>
+                        </div>
+                        <div class="col-lg-2 text-right" id="subtotal_lbl">
+                            <strong>Subtotal</strong>
+                        </div>
+                    </div>
+                    <form action="/rfq/update" method="post">
+                        <input type="hidden" name="order_id" t-att-value="quotes.id" id="order_id" />
+                        <t t-foreach="quotes.order_line" t-as="ol">
+                            <div class="row purchases_vertical_align">
+                                <div class="col-lg-1 text-center">
+                                    <img t-if="ol.product_id.image_128" class="rounded-circle mt-1 o_portal_contact_img" t-att-src="image_data_uri(ol.product_id.image_128)" alt="Product" />
+                                    <img t-if="not ol.product_id.image_128" class="rounded-circle mt-1 o_portal_contact_img" src="/web/static/src/img/placeholder.png" alt="Product" />
+                                </div>
+                                <div id="product_name" class="col-lg-3">
+                                    <span t-field="ol.product_id" />
+                                </div>
+                                <div class="col-lg-2" id="update_product_qty">
+                                    <input type="text" pattern="[0-9]+([\.,][0-9]+)?" class="form-control quantity" id="unit_price" t-att-name="ol.id" t-att-value="str(ol.price_unit)"/>
+                                </div>
+                                <div class="col-lg-2" id="update_note">
+                                	<t t-set="tender_note" t-value=""/>
+			                  		<t t-if="ol.sh_tender_note">
+			                  			<t t-set="tender_note" t-value="str(ol.sh_tender_note)"/>		
+			                  		</t>
+				                	<input type="text" class="form-control note" id="note" t-attf-name="#{ol.id}_note" t-att-value="tender_note" />
+				                </div>
+                                <div class="col-lg-2 text-right">
+                                    <span t-esc="ol.product_qty" />
+                                </div>
+                                <div class="col-lg-2 text-right">
+                                    <span t-field="ol.price_subtotal" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}' />
+                                </div>
+                            </div>
+                        </t>
+                       	<div class="row">
+				             <div class="col-12">
+				             	<label for="rfq_note" style="margin-top: 10px;">Note/Comment</label>
+				             	<input type="text" name="rfq_note" class="form-control" id="rfq_note" style="width:100%;margin-bottom:20px;" placeholder="Terms and conditions......" t-att-value="quotes.notes"/>
+				             </div>
+			         	</div>
+                        <button type="submit" id="btn_update_bid" class="btn btn-secondary" title="Update Bid">Update Bid</button>
+                    </form>
+                    <div class="row" id="amount_div">
+                        <div class="col-lg-12 text-right">
+                            <div class="row">
+                                <div class="col-lg-10 text-right">
+                                    Untaxed Amount:
+                                </div>
+                                <div class="col-lg-2 text-right">
+                                    <span t-field="quotes.amount_untaxed" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}' />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10 text-right">
+                                    Taxes:
+                                </div>
+                                <div class="col-lg-2 text-right">
+                                    <span t-field="quotes.amount_tax" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}' />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10 text-right">
+                                    <strong>Total:</strong>
+                                </div>
+                                <div class="col-lg-2 text-right">
+                                    <strong><span t-field="quotes.amount_total" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}' /></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                </div>
+            </section>
+        </div>
+    </template>
+
+    <template id="sh_portal_my_rfq_order_update" name="RFQ Update Portal Template" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'" />
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="quotes.get_portal_url(report_type='pdf', download=True)" title="Download"><i class="fa fa-download" /> Download</a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav"></ul>
+                            </li>
+                            <li class="list-group-item flex-grow-1">
+                                <div class="small mb-1"><strong class="text-muted">Responsible</strong></div>
+                                <div class="row flex-nowrap">
+                                    <div class="col flex-grow-0 pr-2">
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="quotes.create_uid.image_1024" t-att-src="image_data_uri(quotes.create_uid.image_1024)" alt="Contact" />
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="not quotes.create_uid.image_1024" src="/web/static/src/img/placeholder.png" alt="Contact" />
+                                    </div>
+                                    <div class="col pl-0" style="min-width: 150px;">
+                                        <span t-field="quotes.create_uid" t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}' />
+                                        <a href="#discussion" class="small"><i class="fa fa-comment"></i> Send message</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </t>
+                </t>
+                <div id="rfq_content" class="col-12 col-lg justify-content-end">
+                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="sh_rfq_portal.rfq_portal_update_content" />
+                    </div>
+                    <div id="rfq_communication" class="mt-4">
+                        <h2>History</h2>
+                        <t t-call="portal.message_thread">
+                            <t t-set="object" t-value="quotes" />
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+    <template id="rfq_portal_update_content" name="Update RFQ Portal Content">
+        <!-- Intro -->
+        <div id="introduction" t-attf-class="pb-2 pt-3 #{'card-header bg-white' if report_type == 'html' else ''}">
+            <h2 class="my-0">
+                <em t-esc="quotes.name" />
+            </h2>
+        </div>
+        <br />
+        <div id="update_message">
+            <div class="alert alert-success">
+                <h4><strong>Bid Updated Successfully.</strong></h4>
+            </div>
+        </div>
+        <div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+            <!-- Informations -->
+            <div id="informations">
+                <div class="row">
+                    <div class="mb-3 col-6"><strong>Date:</strong> <span t-field="quotes.date_order" t-options='{"widget": "date"}' /></div>
+                </div>
+            </div>
+            <section id="details" style="page-break-inside: auto;" class="mt32">
+                <h3 id="details">Products</h3>
+                <div class="row">
+                    <div class="col-lg-4" id='product_name_lbl'>
+                        <strong>Product</strong>
+                    </div>
+                    <div class="col-lg-2" id='unit_price_lbl'>
+                        <strong>Unit Price</strong>
+                    </div>
+                    <div class="col-lg-2">
+		                <strong>Note/Comment</strong>
+		            </div>
+                    <div class="col-lg-2">
+                        <strong>Quantity</strong>
+                    </div>
+                    <div class="col-lg-2 text-right">
+                        <strong>Subtotal</strong>
+                    </div>
+                </div>
+                <form action="/rfq/edit" method="post">
+                    <input type="hidden" name="order_id" t-att-value="quotes.id" id="order_id" />
+                    <t t-foreach="quotes.order_line" t-as="ol">
+                        <div class="row purchases_vertical_align">
+                            <div class="col-lg-1 text-center">
+                                <img t-if="ol.product_id.image_128" class="rounded-circle mt-1 o_portal_contact_img" t-att-src="image_data_uri(ol.product_id.image_128)" alt="Product" />
+                                <img t-if="not ol.product_id.image_128" class="rounded-circle mt-1 o_portal_contact_img" src="/web/static/src/img/placeholder.png" alt="Product" />
+                            </div>
+                            <div id="product_name" class="col-lg-3">
+                                <span t-field="ol.product_id" />
+                            </div>
+                            <div class="col-lg-2" id='update_product_qty'>
+                                <input type="text" pattern="[0-9]+([\.,][0-9]+)?" class="form-control quantity" id="unit_price" t-att-name="ol.id" t-att-value="str(ol.price_unit)" readonly="True"/>
+                            </div>
+                            <div class="col-lg-2" id="update_note">
+                            	<t t-set="tender_note" t-value=""/>
+			                  		<t t-if="ol.sh_tender_note">
+			                  			<t t-set="tender_note" t-value="str(ol.sh_tender_note)"/>		
+			                  		</t>
+				            	<input type="text" class="form-control note" id="note" t-attf-name="#{ol.id}_note" t-att-value="tender_note" readonly="True" />
+				            </div>
+                            <div class="col-lg-2 text-right">
+                                <span t-esc="ol.product_qty" />
+                            </div>
+                            <div class="col-lg-2 text-right">
+                                <span t-field="ol.price_subtotal" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}' />
+                            </div>
+                        </div>
+                    </t>
+                    <div class="row">
+			             <div class="col-12">
+			             	<label for="rfq_note" style="margin-top: 10px;">Note/Comment</label>
+			             	<input type="text" class="form-control" name="rfq_note" id="rfq_note" style="width:100%;margin-bottom:20px;" placeholder="Terms and conditions......" t-att-value="quotes.notes" readonly="True"/>
+			             </div>
+			         </div>
+                    <button id="btn_edit_bid" class="btn btn-secondary" title="Edit Bid">Edit Bid</button>
+                </form>
+                <div class="row">
+                    <div class="col-lg-12 text-right">
+                        <div class="row">
+                            <div class="col-lg-10 text-right">
+                                Untaxed Amount:
+                            </div>
+                            <div class="col-lg-2 text-right">
+                                <span t-field="quotes.amount_untaxed" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}' />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-10 text-right">
+                                Taxes:
+                            </div>
+                            <div class="col-lg-2 text-right">
+                                <span t-field="quotes.amount_tax" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}' />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-10 text-right">
+                                <strong>Total:</strong>
+                            </div>
+                            <div class="col-lg-2 text-right">
+                                <strong><span t-field="quotes.amount_total" t-options='{"widget": "monetary", "display_currency": quotes.currency_id}' /></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+            </section>
+        </div>
+    </template>
+</odoo>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="ChromeThemes" t-extend="equip3_pos_masterdata.Chrome" t-inherit-mode="primary" owl="1">
+        <xpath expr="//div[hasclass('pos')]" position="attributes">
+            <attribute name="t-att-style">'background:' +  env.session.config.background + '; font-family:' + env.session.config.font_family + ';'</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('pos-content')]" position="attributes">
+            <attribute name="t-att-style">'background:' +  env.session.config.background + '; font-family:' + env.session.config.font_family + ';'</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('loader')]" position="attributes">
+            <attribute name="t-att-style">'background:' +  env.session.config.background</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('pos-topheader')]" position="attributes">
+        </xpath>
+    </t>
+
+    <t t-name="LoginScreen" t-inherit="pos_hr.LoginScreen" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('login-overlay')]" position="attributes">
+            <attribute name="t-att-style">'background:' +  env.session.config.background + '; font-family:' + env.session.config.font_family + ';'</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="RetailHeaderButton" t-inherit="point_of_sale.HeaderButton" t-inherit-mode="extension" owl="1">
+    </t>
+
+    <t t-name="RetailProductItem" t-inherit="equip3_pos_masterdata.RetailProductItem" t-inherit-mode="extension" owl="1">
+        <xpath expr="//article[hasclass('product')]" position="attributes">
+            <attribute name="t-att-style">'width: 20%; height: 16em;border-radius: 40px;padding: 1px;'</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="DesignProductName" t-inherit="equip3_pos_masterdata.ProductName" t-inherit-mode="extension" owl="1">
+        <xpath expr="//span[hasclass('product-line-name')]" position="attributes">
+            <attribute name="t-att-style">'; font-family: "Roboto";'</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="RetailCategoryButton" t-inherit="point_of_sale.CategoryButton" t-inherit-mode="extension" owl="1">
+        <xpath expr="//span[hasclass('category-button')]" position="attributes">
+            <attribute name="t-att-style">'width:' +  env.session.config.product_width + 'em; height:' + env.session.config.product_height + 'em; margin:' + env.session.config.product_margin + 'em !important;'</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="ProductScreen" t-inherit="point_of_sale.ProductScreen" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('left_01')]" position="attributes">
+            <attribute name="t-att-style">'max-width:' +  getMaxWidthLeftScreen + '; background:' + env.session.config.cart_background + ';'</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('left_02')]" position="attributes">
+            <attribute name="t-att-style">'max-width:' +  getMaxWidthLeftScreen + '; background:' + env.session.config.cart_background + ';'</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('rightpane')]" position="attributes">
+            <attribute name="t-att-style">'background:' +  env.session.config.product_screen_background</attribute>
+        </xpath>
+    </t>
+
+    <t t-name="RetailProductItem" t-inherit="equip3_pos_masterdata.RetailProductItem" t-inherit-mode="extension" owl="1">
+        <xpath expr="//img" position="replace">
+            <t t-if="env.session.config.display_product_image != 'none'">
+                <img t-att-src="imageUrl"
+                     style="width:100% !important"
+                     t-att-alt="props.product.display_name"/>
+            </t>
+        </xpath>
+    </t>
+
+    <t t-name="RetailPaymentScreenPaymentLines" t-inherit="equip3_pos_masterdata.RetailPaymentScreenPaymentLines" t-inherit-mode="extension">
+        <xpath expr="div[hasclass('paymentlines')]/table/t/tr/td[4]/div/i" position="replace">
+            <i class="fa fa-times-rectangle"/>
+        </xpath>
+        <xpath expr="div[hasclass('paymentlines')]/table/colgroup/t[2]/col[1]" position="attributes">
+            <attribute name="style">width:45% ! important</attribute>
+        </xpath>
+        <xpath expr="div[hasclass('paymentlines')]/table/colgroup/t[2]/col[2]" position="attributes">
+            <attribute name="style">width:35% ! important</attribute>
+        </xpath>
+
+
+        <xpath expr="div[hasclass('paymentlines')]/table/t" position="after">
+            <!-- voucher -->
+            <tr class="receipt-line tr-payment-line payment-voucher-line" t-if="is_client_use_voucher()">
+                <td style="text-align: left; font-weight: 900">
+                     Voucher
+                </td>
+                <td style="text-align: right">
+                    <div class="payment-amount">
+                        <t t-esc="env.pos.format_currency(get_client_use_voucher_amount(),false,env.pos.get_order().currency)"/>
+                    </div>
+                </td>
+                <td style="text-align: center">
+                </td>
+            </tr>
+            
+            <tr style="background:white ! important;height:30px;" t-if="env.pos.company.is_order_rounding and env.pos.company.apply_rounding_type and env.pos.company.rounding_method_id">
+                 <td style="text-align: left; font-weight: 900">
+                     Rounding Amount
+                 </td>
+                 <td t-if="hasMDRPayment"/>
+                 <td class="sub-value" style="text-align: right ! important">
+                     <span class="amount">
+                         <span t-esc="env.pos.format_currency(env.pos.get_order().get_rounding_amount_order(),false,env.pos.get_order().currency)" style="font-weight:bolder;"/>
+                     </span>
+                 </td>
+                 <td/>
+              
+             </tr>
+             <tr style="background:#ededed ! important;height:30px;">
+                 <td style="text-align: left; font-weight: 900">
+                     Remaining Amount
+                 </td>
+                 <td t-if="hasMDRPayment"/>
+                 <td class="sub-value" style="text-align: right ! important">
+                     <span class="amount">
+                         <span t-esc="env.pos.format_currency(env.pos.get_order().get_due(),false,env.pos.get_order().currency)" style="font-weight:bolder;"/>
+                     </span>
+                 </td>
+                 <td/>
+              
+             </tr>
+             <tr style="background:white ! important;height:30px;">
+                 <td style="text-align: left; font-weight: 900">
+                     Due Amount
+                 </td>
+                 <td t-if="hasMDRPayment"/>
+                 <td class="sub-value" style="text-align: right ! important">
+                     <span t-esc="env.pos.format_currency(env.pos.get_order().get_total_with_tax()+env.pos.get_order().get_total_mdr_customer()+env.pos.get_order().get_rounding_amount_order(),false,env.pos.get_order().currency)"  style="font-weight:bolder;"/>
+                 </td>
+                 <td/>
+                 
+             </tr>
+             <tr style="background:#ededed ! important;height:30px;">
+                 <td style="text-align: left; font-weight: 900">
+                     Change Amount
+                 </td>
+                 <td t-if="hasMDRPayment"/>
+                 <td style="text-align: right ! important">
+                     <span class="amount" style="color: black !important; font-weight: bolder !important; font-size: unset !important">
+                         <t t-esc="env.pos.format_currency(env.pos.get_order().get_change(),false,env.pos.get_order().currency)" />
+                         <t t-if="env.pos.get_order().get_differene_currency_change() > 0">
+                             <span style="font-size: 16px">
+                                 ( <t t-esc="env.pos.format_currency(env.pos.get_order().get_differene_currency_change(),false,env.pos.get_order().currency)"/> )
+                             </span>
+                         </t>
+                     </span>
+                 </td>
+                 <td/>
+
+             </tr>
+        </xpath>
+    </t>
+
+</templates>
+

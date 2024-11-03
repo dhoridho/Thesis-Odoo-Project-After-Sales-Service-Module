@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- dashboard action -->
+        <record id="project_task_action_dashboard" model="ir.actions.act_window">
+            <field name="name">Project Analysis</field>
+            <field name="res_model">project.project</field>
+            <field name="view_mode">dashboard,pivot,graph</field>
+            <field name="context">{'total_amount': 1}</field>
+        </record>
+
+        <!-- Project pivot View -->
+        <record id="view_project_project_menu_pivot" model="ir.ui.view">
+            <field name="name">project.project.pivot.view</field>
+            <field name="model">project.project</field>
+            <field name="arch" type="xml">
+                <pivot string="Project Analysis" disable_linking="True">
+                    <field name="name" type="row"/>
+                    <field name="user_id" type="col"/>
+                    <field name="total_amount" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- Project graph View -->
+        <record id="view_project_project_menu_graph" model="ir.ui.view">
+            <field name="name">project.project.graph.view</field>
+            <field name="model">project.project</field>
+            <field name="arch" type="xml">
+                <graph string="Project Analysis" type="bar">
+                    <field name="name" type="row"/>
+                    <field name="total_amount" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!-- Matter dashboard View -->
+        <record id="view_project_project_menu_dashboard" model="ir.ui.view">
+            <field name="name">project.project.view.dashboard</field>
+            <field name="model">project.project</field>
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+                <dashboard>
+                    <view type="graph" ref="view_project_project_menu_graph"/>
+                    <group>	
+                        <group>
+                           <aggregate name="project" string="Projects" group_operator="count_distinct" field="id" measure="__count__"/>
+                           <aggregate name="esimation_cost" string="Cost Sheet Estimation" group_operator="sum" widget="monetary" field="estimation_sheet_cost"/>
+                           <aggregate name="equipment_cost" string="Equipment Cost" group_operator="sum" widget="monetary" field="equipment_cost"/>
+                           <aggregate name="vehicle_cost" string="Vehicle Cost" group_operator="sum" widget="monetary" field="vehicle_cost"/>
+                           <aggregate name="issue_cost" string="Issue Cost" group_operator="sum" widget="monetary" field="project_issue_cost"/>
+                           <aggregate name="total_amount" string="Total Costing" field="total_amount" group_operator="sum" widget="monetary"/>
+                        </group>
+                        <group>
+                            <widget name="pie_chart" attrs="{'title': 'Project Manager', 'groupby': 'user_id'}"/>
+                        </group>
+                    </group>
+                    <view type="pivot" ref="view_project_project_menu_pivot"/>
+                </dashboard>
+            </field>
+        </record>
+
+        <!-- menuitem -->
+        <menuitem id="menu_project_analysis_report"
+                  name = "Reporting"
+                  parent = "construction_management"
+                  action="project_task_action_dashboard"
+                  groups = "abs_construction_management.group_construction_manager"
+                  sequence="7"/>
+
+    </data>
+</odoo>

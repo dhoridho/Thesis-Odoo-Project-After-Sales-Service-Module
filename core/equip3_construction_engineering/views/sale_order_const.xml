@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2015 DevIntelle Consulting Service Pvt.Ltd (<http://www.devintellecs.com>).
+
+For Module Support : devintelle@gmail.com  or Skype : devintelle
+ -->
+<odoo>
+    <data>
+        <record id="engin_sale_order_const_inherit" model="ir.ui.view">
+            <field name="name">sale.order.const.engineering.inherited.to.manufacture</field>
+            <field name="model">sale.order.const</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_order_const_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='contract_template']" position="after">
+                    <field name="is_engineering" force_save="1" invisible="1"/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='variable_ids']" position="after">
+                    <page string="To Manufacture" name="manufacture_page" attrs="{'invisible':[('is_engineering','=',False)]}">
+                        <field name='hide_cascade' invisible="1"/>
+                        <field name='manufacture_line'>
+                            <tree editable="bottom" create="false" delete="false">
+                                <field name="sale_cons_id" string="Number" invisible = "1"/>
+                                <field name="sr_no" readonly="1" />
+                                <field name="active" invisible="1"/>
+                                <field name="project_id" invisible="1"/>
+                                <field name="customer_id" invisible="1"/>
+                                <field name="user_id" invisible="1" widget="many2many_tags"/>
+                                <field name="job_references" widget="many2many_tags" invisible="1"/>
+                                <field name="job_reference" invisible="1"/> 
+                                <field name='project_scope' readonly="1" force_save="1"/>
+                                <field name='section' readonly="1" force_save="1" />
+                                <field name="variable_ref" readonly="1" force_save="1" optional="hide"/>
+                                <field name="final_finish_good_id" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.hide_cascade', '=', False)]}"/>
+                                <field name='finish_good_id' readonly="1" force_save="1"/>
+                                <field name='bom_id' readonly="1" force_save="1"/>
+                                <field name='quantity' readonly="1" force_save="1"/>
+                                <field name='uom_id' readonly="1" force_save="1"/>
+                                <field name="adjustment_type" invisible="1"/>
+                                <field name="adjustment_method_manuf" attrs="{'column_invisible': [('parent.adjustment_type','!=','manuf')]}"/>
+                                <field name="adjustment_amount_manuf" attrs="{'column_invisible': [('parent.adjustment_type','!=','manuf')]}"/>
+                                <field name="adjustment_subtotal_manuf" invisible = "1"/>
+                                <field name="manuf_adjustment" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Adjustment"/>
+                                <field name="discount_type" invisible = "1"/>
+                                <field name="discount_method_manuf" attrs="{'column_invisible': [('parent.discount_type','!=','manuf')]}"/>
+                                <field name="discount_amount_manuf" attrs="{'column_invisible': [('parent.discount_type','!=','manuf')]}"/>
+                                <field name="discount_subtotal_manuf" invisible = "1"/>
+                                <field name="manuf_discount" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Discount"/>
+                                <field name='subtotal_manuf' readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Contract"/>
+                                <field name="cascaded" force_save="1" invisible="1"/>
+                                <field name="is_child" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.hide_cascade', '=', False)]}"/>
+                                <field name="parent_manuf_line" force_save="1" invisible="1"/>
+                                <field name="state_line" invisible = "1"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="company_id" invisible="1"/>
+                            </tree>
+                        </field>
+                        <group attrs="{'readonly': [('state', '=', 'block')]}">
+                            <group name="adjustment" string="Adjustment" attrs="{'invisible': [('adjustment_type','!=', 'global')]}">
+                                <group>
+                                    <label for="adjustment_method_global" string="Method" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                    <div>
+                                        <field name="adjustment_method_global" class="oe_inline" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                    </div>
+                                    <label for="adjustment_amount_global" string="Amount" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                    <div>
+                                        <field name="adjustment_amount_global" class="oe_inline" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                        <label for="adjustment_amount_global" string="%%" attrs="{'invisible': [('adjustment_method_global', '!=', 'per')]}" class="oe_inline"/>
+                                    </div>
+                                </group>
+                                <group invisible="1">
+                                    <field name="scope_adjustment_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                        <tree editable="bottom" create="false" delete="false">
+                                            <field name="sr_no" readonly="1" />
+                                            <field name="order_id" string="Number" invisible = "1"/>
+                                            <field name="project_scope" readonly="1" force_save="1"/>
+                                            <field name="subtotal_scope" readonly="1" force_save="1" invisible = "1"/>
+                                            <field name="adjustment_type" invisible = "1"/>
+                                            <field name="adjustment_method_scope" string="Method"/>
+                                            <field name="adjustment_amount_scope" string="Amount"/>
+                                            <field name="adjustment_subtotal_scope" string="Subtotal"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                                <group invisible="1">
+                                    <field name="section_adjustment_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                        <tree editable="bottom" create="false" delete="false">
+                                            <field name="sr_no" readonly="1"  />
+                                            <field name="order_id" string="Number" invisible = "1"/>
+                                            <field name="project_scope" readonly="1" force_save="1"/>
+                                            <field name="section_name" readonly="1" force_save="1" invisible="1"/>
+                                            <field name="section" readonly="1" force_save="1"/>
+                                            <field name="subtotal_section" readonly="1" force_save="1" invisible = "1"/>
+                                            <field name="adjustment_type" invisible = "1"/>
+                                            <field name="adjustment_method_section" string="Method"/>
+                                            <field name="adjustment_amount_section" string="Amount"/>
+                                            <field name="adjustment_subtotal_section" string="Subtotal"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                                <group>
+                                </group>
+                            </group>    
+                            <group name="discount" string="Discount" attrs="{'invisible': [('discount_type','!=', 'global')]}">
+                                <group>
+                                    <label for="discount_method_global" string="Method" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                    <div>
+                                        <field name="discount_method_global" class="oe_inline" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                    </div>
+                                    <label for="discount_amount_global" string="Amount" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                    <div>
+                                        <field name="discount_amount_global" class="oe_inline" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                        <label for="discount_amount_global" string="%%" attrs="{'invisible': [('discount_method_global', '!=', 'per')]}" class="oe_inline"/>
+                                    </div>
+                                </group>
+                                <group invisible="1">
+                                    <field name="scope_discount_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                        <tree editable="bottom" create="false" delete="false">
+                                            <field name="sr_no" readonly="1" />
+                                            <field name="order_id" string="Number" invisible = "1"/>
+                                            <field name="project_scope" readonly="1" force_save="1"/>
+                                            <field name="subtotal_scope" readonly="1" force_save="1" invisible = "1"/>
+                                            <field name="adjustment_amount"  readonly="1" force_save="1" invisible = "1"/>
+                                            <field name="discount_type" invisible = "1"/>
+                                            <field name="discount_method_scope" string="Method"/>
+                                            <field name="discount_amount_scope" string="Amount"/>
+                                            <field name="discount_subtotal_scope" string="Subtotal"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                                <group invisible="1">
+                                    <field name="section_discount_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                        <tree editable="bottom" create="false" delete="false">
+                                            <field name="sr_no" readonly="1" />
+                                            <field name="order_id" string="Number" invisible = "1"/>
+                                            <field name="project_scope" readonly="1" force_save="1"/>
+                                            <field name="section_name" readonly="1" force_save="1" invisible="1"/>
+                                            <field name="section" readonly="1" force_save="1"/>
+                                            <field name="subtotal_section" readonly="1" force_save="1" invisible = "1"/>
+                                            <field name="adjustment_amount"  readonly="1" force_save="1" invisible = "1"/>
+                                            <field name="discount_type" invisible = "1"/>
+                                            <field name="discount_method_section" string="Method"/>
+                                            <field name="discount_amount_section" string="Amount"/>
+                                            <field name="discount_subtotal_section" string="Subtotal"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                                <group>
+                                </group>
+                            </group>
+                        </group>  
+                        <group name="bottom_fields" attrs="{'readonly': [('state', '=', 'block')]}">
+                            <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                <field name="total_material" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                <field name="total_labour" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                <field name="total_overhead" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                <field name="total_asset" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                <field name="total_subcon" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                    <label for="amount_untaxed" />
+                                </div>
+                                <field name="amount_untaxed" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                <field name="adjustment_sub" widget='monetary' options="{'currency_field': 'currency_id'}" string="Adjustment (+)"/>
+                                <field name="discount_sub" widget="monetary" options="{'currency_field': 'currency_id'}"  string="Discount (-)"/> 
+                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                    <label for="contract_amount" />
+                                </div>
+                                <field name="contract_amount" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary'/>
+                                <field name="amount_tax" widget='monetary'/>
+                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                    <label for="amount_total" />
+                                </div>
+                                <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary'/>
+                            </group>
+                            <group name="note_group">
+                                <div>
+                                    <label for="terms_conditions_id" string="Terms and Conditions"/>
+                                    <field name="terms_conditions_id" nolabel="1"/>
+                                    <field name="note" nolabel="1" widget="html" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                </div>
+                            </group> 
+                        </group> 
+                    </page>
+                </xpath>
+
+                <!-- <xpath expr="//notebook/page[@name='project_scope_ids']/group[@name='bottom_fields']/group[@name='sale_total']/field[@name='adjustment_variable']" position="after">
+                    <field name="adjustment_manuf" widget='monetary' options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('adjustment_type','!=','manuf')]}" string="Adjustment (+)"/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='project_scope_ids']/group[@name='bottom_fields']/group[@name='sale_total']/field[@name='discount_variable']" position="after">
+                    <field name="discount_manuf" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('discount_type','!=','manuf')]}" string="Discount (-)"/>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='section_ids']/group[@name='bottom_fields']/group[@name='sale_total']/field[@name='adjustment_variable']" position="after">
+                    <field name="adjustment_manuf" widget='monetary' options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('adjustment_type','!=','manuf')]}" string="Adjustment (+)"/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='section_ids']/group[@name='bottom_fields']/group[@name='sale_total']/field[@name='discount_variable']" position="after">
+                    <field name="discount_manuf" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('discount_type','!=','manuf')]}" string="Discount (-)"/>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='variable_ids']/group[@name='bottom_fields']/group[@name='sale_total']/field[@name='adjustment_variable']" position="after">
+                    <field name="adjustment_manuf" widget='monetary' options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('adjustment_type','!=','manuf')]}" string="Adjustment (+)"/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='variable_ids']/group[@name='bottom_fields']/group[@name='sale_total']/field[@name='discount_variable']" position="after">
+                    <field name="discount_manuf" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('discount_type','!=','manuf')]}" string="Discount (-)"/>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='order_ids']/group[@name='bottom_fields']/group[@name='sale_total']/field[@name='adjustment_variable']" position="after">
+                    <field name="adjustment_manuf" widget='monetary' options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('adjustment_type','!=','manuf')]}" string="Adjustment (+)"/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='order_ids']/group[@name='bottom_fields']/group[@name='sale_total']/field[@name='discount_variable']" position="after">
+                    <field name="discount_manuf" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('discount_type','!=','manuf')]}" string="Discount (-)"/>
+                </xpath> -->
+
+                <xpath expr="//notebook/page[@name='order_ids']/notebook/page/field[@name='material_line_ids']/tree/field[@name='variable_ref']" position="after">
+                    <field name="final_finish_good_id" attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='finish_good_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='bom_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='hide'/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='order_ids']/notebook/page/field[@name='labour_line_ids']/tree/field[@name='variable_ref']" position="after">
+                    <field name="final_finish_good_id" attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='finish_good_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='bom_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='hide'/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='order_ids']/notebook/page/field[@name='overhead_line_ids']/tree/field[@name='variable_ref']" position="after">
+                    <field name="final_finish_good_id" attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='finish_good_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='bom_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='hide'/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='order_ids']/notebook/page/notebook/page/field[@name='internal_asset_line_ids']/tree/field[@name='variable_ref']" position="after">
+                    <field name="final_finish_good_id" attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='finish_good_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='bom_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='hide'/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='order_ids']/notebook/page/notebook/page/field[@name='equipment_line_ids']/tree/field[@name='variable_ref']" position="after">
+                    <field name="final_finish_good_id" attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='finish_good_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='bom_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='hide'/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='order_ids']/notebook/page/field[@name='subcon_line_ids']/tree/field[@name='variable_ref']" position="after">
+                    <field name="final_finish_good_id" attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='finish_good_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='show'/>
+                    <field name='bom_id' attrs="{'column_invisible':[('parent.is_engineering','=',False)]}" optional='hide'/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- material order lines -->
+        <record id="view_material_order_line_const_tree_inherit" model="ir.ui.view">
+            <field name="name">sale.material.order.line.const.tree.inherit</field>
+            <field name="model">sale.order.material.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.view_material_order_line_const_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree/field[@name='group_of_product']" position="before">
+                    <field name='finish_good_id' optional='show'/>
+                    <field name='bom_id' optional='hide'/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="sale_material_order_line_const_view_form_readonly_inherit" model="ir.ui.view">
+            <field name="name">sale.material.order.line.const.form.readonly.inherit</field>
+            <field name="model">sale.order.material.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_material_order_line_const_view_form_readonly"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='group_of_product']" position="before">
+                    <field name='finish_good_id' />
+                    <field name='bom_id' />
+                </xpath>
+            </field>
+        </record>
+
+        <!-- labour order lines -->
+        <record id="view_labour_order_line_const_tree_inherit" model="ir.ui.view">
+            <field name="name">sale.labour.order.line.const.tree.inherit</field>
+            <field name="model">sale.order.labour.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.view_labour_order_line_const_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree/field[@name='group_of_product']" position="before">
+                    <field name='finish_good_id' optional='show'/>
+                    <field name='bom_id' optional='hide'/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="sale_labour_order_line_const_view_form_readonly_inherit" model="ir.ui.view">
+            <field name="name">sale.labour.order.line.const.form.readonly.inherit</field>
+            <field name="model">sale.order.labour.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_labour_order_line_const_view_form_readonly"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='group_of_product']" position="before">
+                    <field name='finish_good_id' />
+                    <field name='bom_id' />
+                </xpath>
+            </field>
+        </record>
+
+        <!-- overhead order lines -->
+        <record id="view_overhead_order_line_const_tree_inherit" model="ir.ui.view">
+            <field name="name">sale.overhead.order.line.const.tree.inherit</field>
+            <field name="model">sale.order.overhead.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.view_overhead_order_line_const_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree/field[@name='group_of_product']" position="before">
+                    <field name='finish_good_id' optional='show'/>
+                    <field name='bom_id' optional='hide'/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="sale_overhead_order_line_const_view_form_readonly_inherit" model="ir.ui.view">
+            <field name="name">sale.overhead.order.line.const.form.readonly.inherit</field>
+            <field name="model">sale.order.overhead.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_overhead_order_line_const_view_form_readonly"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='group_of_product']" position="before">
+                    <field name='finish_good_id' />
+                    <field name='bom_id' />
+                </xpath>
+            </field>
+        </record>
+
+        <!-- internal asset order lines -->
+        <record id="view_internal_asset_order_line_const_tree_inherit" model="ir.ui.view">
+            <field name="name">sale.internal_asset.order.line.const.tree.inherit</field>
+            <field name="model">sale.internal.asset.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.view_internal_asset_order_line_const_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree/field[@name='asset_category_id']" position="before">
+                    <field name='finish_good_id' optional='show'/>
+                    <field name='bom_id' optional='hide'/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="sale_internal_asset_order_line_const_view_form_readonly_inherit" model="ir.ui.view">
+            <field name="name">sale.internal.asset.order.line.const.form.readonly.inherit</field>
+            <field name="model">sale.internal.asset.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_internal_asset_order_line_const_view_form_readonly"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='asset_category_id']" position="before">
+                    <field name='finish_good_id' />
+                    <field name='bom_id' />
+                </xpath>
+            </field>
+        </record>
+
+        <!-- equipment order lines -->
+        <record id="view_equipment_order_line_const_tree_inherit" model="ir.ui.view">
+            <field name="name">sale.equipment.order.line.const.tree.inherit</field>
+            <field name="model">sale.order.equipment.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.view_equipment_order_line_const_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree/field[@name='group_of_product']" position="before">
+                    <field name='finish_good_id' optional='show'/>
+                    <field name='bom_id' optional='hide'/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="sale_equipment_order_line_const_view_form_readonly_inherit" model="ir.ui.view">
+            <field name="name">sale.equipment.order.line.const.form.readonly.inherit</field>
+            <field name="model">sale.order.equipment.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_equipment_order_line_const_view_form_readonly"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='group_of_product']" position="before">
+                    <field name='finish_good_id' />
+                    <field name='bom_id' />
+                </xpath>
+            </field>
+        </record>
+
+        <!-- subcon order lines -->
+        <record id="view_subcon_order_line_const_tree_inherit" model="ir.ui.view">
+            <field name="name">sale.subcon.order.line.const.tree.inherit</field>
+            <field name="model">sale.order.subcon.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.view_subcon_order_line_const_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree/field[@name='subcon_id']" position="before">
+                    <field name='finish_good_id' optional='show'/>
+                    <field name='bom_id' optional='hide'/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="sale_subcon_order_line_const_view_form_readonly_inherit" model="ir.ui.view">
+            <field name="name">sale.subcon.order.line.const.form.readonly.inherit</field>
+            <field name="model">sale.order.subcon.line</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_subcon_order_line_const_view_form_readonly"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='subcon_id']" position="before">
+                    <field name='finish_good_id' />
+                    <field name='bom_id' />
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

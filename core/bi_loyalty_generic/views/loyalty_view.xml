@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+	 <!-- all Loyalty Configuration -->
+	<record id="view_web_loyalty_setting_tree_view" model="ir.ui.view">
+		<field name="name">all.loyalty.config.tree.view</field>
+		<field name="model">all.loyalty.setting</field>
+		<field name="arch" type="xml">
+			<tree string=" Loyalty Configuration">
+				<field name="name"/>	
+				<field name="product_id"/>			
+				<field name="issue_date"/>	
+				<field name="expiry_date"/>
+				<field name="active"/>
+			</tree>
+		</field>
+	</record>
+	<record id="web_loyalty_setting_form_view" model="ir.ui.view">
+		<field name="name">all.loyalty.config.form.view</field>
+		<field name="model">all.loyalty.setting</field>
+		<field name="arch" type="xml">
+			<form string=" Loyalty Configuration">
+				<sheet>
+					<group>
+						<group>
+							<field name="name" required="1"/>
+							<field name="product_id"/>
+							<field name="active"/>
+						</group>
+						<group>
+							<field name="issue_date"/>
+							<field name="expiry_date"/>
+						</group>
+					</group>
+					 <notebook>
+						<page string="Loyalty Calculation">
+							<group>
+								<field name="loyalty_basis_on"/>
+								<field name="loyality_amount" attrs="{'invisible':[('loyalty_basis_on', '!=', 'amount')],'required':[('loyalty_basis_on', '=', 'amount')]}"/>
+								<br/>
+								<div attrs="{'invisible':[('loyalty_basis_on', '!=', 'loyalty_category')]}">
+									<button name="%(product.product_category_action_form)d" icon="fa-arrow-right" type="action" string="Product Categories (For Sale)" class="btn-link"/>
+									<br/>
+									<button name="%(point_of_sale.product_pos_category_action)d" icon="fa-arrow-right" type="action" string="POS Product Categories (For POS)" class="btn-link"/>
+									<br/>
+									<button name="%(website_sale.product_public_category_action)d" icon="fa-arrow-right" type="action" string="Website Categories (For Website)" class="btn-link"/>
+								</div>
+							</group>
+								<div attrs="{'invisible':[('loyalty_basis_on', '!=', 'amount')]}">
+								<b style="color:blue"> 
+								<span>1 Point(s) </span>
+								</b>
+								<b style="margin: 0px 7px;">
+									<span> For a Purchase of every</span>
+								</b>
+								<b style="color:blue">
+									<field name="amount_footer" nolabel="1" class="oe_inline"/>
+								</b>
+								</div>
+						</page>
+						<page string="Redemption Rule">
+							<field name="redeem_ids">
+								<tree>
+									<field name="name"/>
+									<field name="min_amt"/>
+									<field name="max_amt"/>
+									<field name="reward_amt"/>
+								</tree>
+								<form string="Website Redeem Rule Form">
+									<sheet>
+										<group>
+											<field name="name"/>
+										</group>
+										<seperator col="4" string="Redemption Computation"/>
+										<b>
+											<span>Rule :  Points Between</span>
+										</b>
+										<b style="color:blue">
+											<field name="min_amt" nolabel="1" class="oe_inline"/>
+										</b>
+										<b>
+											<span>and</span>
+										</b>
+										<b style="color:blue">
+											<field name="max_amt" nolabel="1" class="oe_inline"/>
+										</b>
+										<b>
+											<span>: 1 reward point =</span>
+										</b>
+										<b style="color:green">
+											<field name="reward_amt" nolabel="1" class="oe_inline" />
+										</b>
+									</sheet>
+								</form>
+							</field>
+						</page>
+					</notebook>
+				</sheet>
+			</form>
+		</field>
+	</record>
+	<record model="ir.actions.act_window" id="action_web_loyalty_setting">
+		<field name="name">Loyalty Configuration</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">all.loyalty.setting</field>
+		<field name="view_mode">tree,form</field>
+	</record>
+	<!-- website Loyalty History -->
+	<record id="view_web_loyalty_history_tree_view" model="ir.ui.view">
+		<field name="name">all.loyalty.history.tree.view</field>
+		<field name="model">all.loyalty.history</field>
+		<field name="arch" type="xml">
+		   <tree string="Website Loyalty History" create="0" edit="0">
+				<field name="order_id"/>	
+				<field name='pos_order_id'/>
+				<field name="partner_id"/>			
+				<field name="transaction_type"/>	
+				<field name="date"/>
+				<field name="state"/>
+				<field name="points"/>
+				<field name="check_state" invisible="1"/>
+			</tree>
+		</field>
+	</record>
+	<record id="web_loyalty_history_form_view" model="ir.ui.view">
+		<field name="name">all.loyalty.history.form.view</field>
+		<field name="model">all.loyalty.history</field>
+		<field name="arch" type="xml">
+			<form string="Loyalty History" create="0" edit="0">
+				<header>
+					<field name="state" widget="statusbar" statusbar_visible="draft,done,cancel"/>
+				</header>
+				<sheet>
+					<group>
+						<group>
+							<field name='generated_from'/>
+							<field name="order_id" attrs="{'invisible':[('generated_from','=','pos')]}" />
+							<field name='pos_order_id' attrs="{'invisible':[('generated_from','!=','pos')]}"/>
+							<field name="partner_id"/>
+							<field name="transaction_type"/>
+						</group>
+					<group>
+						<field name="date"/>
+						<field name="points"/>
+						<field name="check_state" invisible="1"/>
+					</group>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+	<record model="ir.actions.act_window" id="action_web_loyalty_history">
+		<field name="name">Loyalty History</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">all.loyalty.history</field>
+		<field name="view_mode">tree,form</field>
+	</record>		
+	<menuitem name="Loyalty Management" id="menu_web_loyalty_id"  sequence="10"/>
+	<menuitem parent="bi_loyalty_generic.menu_web_loyalty_id" action="action_web_loyalty_setting" id="menu_web_loyalty_setting"
+			sequence="5"/>			
+	<menuitem parent="bi_loyalty_generic.menu_web_loyalty_id" action="action_web_loyalty_history" id="menu_web_loyalty_history"
+			sequence="6"/>
+	<!-- res.partner Configuration -->
+	<record id="view_res_partner_loyalty_form" model="ir.ui.view">
+		<field name="name">res.partner.website.loyalty.form.inherit</field>
+		<field name="model">res.partner</field>
+		<field name="inherit_id" ref="base.view_partner_form"/>
+		<field name="arch" type="xml">
+			<field name="vat" position="after">
+				<field string="Loyalty Points" name="loyalty_points" invisible="1"/>
+			</field>
+			<div name="button_box" position="inside">
+				<button type="object" name="action_view_loyalty_points" class="oe_stat_button" icon="fa-usd"  attrs="{'invisible': [('loyalty_points','=',0)]}">
+					<div class="o_form_field o_stat_info">
+						<span class="o_stat_value">
+							<field name="loyalty_points" widget='statinfo'/>
+						</span>
+						<span class="o_stat_text">Loyalty Points</span>
+					</div>
+				</button>
+			</div>
+		</field>
+	</record>
+	<!-- website.category Configuration -->
+	<record model="ir.ui.view" id="web_category_loyalty_inherit">
+		<field name="name">website.product.public.category.loyalty.view.form</field>
+		<field name="model">product.public.category</field>
+		<field name="inherit_id" ref="website_sale.product_public_category_form_view"/>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='sequence']" position="after">
+				<field name="Minimum_amount"/>
+			</xpath>
+			<xpath expr="//div" position="after">
+				<group>
+					<div>
+						<b style="color:blue"> <span>1 Point(s)</span></b>
+						<b style="margin: 0px 7px;"><span>For a Purchase of every</span></b>
+						<b style="color:blue">
+							<field name="amount_footer" nolabel="1" class="oe_inline"/>
+						</b>
+					</div>
+				</group>
+			</xpath>
+		</field>
+	</record>
+	<record model="ir.ui.view" id="pos_category_loyalty_inherit">
+		<field name="name">pos.category.loyalty.view.form</field>
+		<field name="model">pos.category</field>
+		<field name="inherit_id" ref="point_of_sale.product_pos_category_form_view"/>
+		<field name="arch" type="xml">			
+			<xpath expr="//group" position="after">
+				<group>
+					<div>
+						<b style="color:blue"> <span>1 Point(s)</span></b>
+						<b style="margin: 0px 7px;"><span>For a Purchase of every</span></b>
+						<b style="color:blue">
+							<field name="amount_footer" nolabel="1" class="oe_inline"/>
+						</b>
+					</div>
+				</group>
+			</xpath>
+			<xpath expr="//field[@name='sequence']" position="after">
+				<field name="Minimum_amount"/>
+			</xpath>
+		</field>
+	</record>
+	<record model="ir.ui.view" id="sale_category_loyalty_inherit">
+		<field name="name">sale.category.loyalty.view.form</field>
+		<field name="model">product.category</field>
+		<field name="inherit_id" ref="product.product_category_form_view"/>
+		<field name="arch" type="xml">           
+			<group name="first" position="after">			
+				<group string="Loyalty Configuration">
+					<group col="2">
+						<field name="Minimum_amount"/> 
+						<div>
+							<b style="color: blue"> <span>1 Point(s)</span></b>
+							<b style="margin: 0px 7px;"><span>For a Purchase of every </span></b>
+							<b style="color: blue">
+								<field name="amount_footer" nolabel="1" class="oe_inline"/>
+							</b>
+						</div>
+					</group>                   
+				</group>          
+			</group>	       	
+		</field>
+	</record>
+	</data>
+</odoo>

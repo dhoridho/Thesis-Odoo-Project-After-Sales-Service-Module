@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="OnlineOrderRow" owl="1">
+        <t t-set="order" t-value="props.order"/>
+        <tr class="receipt-line"
+            t-on-mouseover.stop="_autoSyncBackend"
+            t-on-click="trigger('click-order', {order: order})">
+            <td style="text-align: left">
+                <span style="text-transform:capitalize;">
+                    <t t-esc="getOrderFrom(order.order_from) or 'N/A'"/>
+                </span>
+            </td>
+            <td style="text-align: left">
+                <t t-esc="getOrderType(order.order_type) or 'N/A'"/>
+            </td>
+            <td style="text-align: left">
+                <t t-esc="order.info or 'N/A'"/>
+            </td>
+            <td style="text-align: center">
+                <t t-if="order.order_date">
+                    <t t-esc="getDate(order.order_date)"/>
+                </t>
+                <t t-else="">
+                    N/A
+                </t>
+            </td>
+            <td style="text-align: left">
+                <t t-if="order.order_ready_est_time_display">
+                    <div><t t-esc="getDate(order.order_ready_est_time_display)"/></div>
+
+                    <t t-if="is_show_change_ready_time_button(order)">
+                        <div class="link-ready-time" t-on-click.stop="actionChangeReadyTime(order)" >
+                            <i aria-hidden="true" class="fa fa-pencil"></i> Edit
+                        </div>
+                    </t> 
+                </t>
+                <t t-else="">
+                    <span> - </span>
+                </t>
+            </td>
+            <td style="text-align: center">
+                <t t-if="is_show_mark_ready_button(order)">
+                    <button t-on-click.stop="actionMarkOrderReady(order)" class="button btn-mark-ready-online-order">
+                        <span>Mark Ready</span>
+                    </button>
+                </t>
+                <t t-elif="order.is_mark_order_ready">
+                    <div style="color: #5eb937;">
+                        <i aria-hidden="true" class="fa fa-check"></i>
+                        <span> Ready</span>
+                    </div>
+                </t>
+            </td>
+            <td style="text-align: center" class="td-amount_total">
+                <div class="order-amount_total">
+                    <span><t t-esc="env.pos.format_currency(order.amount_total)"/></span>
+                    <t t-if="order.payment_type == 'cashless'">
+                        <div class="order-payment_type" t-att-data-type="order.payment_type">
+                            <span><t t-esc="order.payment_type"/></span>
+                        </div>
+                    </t>
+                </div>
+            </td>
+            <td style="text-align: center">
+                <t t-esc="order.online_state or 'N/A'"/>
+            </td>
+            <td style="text-align: center">
+                <span style="text-transform:capitalize;">
+                    <t t-esc="order.state or 'N/A'"/>
+                </span>
+            </td>
+            <td style="vertical-align:middle; text-align:center;">
+                <t t-if="order.state == 'new'">
+                    <button t-on-click.stop="actionAcceptOrder(order)" class="button btn-accept-online-order">
+                        <span>Accept</span>
+                    </button>
+                    <button t-on-click.stop="actionRejectOrder(order)" class="button btn-reject-online-order">
+                        <span>Reject</span>
+                    </button>
+                </t>
+                <t t-if="is_show_pay_button(order)">
+                    <button t-on-click.stop="actionCreateOrder(order)" class="button btn-create-online-order">
+                        <span>View Order &amp; Pay</span>
+                    </button>
+                </t>
+            </td>
+        </tr>
+    </t>
+</templates>

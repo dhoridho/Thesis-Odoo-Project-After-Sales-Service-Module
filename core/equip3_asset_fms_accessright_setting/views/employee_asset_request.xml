@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="employee_asset_request_accessright_form_view_without_group" model="ir.ui.view">
+        <field name="name">employee.asset.request.accessright.form.view.without.group</field>
+        <field name="model">employee.asset.request</field>
+        <field name="inherit_id" ref="equip3_asset_fms_operation.employee_asset_request_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="attributes">
+                <attribute name="attrs">{'invisible':[('is_need_approval', '=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//header" position="after">
+                <header attrs="{'invisible':[('is_need_approval', '=', True)]}">
+					<button type="object" name="action_transfer" string="Set to Progress" class="oe_highlight" states="draft"/>
+					<button type="object" name="action_cancel" string="Cancel" attrs="{'invisible': [('state', 'in', ['draft', 'cancelled', 'transfer'])]}"/>
+                    <field name="normal_state" widget="statusbar" statusbar_visible="draft,transfer,expired,cancelled"/>
+                </header>
+            </xpath>
+            <xpath expr="//field[@name='due_date']" position="after">
+                <field name="is_need_approval" invisible="1" readonly="1"/>
+                <field name="approval_matrix_id" readonly="1" attrs="{'invisible':[('is_need_approval', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//page[1]" position="after">
+                <page string="Approval Matrix" attrs="{'invisible':[('is_need_approval', '=', False)]}">
+                    <field name="approval_line">
+                        <tree editable="bottom">
+                            <field name="user_ids" widget="many2many_tags"/>
+                            <field name="approved_user_ids" widget="many2many_tags"/>
+                            <field name="approved_status"/>
+                            <field name="minimum_approval"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Employee Asset Request form view -->
+    <record id="employee_asset_request_accessright_form_view_user" model="ir.ui.view">
+        <field name="name">employee.asset.request.accessright.form.view.user</field>
+        <field name="model">employee.asset.request</field>
+        <field name="inherit_id" ref="equip3_asset_fms_operation.employee_asset_request_view_form"/>
+        <field name="groups_id" eval="[(6, 0, [ref('equip3_asset_fms_accessright_setting.group_asset_user')])]"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='branch_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='due_date']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='description']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='assets_line']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_approved']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_cancel']" position="attributes">
+                <attribute name="attrs">{'invisible': [('state', 'not in', ('draft', 'waiting_approval'))]}</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_transfer']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_approved']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="employee_asset_request_accessright_form_view_manager" model="ir.ui.view">
+        <field name="name">employee.asset.request.accessright.form.view.manager</field>
+        <field name="model">employee.asset.request</field>
+        <field name="inherit_id" ref="equip3_asset_fms_operation.employee_asset_request_view_form"/>
+        <field name="groups_id" eval="[(6, 0, [ref('equip3_asset_fms_accessright_setting.group_asset_manager')]), (6, 0, [ref('equip3_asset_fms_accessright_setting.group_asset_administrator')])]"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='branch_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '=', ('approved','transfer', 'cancelled'))]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='due_date']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '=',('approved','transfer', 'cancelled'))]}</attribute>
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='description']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '=', ('approved','transfer', 'cancelled'))]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='assets_line']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '=', ('approved','transfer', 'cancelled'))]}</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_approved']" position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_cancel']" position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_transfer']" position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_approved']" position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+        </field>
+    </record>
+
+
+    
+
+    
+</odoo>

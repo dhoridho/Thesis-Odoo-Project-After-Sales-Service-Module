@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="request_for_quotation_menu_order_action_rental" model="ir.actions.act_window">
+        <field name="name">Requests for Quotation</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">tree,form,kanban,pivot,graph,calendar,activity</field>
+        <field name="view_id" ref="purchase.purchase_order_kpis_tree"/>
+        <field name="domain">[('dp', '=', False), ('is_rental_orders', '=', True), ('state', 'in', ['draft', 'sent', 'cancel', 'waiting_for_approve', 'reject', 'rfq_approved', 'blanket_ordered']),('po', '=', False),('agreement_id','=',False)]</field>
+        <field name="search_view_id" ref="purchase.view_purchase_order_filter"/>
+        <field name="context">
+        {
+            'quotation_only': True,
+            'rentals_orders': 1, 
+            'default_is_rental_orders' : True,
+            'default_is_delivery_receipt' : True,
+            'default_is_single_delivery_destination' : True
+        }
+        </field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No request for quotation found. Let's create one!
+            </p><p>
+                Requests for quotation are documents that will be sent to your suppliers to request prices for different products you consider buying.
+                Once an agreement has been found with the supplier, they will be confirmed and turned into purchase orders.
+            </p>
+        </field>
+    </record>
+
+    <record id="product_purchase_orders_rental" model="ir.actions.act_window">
+        <field name="name">Purchase Orders</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">tree,kanban,form,pivot,graph,calendar,activity</field>
+        <field name="view_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="domain">[('state','in',['purchase', 'done', 'cancel', 'reject', 'closed']), ('po', '=', True), ('is_rental_orders', '=', True)]</field>
+        <field name="context">
+        {
+            'rentals_orders': 1, 
+            'default_is_rental_orders' : True,
+            'default_is_delivery_receipt' : True,
+            'default_is_single_delivery_destination' : True
+        }
+        </field>
+        <field name="search_view_id" ref="purchase.purchase_order_view_search"/>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            No purchase order found. Let's create one!
+          </p><p>
+            Once you ordered your products to your supplier, confirm your request for quotation and it will turn into a purchase order.
+          </p>
+        </field>
+    </record>
+
+    <record id="services_purchase_order_onhold_rental" model="ir.actions.act_window">
+        <field name="name">Purchase Order On Hold</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">tree,kanban,form,pivot,graph,calendar,activity</field>
+        <field name="view_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="domain">[('state','=', 'on_hold'), ('is_rental_orders', '=', True)]</field>
+        <field name="context">{'rentals_orders': 1, 'default_is_rental_orders' : True}</field>
+        <field name="search_view_id" ref="purchase.purchase_order_view_search"/>
+    </record>
+
+    <record id="product_purchase_order_line_rental" model="ir.actions.act_window">
+        <field name="name">Purchase Order Lines</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.order.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '=', 'purchase'), ('is_rental_orders', '=', True)]</field>
+        <field name="context">{'rentals_orders': 1, 'default_is_rental_orders' : True}</field>
+        <field name="view_ids"
+               eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('equip3_purchase_operation.view_purchase_order_line_tree')})]" />
+    </record>
+
+    <record model="ir.actions.act_window" id="product_purchase_requests_rental">
+        <field name="name">Purchase Requests</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">
+        {
+            "search_default_requested_by":uid,
+            'rentals_orders': 1, 
+            'default_is_rental_orders' : True,
+            'default_is_single_request_date' : True,
+            'default_is_single_delivery_destination' : True
+        }
+        </field>
+        <field name="domain">[('is_rental_orders', '=', True)]</field>
+        <field name="search_view_id" ref="purchase_request.view_purchase_request_search" />
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to start a new purchase request process.
+            </p>
+            <p>
+                A purchase request is an instruction to Purchasing to procure
+            a certain quantity of materials services, so that they are
+            available at a certain point in time.
+            </p>
+        </field>
+    </record>
+
+    <record id="product_purchase_request_line_rental" model="ir.actions.act_window">
+        <field name="name">Purchase Request Lines</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.request.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'rentals_orders': 1, 'default_is_rental_orders' : True}</field>
+        <field name="domain">[('is_rental_orders', '=', True)]</field>
+        <field name="search_view_id" ref="purchase_request.purchase_request_line_search" />
+    </record>
+    <record id="product_purchase_request_line_rental_assigned" model="ir.actions.act_window">
+        <field name="name">Assigned Request Line</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.request.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'rentals_orders': 1, 'default_is_rental_orders' : True}</field>
+        <field name="domain">[('is_rental_orders', '=', True),('assigned_to','!=',False)]</field>
+        <field name="search_view_id" ref="purchase_request.purchase_request_line_search" />
+    </record>
+    <record id="product_purchase_request_line_rental_not_assigned" model="ir.actions.act_window">
+        <field name="name">Unassigned Request Line</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.request.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'rentals_orders': 1, 'default_is_rental_orders' : True}</field>
+        <field name="domain">[('is_rental_orders', '=', True),('assigned_to','=',False),('request_state','!=','rejected')]</field>
+        <field name="search_view_id" ref="purchase_request.purchase_request_line_search" />
+    </record>
+
+    <record id="sh_purchase_agreement_action_rental" model="ir.actions.act_window">
+        <field name="name">Purchase Tender</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.agreement</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="equip3_purchase_other_operation.search_purchase_agreement_view_filter"/>
+        <field name="context">{'rentals_orders': 1, 'default_is_rental_orders' : True, 'default_set_single_delivery_date': True, 'default_set_single_delivery_destination': True, 'group_by': 'state2'}</field>
+        <field name="domain">[('is_rental_orders', '=', True)]</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to Create New Purchase Tender.
+            </p>
+        </field>
+    </record>
+
+    <record id="product_analyze_multiple_tenders_rental" model="ir.actions.act_window">
+        <field name="name">Analyze Multiple Tenders</field>
+        <field name="res_model">purchase.order.line</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">tree,pivot,form</field>
+        <field name="domain">[('state','not in',['cancel']),('order_id.state','in',['draft']), ('agreement_id', '!=', False), ('is_rental_orders', '=', True)]</field>
+        <field name="context">{'search_default_hide_cancelled_lines':1,'search_default_tender':1,'search_default_groupby_product':1, 'rentals_orders': 1, 'default_is_rental_orders' : True}</field>
+        <field name="view_id" ref="sh_po_tender_management.sh_bidline_tree_view" />
+        <field name="search_view_id" ref="sh_po_tender_management.sh_po_bidline_search_view" />
+      </record>
+
+    <record model="ir.actions.act_window" id="purchase_blanket_order_menu_order_action_rental">
+        <field name="name">Purchase Blanket Order</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.requisition</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="search_view_id" ref="purchase_requisition.view_purchase_requisition_filter"/>
+        <field name="context">{'rentals_orders': 1, 'default_is_rental_orders' : True, 'default_set_single_delivery_date': True, 'default_set_single_delivery_destination': True}</field>
+        <field name="domain">[('is_rental_orders', '=', True)]</field>
+        <field name="help" type="html">
+        <p class="o_view_nocontent_smiling_face">
+        Start a new purchase agreement
+        </p><p>
+        Example of purchase agreements include call for tenders and blanket orders.
+        </p><p>
+        In a call for tenders, you can record the products you need to buy
+        and generate the creation of RfQs to vendors. Once the tenders have
+        been registered, you can review and compare them and you can
+        validate some and cancel others.
+        </p><p>
+        For a blanket order, you can record an agreement for a specifc period
+        (e.g. a year) and you order products within this agreement, benefiting
+        from the negotiated prices.
+        </p>
+        </field>
+    </record>
+
+    <record id="direct_purchase_menu_order_action_rental" model="ir.actions.act_window">
+        <field name="name">Direct Purchase</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">tree,kanban,form,pivot,graph,calendar,activity</field>
+        <field name="view_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('purchase.purchase_order_view_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('equip3_purchase_other_operation_cont.direct_purchase_form_view')}),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('purchase.view_purchase_order_kanban')}),
+                (0, 0, {'view_mode': 'calendar', 'view_id': ref('purchase.purchase_order_calendar')}),
+                (0, 0, {'view_mode': 'pivot', 'view_id': ref('purchase.purchase_order_pivot')}),
+                (0, 0, {'view_mode': 'graph', 'view_id': ref('purchase.purchase_order_graph')})]"/>
+        <field name="context">{'default_dp': True, 'rentals_orders': 1, 'default_is_rental_orders' : True}</field>
+        <field name="domain">[('dp','=',True), ('is_rental_orders', '=', True),]</field>
+        <field name="search_view_id" ref="purchase.purchase_order_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Direct Purchase found. Let's create one!
+            </p><p>
+        </p>
+        </field>
+    </record>
+    
+    <record model="ir.actions.act_window" id="purchase_blanket_order_lines_menu_order_action_rental">
+        <field name="name">Purchase Blanket Order Line</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.requisition.line</field>
+        <field name="domain">[('is_rental_orders', '=', True)]</field>
+        <field name="context">{'rentals_orders': 1, 'default_is_rental_orders' : True}</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids"
+            eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('equip3_purchase_other_operation.purchase_requisition_line_view_tree')})]" />
+    </record>
+
+    <record id="rfq_tender_submission_render_action" model="ir.actions.act_window">
+        <field name="name">RFQ Tender Submission</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('dp', '=', False), ('state', 'in', ['draft', 'sent', 'cancel', 'waiting_for_approve', 'reject', 'rfq_approved', 'request_for_amendment']),('po', '=', False),('agreement_id','!=',False),('tender_scope','!=','open_tender'), ('is_rental_orders', '=', True)]</field>
+        <field name="context">{'rentals_orders': 1, 'default_is_rental_orders' : True}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                <!-- Add Text Here -->
+            </p><p>
+                <!-- More details about what a user can do with this object will be OK --> 
+            </p>
+        </field>
+    </record>
+    <record id="rfq_open_tender_submission_render_action" model="ir.actions.act_window">
+        <field name="name">RFQ Open Tender Submission</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('dp', '=', False), ('is_rental_orders', '=', True), ('state', 'in', ['draft', 'sent', 'cancel', 'waiting_for_approve', 'reject', 'rfq_approved']),('po', '=', False),('agreement_id','!=',False),('tender_scope','=','open_tender')]</field>
+        <field name="context">{'rentals_orders': 1, 'default_is_rental_orders' : True}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                <!-- Add Text Here -->
+            </p><p>
+                <!-- More details about what a user can do with this object will be OK --> 
+            </p>
+        </field>
+    </record>
+
+
+    <menuitem
+        id="menu_purchase_rental_orders"
+        name="Rental Orders"
+        parent="purchase.menu_purchase_root"
+        sequence="4"/>
+
+    <record id="equip3_purchase_rental.menu_purchase_rental_orders" model="ir.ui.menu">
+        <field name="equip_icon_class">o-hm-sidebar-main-purchase-purchase-rental-order</field>
+    </record>
+
+    <menuitem
+        id="main_menu_rental_purchase_order"
+        name="Purchase Orders"
+        parent="menu_purchase_rental_orders"
+        sequence="4"/>
+
+    <menuitem
+        id="main_menu_rental_purchase_request"
+        name="Purchase Requests"
+        parent="menu_purchase_rental_orders"
+        sequence="5"/>
+
+    <menuitem id="menu_requests_for_quotation_rental" name="Requests for Quotation" action="request_for_quotation_menu_order_action_rental"
+        parent="main_menu_rental_purchase_order" sequence="3" />
+
+    <menuitem id="menu_purchase_order_rental" name="Purchase Orders" action="product_purchase_orders_rental"
+        parent="main_menu_rental_purchase_order" sequence="4" />
+    
+    <menuitem id="menu_purchase_order_hold_rental" name="Purchase Order On Hold" action="services_purchase_order_onhold_rental"
+        parent="main_menu_rental_purchase_order" sequence="5" />
+
+    <menuitem id="menu_purchase_order_lines_rental" name="Purchase Order Lines" action="product_purchase_order_line_rental"
+        parent="main_menu_rental_purchase_order" sequence="6" />
+    
+    <menuitem id="menu_purchase_request_rental" name="Purchase Requests" action="product_purchase_requests_rental"
+        parent="main_menu_rental_purchase_request" sequence="6" />
+
+    <menuitem id="menu_purchase_request__line_rental" name="Purchase Request Lines" action="product_purchase_request_line_rental"
+        parent="main_menu_rental_purchase_request" sequence="6" active="False"/>
+    <menuitem id="menu_purchase_request_line_rental_categ" name="Purchase Request Lines"
+        parent="main_menu_rental_purchase_request" sequence="6" active="False"/>
+    
+    <menuitem id="menu_purchase_tenders_rental" name="Purchase Tenders"
+        parent="menu_purchase_rental_orders" sequence="6" />
+
+    <menuitem id="menu_purchase_tender_rental" name="Purchase Tender" action="sh_purchase_agreement_action_rental"
+        parent="menu_purchase_tenders_rental" sequence="1" />
+
+    <menuitem id="menu_purchase_analyze_tenders_rental" name="Analyze Multiple Tenders" action="product_analyze_multiple_tenders_rental"
+        parent="menu_purchase_tenders_rental" sequence="4" />
+
+    <menuitem id="main_menu_purchase_blanket_order_rental" name="Purchase Blanket Orders"
+        parent="menu_purchase_rental_orders" sequence="6" />
+    
+    <menuitem id="menu_purchase_blanket_order_rental" name="Purchase Blanket Order" action="purchase_blanket_order_menu_order_action_rental"
+        parent="main_menu_purchase_blanket_order_rental" sequence="6" />
+    
+    <menuitem id="menu_direct_purchase_rental" name="Direct Purchase" action="direct_purchase_menu_order_action_rental"
+        parent="menu_purchase_rental_orders" sequence="6" />
+    
+    <menuitem id="menu_purchase_blanket_order_line_rental" name="Purchase Blanket Order Line" action="purchase_blanket_order_lines_menu_order_action_rental"
+        parent="main_menu_purchase_blanket_order_rental" sequence="6" />
+    
+    <menuitem id="menu_rfq_tender_rental" name="RFQ Tender Submission" action="rfq_tender_submission_render_action"
+        parent="menu_purchase_tenders_rental" sequence="2" />
+    
+    <menuitem id="menu_rfq_open_tender_rental" name="RFQ Open Tender Submission" action="rfq_open_tender_submission_render_action"
+        parent="menu_purchase_tenders_rental" sequence="3" />
+
+</odoo>

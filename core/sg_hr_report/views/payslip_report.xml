@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_payslip_sample">
+      <t t-call="web.html_container">
+            <t t-set="data_report_margin_top" t-value="50"/>
+            <t t-set="data_report_header_spacing" t-value="50"/>
+            <t t-foreach="docs" t-as="o">
+                <t t-call="sg_hr_report.external_layout">
+                <div class="page">
+                    <template id="ergobit_css" inherit_id="web.layout">
+                        <xpath expr="//head" position="inside">
+                            <link rel="stylesheet"
+                                href="/sg_hr_report/static/src/css/payslip.css" />
+                        </xpath>
+                    </template>
+                    <center>
+                        <b>
+                            Payslip for
+                            <u>
+                                <span t-field="o.date_from"
+                                    t-field-options='{"format": "dd MMM Y"}' />
+                            </u>
+                            to
+                            <u>
+                                <span t-field="o.date_to"
+                                    t-field-options='{"format": "dd MMM Y"}' />
+                            </u>
+                        </b>
+                    </center>
+                    <br />
+
+                    <t t-set="net_total" t-value="0" />
+                    <t t-set="tot_allowance_line" t-value="0" />
+                    <t t-set="tot_deduction_line" t-value="0" />
+
+                    <!-- Final Line of counter -->
+                    <t t-set="final_allowance_line_len" t-value="0" />
+                    <t t-set="final_deduction_line_len" t-value="0" />
+                    <t t-set="final_additional_line_len" t-value="0" />
+                    <table width="100%">
+                        <tr>
+                            <th class="background_box" width="48%">Name
+                                of Employer</th>
+                            <th width="4%" />
+                            <th class="background_box" width="48%">Date
+                                of Payment</th>
+                        </tr>
+                        <tr>
+                            <!-- <td class="text_field">
+                                <t t-if="res_company">
+                                    <span t-field="res_company.name" />
+                                </t>
+                            </td> -->
+                            <td />
+                            <td class="text_field">
+                                <t t-if="o.date">
+                                    <span t-field="o.date" />
+                                </t>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th class="background_box" width="48%">Name
+                                of Employee</th>
+                            <th width="4%" />
+                            <th class="background_box" width="48%">Mode
+                                of Payment</th>
+                        </tr>
+                        <tr>
+                            <td class="text_field">
+                                <t t-if="o.employee_id">
+                                    <span t-field="o.employee_id.name" />
+                                </t>
+                            </td>
+                            <td />
+                            <th class="text_field">
+                                <t t-if="o.pay_by_cheque">Cheque</t>
+                                <t t-if=" not o.pay_by_cheque">Bank Deposit</t>
+                            </th>
+                        </tr>
+                    </table>
+
+                    <table width="100%">
+                        <tr>
+                            <th class="background_box" width="24%">Item
+                            </th>
+                            <th class="background_box" width="16%">Amount
+                            </th>
+                            <th class="background_box" width="8%" />
+                            <th width="4%" />
+                            <th class="background_box" width="24%">Overtime
+                                Details*</th>
+                            <th class="background_box" width="16%" />
+                            <th class="background_box" width="8%" />
+                        </tr>
+
+                        <tr>
+                            <th
+                                class="text_field grey_text_field_left one_line_gray padding_top"
+                                width="24%">Basic Pay<br>Rate Per Hour:</br><br>Total Worked Hour</br></th>
+                            <td class="amount_border" width="16%">
+                                <span t-esc="get_category(o,'BASIC').get('basic_pay') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                <br><span  t-field="o.contract_id.rate_per_hour"/></br><br><span  t-field="o.total_hours"/></br>
+                            </td>
+                            <span t-set="net_total"
+                                t-value="get_category(o,'BASIC').get('basic_pay')" />
+                            <th
+                                class="grey_text_field_left grey_text_field_right"
+                                width="8%">(A)</th>
+                            <td width="4%" />
+                            <th
+                                class="text_field grey_text_field_left one_line_gray padding_top"
+                                width="24%">Overtime Hours Worked</th>
+                            <td class="amount_border" width="16%">
+                                   <span
+                                    t-esc="get_category(o,'SC102').get('overtime_hour',0.0) or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                            </td>
+                            <th
+                                class="grey_text_field_left grey_text_field_right"
+                                width="8%" />
+                        </tr>
+
+                <!-- Total Allowances Header-->
+                        <tr>
+                            <td
+                                class="text_field grey_text_field_left hide_border_bottom"
+                                width="24%">
+                                <b>Total Allowances</b>
+                                <br />
+                                (Breakdown shown below)
+                            </td>
+                            <td class="amount_border hide_border_bottom"
+                                width="16%">
+                                    <span
+                                    t-esc="category_line(o,'ALW','SC102','Total') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+
+                            </td>
+                            <span t-set="net_total"
+                                t-value="net_total + category_line(o,'ALW','SC102','Total')" />
+                            <th
+                                class="grey_text_field_left grey_text_field_right hide_border_bottom"
+                                width="8%">(B)</th>
+                            <td width="4%"></td>
+                            <th
+                                class="text_field grey_text_field_left text_padding_top padding_top"
+                                width="24%">Total Overtime Pay</th>
+                            <td class="amount_border" width="16%">
+                                    <span t-esc="get_category(o,'SC102').get('overtime_pay') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+
+                            </td>
+                            <span t-set="net_total"
+                                t-value="net_total + get_category(o,'SC102').get('overtime_pay')" />
+                            <th
+                                class="grey_text_field_left grey_text_field_right"
+                                width="8%">(D)</th>
+                        </tr>
+                    </table>
+
+
+                <!-- Total Allowances Header-->
+                    <table width="100%">
+                        <tr>
+                            <td width="48%">
+                                <table width="100%">
+                                    <t t-set="tot_line_allowance"
+                                        t-value="0" />
+                                    <tr
+                                        t-foreach="category_line(o,'ALW','None','None')"
+                                        t-as="add_line" style="page-break-inside:avoid;">
+                                        <td
+                                            class="amount_border text_line_left "
+                                            width="24%">
+                                            <span
+                                                t-esc="add_line.get('name')" />
+                                        </td>
+                                        <td
+                                            class="amount_border text_line_right"
+                                            width="24%">
+                                            <span
+                                                t-esc="add_line.get('total') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                        </td>
+                                        <span t-set="tot_allowance_line"
+                                            t-value="tot_allowance_line + 1" />
+                                        <span t-set="tot_line_allowance"
+                                            t-value="tot_line_allowance + 1" />
+                                    </tr>
+
+                            <!-- For Allowances blank line with no fetch line record -->
+                                    <t
+                                        t-if="tot_line_allowance &lt; 4 and tot_allowance_line == 0">
+                                        <tr
+                                            t-foreach="blank_fix_line(tot_line_allowance)"
+                                            t-as="fix_line" style="page-break-inside:avoid;">
+                                            <td
+                                                class="amount_border text_line_left "
+                                                width="24%">
+
+                                            </td>
+                                            <td
+                                                class="amount_border text_line_right"
+                                                width="24%">
+
+                                            </td>
+                                            <span
+                                                t-set="final_allowance_line_len"
+                                                t-value="tot_line_allowance + fix_line" />
+                                        </tr>
+                                    </t>
+
+                            <!-- For Allowances blank line with fetch line record -->
+                                    <t
+                                        t-if="tot_line_allowance &lt; 4 and tot_allowance_line != 0">
+                                        <tr
+                                            t-foreach="blank_fix_line(tot_line_allowance)"
+                                            t-as="fix_line" style="page-break-inside:avoid;">
+                                            <td
+                                                class="amount_border text_line_left "
+                                                width="24%">
+                                            </td>
+                                            <td
+                                                class="amount_border text_line_right"
+                                                width="24%">
+                                            </td>
+                                            <span
+                                                t-set="final_allowance_line_len"
+                                                t-value="tot_line_allowance + fix_line" />
+                                        </tr>
+                                    </t>
+                                    <t t-if="tot_line_allowance &gt; 4">
+                                        <span
+                                            t-set="final_allowance_line_len"
+                                            t-value="tot_line_allowance" />
+                                    </t>
+                                </table>
+
+
+                        <!-- Total Deductions Header-->
+                                <table width="100%">
+                                    <tr>
+                                        <td
+                                            class="text_field grey_text_field_left hide_border_top hide_border_bottom_grey"
+                                            width="24%">
+                                            <b>Total Deductions</b>
+                                            <br />
+                                            (Breakdown shown below)
+                                        </td>
+                                        <td
+                                            class="amount_border hide_border_top hide_border_bottom"
+                                            width="16%">
+                                            <span t-esc="category_total(o,'DED', 'CAT_CPF_EMPLOYEE', 'CATCPFAGENCYSERVICESEE', 'DED_INCL_CPF') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+
+                                        </td>
+                                        <span t-set="net_total" t-value="net_total - category_total(o,'DED', 'CAT_CPF_EMPLOYEE', 'CATCPFAGENCYSERVICESEE', 'DED_INCL_CPF')"/>
+                                        <th
+                                            class="grey_text_field_left grey_text_field_right hide_border_top hide_border_bottom_grey"
+                                            width="8%">(C)</th>
+                                    </tr>
+                                </table>
+
+                                <table width="100%">
+                                    <t t-set="tot_line_deduction"
+                                        t-value="0" />
+
+                         <!-- Category of Deduction -->
+                                    <tr
+                                        t-foreach="category_line(o,'DED','None','None')"
+                                        t-as="add_line" style="page-break-inside:avoid;">
+                                        <td
+                                            class="amount_border text_line_left"
+                                            width="24%">
+                                            <span
+                                                t-esc="add_line.get('name')" />
+                                        </td>
+                                        <td
+                                            class="amount_border text_line_right"
+                                            width="24%">
+                                                <span
+                                                t-esc="add_line.get('total') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                        </td>
+                                        <span t-set="tot_deduction_line"
+                                            t-value="tot_deduction_line + 1" />
+                                        <span t-set="tot_line_deduction"
+                                            t-value="tot_line_deduction + 1" />
+                                    </tr>
+
+                         <!-- Category of Deduction (Inclusive CPF) -->
+                                     <tr t-foreach="category_line(o,'DED_INCL_CPF','None','None')"
+                                          t-as="add_line" style="page-break-inside:avoid;">
+                                          <td class="amount_border text_line_left"
+                                                width="24%">
+                                            <span t-esc="add_line.get('name')" />
+                                          </td>
+                                          <td class="amount_border text_line_right" width="24%" colspan="2">
+                                              <span t-esc="add_line.get('total') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                          </td>
+                                          <span t-set="tot_deduction_line" t-value="tot_deduction_line + 1" />
+                                          <span t-set="tot_line_deduction" t-value="tot_line_deduction + 1" />
+                                     </tr>
+
+                         <!-- Category of CPF - Employee -->
+                                    <tr
+                                        t-foreach="category_line(o,'CAT_CPF_EMPLOYEE','None','None')"
+                                        t-as="add_line" style="page-break-inside:avoid;">
+                                        <td
+                                            class="amount_border text_line_left"
+                                            width="24%">
+                                            <span
+                                                t-esc="add_line.get('name')" />
+                                        </td>
+                                        <td
+                                            class="amount_border text_line_right"
+                                            width="24%" colspan="2">
+                                                 <span t-esc="add_line.get('total') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                        </td>
+                                        <span t-set="tot_deduction_line"
+                                            t-value="tot_deduction_line + 1" />
+                                        <span t-set="tot_line_deduction"
+                                            t-value="tot_line_deduction + 1" />
+                                    </tr>
+                                    <tr
+                                        t-foreach="category_line(o,'CATCPFAGENCYSERVICESEE','None','None')"
+                                        t-as="add_line" style="page-break-inside:avoid;">
+                                        <td
+                                            class="amount_border text_line_left"
+                                            width="24%">
+                                            <span
+                                                t-esc="add_line.get('name')" />
+                                        </td>
+                                        <td
+                                            class="amount_border text_line_right"
+                                            width="24%" colspan="2">
+                                            <span
+                                                t-esc="add_line.get('total') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+
+                                        </td>
+                                        <span t-set="tot_deduction_line"
+                                            t-value="tot_deduction_line + 1" />
+                                        <span t-set="tot_line_deduction"
+                                            t-value="tot_line_deduction + 1" />
+                                    </tr>
+                                    <!-- For Deduction blank line with
+                                        no fetch line record -->
+                                    <t
+                                        t-if="tot_line_deduction &lt; 4 and tot_deduction_line == 0">
+                                        <tr
+                                            t-foreach="blank_fix_line(tot_line_deduction)"
+                                            t-as="fix_line" style="page-break-inside:avoid;">
+                                            <td
+                                                class="amount_border text_line_left "
+                                                width="24%">
+                                            </td>
+                                            <td
+                                                class="amount_border text_line_right"
+                                                width="24%">
+                                            </td>
+                                            <span
+                                                t-set="final_deduction_line_len"
+                                                t-value="tot_line_deduction + fix_line +4" />
+                                        </tr>
+                                    </t>
+                                    <!-- For Deduction blank line with
+                                        fetch line record -->
+                                    <t t-set="blank_ded" t-value="0" />
+                                    <t
+                                        t-if="tot_line_deduction &lt; 4 and tot_deduction_line != 0">
+                                        <tr
+                                            t-foreach="blank_fix_line(tot_line_deduction)"
+                                            t-as="fix_line" style="page-break-inside:avoid;">
+                                            <td
+                                                class="amount_border text_line_left "
+                                                width="24%">
+                                            </td>
+                                            <td
+                                                class="amount_border text_line_right"
+                                                width="24%">
+                                            </td>
+                                            <span
+                                                t-set="final_deduction_line_len"
+                                                t-value="tot_line_deduction + fix_line +4" />
+                                            <span t-set="blank_ded"
+                                                t-value="blank_ded +1" />
+                                        </tr>
+                                    </t>
+                                    <t t-if="tot_line_deduction &gt; 4">
+                                        <span
+                                            t-set="final_deduction_line_len"
+                                            t-value="tot_line_deduction" />
+                                    </t>
+
+                                    <!-- For Deduction Double blank line -->
+                                    <t t-set="ded_counter"
+                                        t-value="0" />
+                                    <tr
+                                        t-foreach="blank_line('deduction_line')"
+                                        t-as="ded_line" style="page-break-inside:avoid;">
+                                        <t t-if="ded_counter == 0">
+                                            <td
+                                                class="amount_border text_line_left"
+                                                width="24%">
+                                            </td>
+                                            <td
+                                                class="amount_border text_line_right"
+                                                width="24%">
+                                            </td>
+                                            <span t-set="ded_counter"
+                                                t-value="ded_counter + 1" />
+                                        </t>
+                                        <t
+                                            t-if="ded_counter != 0 and ded_line == 2">
+                                            <td
+                                                class="amount_border text_line_left hide_border_top"
+                                                width="24%">
+
+                                            </td>
+                                            <td
+                                                class="amount_border text_line_right hide_border_top"
+                                                width="24%">
+
+                                            </td>
+                                        </t>
+                                        <!-- <span t-set="final_deduction_line_len"
+                                            t-value="2 + tot_line_deduction + blank_ded + 2"/ -->
+                                    </tr>
+                                </table>
+                            </td>
+                            <td width="4%" />
+                            <td width="48%">
+                                <table width="100%">
+                                    <tr>
+                                        <th class="background_box"
+                                            width="24%">Item</th>
+                                        <th class="background_box"
+                                            width="16%">Amount</th>
+                                        <th class="background_box"
+                                            width="8%" />
+                                    </tr>
+                                    <tr>
+                                        <td
+                                            class="text_field grey_text_field_left hide_border_top hide_border_bottom_grey"
+                                            width="24%">
+                                            <b>Other Additional
+                                                Payments</b>
+                                            <br />
+                                            (Breakdown shown below)
+                                        </td>
+                                        <td
+                                            class="amount_border hide_border_top hide_border_bottom"
+                                            width="16%">
+                                            <span
+                                                t-esc="category_line(o,'ADD','SC102','Total') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+
+                                            <span t-set="net_total"
+                                                t-value="net_total + category_line(o,'ADD','SC102','Total')" />
+                                        </td>
+                                        <th
+                                            class="grey_text_field_left grey_text_field_right hide_border_top hide_border_bottom_grey"
+                                            width="8%">(E)</th>
+                                    </tr>
+                                </table>
+                                <table width="100%">
+                                    <t t-set="tot_line_additional"
+                                        t-value="0" />
+                                    <tr
+                                        t-foreach="category_line(o,'ADD','SC102','None')"
+                                        t-as="add_line" style="page-break-inside:avoid;">
+                                        <td
+                                            class="amount_border text_line_left"
+                                            width="24%">
+                                            <span
+                                                t-esc="add_line.get('name')" />
+                                        </td>
+                                        <td
+                                            class="amount_border text_line_right"
+                                            width="24%">
+                                            <span
+                                                t-esc="add_line.get('total') or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+
+                                        </td>
+                                        <span t-set="tot_line_additional"
+                                            t-value="tot_line_additional + 1" />
+                                    </tr>
+                                    <!-- For Additional Payment blank
+                                        line -->
+                                    <t
+                                        t-if="tot_line_additional &lt; (final_allowance_line_len + final_deduction_line_len)">
+                                        <tr
+                                            t-foreach="additional_blank_fix_line(tot_line_additional,final_allowance_line_len +final_deduction_line_len)"
+                                            t-as="fix_line" style="page-break-inside:avoid;">
+                                            <td
+                                                class="amount_border text_line_left "
+                                                width="24%">
+
+                                            </td>
+                                            <td
+                                                class="amount_border text_line_right"
+                                                width="24%">
+
+                                            </td>
+                                            <span
+                                                t-set="final_additional_line_len"
+                                                t-value="tot_line_additional + fix_line" />
+                                        </tr>
+                                    </t>
+                                </table>
+                                <table width="100%">
+                                    <tr>
+                                        <td
+                                            class="text_field grey_text_field_left raw_height"
+                                            width="24%">
+                                            <b>Net Pay (A+B-C+D+E)
+                                            </b>
+                                            <br />
+                                        </td>
+                                        <td
+                                            class="amount_border hide_border_top raw_height"
+                                            width="24%">
+                                            <span t-esc="net_total or 0.0" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+
+                                        </td>
+                                    </tr>
+
+                                   <tr>
+                                      <td class="text_field grey_text_field_left" width="24%">
+                                          <b>Employer’s CPF Contribution</b>
+                                      </td>
+                                      <td class="amount_border text_line_right" width="24%">
+                                          <span t-esc="category_total_employr(o, 'CAT_CPF_EMPLOYER', 'CATCPFAGENCYSERVICESER') or 0.0 " t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                      </td>
+                                   </tr>
+
+
+                            <!-- For CPF-Employer -->
+
+                                    <tr t-foreach="category_line(o,'CAT_CPF_EMPLOYER','None','None')" t-as="add_emplyr1" style="page-break-inside:avoid;">
+                                        <td class="amount_border text_line_left " width="24%">
+                                            <span t-esc="add_emplyr1.get('name')"/>
+                                        </td>
+                                        <td class="amount_border text_line_right" width="24%">
+                                            <span t-esc="add_emplyr1.get('total') or 0.0 " t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                        </td>
+                                    </tr>
+
+
+                            <!-- For CPF-Agency Services (Employer)-->
+                                    <tr t-foreach="category_line(o,'CATCPFAGENCYSERVICESER','None','None')" t-as="add_emplyr" style="page-break-inside:avoid;">
+                                        <td class="amount_border text_line_left " width="24%">
+                                            <span t-esc="add_emplyr.get('name')"/>
+                                        </td>
+                                        <td class="amount_border text_line_right" width="24%">
+                                            <span t-esc="add_emplyr.get('total') or 0.0 " t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                        </td>
+                                    </tr>
+
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <!-- </t -->
+            </t>
+        </t>
+      </t>
+    </template>
+</odoo>

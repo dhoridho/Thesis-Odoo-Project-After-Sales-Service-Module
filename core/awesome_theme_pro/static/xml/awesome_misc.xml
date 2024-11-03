@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!-- template for header  -->
+    <t t-name="awesome_theme_pro.overlay">
+        <div class="awesome_overlay" />
+    </t>
+
+    <t t-name="awesome_theme_pro.Pager" owl="1">
+        <nav class="o_pager" aria-label="Pager">
+            <!-- accesskeys not wanted in X2Many widgets -->
+            <button type="button"
+                class="fa fa-chevron-left btn btn-secondary o_pager_previous"
+                t-att-disabled="state.disabled || singlePage"
+                t-att-accesskey="props.withAccessKey ? 'p' : false"
+                aria-label="Previous"
+                title="Previous"
+                tabindex="-1"
+                t-on-click="_changeSelection(-1)"
+            />
+            <span class="o_pager_counter" t-on-click.stop="">
+                <input t-if="state.editing" type="text"
+                    class="o_pager_value o_input"
+                    autofocus=""
+                    t-att-value="value"
+                    t-on-blur="state.editing = false"
+                    t-on-change="_onValueChange"
+                    t-on-keydown.stop="_onValueKeydown"
+                />
+                <span t-else=""
+                    class="o_pager_value"
+                    t-esc="value"
+                    t-on-click="_onEdit"
+                />
+                <span> / </span>
+                <span class="o_pager_limit" t-esc="props.size"/>
+            </span>
+            <button type="button"
+                class="fa fa-chevron-right btn btn-secondary o_pager_next"
+                t-att-disabled="state.disabled || singlePage"
+                t-att-accesskey="props.withAccessKey ? 'n' : false"
+                aria-label="Next"
+                title="Next"
+                tabindex="-1"
+                t-on-click="_changeSelection(1)"
+            />
+        </nav>
+    </t>
+
+    <t t-name="awesome_theme_pro.selection">
+        <span t-if="widget.mode === 'readonly'"/>
+        <select t-if="widget.mode !== 'readonly'"
+            style="width: 100%"
+            t-att-name="widget.name"
+            t-att-tabindex="widget.attrs.tabindex"
+            t-att-autofocus="widget.attrs.autofocus"
+            t-att-id="widget.idForLabel"/>
+    </t>
+
+    <t t-extend="SwitchCompanyMenu">
+        <t t-jquery=".dropdown-toggle" t-operation="replace">
+            <a role="button" class="dropdown-toggle o-no-caret" data-toggle="dropdown" data-display="static" aria-expanded="false" href="#" title="Dropdown menu">
+                <span t-attf-class="fa fa-building-o">
+                     <t t-if="!widget.isMobile"><t t-esc="widget.current_company_name"/></t>
+                </span>
+            </a>
+        </t>
+
+        <t t-jquery="div[role='button']" t-operation="replace">
+            <div role="button" t-att-aria-pressed="is_current" aria-label="Switch to this company" tabindex="0" t-attf-class="d-flex flex-grow-1 align-items-center py-0 log_into pl-3 o_py">
+                <t t-if="is_allowed">
+                    <span class='mr-3 company_label'>
+                        <t t-esc="company[1]"/>
+                    </span>
+                </t>
+                <t t-if="!is_allowed">
+                    <span class='mr-3 company_label text-muted'>
+                        <t t-esc="company[1]"/>
+                    </span>
+                </t>
+            </div>
+        </t>
+    </t>
+
+    <t t-extend="FieldColor">
+        <t t-jquery="div" t-operation="replace">
+            <div class="d-flex align-items-center justify-content-center">
+                <button class="o_field_color" t-attf-tabindex="#{widget.mode === 'edit' ? 0 : -1}"></button>
+            </div>
+        </t>
+    </t>
+
+    <t t-name="Awesome.FieldStatus.mobile">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+            <t t-if="status" t-esc="status.display_name"/>
+        </button>
+        <div class="dropdown-menu" role="menu">
+            <t t-foreach="selection" t-as="i">
+                <t t-call="FieldStatus.content.button">
+                    <t t-set="is_dropdown" t-value="true"/>
+                </t>
+            </t>
+        </div>
+    </t>
+    
+    <t t-name="awesome.CustomCheckbox" owl="1">
+        <div class="d-flex align-items-center">
+            <div class="custom-control custom-checkbox test1">
+                <input
+                    t-att-id="props.id or _id"
+                    type="checkbox"
+                    class="custom-control-input"
+                    t-att-disabled="props.disabled"
+                    t-att-checked="props.value"
+                    />
+                <label t-att-for="props.id or _id" class="custom-control-label">
+                    <t t-esc="props.text or '&#8203;'"/>
+                </label>
+            </div>
+        </div>
+    </t>
+    
+    <t t-name="awesome.icon_button">
+        <i t-attf-class="fa fa-#{icon}" t-att-title="label" />
+        <!-- sshow in small -->
+        <span class="d-none d-sm-inline" t-esc="label" />
+    </t>
+
+    <t t-name="awesome.MenuStatusbarButtons">
+        <div class="dropdown">
+            <button
+                class="o_statusbar_buttons_dropdown btn btn-secondary dropdown-toggle"
+                type="button"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false">
+                <t t-call="awesome.icon_button">
+                    <t t-set="icon" t-value="'cogs'" />
+                    <t t-set="label">actions</t>
+                </t>
+            </button>
+        </div>
+    </t>
+
+    <t t-extend="ListView.buttons">
+        <!-- Add responsive icons to buttons -->
+        <t t-jquery=".o_list_button_add" t-operation="inner">
+            <t t-call="awesome.icon_button">
+                <t t-set="icon" t-value="'plus'" />
+                <t t-set="label">Create</t>
+            </t>
+        </t>
+        <t t-jquery=".o_list_button_save" t-operation="inner">
+            <t t-call="awesome.icon_button">
+                <t t-set="icon" t-value="'check'" />
+                <t t-set="label">Save</t>
+            </t>
+        </t>
+        <t t-jquery=".o_list_button_discard" t-operation="inner">
+            <t t-call="awesome.icon_button">
+                <t t-set="icon" t-value="'times'" />
+                <t t-set="label">Discard</t>
+            </t>
+        </t>
+    </t>
+
+    <t t-extend="Sidebar">
+        <!-- Replace some common sections by icons in mobile -->
+        <t
+            t-jquery=".o_dropdown_toggler_btn t[t-esc='section.label']"
+            t-operation="replace"
+        >
+            <t t-set="label" t-value="section.label" />
+            <t t-if="section.name == 'files'">
+                <t t-call="awesome.icon_button">
+                    <t t-set="icon" t-value="'paperclip'" />
+                </t>
+            </t>
+            <t t-elif="section.name == 'print'">
+                <t t-call="awesome.icon_button">
+                    <t t-set="icon" t-value="'print'" />
+                </t>
+            </t>
+            <t t-elif="section.name == 'other'">
+                <t t-call="awesome.icon_button">
+                    <t t-set="icon" t-value="'wrench'" />
+                </t>
+            </t>
+            <t t-else="">
+                <span t-esc="label" />
+            </t>
+        </t>
+    </t>
+
+    <t t-extend="KanbanView.buttons">
+        <!-- Add responsive icons to buttons -->
+        <t t-jquery="button" t-operation="inner">
+            <t t-call="awesome.icon_button">
+                <t t-set="icon" t-value="'plus'" />
+                <t t-set="label" t-value="create_text || _t('Create')" />
+            </t>
+        </t>
+    </t>
+
+</templates>

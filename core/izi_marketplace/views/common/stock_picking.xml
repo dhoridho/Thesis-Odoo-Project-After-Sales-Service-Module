@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="izi_marketplace.view_picking_form" model="ir.ui.view">
+        <field name="name">stock.picking.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field eval="12" name="priority" />
+        <field name="arch" type="xml">
+           <xpath expr="//div[@name='button_box']" position="inside">
+               <field name="mp_package_id" invisible="1"/>
+               <button type="object" name="action_download_shipping_label" string="MP Shipping Label" class="oe_stat_button" icon="fa-truck" attrs="{'invisible': ['|', ('mp_awb_number', '=', False), ('mp_awb_number', '=', '')]}" groups="base.group_user"/>
+           </xpath>
+           <xpath expr="//field[@name='note']/.." position="after">
+               <page string="Marketplace" name="izi_info" attrs="{'invisible': [('marketplace', '==', False)]}">
+                    <div name="mp_actions">
+                        <!-- For Action Button -->
+                    </div>
+                    <group>
+                        <field name="marketplace" string="Marketplace" invisible="1"/>
+                        <field name="mp_order_status" string="MP Order Status" invisible="1"/>
+                        <field name="mp_delivery_type" string="MP Delivery Type" invisible="1"/>
+                        <field name="mp_delivery_carrier_name"/>
+                        <field name="mp_awb_number" string="MP AWB Number"/>
+                        <field name="is_preorder" string="Is Preorder"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="izi_marketplace.vpicktree" model="ir.ui.view">
+        <field name="name">stock.picking.tree</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree" />
+        <field eval="12" name="priority" />
+        <field name="arch" type="xml">
+            <field name="company_id" position="after">
+                <field name="mp_invoice_number" string="MP Invoice Number"/>
+                <field name="mp_awb_number" string="MP AWB Number"/>
+            </field>
+        </field>
+    </record>
+
+    <record model="ir.actions.server" id="izi_marketplace.multi_action_print_label_stock_picking">
+        <field name="name">Print Label</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <!-- <field name="priority">7</field> -->
+        <field name="code">
+if records:
+    order_statuses = records.mapped('sale_id.mp_order_status')
+    allowed_statuses = ['to_ship','in_ship']
+    if not all(order_status in allowed_statuses for order_status in order_statuses):
+        raise Warning("The status of your selected orders should be in {}".format(allowed_statuses))
+    action = records.get_label()
+else:
+    raise Warning("Please select sale DO first!")
+        </field>
+    </record>
+</odoo>

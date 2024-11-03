@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Product View -->
+    <record id="product_template_form_view_inherit" model="ir.ui.view">
+        <field name="name">product.template.product.form.drug.details</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <field name="hospital_product_type" position="after">
+                <field name="age_for_vaccine" attrs="{'invisible': [('hospital_product_type','!=','vaccination')]}"/>
+                <field name="vaccine_dose_number" attrs="{'invisible': [('hospital_product_type','!=','vaccination')]}"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Patient View -->
+    <record id="view_patient_vaccination_form" model="ir.ui.view">
+        <field name="name">patient.vaccination.form</field>
+        <field name="model">hms.patient</field>
+        <field name="inherit_id" ref="acs_hms.view_patient_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="%(acs_plan_vaccinations_action)d" string="Plan Vaccination" class="oe_highlight" type='action' groups="acs_hms_vaccination.group_hms_vaccination"/>
+            </xpath>
+            <div name="button_box" position="inside">
+                <button name="action_view_vaccinations" class="oe_stat_button" icon="fa-medkit" type="object" groups="acs_hms_vaccination.group_hms_vaccination">
+                    <field string="Vaccinations" name="vaccination_count" widget="statinfo"/>
+                </button>
+            </div>
+        </field>
+    </record>
+
+    <!-- Vaccination View -->
+    <record id="view_vaccination_vac_list" model="ir.ui.view">
+        <field name="name">vaccination.list</field>
+        <field name="model">acs.vaccination</field>
+        <field name="arch" type="xml">
+            <tree string="Vaccination" decoration-info="state=='scheduled'" decoration-muted="state=='cancel'" decoration-danger="due_date and (due_date&lt;current_date)">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="product_id"/>
+                <field name="due_date"/>
+                <field name="given_date"/>
+                <field name="vaccine_lot"/>
+                <field name="dose"/>
+                <field name="next_dose_date"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_vaccination_vac_form" model="ir.ui.view">
+        <field name="name">vaccination.form</field>
+        <field name="model">acs.vaccination</field>
+        <field name="arch" type="xml">
+             <form string="Vaccination">
+                <header>
+                    <button name="action_done" string="Done" type="object" states="scheduled" class="oe_highlight" groups="acs_hms.group_hms_jr_doctor"/>
+                    <button name="action_cancel" string="Cancel" type="object" states="scheduled"/>
+                    <button name="action_create_invoice" string="Create Invoice" type="object" states="to_invoice" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="view_invoice" string="View Invoice" type="object" attrs="{'invisible': [('invoice_id','=',False)]}" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_shedule" string="Shedule" type="object" states="cancel"/>
+                    <field name="state" widget="statusbar" statusbar_visible="scheduled,done"/>
+                    <field name="invoice_id" invisible="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="product_id" domain="[('hospital_product_type', 'in', ['vaccination'])]" context="{'default_type': 'service', 'default_hospital_product_type': 'vaccination'}"/>
+                            <field name="due_date"/>
+                            <field name="given_date"/>
+                            <field name="next_dose_date"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="physician_id"/>
+                            <field name="vaccine_lot"/>
+                            <field name="dose"/>
+                            <field name="observations"/>
+                            <field name="batch_image"/>
+                            <field name="move_id" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_acs_vaccination_search" model="ir.ui.view">
+        <field name="name">acs.vaccination.search</field>
+        <field name="model">acs.vaccination</field>
+        <field name="arch" type="xml">
+            <search string="ACS Vaccination">
+                <field name="name"/>
+                <field name="vaccine_lot"/>
+                <field name="patient_id"/>
+                <field name="dose"/>
+                <field name="observations"/>
+                <field name="next_dose_date"/>
+                <filter string="Overdue" name="overdue"
+                        domain="[('due_date', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="today" string="Due Today" domain="[('due_date', '&gt;=', time.strftime('%Y-%m-%d')),('due_date', '&lt;=', time.strftime('%Y-%m-%d'))]"/>
+                <filter name="my_app" string="My Vaccination" domain="[('physician_id.user_id', '=',uid)]"/>
+                <separator/>
+                <filter name="not_done" string="Not Done" domain="[('state','!=','done')]"/>
+                <filter name="scheduled" string="Shedule" domain="[('state','=','scheduled')]"/>
+                <group expand="0" string="Group By...">
+                    <filter name="group_by_" string="Lot Number" domain="[]" context="{'group_by':'vaccine_lot'}"/>
+                    <filter name="group_by_name" string="Name" domain="[]" context="{'group_by':'name'}"/>
+                    <filter name="group_by_patient" string="Patient" domain="[]" context="{'group_by':'patient_id'}"/>
+                    <filter name="group_by_dose" string="Dose #" domain="[]" context="{'group_by':'dose'}"/>
+                    <filter name="group_by_observation" string="Observations" domain="[]" context="{'group_by':'observations'}"/>
+                    <filter name="group_by_date" string="Next Dose" domain="[]" context="{'group_by':'next_dose_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_acs_vaccination_calendar" model="ir.ui.view">
+        <field name="name">acs.vaccination.calendar</field>
+        <field name="model">acs.vaccination</field>
+        <field name="type">calendar</field>
+        <field name="arch" type="xml">
+            <calendar string="Vaccination" color="product_id" date_start="due_date">
+                <field name="physician_id"/>
+                <field name="patient_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_vaccination_pivot" model="ir.ui.view">
+        <field name="name">acs.vaccination.pivot</field>
+        <field name="model">acs.vaccination</field>
+        <field name="arch" type="xml">
+            <pivot string="Vaccination">
+                <field name="due_date" type="row"/>
+                <field name="physician_id" type="row"/>
+                <field name="patient_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_vaccination_vac" model="ir.actions.act_window">
+        <field name="name">Vaccination</field>
+        <field name="res_model">acs.vaccination</field>
+        <field name="view_mode">tree,form,calendar,pivot</field>
+        <field name="context">{'search_default_today': 1,'search_default_not_done': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add a Vaccination.
+            </p>
+        </field>
+    </record>
+
+    <record id="view_vaccination_group_list" model="ir.ui.view">
+        <field name="name">vaccination.group.list</field>
+        <field name="model">vaccination.group</field>
+        <field name="arch" type="xml">
+            <tree string="Vaccination">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hms_vaccination_group_form" model="ir.ui.view">
+        <field name="name">vaccination.group</field>
+        <field name="model">vaccination.group</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                        </group>
+                        <group>
+                        </group>
+                    </group>
+                    <group string="Medicaments Group">
+                        <field name="group_line" nolabel="1">
+                            <tree editable="bottom">
+                                <field name="product_id"/>
+                                <field name="date_due_day"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hms_vaccination_group" model="ir.actions.act_window">
+        <field name="name">Vaccination Group</field>
+        <field name="res_model">vaccination.group</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add a Vaccination Group.
+            </p>
+        </field>
+    </record>
+
+    <record id="product_template_action_vaccines" model="ir.actions.act_window">
+        <field name="name">Vaccines</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="product.product_template_kanban_view"/>
+        <field name="domain">[('hospital_product_type','=','vaccination')]</field>
+        <field name="context">{'default_hospital_product_type': 'vaccination'}</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_register_payment_form" model="ir.ui.view">
+        <field name="name">view.account.register.payment.form</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="account.view_account_payment_register_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='group2']//field[@name='communication']" position="after">
+                <field name="is_receipt_approval_matrix"/>
+                <field name="receipt_approval_matrix_id" attrs="{'invisible': [('is_receipt_approval_matrix', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//button[@name='action_create_payments']" position="after">
+                <button name="request_for_approval" string="Request For Approval" type="object" class="oe_highlight" attrs="{'invisible': [('is_receipt_approval_matrix', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//button[@name='action_create_payments']" position="attributes">
+                <attribute name="attrs">{'invisible': [('is_receipt_approval_matrix', '=', True)]}</attribute>
+            </xpath>
+            
+            <xpath expr="//group[@name='group3']" position="replace">
+                <group name="group3"
+                        attrs="{'invisible': ['|', ('payment_difference', '=', 0.0), '|', ('can_edit_wizard', '=', False), '&amp;', ('can_group_payments', '=', True), ('group_payment', '=', False)]}"
+                        groups="account.group_account_readonly">
+                    <label for="payment_difference" string="Payment Difference"/>
+                    <div>
+                        <field name="available_partner_bank_ids" invisible='1'/>
+                        <field name="payment_difference"/>
+                        <field name="difference_amount" invisible="1"/>
+                        <field name="payment_difference_handling" widget="radio" nolabel="1"/>
+                        <field name="difference_ids" attrs="{'invisible': [('payment_difference_handling','=','open')], 'required': [('payment_difference_handling', '=', 'reconcile')]}">
+                            <tree editable="bottom">
+                                <field name="account_id" options="{'no_create': True}"/>
+                                <field name="payment_amount" sum="Total"/>
+                                <field name="currency_id"/>
+                                <field name="name"/>
+                                <field name="company_id" invisible="1"/>
+                            </tree>
+                        </field>
+                    </div>
+                </group>
+            </xpath>
+            
+            <xpath expr="//field[@name='partner_bank_id']" position="after">
+                <field name="administration"/>
+                <field name="analytic_group_ids" widget="many2many_tags" attrs="{'invisible' : [('administration','=',False)], 'required' : [('administration','=',True)]}"/>
+                <field name="administration_account" attrs="{'invisible' : [('administration','=',False)], 'required' : [('administration','=',True)]}"/>
+                <field name="administration_fee" attrs="{'invisible' : [('administration','=',False)], 'required' : [('administration','=',True)]}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

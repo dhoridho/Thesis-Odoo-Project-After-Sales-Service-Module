@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_hospital_discharge_document">
+        <t t-call="web.external_layout">
+            <div class="page acs_report">
+
+                <div class="mt32 mb32 text-center">
+                    <h2>
+                        <strong>Discharge Summary</strong>
+                    </h2>
+                </div>
+                
+                <table class="table table-condensed">
+                    <tbody>
+                        <tr>
+                            <td style="width:20%;">
+                                <strong>Patient Name:</strong>
+                            </td>
+                            <td style="width:30%;">
+                                <span t-field="doc.patient_id.name"/>
+                            </td>
+                            <td style="width:20%;">
+                                <strong>Hospitalization No:</strong>
+                            </td>
+                            <td style="width: 30%;">
+                                <span t-field="doc.name"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Age/Gender:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.patient_id.age"/>/<span t-field="doc.patient_id.gender"/>
+                            </td>
+                            <td>
+                                <strong>Ward/Room:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.ward_id.name"/> - <span t-field="doc.bed_id.name"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Admission Date:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.hospitalization_date"/>
+                            </td>
+                            <td>
+                                <strong>Discharge Date:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.discharge_date"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Primary Physician:</strong>
+                            </td>
+                            <td>
+                                <span t-esc="', '.join(map(lambda x: x.name, doc.physician_id))"/>
+                            </td>
+                            <td>
+                                <strong>Surgery:</strong>
+                            </td>
+                            <td>
+                                <span t-esc="', '.join(map(lambda x: x.name, doc.surgery_ids))"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Patient Address:</strong>
+                            </td>
+                            <td colspan="3">
+                                <span t-esc="', '.join(map(lambda x: x if x!=False else '', [doc.patient_id.street, doc.patient_id.street2, doc.patient_id.city, doc.patient_id.state_id.name, doc.patient_id.zip, doc.patient_id.country_id.name]))"/>
+                            </td>                            
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div t-if="doc.discharge_diagnosis" class="col-12 mt8 mt8" style="page-break-inside: avoid;">
+                    <strong>Discharge Diagnosis: </strong><br/>
+                    <div class="ml32" t-field="doc.discharge_diagnosis"/>
+                </div>
+
+                <div t-if="doc.op_note" class="col-12 mt8 mt8" style="page-break-inside: avoid;">
+                    <strong>Operative Note: </strong><br/>
+                    <div class="ml32" t-field="doc.op_note"/>
+                </div>
+
+                <div t-if="doc.post_operative" class="col-12 mt8 mt8" style="page-break-inside: avoid;">
+                    <strong>Post Operative Course: </strong><br/>
+                    <div class="ml32" t-field="doc.post_operative"/>
+                </div>
+
+                <div name="investigations"/>
+
+                <div t-if="doc.surgery_ids" class="mt16 mb16 text-center">
+                    <h5>
+                        <strong>Surgery</strong>
+                    </h5>
+                </div>
+
+                <div t-if="doc.surgery_ids" class="col-12 mb16">
+                    <t t-foreach="doc.surgery_ids" t-as="surgery">
+                        <div class="row col-12 mt8 mb8">
+                            <div class="col-6">
+                                Surgery No: <span t-field="surgery.name"/>
+                            </div>
+                            <div class="col-6 text-right">
+                                Surgery Date: <span t-field="surgery.start_date" t-options='{"format":"dd-MM-YYYY"}'/>
+                            </div>
+                        </div>
+                        <t t-call="acs_hms_surgery.report_surgery_details">
+                            <t t-set="surgery" t-value="surgery"/>
+                            <t t-set="print_surgery" t-value="True"/>
+                        </t>
+                    </t>
+                </div>
+
+                <div t-if="doc.prescription_ids.filtered(lambda p: p.print_in_discharge)" class="mt16 mb16 text-center">
+                    <h5>
+                        <strong>Prescribed Medicines</strong>
+                    </h5>
+                </div>
+
+                <div t-if="doc.prescription_ids.filtered(lambda p: p.print_in_discharge)" class="col-12 mb16">
+                    <t t-foreach="doc.prescription_ids.filtered(lambda p: p.print_in_discharge)" t-as="prescription">
+                        <div class="row col-12 mt8 mb8">
+                            <div class="col-6">
+                                Prescription No: <span t-field="prescription.name"/>
+                            </div>
+                            <div class="col-6 text-right">
+                                Prescription Date: <span t-field="prescription.prescription_date" t-options='{"format":"dd-MM-YYYY"}'/>
+                            </div>
+                        </div>
+                        <t t-call="acs_hms.report_prescription_table">
+                            <t t-set="prescription" t-value="prescription"/>
+                        </t>
+                    </t>
+                </div>
+
+                <div t-if="doc.instructions" class="col-12 mt8 mt8" style="page-break-inside: avoid;">
+                    <strong>Instruction: </strong><br/>
+                    <div class="ml32" t-field="doc.instructions"/>
+                </div>
+
+                <p class="mt32">
+                    Should you have any questions or any Emergency please contact us at your convenience.<br/><br/>
+                    Best regards,<br/>
+                </p>
+
+                <div class="row" style="page-break-inside: avoid;">
+                    <div class="col-5">
+                        <span style="margin-left:-15px;" class="col-6"><strong>Medical Officer:</strong></span>
+                        <span class="col-6"><strong>Date:</strong></span><br/>
+                        <span/><br/>
+                        <span/><br/>
+                        <div style="border-top: 1px solid black;">Name and Sign</div><br/>
+                    </div>
+                    <div class="col-2"/>
+                    <div class="col-5">
+                        <span style="margin-left:-15px;" class="col-6"><strong>Primary Physician:</strong></span>
+                        <span class="col-6"><strong>Date:</strong></span><br/>
+                        <span/><br/>
+                        <span/><br/>
+                        <div style="border-top: 1px solid black;">Name and Sign</div><br/>
+                    </div>
+
+                </div>
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_hospital_discharge">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms_hospitalization.report_hospital_discharge_document" t-lang="doc.patient_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_hospitalization_discharge" model="ir.actions.report">
+        <field name="name">Discharge Card</field>
+        <field name="model">acs.hospitalization</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms_hospitalization.report_hospital_discharge</field>
+        <field name="report_file">acs_hms_hospitalization.report_hospital_discharge</field>
+        <field name="print_report_name">(object.name or 'Hospitalization').replace('/','_') + '_Discharge'</field>
+        <field name="binding_model_id" ref="model_acs_hospitalization"/>
+        <field name="groups_id" eval="[(4, ref('acs_hms.group_hms_receptionist'))]"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

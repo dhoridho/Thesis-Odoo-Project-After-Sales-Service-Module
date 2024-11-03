@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="purchase_template_order_lines">
+        <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+            <thead>
+                <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                    <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="8%">Sr.</td>
+                    <t t-if="o.company_id.add_product_image == True">
+                        <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="10%">Image</td>
+                    </t>
+                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="52%">Description</td>
+                    <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="12%">Taxes</td>
+                    <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="14%">Date Req.</td>
+                    <td align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Qty</td>
+                    <td align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="12%">Unit Price</td>
+                    <td align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="20%">Net Price</td>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-as="l" t-foreach="o.order_line">
+                    <t t-if="l_odd">
+                        <t t-set="ol_color" t-value="o.company_id.even_party_color"/>
+                    </t>
+                    <t t-if="l_even">
+                        <t t-set="ol_color" t-value="o.company_id.odd_party_color"/>
+                    </t>
+                    <tr t-att-style="'page-break-inside: avoid !important;background-color: '+ ol_color + '; color: '+ text_color">
+                        <t t-if="not l.display_type">
+                            <td align="left" class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-esc="l_index+1"/>
+                            </td>
+                            <t t-if="o.company_id.add_product_image == True">
+                                <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                    <span style="width: 64px;height: 64px;margin: auto;display: -webkit-box;display: -ms-flexbox;display: flex;-webkit-box-pack: center;-ms-flex-pack: center;justify-content: center;-webkit-box-align: center;-ms-flex-align: center;align-items: center;" t-field="l.product_id.image_256" t-if="l.product_id" t-options="{&quot;widget&quot;:&quot;image&quot;,&quot;class&quot;:&quot;img-rounded mh-100&quot;}"/>
+                                </td>
+                            </t>
+                            <td align="left" class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <t t-if="not o.company_id.is_description">
+                                    <span t-field="l.product_id and l.product_id.name"/>
+                                </t>
+                                <t t-if="o.company_id.is_description">
+                                    <span t-field="l.name" t-options="{'widget': 'text'}"/>
+                                </t>
+                            </td>
+                            <td align="center" class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-esc="', '.join(map(lambda x: x.name, l.taxes_id))"/>
+                            </td>
+                            <td align="center" class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-field="l.date_planned"/>
+                            </td>
+                            <td align="center" class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-field="l.product_qty"/>
+                                <span groups="product.group_uom" t-field="l.product_uom.name"/>
+                            </td>
+                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-field="l.price_unit"/>
+                            </td>
+                            <td align="right" class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-field="l.price_subtotal" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                            </td>
+                        </t>
+                        <t t-if="l.display_type == 'line_section'">
+                            <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-esc="l_index+1"/>
+                            </td>
+                            <td t-att-colspan="6">
+                                <span t-field="l.name" t-options="{'widget': 'text'}"/>
+                            </td>
+                            <t t-set="current_section" t-value="l"/>
+                            <t t-set="current_subtotal" t-value="0"/>
+                        </t>
+                        <t t-if="l.display_type == 'line_note'">
+                            <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-esc="l_index+1"/>
+                            </td>
+                            <td t-att-colspan="6">
+                                <span t-field="l.name" t-options="{'widget': 'text'}"/>
+                            </td>
+                        </t>
+                    </tr>
+                </t>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="purchase_template_order_subtotal">
+        <table class="pull-right" style="font-weight:bold;width:40%; text-transform:capitalize; " t-att-style="'color: '+ text_color">
+            <tr>
+                <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;'">SubTotal</td>
+                <td align="right" tyle="padding:9px 0px 7px 10px;">
+                    <span t-field="o.amount_untaxed" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="border-bottom:1px solid #959595"/>
+            </tr>
+            <tr t-att-style="'padding:9px 10px 7px 0px;'">
+                <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;'">
+                    <span>Taxes</span>
+                </td>
+                <td align="right" t-att-style="'padding:9px 0px 7px 10px;'">
+                    <span t-field="o.amount_tax" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="3" style="border-bottom:1px solid #959595"/>
+            </tr>
+            <tr>
+                <td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px; text-transform:uppercase;'">total</td>
+                <td align="right" style="padding:9px 0px 7px 10px; text-transform:uppercase; ">
+                    <span t-field="o.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                </td>
+            </tr>
+        </table>
+    </template>
+</odoo>

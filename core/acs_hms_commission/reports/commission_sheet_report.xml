@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="acs_commission_sheet_report_document">
+        <t t-call="web.external_layout">
+            <div class="page">
+                <div class="oe_structure"/>
+
+                <table class="table table-bordered mt64">
+                    <tr>
+                        <td style="text-align:center">
+                            <strong style="font-size: 20px;">
+                                <span>Commission Sheet: </span>
+                                <span t-field="doc.name"/>
+                            </strong>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Date: </strong> <span t-field="doc.date_from"/> - <span t-field="doc.date_to"/><br/>
+                    </div>
+                    <div class="col-6">
+                        <strong>Contact: </strong> <span t-field="doc.partner_id"/>
+                    </div>
+                </div>
+                <br/>
+
+                <table class="table table-sm o_main_table mt16">
+                    <thead>
+                        <tr class="active">
+                            <th>
+                                <strong>#</strong>
+                            </th>
+                            <th>
+                                <strong>Name</strong>
+                            </th>
+                            <th>
+                                <strong>Invoice</strong>
+                            </th>
+                            <th>
+                                <strong>Date</strong>
+                            </th>
+                            <th class="text-right">
+                                <strong>Commission On</strong>
+                            </th>
+                            
+                            <th class="text-right">
+                                <strong>Commission Amount</strong>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="doc.commission_line_ids" t-as="line">
+                            <td>
+                                <span t-esc="line_index + 1"/>
+                            </td>
+                            <td>
+                                <span t-field="line.name"/>
+                            </td>
+                            <td>
+                                <span t-field="line.invoice_id"/>
+                            </td>
+                            <td>
+                                <span t-field="line.create_date" widget="date"/>
+                            </td>
+                            <td class="text-right">
+                                <span t-field="line.commission_on"
+                                    t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                            </td>
+                            <td class="text-right">
+                                <span t-field="line.commission_amount"
+                                    t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="clearfix">
+                    <div class="row" name="total">
+                        <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+                            <table class="table table-sm;page-break-inside: avoid;">                                
+                                <tr class="border-black">
+                                    <td><strong>Total</strong></td>
+                                    <td class="text-right">
+                                        <span t-field="doc.amount_total"
+                                            t-options='{"widget": "monetary", "display_currency": doc.currency_id}'/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="mt32">
+                    Keep this print as reference further communication and procedure.
+                    Should you have any questions please contact us at your convenience.<br/><br/>
+                    Best Regards<br/>
+                </p>
+                
+                <div class="oe_structure"/>
+                <p style="page-break-before:always;"> </p>
+            </div>
+        </t>
+    </template>
+
+    <template id="acs_commission_sheet_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms_commission.acs_commission_sheet_report_document" t-lang="doc.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_acs_commission_sheet_report" model="ir.actions.report">
+        <field name="name">Sheet</field>
+        <field name="model">acs.commission.sheet</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms_commission.acs_commission_sheet_report</field>
+        <field name="report_file">acs_hms_commission.acs_commission_sheet_report</field>
+        <field name="print_report_name">(object.name or 'CommissionSheet').replace('/','_')</field>
+        <field name="binding_model_id" ref="model_acs_commission_sheet"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

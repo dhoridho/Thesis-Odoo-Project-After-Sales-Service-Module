@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_rejected_material_report_tree" model="ir.ui.view">
+        <field name="name">rejected.material.report.pivot</field>
+        <field name="model">rejected.material.report</field>
+        <field name="arch" type="xml">
+            <tree string="Rejected Product Report" create="0" delete="0" js_class="list_view_report_js">
+                <field name="rejected_date" />
+                <field name="product_id" string="Product"/>
+                <field name="to_consume" string="QTY"/>
+                <field name="product_uom" string="UOM"/>
+                <field name="plan_id" string="Production Plan"/>
+                <field name="production_id" string="Production Order"/>
+                <field name="workorder_id" string="Production Work Order"/>
+                <field name="consumption_id"/>
+                <field name="location_id" />
+                <field name="reason" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_rejected_material_report_pivot" model="ir.ui.view">
+        <field name="name">rejected.material.report.pivot</field>
+        <field name="model">rejected.material.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Rejected Product Report" sample="1">
+                <field name="plan_id" string="Production Plan"/>
+                <field name="workorder_id" string="Production Work Order"/>
+                <field name="consumption_id"/>
+                <field name="company_id"/>
+                <field name="branch_id"/>
+                <field name="create_date" interval="month" type="row"/>
+                <field name="warehouse_id" type="row"/>
+                <field name="product_id" type="row"/>
+                <field name="production_id" string="Production Order" type="row"/>
+                <field name="create_uid"/>
+                <field name="product_uom"/>
+                <field name="to_consume" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_rejected_material_report_search" model="ir.ui.view">
+        <field name="name">rejected.material.report.search</field>
+        <field name="model">rejected.material.report</field>
+        <field name="arch" type="xml">
+            <search string="Rejected Product Report">
+                <field name="product_id"/>
+                <field name="plan_id" string="Production Plan"/>
+                <field name="production_id" string="Production Order"/>
+                <field name="workorder_id" string="Production Work Order"/>
+                <field name="consumption_id"/>
+                <field name="location_id"/>
+
+                <filter string="Last 30 days" name="last_30_days" domain="[('create_date','&lt;=',context_today().strftime('%Y-%m-%d')), ('create_date','&gt;',(context_today()-relativedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Month" name="current_month" domain="[('create_date','&lt;',(context_today()+relativedelta(months=1)).strftime('%%Y-%%m-01')), ('create_date','&gt;=',time.strftime('%%Y-%%m-01'))]"/>
+                <filter string="This Year" name="current_year" domain="[('create_date','&lt;',(context_today()+relativedelta(years=1)).strftime('%%Y-01-01')), ('create_date','&gt;=',time.strftime('%%Y-01-01'))]"/>
+                <filter string="Last Month" name="last_month" domain="[('create_date','&lt;',time.strftime('%%Y-%%m-01')), ('create_date','&gt;=',(context_today()-relativedelta(months=1)).strftime('%%Y-%%m-01'))]"/>
+                <filter string="Last Year" name="last_year" domain="[('create_date','&lt;',time.strftime('%%Y-01-01')), ('create_date','&gt;=',(context_today()-relativedelta(years=1)).strftime('%%Y-01-01'))]"/>
+                <group expand="0" string="Group By...">
+                    <filter string="Product" name="product_id" domain="[]" context="{'group_by': 'product_id'}"/>
+                    <filter string="Production Plan" name="plan_id" domain="[]" context="{'group_by': 'plan_id'}"/>
+                    <filter string="Production Order" name="production_id" domain="[]" context="{'group_by': 'production_id'}"/>
+                    <filter string="Production Work Order" name="workorder_id" domain="[]" context="{'group_by': 'workorder_id'}"/>
+                    <filter string="Production Record" name="consumption_id" domain="[]" context="{'group_by': 'consumption_id'}"/>
+                    <filter string="Warehouse" name="groupby_warehouse_id" domain="[]" context="{'group_by': 'warehouse_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_rejected_material_report_graph" model="ir.ui.view">
+        <field name="name">rejected.material.report</field>
+        <field name="model">rejected.material.report</field>
+        <field name="arch" type="xml">
+            <graph string="Rejected Product Report" sample="1">
+                <field name="product_id"/>
+                <field name="to_consume" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_rejected_material_report" model="ir.actions.act_window">
+        <field name="name">Rejected Product Report</field>
+        <field name="res_model">rejected.material.report</field>
+        <field name="view_mode">pivot,tree,graph</field>
+        <field name="search_view_id" ref="view_rejected_material_report_search"/>
+        <field name="context">{'search_default_groupby_product_id': 1}</field>
+        <field name="help">This report performs analysis on your Rejected Material data.</field>
+    </record>
+
+</odoo>

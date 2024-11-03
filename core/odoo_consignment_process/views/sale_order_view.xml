@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <record id="consignment_form_sale_order" model="ir.ui.view">
+            <field name="name">sale.order.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/div[@name='button_box']" position="inside">
+                    <button class="oe_stat_button" name="show_consignment_purchase_order" type="object" icon="fa-inbox" attrs="{'invisible': [('consignment_purchase_order_count', '=', 0)]}">
+                        <field string="Consignment PO" name="consignment_purchase_order_count" widget="statinfo"/>
+                    </button>
+                </xpath>
+                <xpath expr="//field[@name='partner_shipping_id']" position="after">
+                    <field name="is_consignment" attrs="{'readonly':[('state','!=','draft')]}"/>
+                </xpath>
+                <xpath expr="//tree/field[@name='product_id']" position="after">
+                    <field name="purchase_order_line_id" domain="[('product_id', '=', product_id),('is_consignment', '=', True), ('state', 'in', ['purchase','done'])]"/>
+                </xpath>
+                <xpath expr="//field[@name='product_id']" position="after">
+                    <field name="purchase_order_line_id" domain="[('product_id', '=', product_id),('is_consignment', '=', True), ('state', '=', 'done')]"/>
+                </xpath>
+            </field>
+        </record>
+        
+        <record id="action_consignment_orders" model="ir.actions.act_window">
+            <field name="name">Customer Orders</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale.order</field>
+            <!-- <field name="view_type">form</field> -->
+            <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+            <field name="search_view_id" ref="sale.sale_order_view_search_inherit_sale"/>
+            <field name="context">{'default_is_consignment': True}</field>
+            <field name="domain">[('state', 'not in', ('draft', 'sent', 'cancel')), ('is_consignment','=', True)]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">Create a Quotation, the first step of a new sale.</p>
+                <p>
+                    Once the quotation is confirmed, it becomes a sales order. You'll be able to invoice
+                    it and collect payments. From the
+                    <i>Sales Orders</i>
+                    menu, you can track delivery
+                    orders or services.
+                </p>
+            </field>
+        </record>
+        
+    </data>
+</odoo>

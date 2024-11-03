@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="sale_consignment_agreement_tree">
+        <field name="name">sale.consignment.agreement.tree</field>
+        <field name="model">sale.consignment.agreement</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="title"/>
+                <field name="reference_number"/>
+                <field name="customer_id"/>
+                <!-- <field name="branch_id"/> -->
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="state" decoration-success="state == 'close'" decoration-success2="state == 'confirmed'" decoration-secondary="state == 'cancel'" decoration-primary="state == 'draft'" widget='badge'/>
+                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="sale_consignment_agreement_form">
+        <field name="name">sale.consignment.agreement.form</field>
+        <field name="model">sale.consignment.agreement</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="confirm_consignment" string="Confirm" states="draft" type="object" class="oe_highlight oe_read_only" groups="base.group_user"/>
+                    <button name="close_consignment" string="Closed" states="confirmed,progress,to_close" type="object" class="oe_highlight oe_read_only" groups="base.group_user"/>
+                    <button name="button_transfer_request" string="Request Transfer" type="object" class="oe_highlight oe_read_only" states="confirmed,progress"/>
+                    <button name="button_create_orders" string="Create Orders" type="object" class="oe_highlight oe_read_only" states="confirmed,progress"/>
+                    <button name="cancel_consignment" string="Cancel" states="draft,confirmed" type="object" class="oe_highlight oe_read_only" groups="base.group_user"/>
+                    <button name="button_transfer_back" string="Transfer Back" states="progress,to_close" type="object" class="oe_highlight oe_read_only" groups="base.group_user"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,progress,to_close,close"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box" modifiers="{}">
+                        <button name="view_internal_transfer" type="object" class="oe_stat_button" icon="o-hm-smart-crm-delivery" attrs="{'invisible': [('internal_transfer_count', '=', 0)]}">
+                            <field name="internal_transfer_count" widget="statinfo" string="Internal Transfer"/>
+                        </button>
+                        <button name="view_internal_transfer_back" type="object" class="oe_stat_button" icon="o-hm-smart-crm-delivery" attrs="{'invisible': [('internal_transfer_back_count', '=', 0)]}">
+                            <field name="internal_transfer_back_count" widget="statinfo" string="Transfer Back"/>
+                        </button>
+                        <button name="view_consignment_order" type="object" class="oe_stat_button" icon="o-hm-smart-crm-delivery" attrs="{'invisible': [('consignment_sale_count', '=', 0)]}">
+                            <field name="consignment_sale_count" widget="statinfo" string="Consignment Order"/>
+                        </button>
+                    </div>
+                    <group name="group_consignment_agreement">
+                        <div name="div_consignment_agreement">
+                            <div class="oe_title">
+                                <label for="reference_number" string="Reference"/>
+                                <h1>
+                                    <field name="reference_number" readonly="1"/>
+                                </h1>
+                            </div>
+                            <div class="col-md-8" style="margin-left: -15px">
+                                <label for="title"/>
+                                <h2>
+                                    <field name="title" attrs="{'readonly': [('state', 'in', ('confirmed','close','cancel'))]}"/>
+                                </h2>
+                            </div>
+                            <div class="row" name="div_row_consignment_agreement">
+                                <div class="col" name="col_1">
+                                    <group name="group_1">
+                                        <field name="customer_id" attrs="{'readonly': [('state', 'in', ('confirmed','close','cancel'))]}"/>
+                                        <field name="destination_warehouse_id" attrs="{'readonly': [('state', 'in', ('confirmed','close','cancel'))]}"/>
+                                        <field name="pricelist_id" attrs="{'readonly': [('state', 'in', ('confirmed','close','cancel'))]}"/>
+                                    </group>
+                                </div>
+                                <div class="col" name="col_2">
+                                    <group name="group_2">
+                                        <field name="start_date" attrs="{'readonly': [('state', 'in', ('confirmed','close','cancel'))]}"/>
+                                        <field name="end_date" attrs="{'readonly': [('state', 'in', ('confirmed','close','cancel'))]}"/>
+                                        <field name="account_tag_ids" widget="many2many_tags" attrs="{'invisible':[('is_group_analytic_tags','=', False)],'readonly': [('state', 'in', ('confirmed','close','cancel'))]}"/>
+                                        <!-- <field name="branch_id" attrs="{'readonly': [('state', 'in', ('confirmed','close','cancel'))]}"/> -->
+                                    </group>
+                                </div>
+                                <div class="col" name="col_3">
+                                    <group name="group_3">
+                                        <field name="company_id" readonly="1"/>
+                                        <field name="created_by" readonly="1"/>
+                                        <field name="created_date" readonly="1"/>
+                                        <field name="consignment_order_ids" widget="many2many_tags" readonly="1" invisible="1"/>
+                                        <field name="is_group_analytic_tags" invisible="1"/>
+                                    </group>
+                                </div>
+                            </div>
+                        </div>
+                    </group>
+                    <notebook>
+                        <page name="product_line" string="Products">
+                            <field name="consignment_line_ids" nolabel="1" context="{'consignment_line_ids': consignment_line_ids}" attrs="{'readonly': [('state', 'in', ('confirmed','close','cancel'))]}">
+                                <tree editable="bottom">
+                                    <control>
+                                        <create name="add_product_control" string="Add a product"/>
+                                    </control>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="res_sequence" readonly="1" force_save="1"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="product_id" required="1" domain="[('sale_ok', '=', True),('type','=','product'),('is_consignment_sales','=',True)]"/>
+                                    <field name="product_description"/>
+                                    <field name="product_uom_category_id" invisible="1"/>
+                                    <field name="product_uom_id" readonly="1" force_save="1"/>
+                                    <field name="product_transferred_qty" readonly="1"/>
+                                    <field name="product_sold_qty"/>
+                                    <field name="product_invoiced_qty"/>
+                                    <field name="product_paid_qty"/>
+                                    <field name="current_qty"/>
+                                    <field name="account_tag_ids" widget="many2many_tags" attrs="{'column_invisible': [('parent.is_group_analytic_tags', '=', False)]}"/>
+                                    <field name="product_unit_price"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sale_consignment_agreement" model="ir.actions.act_window">
+        <field name="name">Consignment Agreements</field>
+        <field name="res_model">sale.consignment.agreement</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" eval="sale_consignment_agreement_tree"/>
+        <field name="view_ids" eval="[(5,0,0),
+                    (0,0, {'sequence':1, 'view_mode':'tree', 'view_id':ref('equip3_consignment_sales.sale_consignment_agreement_tree')}),
+                    (0,0, {'sequence':2, 'view_mode':'form', 'view_id':ref('equip3_consignment_sales.sale_consignment_agreement_form')})]
+                    "/>
+    </record>
+    <!-- Change parent="sale.menu_sale_config"-->
+    <menuitem id="menu_sale_consignment_agreement" name="Consignment Agreements" action="action_sale_consignment_agreement" parent="sale_consign_menu" sequence="1"/>
+</odoo>

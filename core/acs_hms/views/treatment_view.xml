@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_hospital_hms_treatment_form" model="ir.ui.view">
+        <field name="name">Treatment.form</field>
+        <field name="model">hms.treatment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="treatment_running" states="draft" type="object" groups="acs_hms.group_hms_receptionist" string="Confirm" class="oe_highlight"/>
+                    <button name="treatment_done" states="running" groups="acs_hms.group_hms_jr_doctor" type="object" string="Done" class="oe_highlight"/>
+                    <button name="create_invoice" string="Create Invoice" attrs="{'invisible': ['|',('invoice_id', '!=', False),('state','=','cancel')]}" type="object" groups="acs_hms.group_treatment_invoicing" class="oe_stat_button" icon="fa-pencil-square-o"/>
+                    <button name="treatment_cancel" string="Cancel" states="draft,running,done" type="object" class="oe_highlight"/>
+                    <button name="treatment_draft" string="Draft" states="cancel" type="object" class="oe_highlight"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,running,done"/>
+                </header>
+                <div class="alert alert-error text-center" role="alert" style="margin-bottom:0px; background-color:#f8b9b9;"  attrs="{'invisible': [('alert_count','=',0)]}">
+                    <field name="medical_alert_ids" nolabel="1" widget="many2many_tags"/>
+                </div>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="view_invoice" string="View Invoice" type="object" groups="account.group_account_invoice" class="oe_stat_button" attrs="{'invisible': [('invoice_id', '=', False)]}" icon="fa-pencil-square-o"/>
+                        <button name="action_appointment" type="object" class="oe_stat_button" groups="acs_hms.group_hms_receptionist" icon="fa-stethoscope">
+                            <field string="Appointments" name="appointment_count" widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" type="object" name="action_view_attachments" icon="fa-files-o" attrs="{'invisible': [('attach_count', '=', 0)]}">
+                            <field string="Documents" name="attach_count" widget="statinfo"/>
+                        </button>
+                        <button class="oe_inline oe_stat_button" type="object" name="action_attachments_preview" title="Preview Documents" icon="fa-files-o" string="Preview Documents" widget="statinfo"/>
+                    </div>
+                    <field name="image_128" widget="image" class="oe_avatar" options="{'preview_image': 'image_128'}"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" default_focus="1" placeholder="Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="physician_id" string="Doctor"/>
+                            <field name="diagnosis_id"/>
+                            <field name="age" readonly="1"/>
+                            <field name="registration_product_id" groups="acs_hms.group_treatment_invoicing"/>
+                            <field name="invoice_id" invisible="1"/>
+                            <field name="alert_count" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            <field name="department_id" groups="acs_hms.group_allow_multi_department"/>
+                            <field name="department_type" invisible="1"/>
+                            <field name="date"/>
+                            <field name="end_date"/>
+                            <field name="attending_physician_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="General Details" name="general_info" groups="acs_hms.group_hms_nurse">
+                            <field name="finding" placeholder="Findings from treatment.."/>
+                            <separator string="Prescribed Medicine"/>
+                            <field name="prescription_line_ids" string="Medicine" readonly='1'>
+                                <tree string="Medicine" create='false'>
+                                    <field name="product_id" string="Medicine Name"/>
+                                    <field name="active_component_ids" widget="many2many_tags" optional="show"/>
+                                    <field name="allow_substitution" optional="show"/>
+                                    <field name="quantity" string="Qty"/>
+                                    <field name="common_dosage_id"/>
+                                    <field name="short_comment"/>
+                                    <field name="prescription_id"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Other Information" name="other_info" groups="acs_hms.group_hms_nurse">
+                            <group>
+                                <group>
+                                    <field name="disease_status"/>
+                                    <field name="disease_severity"/>
+                                    <field name="healed_date" string="Healing Date"/>
+                                    <field name="is_infectious"/>
+                                </group>
+                                <group>
+                                    <field name="is_allergy"/>
+                                    <field name="allergy_type" attrs="{'invisible': [('is_allergy', '=', False)]}"/>
+                                    <field name="lactation"/>
+                                    <field name="pregnancy_warning"/>
+                                </group>
+                                <field name="description"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_hospital_hms_treatment_tree">
+        <field name="name">treatment.list</field>
+        <field name="model">hms.treatment</field>
+        <field name="arch" type="xml">
+            <tree string="Treatment Sheet">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="date"/>
+                <field name="state"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hms_treatment_search" model="ir.ui.view">
+        <field name="name">Treatment Search</field>
+        <field name="model">hms.treatment</field>
+        <field name="arch" type="xml">
+            <search string="Search Treatments">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="physician_id"/>
+                <field name="department_id" groups="acs_hms.group_allow_multi_department"/>
+                <filter name="my_treatment" string="My Treatments" domain="[('physician_id.user_id', '=',uid)]"/>
+                <separator/>
+                <filter name="done" string="Not Done" domain="[('state','!=','done'),('state','!=','cancel')]"/>
+                <filter name="pregancy_warning" string="Pregancy Warning" domain="[('pregnancy_warning','=',1)]"/>
+                <filter name="lactation" string="Under Lactation" domain="[('lactation','=',1)]"/>
+                <filter name="is_infectious" string="Infectious" domain="[('is_infectious','=',1)]"/>
+                <filter name="is_allergy" string="Allergic" domain="[('is_allergy','=',1)]"/>
+                <group expand="0" string="Group By...">
+                    <filter string="Doctor" name="physician_groupby" domain="[]" context="{'group_by':'physician_id'}" />
+                    <filter string="Date" name="date_groupby" domain="[]" context="{'group_by':'date'}" />
+                    <filter string="Department" name="department_groupby" domain="[]" context="{'group_by':'department_id'}" />
+                    <filter string="Hospital" name="hospital_groupby" domain="[]" context="{'group_by':'company_id'}" />
+                    <filter string="Diagnosis" name="diagnosis_groupby" domain="[]" context="{'group_by':'diagnosis_id'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_acs_treatment_calendar" model="ir.ui.view">
+        <field name="name">hms.treatment.calendar</field>
+        <field name="model">hms.treatment</field>
+        <field name="type">calendar</field>
+        <field name="arch" type="xml">
+            <calendar string="Treatments" color="patient_id" date_start="date">
+                <field name="physician_id"/>
+                <field name="patient_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_treatment_pivot" model="ir.ui.view">
+        <field name="name">hms.treatment.pivot</field>
+        <field name="model">hms.treatment</field>
+        <field name="arch" type="xml">
+            <pivot string="Treatments">
+                <field name="date" type="row"/>
+                <field name="department_id" type="row"/>
+                <field name="physician_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="acs_action_form_hospital_treatment">
+        <field name="name">Treatment</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">hms.treatment</field>
+        <field name="view_mode">tree,form,calendar,pivot</field>
+        <field name="view_id" ref="view_hospital_hms_treatment_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record Found
+            </p>
+            <p>
+                Click to add a Treatment.
+            </p>
+        </field>
+    </record>
+
+</odoo>

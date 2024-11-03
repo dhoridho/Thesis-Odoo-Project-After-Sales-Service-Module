@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="hr_travel_approval_matrix_form" model="ir.ui.view">
+            <field name="name">hr.travel.approval.matrix.matrix.form</field>
+            <field name="model">hr.travel.approval.matrix</field>
+            <field name="arch" type="xml">
+                <form string="Travel Approval Matrix">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" required="1"/>
+                                <field name="apply_to" required="1"/>
+                                <field name="employee_ids"
+                                       attrs="{'invisible':[('apply_to','!=','by_employee')],'required':[('apply_to','=','by_employee')]}"
+                                       widget="many2many_tags"/>
+                                <field name="department_ids"
+                                       attrs="{'invisible':[('apply_to','!=','by_department')],'required':[('apply_to','=','by_department')]}"
+                                       widget="many2many_tags" string="Department"/>
+                                <field name="job_ids"
+                                       attrs="{'invisible':[('apply_to','!=','by_job_position')],'required':[('apply_to','=','by_job_position')]}"
+                                       widget="many2many_tags"/>
+                            </group>
+                            <group>
+                                <field name="company_id" readonly="1"/>
+                                <field name="create_uid"/>
+                                <field name="create_date"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="approval_matrix_line" string="Approver Lines">
+                                <field name="approval_matrix_ids" context="{'approval_matrix_ids':approval_matrix_ids}">
+                                    <tree editable="bottom">
+                                        <field name="sequence" readonly="1" force_save="1"/>
+                                        <field name="approver_types" required="1"/>
+                                        <field name="approvers" force_save="1" widget="many2many_tags" attrs="{'readonly':[('approver_types','=','by_hierarchy')],'required':[('approver_types','=','specific_approver')]}"/>
+                                        <field name="minimum_approver" string="Minimum Approvers" required="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="hr_travel_approval_matrix_search" model="ir.ui.view">
+            <field name="name">hr.travel.approval.matrix.search</field>
+            <field name="model">hr.travel.approval.matrix</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="level"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="hr_travel_approval_matrix_view" model="ir.ui.view">
+            <field name="name">hr.travel.approval.matrix.tree</field>
+            <field name="model">hr.travel.approval.matrix</field>
+            <field name="arch" type="xml">
+                <tree string="Travel Approval Matrix">
+                    <field name="name"/>
+                    <field name="level"/>
+                    <field name="create_uid"/>
+                    <field name="create_date"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="travel_approval_matrix_act_window" model="ir.actions.act_window">
+            <field name="name">Travel Approval Matrix</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.travel.approval.matrix</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new Travel Approval Matrix.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Travel Approval Matrix" id="hr_travel_matrix_menu"
+                  parent="menu_hr_travel_conf_settings"
+                  action="travel_approval_matrix_act_window"
+                  groups="equip3_hr_employee_access_right_setting.group_hr_travel_manager"
+                  />
+    </data>
+</odoo>

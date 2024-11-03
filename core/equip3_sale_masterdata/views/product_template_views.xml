@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<!--    <record id="view_form_product_template" model="ir.ui.view">-->
+<!--        <field name="name">product.template.form</field>-->
+<!--        <field name="model">product.template</field>-->
+<!--        <field name="inherit_id" ref="product.product_template_only_form_view"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//page[@name='variants']" position="after">-->
+<!--                <page name="Alternative" string="Alternative">-->
+<!--                    <group>-->
+<!--                        <field name="alternative_product_ids" widget="many2many_tags"/>-->
+<!--                    </group>-->
+<!--                </page>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
+
+<!-- 
+    <record id="analytic.analytic_tag_comp_rule" model="ir.rule">
+        <field name="domain_force"> ['|', ('company_id', 'in', user.company_ids.ids), ('company_id', '=', False)]</field>
+    </record>
+    <record id="product.product_comp_rule" model="ir.rule">
+        <field name="domain_force"> ['|', ('company_id', 'in', user.company_ids.ids), ('company_id', '=', False)]</field>
+    </record>
+-->
+
+    <record id="view_form_product_template" model="ir.ui.view">
+        <field name="name">product.template.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='sales']//group[@name='description']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>            
+            <xpath expr="//page[@name='sales']//group[@name='sale']" position="before">
+                <group string="Sales Subscription" name="sale_subscription">
+                    <field name="subscription_product"/>
+                    <label for="recurring_interval" string="Recurring Period" attrs="{'invisible': [('subscription_product','=', False)]}"/>
+                    <div attrs="{'invisible': [('subscription_product','=', False)]}">
+                        <field name="recurring_interval" class="oe_inline"/>
+                        <field name="recurring_rule_type" class="oe_inline"/>
+                    </div>
+<!--                    <div>-->
+<!--                        <field name="subscription_product" nolabel="1" class="oe_inline"/>-->
+<!--                        <label for="subscription_product"/>-->
+<!--                    </div>-->
+<!--                    <label for="recurring_interval" string="Recurring Period" attrs="{'invisible': [('subscription_product','=', False)]}"/>-->
+<!--                    <div attrs="{'invisible': [('subscription_product','=', False)]}">-->
+<!--                        <field name="recurring_interval" class="oe_inline"/>-->
+<!--                        <field name="recurring_rule_type" class="oe_inline"/>-->
+<!--                    </div>-->
+                </group>
+                <group string="Sales Description">
+                    <field name="description_sale"/>
+                </group>
+                <group string="Sales">
+                    <field name="last_customer_id"/>
+                    <field name="last_sales_date"/>
+                    <field name="last_sales_price"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_only_form_view_inherit_subscription_product_inherits" model="ir.ui.view">
+        <field name="name">product.template.form.inherits</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="contract_recurring_invoice_analytic.product_template_only_form_view_inherit_subscription_product"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='subscription_product']/parent::div" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//label[@for='recurring_interval']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='recurring_interval']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='recurring_rule_type']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <template id="assets_backend" inherit_id="web.assets_backend" name="equip3_sale_masterdata assets backend">
+        <xpath expr="//script[@src='/sale_product_configurator/static/src/js/product_configurator_controller.js']" position="replace">
+            <script type="text/javascript" src="/equip3_sale_masterdata/static/src/js/product_configurator_controller.js"></script>
+        </xpath>
+    </template>
+
+    <record id="dynamic_product_bundle.bi_action_pack" model="ir.actions.act_window">
+        <field name="name">Product Bundle</field>
+    </record>
+    
+    <menuitem id="products_menu"
+        name="Products"
+        parent="sale.product_menu_catalog"
+        sequence="1"
+        groups="sales_team.group_sale_manager"/>
+
+    <record id="new_product_template_action" model="ir.actions.act_window">
+        <field name="name">Products</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">kanban,tree,form,activity</field>
+        <field name="domain">[('sale_ok','=',True)]</field>
+        <field name="view_id" ref=""/>
+        <field name="search_view_id" ref="product.product_template_search_view"/>
+        <field name="context">{"sale_multi_pricelist_product_template": 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new product
+            </p><p>
+            You must define a product for everything you sell or purchase,
+            whether it's a storable product, a consumable or a service.
+        </p>
+        </field>
+    </record>
+
+    <record id="product.product_normal_action_sell" model="ir.actions.act_window">
+        <field name="name">Product Variants</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="search_view_id" ref="product.product_search_form_view"/>
+        <field name="context">{'create': False}</field>
+    </record>
+
+    <menuitem 
+        action="new_product_template_action"
+        id="sale.menu_product_template_action" 
+        parent="products_menu"
+        sequence="1"/>
+    <menuitem 
+        id="sale.menu_products" 
+        action="product.product_normal_action_sell" 
+        parent="products_menu" 
+        groups="product.group_product_variant" 
+        sequence="2"/>
+    <data>
+        <menuitem id="dynamic_product_bundle.menu_product_pack_main_bi" name="Product Bundle" parent="products_menu" sequence="2"/>
+    </data>
+
+    <record id="product_template_view_form_inherit" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.sale.product.configurator.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='options']" position="replace">
+                <group name="options" groups="product.group_product_variant">
+                    <group string="Upsell">
+                        <field name="optional_product_ids" string="Product to Upsell" widget="one2many_list" options="{'color_field': 'color'}" domain="[('id', '!=', active_id), '|', ('company_id', '=', company_id), ('company_id', '=', False)]">
+                            <tree editable="bottom">
+                                <field name="name"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group></group>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='bi_pack_ids']" position="attributes">
+                <attribute name="context">{'default_qty_uom': 1}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <template id="sale_product_configurator.configure_optional_products">
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th class="td-img">Product</th>
+                    <th></th>
+                    <th class="text-center td-qty">Quantity</th>
+                    <th class="text-center td-price">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="js_product in_cart main_product">
+
+                    <t t-set="combination_info" t-value="product.product_tmpl_id._get_combination_info(combination, product.id, add_qty or 1, pricelist)"/>
+                    <t t-set="product_variant" t-value="product.env['product.product'].browse(combination_info['product_id'])"/>
+
+                    <input type="hidden" class="product_template_id" t-att-value="product.product_tmpl_id.id"/>
+                    <input type="hidden" class="product_id" t-att-value="product_variant.id"/>
+                    <td class='td-img'>
+                        <img t-if="product_variant" t-att-src="'/web/image/product.product/%s/image_128' % product_variant.id" alt="Product Image"/>
+                        <img t-else="" t-att-src="'/web/image/product.template/%s/image_128' % product.id" alt="Product Image"/>
+                    </td>
+                    <td class='td-product_name'>
+                        <strong t-esc="combination_info['display_name']"/>
+                        <div class="text-muted small">
+                            <div t-field="product.description_sale"/>
+                            <div class="js_attributes"/>
+                        </div>
+                    </td>
+                    <td class="text-center td-qty">
+                        <div class="css_quantity input-group">
+                            <div class="input-group-prepend">
+                                <button t-attf-href="#" class="btn btn-primary js_add_cart_json d-none d-md-inline-block" aria-label="Remove one" title="Remove one">
+                                    <i class="fa fa-minus"></i>
+                                </button>
+                            </div>
+                            <input type="text" class="js_quantity form-control quantity" data-min="1" name="add_qty" t-att-value="add_qty or 1"/>
+                            <div class="input-group-append">
+                                <button t-attf-href="#" class="btn btn-primary float_left js_add_cart_json d-none d-md-inline-block" aria-label="Add one" title="Add one">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center td-price" name="price">
+                        <ul class="d-none js_add_cart_variants" t-att-data-attribute_exclusions="{'exclusions: []'}"></ul>
+                        <div class="d-none oe_unchanged_value_ids" t-att-data-unchanged_value_ids="variant_values" ></div>
+                        <div t-attf-class="text-danger oe_default_price oe_striked_price {{'' if combination_info['has_discounted_price'] else 'd-none'}}"
+                                t-esc="combination_info['list_price']"
+                                t-options='{
+                            "widget": "monetary",
+                            "display_currency": (pricelist or product).currency_id
+                        }'
+                        />
+                        <span class="oe_price product_id" style="white-space: nowrap;"
+                                t-att-data-product-id="product.id"
+                                t-esc="combination_info['price']"
+                                t-options='{
+                            "widget": "monetary",
+                            "display_currency": (pricelist or product).currency_id
+                        }'/>
+                        <span class="js_raw_price d-none" t-esc="product.price"/>
+                    </td>
+                </tr>
+                <tr class="o_total_row">
+                    <td colspan="4" class="text-right">
+                        <strong>Total:</strong>
+                        <span class="js_price_total font-weight-bold" style="white-space: nowrap;"
+                                t-att-data-product-id="product.id"
+                                t-esc="combination_info['price'] * (add_qty or 1)"
+                                t-options='{
+                            "widget": "monetary",
+                            "display_currency": (pricelist or product).currency_id
+                        }'/>
+                    </td>
+                </tr>
+                <tr t-if="product.optional_product_ids" class="o_select_options"><td colspan="4"><h5><b>Often Bought Together</b></h5></td></tr>
+                <t t-call="sale_product_configurator.optional_product_items">
+                    <t t-set="parent_combination" t-value="combination"/>
+                </t>
+            </tbody>
+        </table>
+    </template>
+
+</odoo>

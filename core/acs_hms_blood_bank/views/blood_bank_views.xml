@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Blood Requisition -->
+    <record id="acs_acs_blood_requisition_form" model="ir.ui.view">
+        <field name="name">acs.blood.requisition.form</field>
+        <field name="model">acs.blood.requisition</field>
+        <field name="arch" type="xml">
+            <form string="Blood Management">
+                <header>
+                    <button name="action_running" states="draft" class="oe_highlight" string="Running" type="object"/>
+                    <button name="action_done" states="running" class="oe_highlight" string="Done" type="object"/>
+                    <button name="action_create_invoice" string="Create Invoice" type="object" states="to_invoice" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="view_invoice" string="View Invoice" type="object" attrs="{'invisible': [('invoice_id','=',False)]}" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_cancel" states="draft" string="Cancel"
+                        type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,running,done"
+                        statusbar_colors='{"draft":"blue","cancel":"red"}'/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group colspan="2">
+                        <group>
+                            <field name="partner_id" attrs="{'readonly':['|',('patient_id','!=',False),('state','in',['done','cancel','to_invoice'])]}" force_save="1"/>
+                            <field name="patient_id"/>
+                            <field name="blood_group"/>
+                            <field name="product_id"/>
+                            <field name="lot_id"  domain="[('requisition_id', '=', False),('issuance_id','=',False), ('product_id','=',product_id)]"/>
+                            <field name="invoice_id" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="physician_id"/>
+                            <field name="date"/>
+                            <field name="is_outside"/>
+                            <field name="location" attrs="{'invisible': [('is_outside','=',False)], 'required': [('is_outside','=',True)]}"/>
+                        </group>
+                    </group>
+                    <field name="remark" nolabel="1" placeholder="Notes..."
+                       />
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="acs_acs_blood_requisition_tree" model="ir.ui.view">
+        <field name="name">acs.blood.requisition.tree</field>
+        <field name="model">acs.blood.requisition</field>
+        <field name="arch" type="xml">
+            <tree string="Blood Requisition">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="acs_acs_blood_requisition_calendar" model="ir.ui.view">
+        <field name="name">acs.blood.requisition.calendar</field>
+        <field name="model">acs.blood.requisition</field>
+        <field name="type">calendar</field>
+        <field name="arch" type="xml">
+            <calendar string="Blood Requisition" color="physician_id" date_start="date">
+                <field name="physician_id"/>
+                <field name="user_id"/>
+                <field name="patient_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="acs_acs_blood_requisition_pivot" model="ir.ui.view">
+        <field name="name">acs.blood.requisition.pivot</field>
+        <field name="model">acs.blood.requisition</field>
+        <field name="arch" type="xml">
+            <pivot string="Blood Requisition">
+                <field name="date" type="row"/>
+                <field name="physician_id" type="row"/>
+                <field name="user_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="acs_acs_blood_requisition_search" model="ir.ui.view">
+        <field name="name">acs.blood.requisition.search</field>
+        <field name="model">acs.blood.requisition</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="patient_id"/>
+                <field name="physician_id"/>
+                <field name="location"/>
+                <filter name="is_outside" string="Outside Requisition" domain="[('is_outside', '=',1)]"/>
+                <group expand="0" string="Group By...">
+                    <filter string="Contact" name="partner_groupby" domain="[]" context="{'group_by':'partner_id'}" />
+                    <filter string="Patient" name="patient_groupby" domain="[]" context="{'group_by':'patient_id'}" />
+                    <filter string="Physician" name="physician_groupby" domain="[]" context="{'group_by':'physician_id'}" />
+                    <filter string="Responsible" name="responsible_groupby" domain="[]" context="{'group_by':'user_id'}" />
+                    <filter string="Hospital" name="hospital_groupby" domain="[]" context="{'group_by':'company_id'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_acs_blood_requisition" model="ir.actions.act_window">
+        <field name="name">Blood Requisition</field>
+        <field name="res_model">acs.blood.requisition</field>
+        <field name="view_mode">tree,form,calendar,pivot,search</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add a Blood Requisition.
+            </p>
+        </field>
+    </record>
+
+    <!-- Issuance Views -->
+    <record id="view_acs_blood_issuance_tree" model="ir.ui.view">
+        <field name="name">acs.blood.issuance.tree</field>
+        <field name="model">acs.blood.issuance</field>
+        <field name="arch" type="xml">
+            <tree string="Blood Receiver">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_acs_blood_issuance_form" model="ir.ui.view">
+        <field name="name">acs.blood.issuance.form</field>
+        <field name="model">acs.blood.issuance</field>
+        <field name="arch" type="xml">
+            <form string="Blood Receiver">
+                <header>
+                    <button name="action_done" states="draft" class="oe_highlight" string="Issue" type="object"/>
+                    <button name="action_create_invoice" string="Create Invoice" type="object" states="to_invoice" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="view_invoice" string="View Invoice" type="object" attrs="{'invisible': [('invoice_id','=',False)]}" class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_cancel" states="draft" string="Cancel" type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done" statusbar_colors='{"draft":"blue","cancel":"red"}'/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group colspan="2">
+                        <group>
+                            <field name="partner_id" attrs="{'readonly':['|',('patient_id','!=',False),('state','in',['done','cancel','to_invoice'])]}" force_save="1"/>
+                            <field name="patient_id"/>
+                            <field name="blood_group"/>
+                            <field name="product_id"/>
+                            <field name="lot_id" domain="[('blood_group','=',blood_group),('requisition_id', '!=', False),('issuance_id','=',False), ('product_id','=',product_id)]"/>
+                            <field name="invoice_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="physician_id"/>
+                            <field name="date"/>
+                            <field name="is_outside"/>
+                            <field name="location" attrs="{'invisible': [('is_outside','=',False)], 'required': [('is_outside','=',True)]}"/>
+                        </group>
+                    </group>
+                    <field name="remark" nolabel="1" placeholder="Notes..."/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="acs_acs_blood_issuance_calendar" model="ir.ui.view">
+        <field name="name">acs.blood.issuance.calendar</field>
+        <field name="model">acs.blood.issuance</field>
+        <field name="type">calendar</field>
+        <field name="arch" type="xml">
+            <calendar string="Blood Requisition" color="physician_id" date_start="date">
+                <field name="physician_id"/>
+                <field name="user_id"/>
+                <field name="patient_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="acs_acs_blood_issuance_pivot" model="ir.ui.view">
+        <field name="name">acs.blood.issuance.pivot</field>
+        <field name="model">acs.blood.issuance</field>
+        <field name="arch" type="xml">
+            <pivot string="Blood Requisition">
+                <field name="date" type="row"/>
+                <field name="physician_id" type="row"/>
+                <field name="user_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="acs_acs_blood_issuance_search" model="ir.ui.view">
+        <field name="name">acs.blood.issuance.search</field>
+        <field name="model">acs.blood.issuance</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="patient_id"/>
+                <field name="physician_id"/>
+                <field name="location"/>
+                <filter name="is_outside" string="Outside Requisition" domain="[('is_outside', '=',1)]"/>
+                <group expand="0" string="Group By...">
+                    <filter string="Contact" name="partner_groupby" domain="[]" context="{'group_by':'partner_id'}" />
+                    <filter string="Patient" name="patient_groupby" domain="[]" context="{'group_by':'patient_id'}" />
+                    <filter string="Physician" name="physician_groupby" domain="[]" context="{'group_by':'physician_id'}" />
+                    <filter string="Responsible" name="responsible_groupby" domain="[]" context="{'group_by':'user_id'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_acs_blood_issuance" model="ir.actions.act_window">
+        <field name="name">Blood Issuance</field>
+        <field name="res_model">acs.blood.issuance</field>
+        <field name="view_mode">tree,form,calendar,pivot,search</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add a Blood Issuance.
+            </p>
+        </field>
+    </record>
+
+</odoo>

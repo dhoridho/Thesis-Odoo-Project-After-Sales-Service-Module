@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="purchase_order_form" model="ir.ui.view">
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="equip3_purchase_operation.purchase_order_view_form"/>
+        <field name="arch" type="xml">
+            <field name="origin" position="after">
+                <field name="is_rental_orders" invisible='1'></field>
+                <label for="rent_duration" attrs="{'invisible': [('is_rental_orders', '=', False)]}"/>
+                <div class="o_row" name="rent_date" attrs="{'invisible': [('is_rental_orders', '=', False)]}">
+                    <field name="rent_duration" attrs="{'required': [('is_rental_orders', '=', True)]}"></field> <field name="rent_duration_unit" attrs="{'required': [('is_rental_orders', '=', True)]}"></field>
+                </div>
+                <field name="expected_return_date" attrs="{'invisible': [('is_rental_orders', '=', False)]}"></field>
+                <label for="is_rent_duration" invisible='1'/>
+                <div class="o_row" name="rent_date" invisible="1">
+                    <field name="is_rent_duration" nolabel="1"/>
+                    <span>Rent Duration</span>
+                </div>
+            </field>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='account_analytic_id']" position="before">
+                <field name="is_rent_duration" invisible="1"></field>
+                <field name="rent_duration" invisible="1" force_save="1"/>
+                <field name="rent_duration_unit" invisible="1" force_save="1"/>
+                <field name="expected_return_date" invisible="1" force_save="1"/>
+            </xpath>
+            <xpath expr="//button[@name='button_confirm']" position="after">
+                <button name="wizard_extend_rental" string="Extend Duration" type="object" class="oe_highlight" attrs="{'invisible': ['|',('is_rental_orders', '=', False),('state', 'not in', ('purchase','done'))]}"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button type="object" name="action_delivery_order" class="oe_stat_button" icon="o-hm-smart-crm-delivery" attrs="{'invisible': [('delivery_count', '=', 0)]}">
+                    <field name="delivery_count" widget="statinfo" string="Delivery Orders"/>
+                </button>
+            </xpath>
+            <xpath expr="//page[@name='products']" position="after">
+                <page name="extend_history" string="Extend History" attrs="{'invisible': [('history_extend_ids', '=', False)]}">
+                    <group>
+                        <field name="history_extend_ids" nolabel="1">
+                            <tree create="0" delete="0" edit="0" readonly="1">
+                                <field name="po_reference"/>
+                                <field name="expected_date"/>
+                                <field name="expected_return_date"/>
+                                <field name="rent_duration"/>
+                                <field name="total"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

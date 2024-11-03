@@ -1,0 +1,96 @@
+<odoo>
+
+    <!-- Portal View -->
+    <template id="portal_my_home_menu_hms" name="Portal layout : HMS Data" inherit_id="portal.portal_breadcrumbs" priority="20">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'certificate' or certificate" t-attf-class="breadcrumb-item #{'active ' if not certificate else ''}">
+                <a t-if="certificate" t-attf-href="/my/certificates?{{ keep_query() }}">Certificates</a>
+                <t t-else="">Certificates</t>
+            </li>
+            <li t-if="certificate" class="breadcrumb-item active">
+                <t t-esc="certificate.name"/>
+            </li>
+
+        </xpath>
+    </template>
+
+    <template id="portal_my_home" name="Portal My Home: HMS entries" inherit_id="portal.portal_my_home" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-if="certificate_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Certificates</t>
+                <t t-set="url" t-value="'/my/certificates'"/>
+                <t t-set="count" t-value="certificate_count"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="my_certificates" name="My Certificates">
+        <t t-call="portal.portal_layout">
+
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Certificate</t>
+            </t>
+            <t t-if="not certificates">
+                <p>There are currently no Certificates for your account.</p>
+            </t>
+
+            <div t-if="certificates" class="panel panel-default">
+                <div class="table-responsive">
+                    <table class="table table-hover bg-white status_table o_portal_my_doc_table">
+                        <thead>
+                            <tr class="active">
+                                <th>Name</th>
+                                <th>Physician</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+
+                        <t t-foreach="certificates" t-as="certificate">
+                            <tr>
+                                <td>
+                                    <a t-attf-href="/my/certificates/#{certificate.id}?{{ keep_query() }}"><t t-esc="certificate.name" /></a>
+                                </td>
+                                <td>
+                                    <span t-field="certificate.sudo().physician_id.name" />
+                                </td>
+                                <td>
+                                    <span t-field="certificate.date" />
+                                </td>
+                                <td>
+                                    <a class="btn btn-primary" target="_blank" title="Certificate"
+                                        t-att-href="'/report/pdf/acs_certification.certificate_report/'+str(certificate.id)">Print</a>
+                                </td>
+                            </tr>
+                        </t>
+                    </table>
+                </div>
+            </div>
+            <div t-if="pager" class="o_portal_pager text-center">
+                <t t-call="portal.pager"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="my_certificate" name="My Certificate" >
+        <t t-call="portal.portal_layout">
+            <!-- Page Content -->
+            <div id="result_content" class="col-12 col-lg mt32">
+
+                <div class="o_portal_html_view shadow p-3" style="background-color: white;">
+                    <iframe id="result_html" width="100%" height="1080px" frameborder="0" scrolling="no" t-att-src="'/report/html/acs_certification.certificate_report/'+str(certificate.id)"/>
+                </div>
+                <!-- t-att-src="certificate.get_portal_url(report_type='html')" -->
+                <!-- chatter -->
+                <div id="certificate_communication" class="mt-4">
+                    <h2>History</h2>
+                    <t t-call="portal.message_thread">
+                        <t t-set="object" t-value="certificate"/>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

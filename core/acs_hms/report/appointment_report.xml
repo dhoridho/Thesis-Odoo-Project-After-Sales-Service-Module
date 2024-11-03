@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_acs_appointment_document">
+        <t t-call="web.external_layout">
+            <t t-set="doc" t-value="doc.with_context({'lang':doc.patient_id.lang})"/>
+            <div class="page">
+                <div class="oe_structure"/>
+
+                <div class="row mb32 mt32">
+                    <div class="col-12 text-center">
+                        <h3>
+                            <strong>
+                                <span>Appointment: </span>
+                                <span t-field="doc.name"/>
+                            </strong>
+                        </h3>
+                    </div>
+                </div>
+
+                <table class="table" style="border-bottom: 1px solid black;">
+                    <tr>
+                        <td style="width:50%;border: none;">
+                            <strong>Patient: <span t-field="doc.patient_id.name"/></strong>
+                        </td>
+                        <td style="width:50%;border: none;">
+                            <strong>Date. : <span t-field="doc.date" /></strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:50%;border: none;">
+                            <strong>Physician: <span t-field="doc.sudo().physician_id.name" /></strong>
+                        </td>
+                        <td style="width:50%;border: none;">
+                            <strong>Department: <span t-field="doc.sudo().department_id.name" /></strong>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="table table-bordered">
+                    <tr>
+                        <td>
+                            <strong>Subject:</strong>
+                        </td>
+                        <td>Appointment <span t-raw="doc.purpose_id.name"/></td>
+                    </tr>
+                </table>
+
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><span t-raw="doc.notes"/></td>
+                    </tr>
+                </table>
+
+                Should you have any questions please contact us at your convenience.<br/>
+                <br/>
+                Best regards,<br/>
+                <div class="oe_structure"/>
+                <p style="page-break-before:always;"> </p>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_acs_appointment">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms.report_acs_appointment_document" t-lang="doc.patient_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_appointment_report" model="ir.actions.report">
+        <field name="name">Appointment</field>
+        <field name="model">hms.appointment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms.report_acs_appointment</field>
+        <field name="report_file">acs_hms.report_acs_appointment</field>
+        <field name="print_report_name">(object.name or 'Appointment').replace('/','_')</field>
+        <field name="binding_model_id" ref="model_hms_appointment"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

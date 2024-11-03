@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_layout" name="Portal layout:team performance menu entry" inherit_id="portal.portal_breadcrumbs" priority="44">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'teamperformance' or teamperformance" t-attf-class="breadcrumb-item #{'active ' if not teamperformance else ''}">
+                <a t-if="teamperformance" t-attf-href="/team/performance?{{ keep_query() }}">Team Performance Evaluation</a>
+                <t t-else="">Team Performance Evaluation</t>
+            </li>
+            <!--<li t-if="performance" class="breadcrumb-item active">
+                <t t-esc="performance.name"/>
+            </li>-->
+            <li t-if="teamperformance" class="breadcrumb-item active">
+                <t t-esc="teamperformance.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_my_home" name="Portal My Home: performance entries" inherit_id="portal.portal_my_home" priority="100">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Appraisals</t>
+                <t t-set="url" t-value="'/my/performance'"/>
+                <!--<t t-set="count" t-value="performance_count"/>-->
+                <t t-set="placeholder_count" t-value="'performance_count'"/>
+            </t>
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Team Appraisals</t>
+                <t t-set="url" t-value="'/team/performance'"/>
+                <!--<t t-set="count" t-value="teamperformance_count"/>-->
+                <t t-set="placeholder_count" t-value="'teamperformance_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="portal_team_performances" name="Team performances">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Team Appraisals</t>
+            </t>
+            <t t-if="not performances">
+                <div class="alert alert-warning mt8" role="alert">
+                    There are no appraisals.
+                </div>
+            </t>
+            <table t-if="performances" t-call="portal.portal_table">
+                <thead>
+                    <tr class="active">
+                        <th>Title</th>
+                        <th>Employee</th>
+                        <th>Period</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">#</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="performances" t-as="performance">
+                        <td class="text-left">
+                            <a t-attf-href="/teamperformance/view/#{performance.id}?{{ keep_query() }}"><span t-field="performance.name"/></a>
+                        </td>
+                        <td class="text-left">
+                            <t t-esc="performance.employee_id.name"/>
+                        </td>
+                        <td class="text-left">
+                            <t t-esc="performance.date_range_id.name"/>
+                        </td>
+                        <td class="text-left">
+                            <t t-esc="performance.date_start" />
+                        </td>
+                        <td class="text-left">
+                            <t t-esc="performance.date_end" />
+                        </td>
+                        <td class="text-center">
+                            <t t-if="performance.state == 'sent_to_employee'"><span class="badge badge-pill badge-warning">Sent to Employee</span></t>
+                            <t t-if="performance.state == 'sent_to_manager'"><span class="badge badge-pill badge-info">Sent to Manager</span></t>
+                            <t t-if="performance.state == 'cancel'"><span class="badge badge-pill badge-danger">Cancel</span></t>
+                            <t t-if="performance.state == 'done'"><span class="badge badge-pill badge-info">Done</span></t>
+                        </td>
+                        <td class="text-left">
+                            <t t-if="performance.state == 'sent_to_manager'"><a t-attf-href="/teamperformance/editable/#{performance.id}?{{ keep_query() }}"><span>Edit</span></a></t>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </t>
+    </template>
+
+    <template id="edit_team_performance">
+        <t t-call="portal.portal_layout">
+            <div>
+               <form id="performance_registration_form" method="post" action="/teamperformance/edit" data-model_name="employee.performance" enctype="multipart/form-data" class="modal-content">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="performance_id" t-att-value="performance.id"/>
+                    <table class="table" style="width: 100%;">
+                        <thead>
+                            <tr align="center" bgcolor="#00A09D">
+                                <th colspan="8" align="center">Performance Evaluation</th>
+                            </tr>
+                            <tr style="bgcolor:#ffad99">
+                                <th>Name</th>
+                                <th>Period</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Deadline</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><t t-esc="performance.name"/></td>
+                                <td><t t-esc="performance.date_range_id.name"/></td>
+                                <td><t t-esc="performance.date_start"/></td>
+                                <td><t t-esc="performance.date_end"/></td>
+                                <td style="color: red;"><t t-esc="performance.deadline"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table" style="width: 100%;">
+                        <thead>
+                            <tr align="center" bgcolor="#00A09D">
+                                <th colspan="7" align="center">Key Performance Areas</th>
+                            </tr>
+                            <tr style="bgcolor:#ffad99">
+                                <th width="15%">Name</th>
+                                <th width="15%">Description</th>
+                                <th width="10%">Weightage</th>
+                                <th width="10%">Employee Rate</th>
+                                <th width="20%">Employee Remarks</th>
+                                <th width="10%">Final Rating</th>
+                                <th width="20%">Final Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="performance.key_performance_ids.sorted(lambda p: p.sequence)" t-as="perform">
+                                <t t-if="perform.display_type == 'line_section'"><tr><td colspan="7" align="center" style="background-color:#aeebe3"><t t-esc="perform.name"/></td></tr></t>
+                                <t t-else="">
+                                <td width="15%"><t t-esc="perform.name"/> </td>
+                                <td width="15%"><t t-esc="perform.description"/> </td>
+                                <td width="10%"><t t-esc="perform.weightage"/> </td>
+                                <td width="10%"><input type="text"  t-att-name="'%s_%d' % ('employee_rate',perform.id)" class="form-control" readonly="1" t-att-value="perform.employee_rate"/></td>
+                                <td width="20%"><textarea style="margin-top: 0px; margin-bottom: 0px; height: 36px;" class="form-control" readonly="1" t-att-value="perform.employee_remark"  t-att-name="'%s_%d' % ('employee_remark',perform.id)"><t t-if="perform.employee_remark" t-esc="perform.employee_remark or None"/></textarea></td>
+                                <td width="10%"><input class="form-control" type="text"  t-att-name="'%s_%d' % ('manager_rate',perform.id)" t-att-value="perform.manager_rate"/></td>
+                                <td width="20%"><textarea style="margin-top: 0px; margin-bottom: 0px; height: 36px;" class="form-control" t-att-value="perform.manager_remark" t-att-name="'%s_%d' % ('manager_remark',perform.id)"><t t-if="perform.manager_remark" t-esc="perform.manager_remark or None"/></textarea></td></t>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table" style="width: 100%;">
+                        <thead>
+                            <tr align="center" bgcolor="#00A09D">
+                                <th colspan="8" align="center">Competencies</th>
+                            </tr>
+                            <tr style="bgcolor:#ffad99">
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Score</th>
+                                <th>Comments</th>
+                                <!--<t t-if="performance.deadline_end == False"><th>Your Price</th></t>-->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="performance.competencies_ids.sorted(lambda c: c.sequence)" t-as="competence">
+                                <t t-if="competence.display_type == 'line_section'"><tr><td colspan="4" align="center" style="background-color:#aeebe3"><t t-esc="competence.name"/></td></tr></t>
+                                <t t-else="">
+                                <tr><td><t t-esc="competence.name"/></td>
+                                <td><t t-esc="competence.description"/></td>
+                                <td><input class="form-control" type="text"  t-att-name="'%s_%d' % ('competencies_rate',competence.id)" t-att-value="competence.score"/></td>
+                                <td><textarea style="margin-right: 262px;" class="form-control" t-att-name="'%s_%d' % ('competencies_comment',competence.id)" t-att-value="competence.comment"><t t-if="competence.comment" t-esc="competence.comment or None"/></textarea></td></tr></t>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <footer class="modal-footer">
+                        <div class="float-left">
+                            <button type="submit" class="btn btn-success">Submit</button>
+                        </div>
+                    </footer>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <template id="view_team_performance">
+        <t t-call="portal.portal_layout">
+            <div>
+               <form id="performance_registration_form" method="post" action="/teamperformance/edit" data-model_name="employee.performance" enctype="multipart/form-data" class="modal-content">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <input type="hidden" name="performance_id" t-att-value="performance.id"/>
+                    <table class="table" style="width: 100%;">
+                        <thead>
+                            <tr align="center" bgcolor="#00A09D">
+                                <th colspan="8" align="center">Performance Evaluation</th>
+                            </tr>
+                            <tr style="bgcolor:#ffad99">
+                                <th>Name</th>
+                                <th>Period</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Deadline</th>
+                                <!--<t t-if="performance.deadline_end == False"><th>Your Price</th></t>-->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><t t-esc="performance.name"/></td>
+                                <td><t t-esc="performance.date_range_id.name"/></td>
+                                <td><t t-esc="performance.date_start"/></td>
+                                <td><t t-esc="performance.date_end"/></td>
+                                <td style="color: red;"><t t-esc="performance.deadline"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table" style="width: 100%;">
+                        <thead>
+                            <tr align="center" bgcolor="#00A09D">
+                                <th colspan="7" align="center">Key Performance Areas</th>
+                            </tr>
+                            <tr style="bgcolor:#ffad99">
+                                <th width="15%">Name</th>
+                                <th width="15%">Description</th>
+                                <th width="10%">Weightage</th>
+                                <th width="10%">Employee Rate</th>
+                                <th width="20%">Employee Remarks</th>
+                                <th width="10%">Final Rating</th>
+                                <th width="20%">Final Comments</th>
+                                <!--<t t-if="performance.deadline_end == False"><th>Your Price</th></t>-->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="performance.key_performance_ids.sorted(lambda p: p.sequence)" t-as="perform">
+                                <t t-if="perform.display_type == 'line_section'"><tr><td colspan="7" align="center" style="background-color:#aeebe3"><t t-esc="perform.name"/></td></tr></t>
+                                <t t-if="perform.display_type != 'line_section'">
+                                <td width="15%"><t t-esc="perform.name"/> </td>
+                                <td width="15%"><t t-esc="perform.description"/> </td>
+                                <td width="10%"><t t-esc="perform.weightage"/> </td>
+                                <td width="10%"><t t-esc="perform.employee_rate"/> </td>
+                                <td width="20%"><t t-esc="perform.employee_remark"/> </td>
+                                <td width="10%"><t t-esc="perform.manager_rate"/> </td>
+                                <td width="20%"><t t-esc="perform.manager_remark"/> </td></t>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table" style="width: 100%;">
+                        <thead>
+                            <tr align="center" bgcolor="#00A09D">
+                                <th colspan="8" align="center">Competencies</th>
+                            </tr>
+                            <tr style="bgcolor:#ffad99">
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Score</th>
+                                <th>Comments</th>
+                                <!--<t t-if="performance.deadline_end == False"><th>Your Price</th></t>-->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="performance.competencies_ids.sorted(lambda c: c.sequence)" t-as="competence">
+                                <t t-if="competence.display_type == 'line_section'"><tr><td colspan="4" align="center" style="background-color:#aeebe3"><t t-esc="competence.name"/></td></tr></t>
+                                <t t-if="competence.display_type != 'line_section'">
+                                <tr><td><t t-esc="competence.name"/></td>
+                                    <td><t t-esc="competence.description"/></td>
+                                    <td><t t-esc="competence.score"/></td>
+                                    <td><t t-esc="competence.comment"/></td></tr>
+                                </t>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </t>
+    </template>
+    
+</odoo>

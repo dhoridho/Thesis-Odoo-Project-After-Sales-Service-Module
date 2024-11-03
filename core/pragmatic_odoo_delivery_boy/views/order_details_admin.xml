@@ -1,0 +1,273 @@
+<odoo>
+    <data>
+        <template id="order-view-driver" name="Sale Order">
+            <div id="spinner"/>
+            <t t-call="website.layout">
+                <div class="oe_structure">
+                    <div class="container">
+                        <div class="viewjoblist_mainsection">
+                            <h5 class="background">
+                                <span t-field="order.name"/>
+                            </h5>
+<!--                            <t t-if="order.delivery_state == 'assigned' and picking_order.state == 'accept'">-->
+<!--                                <div class="row">-->
+<!--                                    <div class="col-md-8"></div>-->
+<!--                                    <div class="col-md-4">-->
+<!--                                        <input type="button" style="background-color:#000;color:#fff;width:150px;-->
+<!--    height:40px; font-weight: bold;" class="joblist_buttons joblist_pay_now" id="pay_now_button" value="PAY NOW"/>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </t>-->
+                            <div class="row">
+                                <div class="col-md-7">
+
+                                    <div class="joblist_tablecoloumn">
+                                        <div class="form-group field-name sizealign">
+                                            <div>
+                                                <input class="form-control" id="order_number" type="hidden"
+                                                       name="order_number"
+                                                       t-att-value="order.name" t-att-data-order_id="order.id"/>
+
+                                                <input class="form-control" id="picking_order_number" type="hidden"
+                                                       name="picking_order_number"
+                                                       t-att-value="picking_order.id" t-att-data-order_id="picking_order.id"/>
+                                            </div>
+
+                                            <div class="joblist_left">
+                                                <label class="control-label">Customer Name</label>
+                                                <input class="form-control" type="text" name="customer_name"
+                                                       t-att-value="order.partner_id.name" readonly="readonly"/>
+                                            </div>
+
+                                            <div class="joblist_right">
+                                                <label class="control-label">Order Source</label>
+                                                <input class="form-control" type="text" name="order_source"
+                                                       value="Web" readonly="readonly"/>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="form-group field-name sizealign">
+                                            <div class="joblist_left">
+                                                <label class="control-label">Customer Phone</label>
+                                                <div class="input-group mb-3">
+                                                    <input class="form-control" type="text" name="customer_phone" id="customer_phone"
+                                                       t-att-value="order.partner_id.phone"/>
+                                                    <div class="input-group-append">
+                                                        <button class="btn btn-dark joblist_call_customer" type="button">Call</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="joblist_right">
+                                                <label class="control-label">Payment Status</label>
+                                                <input class="form-control" type="text" name="payment_status"
+                                                       t-att-value="picking_order_payment_status" readonly="readonly"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group field-name sizealign">
+                                            <div class="joblist_right">
+                                                <label class="control-label">Customer Address</label>
+                                                    <div class="address_col" t-field="order.partner_id"
+                                                        t-options='{"widget": "contact", "fields": ["address"], "no_marker": True, "phone_icons": True}'/>
+                                                </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="col-md-5">
+                                        <div class="form-group field-name sizealign joblist_tablecoloumn">
+                                            <div>
+                                                <label class="control-label">Order Details</label>
+                                                <div class="address_col">
+                                                    <table class="table table-condensed">
+
+                                                        <thead>
+                                                            <tr>
+                                                                <th width="80%">Product Name</th>
+                                                                <th width="20%" class="text-right">Qty</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="sale_tbody">
+                                                            <t t-foreach="order.order_line" t-as="lines">
+                                                                <tr>
+                                                                    <td>
+                                                                        <span t-field="lines.name"/>
+                                                                    </td>
+                                                                    <td class="text-right">
+                                                                        <span t-field="lines.product_uom_qty"/>
+                                                                    </td>
+                                                                </tr>
+                                                            </t>
+                                                        </tbody>
+                                                        <tfooter>
+                                                                <tr>
+                                                                    <td>
+                                                                        <span>Total</span>
+                                                                    </td>
+                                                                    <td class="text-right">
+                                                                        <span t-field="order.amount_total"/>
+                                                                    </td>
+                                                                </tr>
+                                                        </tfooter>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="viewjoblist_button">
+                                        <t t-if="picking_order.state == 'assigned'">
+                                            <div class="col-sm-2">
+                                                <button class="joblist_buttons joblist_accept_order">Accept Order
+                                                </button>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <a style="float:left;" href="#select_driver" data-toggle="modal"
+                                                   data-target="#driver_deny_order" data-oe-model="ir.ui.view"
+                                                   data-oe-id="1164" data-oe-field="arch"
+                                                   data-oe-xpath="/t[1]/t[1]/div[1]/div[1]/div[1]/div[2]/div[1]/div[2]/div[5]/div[2]/a[1]"
+                                                   class="joblist_buttons back_and_issue"
+                                                   data-order-steps="delivered">
+                                                    Deny Order
+                                                </a>
+                                            </div>
+                                        </t>
+                                        
+                                        <t t-if="picking_order.state == 'accept' or picking_order.state == 'paid'">
+                                            <t t-if="picking_order_payment_status == 'Paid' or picking_order.acquirer_type == 'bank'">
+
+<!--                                            <t t-if="picking_order_payment_status == 'Paid' and picking_order.acquirer_type != 'cash'">-->
+                                                <div>
+                                                    <input class="joblist_buttons joblist_delivered_order"
+                                                           t-att-data-order_id="order.id" id="delivered_button"
+                                                           type="button" value="Order Delivered">
+                                                    </input>
+                                                </div>  
+                                            </t>
+<!--                                            <div>-->
+<!--                                                <button class="joblist_buttons joblist_cancel_order_driver"-->
+<!--                                                        t-att-data-order_id="order.id">Cancel Order-->
+<!--                                                </button>-->
+<!--                                            </div>-->
+
+                                            <t t-if="picking_order.state in ['picked'] and picking_order_payment_status != 'Paid' and picking_order.acquirer_type == 'cash'">
+                                                        <input type="button" style="background-color:#000;color:#fff;width:150px;
+                                                        height:40px; font-weight: bold;" class="text-center joblist_buttons joblist_pay_now" id="pay_now_button">Receive Payment</input>
+                                            </t>
+
+                                                <div t-if="picking_order.state == 'accept'">
+                                                    <button class="joblist_buttons joblist_picked_order">Picked
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <p style="text-align:center;">
+                                                        <a style="float:left;" href="/page/job/list/driver"
+                                                           class="joblist_buttons back_and_issue">
+                                                            Back
+                                                        </a>
+                                                    </p>
+                                                </div>
+
+                                            <div>
+                                                <p style="text-align:center;">
+                                                    <a style="float:left;" href="#select_driver" data-toggle="modal"
+                                                       data-target="#driver_issue" data-oe-model="ir.ui.view"
+                                                       data-oe-id="1164" data-oe-field="arch"
+                                                       data-oe-xpath="/t[1]/t[1]/div[1]/div[1]/div[1]/div[2]/div[1]/div[2]/div[5]/div[2]/a[1]"
+                                                       class="joblist_buttons back_and_issue"
+                                                       data-order-steps="delivered">
+                                                        Issue
+                                                    </a>
+                                                </p>
+                                            </div>
+
+
+<!--                                            <div>-->
+<!--                                                <button class="joblist_buttons joblist_call_customer"-->
+<!--                                                        style="width: 120px;">-->
+<!--                                                    Call Customer-->
+<!--                                                </button>-->
+
+<!--                                            </div>-->
+                                        </t>
+
+
+                                        <div class="choose_driversection">
+                                            <div id="driver_issue" class="modal fade" tabindex="-1"
+                                                 role="dialog" aria-labelledby="label" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div id="loading-indicator" style="display:none"/>
+                                                        <div class="choose_driverpopup">
+                                                            <div class="modal-header">
+                                                                <button type="button" class="close" data-dismiss="modal"
+                                                                        aria-hidden="true"></button>
+                                                                <img
+                                                                        src="/pragmatic_delivery_control_app/static/src/img/driver_pop.png"
+                                                                        alt=""/>
+                                                                <h3 class="modal-title" id="label">Please enter
+                                                                    message
+                                                                </h3>
+                                                            </div>
+                                                            <div class="modal-body driver-list">
+                                                                <textarea name="message_driver" id="message_driver"
+                                                                          style="height: 104px; width: 604px; padding-left: 2px;">Customer Not Available</textarea>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn cancelbtn"
+                                                                        data-dismiss="modal">Cancel
+                                                                </button>
+                                                                <button type="button"
+                                                                        class="btn cancelbtn confirm_driver" data-dismiss="modal">Ok
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div id="driver_deny_order" class="modal fade" tabindex="-1"
+                                                 role="dialog" aria-labelledby="label" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div id="loading-indicator" style="display:none"/>
+                                                        <div class="choose_driverpopup">
+                                                            <div class="modal-header">
+                                                                <button type="button" class="close" data-dismiss="modal"
+                                                                        aria-hidden="true"></button>
+                                                                <img src="/pragmatic_delivery_control_app/static/src/img/driver_pop.png" alt=""/>
+                                                                <h3 class="modal-title" id="label">
+                                                                    Please Enter Reject Reason
+                                                                </h3>
+                                                            </div>
+                                                            <div class="modal-body driver-list">
+                                                                <textarea name="reject_reason" id="reject_reason" style="height: 104px; width: 604px; padding-left: 2px;" required='1'/>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn cancelbtn"
+                                                                        data-dismiss="modal">Cancel
+                                                                </button>
+                                                                <button type="button"
+                                                                        class="btn cancelbtn joblist_deny_order" data-dismiss="modal">Ok
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>

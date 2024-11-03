@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+ 
+    <template id="journal_entry_report">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">                
+                <t t-foreach="report_lines" t-as="o">
+                    <div class="page" style="font-size:15px;">
+                        <div>
+                            <h3>
+                                <t t-esc="o['name']"/>
+                            </h3>
+                        </div>
+                        <br></br>
+                        <div class="row">
+                            <table width="100%" class="table-bordered">
+                                <tr>
+                                    <td>Journal:
+                                        <span t-esc="o['journal_id'][1]"/>
+                                    </td>
+                                    <td>
+                                        Date:
+                                        <span t-esc="o['date']" t-options="{'widget': 'date'}"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Partner:
+                                        <t t-if="o['partner_id']">
+                                            <span t-esc="o['partner_id'][1]"/>
+                                        </t>
+                                    </td>
+                                    <td>
+                                        Reference:
+                                        <span t-esc="o['ref']"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="row">
+                        <br></br>
+                        <table width="100%" class="table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Date</th>
+                                    <th>Partner</th>
+                                    <th>Label</th>
+                                    <th>Analytic Account</th>
+                                    <th>Debit</th>
+                                    <th>Credit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="total_credit" t-value="0"/>
+                                <t t-set="total_debit" t-value="0"/>
+                                <t t-foreach="o['move_lines']" t-as="line">
+                                    <tr>
+                                        <td>
+                                            <span t-esc="line['account_id'][1]"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="line['date']" t-options="{'widget': 'date'}"/>
+                                        </td>
+                                        <td>
+                                            <t t-if="line['partner_id']">
+                                                <span t-esc="line['partner_id'][1]"/>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <span t-esc="line['name']"/>
+                                        </td>
+                                        <td>
+                                            <t t-if="line['analytic_account_id']">
+                                                <span t-esc="line['analytic_account_id'][1]"/>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <span t-esc="line['debit']"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="line['credit']"/>
+                                        </td>
+                                        <t t-set="total_credit" t-value="total_credit + line['credit']"/>
+                                        <t t-set="total_debit" t-value="total_debit + line['debit']"/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfooter>
+                                <tr>
+                                    <td colspan="5"></td>
+                                    <td>
+                                        <span t-esc="total_debit"/>
+                                    </td>
+                                    <td>
+                                        <span t-esc="total_credit"/>
+                                    </td>
+                                </tr>
+                            </tfooter>
+                        </table>
+                    </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_print_je_report" model="ir.actions.report">
+            <field name="name">Journal Entry Report</field>
+            <field name="model">journal.entry.report</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">equip3_accounting_reports.journal_entry_report</field>
+            <field name="report_file">equip3_accounting_reports.journal_entry_report</field>
+    </record>
+
+
+    <template id="accounting_pdf_reports.report_journal_entries">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <t t-foreach="move" t-as="o">
+                    <div class="page" style="font-size:15px;">
+                        <div>
+                            <h3>
+                                <span t-esc="o['name']"/>
+                            </h3>
+                        </div>
+                        <br></br>
+                        <div class="row">
+                            <table width="100%" class="table-bordered">
+
+                                <tr>
+                                    <td>Journal:
+                                        <span t-esc="o['journal']"/>
+                                    </td>
+                                    <td>
+                                        Date:
+                                        <span t-esc="o['date']" t-options="{'widget': 'date'}"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Partner:
+                                        <span t-esc="o['partner']"/>
+                                    </td>
+                                    <td>
+                                        Reference:
+                                        <span t-esc="o['reference']"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="row">
+                            <br></br>
+                            <table width="100%" class="table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Account</th>
+                                        <th>Date</th>
+                                        <th>Partner</th>
+                                        <th>Label</th>
+                                        <th>Analytic Account</th>
+                                        <th>Debit</th>
+                                        <th>Credit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="total_credit" t-value="0"/>
+                                    <t t-set="total_debit" t-value="0"/>
+                                    <t t-foreach="o['line_ids']" t-as="line">
+                                        <tr>
+                                            <td>
+                                                <span t-esc="line['account']"/>
+                                            </td>
+                                            <td>
+                                                <span t-esc="line['date']" t-options="{'widget': 'date'}"/>
+                                            </td>
+                                            <td>
+                                                <span t-esc="line['partner']"/>
+                                            </td>
+                                            <td>
+                                                <span t-esc="line['label']"/>
+                                            </td>
+                                            <td>
+                                                <span t-esc="line['analytic_account']"/>
+                                            </td>
+                                            <td>
+                                                <span t-esc="line['debit']" t-options="{'widget': 'monetary', 'display_currency': line['currency_id']}"/>
+                                            </td>
+                                            <td>
+                                                <span t-esc="line['credit']" t-options="{'widget': 'monetary', 'display_currency': line['currency_id']}"/>
+                                            </td>
+                                            <t t-set="total_credit" t-value="total_credit + line['credit']"/>
+                                            <t t-set="total_debit" t-value="total_debit + line['debit']"/>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfooter>
+                                    <tr>
+                                        <td colspan="5"></td>
+                                        <td>
+                                            <span t-esc="total_debit" t-options="{'widget': 'monetary', 'display_currency': o['currency_id']}"/>
+                                        </td>
+                                        <td>
+                                            <span t-esc="total_credit" t-options="{'widget': 'monetary', 'display_currency': o['currency_id']}"/>
+                                        </td>
+                                    </tr>
+                                </tfooter>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

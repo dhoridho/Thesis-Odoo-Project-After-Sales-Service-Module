@@ -1,0 +1,314 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="view_hr_working_schedule_exchange_tree_manager" model="ir.ui.view">
+        <field name="name">schedule.exchange.tree.manager</field>
+        <field name="model">schedule.exchange</field>
+        <field name="arch" type="xml">
+            <tree string="Working Schedule Exchange" create="0" edit="0" delete="0">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="state" decoration-success="state == 'approved'" 
+                       decoration-danger="state == 'refused'" 
+                       decoration-primary="state == 'draft'"
+                       decoration-warning="state == 'to_approve'"
+                       widget='badge'/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hr_working_schedule_exchange_form_manager" model="ir.ui.view">
+        <field name="name">schedule.exchange.form.manager</field>
+        <field name="model">schedule.exchange</field>
+        <field name="arch" type="xml">
+            <form string="Working Schedule Exchange" create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" states="draft" class="oe_highlight"/>
+                    <button name="wizard_approve" string="Approve" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_approver', '=', False), ('state', '!=', 'to_approve')]}"/>
+                    <button name="wizard_refuse" string="Refuse" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_approver', '=', False), ('state', '!=', 'to_approve')]}"/>
+                    <field name="state"  widget="statusbar" attrs="{'invisible':[('is_schedule_exchange_approval_matrix','=',False)]}"/>
+                    <!--is_schedule_exchange_approval_matrix== True condition-->
+                    <field name="state1" widget="statusbar" statusbar_visible="draft,approved" attrs="{'invisible':[('is_schedule_exchange_approval_matrix','!=',False)]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title" name="title">
+                        <h2>
+                            <field name="name" nolabel="1" readonly="1"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id" readonly="1"/>
+                            <field name="department_id"/>
+                            <field name="exchange_type" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <label for="date_from" string="Period"/>
+                            <div class="o_row">
+                                <span class="oe_inline">
+                                    From
+                                </span>
+                                <field name="date_from" class="oe_inline" nolabel="1"
+                                       attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <span class="oe_inline">
+                                    To
+                                </span>
+                                <field name="date_to" class="oe_inline"
+                                       attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            </div>
+                            <field name="other_employee_id"
+                                   attrs="{'invisible': [('exchange_type', '!=', 'other')],'required': [('exchange_type', '=', 'other')]}"/>
+                            <field name="is_approver" invisible="1"/>
+
+                            <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                            <field name="is_approver" invisible="1"/>
+                            <field name="approved_user_text" invisible="1"/>
+                            <field name="approved_user" invisible="1" readonly="0"/>
+                            <field name="job_id" invisible="1"/>
+                            <field name="department_id" invisible="1"/>
+                            <field name="feedback_parent" invisible="1"/>
+                            <field name="is_schedule_exchange_approval_matrix" invisible="1"/>
+                        </group>
+                    </group>
+
+
+
+                    <notebook>
+                        <page string="Schedule Exchange">
+                            <group>
+                                <group string="Current Schedule">
+                                    <field name="schedule_calendar_ids" widget="one2many_list" nolabel="1"
+                                   attrs="{'readonly': [('state', '!=', 'draft')]}"
+                                   context="{'tree_view_ref' : 'equip3_hr_attendance_extend.customised_view_employee_working_schedule_summary_tree'}">
+                                <tree>
+                                    <field name="employee_id" readonly="1" force_save="1"/>
+                                    <field name="checkin" readonly="1" force_save="1" string="Start Date"/>
+                                    <field name="checkout" readonly="1" force_save="1" string="End Date"/>
+                                </tree>
+                            </field>
+                                </group>
+                                <group string="Exchange Schedule">
+                                    <field name="exchange_schedule_ids" widget="one2many_list" nolabel="1"
+                                   attrs="{'readonly': [('state', '!=', 'draft')]}"
+                                   context="{'tree_view_ref' : 'equip3_hr_attendance_extend.customised_view_employee_working_schedule_summary_tree'}">
+                                <tree>
+                                    <field name="employee_id" readonly="1" force_save="1"/>
+                                    <field name="checkin" readonly="1" force_save="1" string="Start Date"/>
+                                    <field name="checkout" readonly="1" force_save="1" string="End Date"/>
+                                </tree>
+                            </field>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Approval Matrix Lines" attrs="{'invisible':[('is_schedule_exchange_approval_matrix','=',False)]}">
+                            <field name="working_schedule_user_ids">
+                                <tree editable="bottom" create="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                    <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                    <field name="is_delegation_mail_sent" invisible="1"/>
+                                    <field name="minimum_approver" readonly="1" force_save="1"/>
+                                    <field name="timestamp" invisible="1" force_save="1"/>
+                                    <field name="approver_state" invisible="1" force_save="1"/>
+                                    <field name="approval_status" readonly="1" force_save="1"/>
+                                    <field name="approved_time" readonly="1" force_save="1"/>
+                                    <field name="is_approve" invisible="1"/>
+                                    <field name="approved_employee_ids" invisible="1"/>
+                                    <field name="feedback" readonly="1" force_save="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_working_schedule_exchange_tree" model="ir.ui.view">
+        <field name="name">schedule.exchange.tree</field>
+        <field name="model">schedule.exchange</field>
+        <field name="arch" type="xml">
+            <tree string="Working Schedule Exchange">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="state" decoration-success="state == 'approved'" 
+                       decoration-danger="state == 'refused'" 
+                       decoration-primary="state == 'draft'"
+                       decoration-warning="state == 'to_approve'"
+                       widget='badge'/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hr_working_schedule_exchange_form" model="ir.ui.view">
+        <field name="name">schedule.exchange.form</field>
+        <field name="model">schedule.exchange</field>
+        <field name="arch" type="xml">
+            <form string="Working Schedule Exchange">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <field name="state"  widget="statusbar" attrs="{'invisible':[('is_schedule_exchange_approval_matrix','=',False)]}"/>
+                    <!--is_schedule_exchange_approval_matrix== True condition-->
+                    <field name="state1" widget="statusbar" statusbar_visible="draft,approved" attrs="{'invisible':[('is_schedule_exchange_approval_matrix','!=',False)]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title" name="title">
+                        <h2>
+                            <field name="name" nolabel="1" readonly="1"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id" readonly="1"/>
+                            <field name="department_id"/>
+                            <field name="exchange_type" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <label for="date_from" string="Period"/>
+                            <div class="o_row">
+                                <span class="oe_inline">
+                                    From
+                                </span>
+                                <field name="date_from" class="oe_inline" nolabel="1"
+                                       attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <span class="oe_inline">
+                                    To
+                                </span>
+                                <field name="date_to" class="oe_inline"
+                                       attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            </div>
+                            <field name="other_employee_id"
+                                   attrs="{'invisible': [('exchange_type', '!=', 'other')],
+                                   'required': [('exchange_type', '=', 'other')],
+                                   'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                            <field name="is_approver" invisible="1"/>
+                            <field name="approved_user_text" invisible="1"/>
+                            <field name="approved_user" invisible="1" readonly="0"/>
+                            <field name="job_id" invisible="1"/>
+                            <field name="department_id" invisible="1"/>
+                            <field name="feedback_parent" invisible="1"/>
+                            <field name="is_schedule_exchange_approval_matrix" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Schedule Exchange">
+                            <group>
+                                <group string="Current Schedule">
+                                    <field name="schedule_calendar_ids" widget="one2many_list" nolabel="1"
+                                           attrs="{'readonly': [('state', '!=', 'draft')]}" options="{'no_create': True}">
+                                        <tree>
+                                            <field name="employee_id" readonly="1" force_save="1"/>
+                                            <field name="checkin" readonly="1" force_save="1" string="Start Date"/>
+                                            <field name="checkout" readonly="1" force_save="1" string="End Date"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                                <group string="Exchange Schedule">
+                                    <field name="exchange_schedule_ids" widget="one2many_list" nolabel="1"
+                                           attrs="{'readonly': [('state', '!=', 'draft')]}" options="{'no_create': True}">
+                                        <tree>
+                                            <field name="employee_id" readonly="1" force_save="1"/>
+                                            <field name="checkin" readonly="1" force_save="1" string="Start Date"/>
+                                            <field name="checkout" readonly="1" force_save="1" string="End Date"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Approval Matrix Lines" attrs="{'invisible':[('is_schedule_exchange_approval_matrix','=',False)]}">
+                            <field name="working_schedule_user_ids">
+                                <tree editable="bottom" create="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                    <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                    <field name="is_delegation_mail_sent" invisible="1"/>
+                                    <field name="minimum_approver" readonly="1" force_save="1"/>
+                                    <field name="timestamp" invisible="1" force_save="1"/>
+                                    <field name="approver_state" invisible="1" force_save="1"/>
+                                    <field name="approval_status" readonly="1" force_save="1"/>
+                                    <field name="approved_time" readonly="1" force_save="1"/>
+                                    <field name="is_approve" invisible="1"/>
+                                    <field name="approved_employee_ids" invisible="1"/>
+                                    <field name="feedback" readonly="1" force_save="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="working_schedule_exchange_action" model="ir.actions.act_window">
+        <field name="name">Working Schedule Exchange</field>
+        <field name="res_model">schedule.exchange</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree','view_id':ref('view_hr_working_schedule_exchange_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_hr_working_schedule_exchange_form')})]"/>
+        <field name="domain">[('employee_id.user_id', '=', uid)]</field>
+    </record>
+
+
+    <record id="working_schedule_exchange_custom_action" model="ir.actions.server">
+        <field name="name">Working Schedule Exchange</field>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <field name="model_id" ref="equip3_hr_attendance_extend.model_schedule_exchange"/>
+        <field name="code">action = model.custom_menu()</field>
+       
+    </record>
+
+
+    <record id="working_schedule_exchange_action_manager" model="ir.actions.act_window">
+        <field name="name">Working Schedule Exchange to Approve</field>
+        <field name="res_model">schedule.exchange</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree','view_id':ref('view_hr_working_schedule_exchange_tree_manager')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_hr_working_schedule_exchange_form_manager')})]"/>
+        <field name="domain">[('state', '=', 'to_approve')]</field>
+    </record>
+
+    <menuitem id="working_schedule_exchange_menu" name="Working Schedule Exchange"
+              parent="hr_attendance_change_menu_root"
+              sequence="3" action="working_schedule_exchange_custom_action"/>
+
+    <menuitem id="working_schedule_exchange_manager_menu" name="Working Schedule Exchange to Approve"
+              parent="hr_attendance.menu_hr_attendance_manage_attendances"
+              sequence="99" action="working_schedule_exchange_action_manager"/>
+
+    <record id="customised_view_employee_working_schedule_summary_tree" model="ir.ui.view">
+        <field name="name">Custimized Employee Working Schedule Calendar Tree</field>
+        <field name="model">employee.working.schedule.calendar</field>
+        <field name="arch" type="xml">
+            <tree string="Working Schedule Calendar" create="false">
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="dayofweek"/>
+                <field name="checkin"/>
+                <field name="checkout"/>
+                <field name="working_hours"/>
+                <field name="is_holiday" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+</odoo>

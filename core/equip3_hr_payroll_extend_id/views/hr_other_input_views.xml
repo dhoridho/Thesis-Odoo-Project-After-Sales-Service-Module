@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="hr_other_inputs_form_view" model="ir.ui.view">
+            <field name="name">hr.other.inputs.form</field>
+            <field name="model">hr.other.inputs</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirm" />
+                        <button name="action_generate_entries" string="Generate Entries"  attrs="{'invisible':['|',('state','!=','confirm'),('input_type','=','manual_entries')]}" type="object" class="oe_highlight"/>
+                        <button name="to_confirm" string="Confirm"  attrs="{'invisible':[('is_hide_confirm','=',True)]}" type="object" class="oe_highlight"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" attrs="{'readonly':[('state','in',['confirm'])]}"/>
+                                <field name="code" attrs="{'readonly':[('state','in',['confirm'])]}"/>
+                                <field name="input_type" attrs="{'readonly':[('state','in',['confirm'])]}" class="oe_inline" widget="radio"/>
+                                <field name="model_id" attrs="{'invisible':[('input_type','=','manual_entries')],
+                                       'required':[('input_type','=','get_from_other_object')]}" options="{'no_open': True, 'no_create': True, 'no_create_edit': True}"/>
+                                <field name="calculate_type" attrs="{'invisible':[('input_type','=','manual_entries')],
+                                       'required':[('input_type','=','get_from_other_object')]}"/>
+                                <field name="record_field" attrs="{'invisible':['|',('input_type','=','manual_entries'),('calculate_type','=','count')],
+                                       'required':[('input_type','=','get_from_other_object'),('calculate_type','!=','count')]}" options="{'no_open': True, 'no_create': True, 'no_create_edit': True}"/>
+                                <field name="domain_filter" attrs="{'invisible':[('input_type','=','manual_entries')]}"/>
+                                <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                                <field name="is_hide_confirm" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" groups="base.group_user"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="hr_other_inputs_tree_view" model="ir.ui.view">
+            <field name="name">hr.other.inputs.tree</field>
+            <field name="model">hr.other.inputs</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="input_type"/>
+                    <field name="company_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="hr_other_inputs_search_view" model="ir.ui.view">
+            <field name="name">hr.other.inputs.search</field>
+            <field name="model">hr.other.inputs</field>
+            <field name="arch" type="xml">
+                <search >
+                    <field name="name"/>
+                    <field name="code"/>
+                    <group expand="1" string="Group By">
+                        <filter string="Draft" name="Draft" domain="[('state','=','draft')]"/>
+                        <filter string="Confirm" name="Cnfirm" domain="[('state','=','confirm')]" context="{}"/>
+                        <filter string="Status" name="status" domain="[]" context="{'group_by':'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="hr_other_inputs_act_window" model="ir.actions.act_window">
+            <field name="name">Other Inputs</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.other.inputs</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new Other Inputs.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Other Inputs" id="hr_other_inputs_menu" parent="hr_payroll_community.menu_hr_payroll_community_root" action="hr_other_inputs_act_window" groups="hr_payroll_community.group_hr_payroll_community_manager"
+                sequence="12"/>
+
+    </data>
+</odoo>

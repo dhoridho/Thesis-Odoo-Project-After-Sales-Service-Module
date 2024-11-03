@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="sh_po_form_for_pmps_adv" model="ir.ui.view">
+        <field name="name">sh.po.form.for.pmps.adv</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="equip3_purchase_other_operation.sh_po_form_for_pmps_adv"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="allowed_partner_ids" widget="many2many_tags" invisible="1"/>
+            </xpath>
+            <xpath expr="//page[@name='purchase_delivery_invoice']/group/group" position="inside">
+                <field name="is_a_subcontracting" readonly="1" string="Subcontracting"/>
+                <field name="subcon_production_id" invisible="1"/>
+                <field name="subcon_production_name" string="Manufacturing Order" attrs="{'invisible': [('is_a_subcontracting','!=', True)]}"/>
+
+                <label for="subcon_product_qty" string="To Subcontract" attrs="{'invisible': [('is_a_subcontracting','!=', True)]}"/>
+                <div class="o_row no-gutters d-flex" attrs="{'invisible': [('is_a_subcontracting','!=', True)]}">
+                    <div class="o_row">
+                        <field name="subcon_product_qty" class="text-left" readonly="1"/>
+                    </div>
+                    <label for="subcon_uom_id" string="" class="oe_inline"/>
+                    <field name="subcon_uom_id" options="{'no_open': True, 'no_create': True}" force_save="1" groups="uom.group_uom" class="oe_inline" readonly="1"/>
+                </div>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button type="object" name="action_view_subcon_transfer" class="oe_stat_button" icon="fa-truck" attrs="{'invisible': ['|', '|', ('is_a_subcontracting', '=', False), ('subcon_delivery_count', '=', 0), ('state', 'in', ('draft', 'sent'))]}" context="{'subcon_transfer': 'material'}">
+                    <field name="subcon_delivery_count" widget="statinfo" string="Delivery Orders"/>
+                </button>
+                <button type="object" name="action_view_subcon_transfer" class="oe_stat_button" icon="fa-truck" attrs="{'invisible': ['|', '|', ('is_a_subcontracting', '=', False), ('subcon_receipt_count', '=', 0), ('state', 'in', ('draft', 'sent'))]}" context="{'subcon_transfer': 'finished_goods'}">
+                    <field name="subcon_receipt_count" widget="statinfo" string="Receiving Notes"/>
+                </button>
+            </xpath>
+            <xpath expr="//button[@name='create_blanket_order']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('is_btn_approval_matrix', '=', False), '&amp;', ('is_a_subcontracting', '=', True), ('requisition_id', '!=', False)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

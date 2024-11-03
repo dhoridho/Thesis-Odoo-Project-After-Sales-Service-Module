@@ -1,0 +1,1405 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+
+		<template id="sales_order_templates_company_details">
+			<span style="text-transform:capitalize; padding:0px; margin:0; color: #51565b;">
+				<t t-if="o.company_id and o.company_id.is_company_bold">
+					<strong>
+						<span t-field="o.company_id.partner_id"/>
+					</strong>
+				</t>
+				<t t-if="not o.company_id.is_company_bold">
+					<span t-field="o.company_id.partner_id"/>
+				</t>
+			</span>
+			<div style="color: #51565b;">
+				<span t-esc="o._get_street(o.company_id.partner_id)"/>
+				<br/>
+				<span t-esc="o._get_address_details(o.company_id.partner_id)"/>
+				<br/>
+			</div>
+			<div style="color: #51565b;">
+				<t t-if="o.company_id.partner_id.mobile">
+					<strong>Mobile:</strong>
+					<span t-field="o.company_id.partner_id.mobile"/>
+					<br/>
+				</t>
+				<t t-if="o.company_id.partner_id.email">
+					<strong>Email:</strong>
+					<span t-field="o.company_id.partner_id.email"/>
+					<br/>
+				</t>
+				<!--  <t t-if="o.company_id.is_show_bank_details"><strong>Bank: </strong><span t-esc="o.company_id.report_bank_id.acc_number"/></t>-->
+			</div>
+		</template>
+
+		<template id="sale_order_template_footer">
+			<div class="footer" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'" t-if="o.company_id.report_footer_selection == 'standard'">
+				<div class="text-center" style="border-top: 1px solid black;">
+					<ul class="list-inline mb4">
+						<li t-if="company.phone">Phone: 
+							<span t-field="company.phone"/></li>
+						<li t-if="company.email">Email: 
+							<span t-field="company.email"/></li>
+						<li t-if="company.website">Web: 
+							<span t-field="company.website"/></li>
+						<li t-if="company.vat">
+							<t t-esc="company.country_id.vat_label or 'TIN'"/>: 
+							<span t-field="company.vat"/></li>
+					</ul>
+					<div name="financial_infos">
+						<span t-field="company.report_footer"/>
+					</div>
+					<div class="text-muted">Page: 
+						<span class="page"/>
+						/ 
+						<span class="topage"/></div>
+				</div>
+			</div>
+			<div class="footer" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'" t-if="o.company_id.report_footer_selection == 'multi_columns'">
+				<div class="row">
+					<div class="col-md-4 text-center" style="width:33%; display:inline-block; vertical-align: top;margin-top: 25px;height: 128px;">
+						<span t-field="o.company_id.name"/>
+						<br/>
+						<span t-esc="o._get_street(o.company_id.partner_id)"/>
+						<br/>
+						<span t-esc="o._get_address_details(o.company_id.partner_id)"/>
+					</div>
+					<div class="col-md-4 text-center" style="width:33%; display:inline-block; vertical-align: top;margin-top: 40px;height: 128px;">
+						<span t-field="o.company_id.phone"/>
+						<br/>
+						<span t-field="o.company_id.website"/>
+						<br/>
+						<span t-field="o.company_id.email"/>
+						<br/>
+						<!-- Put social in one line
+						<icon>Website name + <icon>twitter + <icon>googleplus
+						-->
+					</div>
+					<div class="col-md-4 text-center" style="width:33%; margin-bottom:20px; display: inline-block; vertical-align: top;">
+						<img style='max-height: 110px;max-width:100%;' t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo_footer)"/>
+					</div>
+				</div>
+			</div>
+		</template>
+
+		<template id="sale_order_templates_customer_details">
+			<!-- <td align="left" style="padding:15px 0px 0px 15px; width:50%; line-height:18px;" valign="top">-->
+			<!-- <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold; margin:0; margin-bottom:5px; padding:10px 0px 0px 0px; border-top:1px solid #ececec;">
+				<strong t-if="o.partner_shipping_id == o.partner_invoice_id">Invoicing and shipping address:</strong>
+				<strong t-if="o.partner_shipping_id != o.partner_invoice_id">Invoicing address:</strong>
+			</p> -->
+			<t t-if="o.partner_id">
+				<span t-attf-style="text-transform:capitalize; padding:0px; margin:0; color: #51565b;">
+					<t t-if="o.company_id and o.company_id.is_customer_bold">
+						<strong>
+							<span t-field="o.partner_id"/>
+						</strong>
+					</t>
+					<t t-if="not o.company_id.is_customer_bold">
+						<span t-field="o.partner_id"/>
+					</t>
+				</span>
+				<p t-attf-style="color: #51565b;">
+					<span t-esc="o._get_street(o.partner_id)"/>
+					<br/>
+					<span t-esc="o._get_address_details(o.partner_id)"/>
+					<br/>
+					<t t-if="o.partner_id.mobile">
+						<strong>Mobile: </strong>
+						<span t-field="o.partner_id.mobile"/>
+						<br/>
+					</t>
+					<t t-if="o.partner_id.email">
+						<strong>Email: </strong>
+						<span t-field="o.partner_id.email"/>
+						<br/>
+					</t>
+					<t t-if="o.partner_id.vat">
+						<strong>Vat: </strong>
+						<span t-field="o.partner_id.vat"/>
+					</t>
+				</p>
+			</t>
+			<!-- </td><td align="left" style="padding:15px 0px 0px 15px; width:50%; line-height:18px;" valign="top">-->
+
+		</template>
+
+
+		<template id="sale_order_print_out_doc_report_external_layout">
+			<!-- Multicompany -->
+			<t t-if="o and 'company_id' in o">
+				<t t-set="company" t-value="o.company_id"/>
+			</t>
+			<t t-if="not o or not 'company_id' in o">
+				<t t-set="company" t-value="res_company"/>
+			</t>
+			<t t-call="equip3_construction_sales_operation.sale_order_doc_report_header"/>
+			<div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+                <t t-raw="0"/>
+			</div>
+			<t t-call="equip3_construction_sales_operation.sale_order_template_footer"/>
+		</template>
+
+		<template id="sale_order_doc_report_header">
+			<div class="header" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+				<table border="0" cellpadding="0" cellspacing="0" width="100%">
+					<tbody>
+						<tr>
+							<td>
+								<center>
+									<table border="0" cellpadding="0" cellspacing="0" style="padding:0px 20px 0px 20px; margin:0; background:#fff;" width="100%">
+										<tr>
+											<td align="left" colspan="2" t-attf-style="color:#{text_color or '#ffffff'}; padding:0 0px;" valign="top">
+												<table border="0" cellpadding="0" cellspacing="0" style="line-height: 15px;" width="100%">
+													<tr>
+														<td align="left" style="color:#4D4D4F; padding:0px 15px; border-right: 1px solid #D4D1D1; width:10%;" valign="top">
+															<img style="max-height:50px; vertical-align: top; float:none;" t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo)"/>
+														</td>
+														<td style="padding:15px 0px 0px 15px; width:30%" valign="top">
+															<p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Company</p>
+															<t t-call="equip3_construction_sales_operation.sales_order_templates_company_details"/>
+														</td>
+														<td align="left" style="width:30%; padding:15px 0px 0px 15px;" valign="top">
+															<p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Customer</p>
+															<t t-call="equip3_construction_sales_operation.sale_order_templates_customer_details"/>
+														</td>
+													</tr>
+												</table>
+											</td>
+										</tr>
+									</table>
+								</center>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</template>
+
+
+		<template id="sale_order_const">
+			<xpath expr="//t[@t-call='web.html_container']" position="replace">
+
+				<t t-call="web.html_container">
+					<t t-foreach="docs" t-as="o">
+
+						<t t-call="equip3_construction_sales_operation.sale_order_print_out_doc_report_external_layout">
+							<t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+							<t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+							<t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+							<t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+							<t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+							<t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+							<t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+
+							<div class="page" style="margin-top: 500px">
+								<div class="oe_structure" style="margin-top: 500px" />
+								<div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'" style="margin-top: 500px">
+									<t t-if="print_contract_letter == True">
+										<div class="row" style="page-break-after:always;">
+											<div class="col-xs-12">
+												<div t-raw="o.print_on_page()"/>
+											</div>
+										</div>
+									</t>
+									<table t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:12px; position: static; margin-left: 30px'" >
+										<style>
+											tr {height: 25px;font-weight: normal;}
+										</style>
+										<tr>
+											<td style="min-width: 50px;" >Project</td>
+                                			<td style="width: 50px; text-align: center;">:</td>
+											<td style="width: 300px;">
+												<span t-field="o.project_id.name" />
+											</td>
+
+											<td style="width: 10px; text-align: center;"> </td>
+											<td style="min-width: 50px;">Category</td>
+                                			<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.report_contract_category" />
+											</td>
+										</tr>
+										<tr>
+											<td style="min-width: 50px;">Planned Start Date</td>
+                                			<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.start_date" />
+											</td>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Down Payment</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.down_payment"/>%
+											</td>
+										</tr>
+										<tr>
+											<td style="min-width: 50px;">Planned End Date</td>
+                                			<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.end_date" />
+											</td>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Retention 1</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.retention1" />%
+											</td>
+										</tr> 
+										<tr>
+											<td style="min-width: 50px;">Location</td>
+                                			<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span style="max-width: 300px;" t-field="o.report_street" />
+											</td>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Retention 1 Term</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.retention_term_1.name" />
+											</td>
+										</tr>
+										<tr>
+											<td></td>
+                                			<td style="width: 50px; text-align: center;"></td>
+											<td>
+												<span t-field="o.report_country" />
+											</td>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Retention 2</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.retention2" />%
+											</td>
+										</tr>
+											<t t-if="o.contract_category == 'var'"> 
+												<td style="min-width: 50px;">Main Contract</td>
+												<td style="width: 50px; text-align: center;">:</td>
+												<td>
+													<span t-field="o.main_contract_ref.name" />
+												</td>
+											</t>
+											<t t-if="o.contract_category == 'main'"> 
+												<td></td>
+												<td style="width: 50px; text-align: center;"></td>
+												<td>
+													
+												</td>
+											</t>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Retention 2 Term</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.retention_term_2.name" />
+											</td>
+										<tr>
+											<t t-if="o.contract_category == 'var'">
+												<td style="min-width: 50px;">Cost Sheet</td>
+												<td style="width: 50px; text-align: center;">:</td>
+												<td>
+													<span t-field="o.cost_sheet_ref.name" />
+												</td>
+											</t>
+
+											<t t-if="o.contract_category == 'main'"> 
+												<td></td>
+												<td style="width: 50px; text-align: center;"></td>
+												<td>
+													
+												</td>
+											</t>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Taxes</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.report_tax" />
+											</td>
+										</tr>
+										<tr>
+											<td></td>
+                                			<td style="width: 50px; text-align: center;"></td>
+											<td>
+											</td>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Payment Term</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.payment_term_id.name" />
+											</td>
+										</tr>
+									</table>
+									<div class="oe_structure"/>
+									
+									<!-- <t t-call="general_template.template_watermark"/> -->
+									<!-- <hr t-attf-style="border: 1px solid #{theme_text_color or '#000000'} !important;"></hr> -->
+									<hr t-attf-style="border: 1px solid #{theme_color or '#000000'} !important;"></hr>
+
+									<table border="0" cellpadding="0" cellspacing="0" t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};" width="100%">
+										<tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+											<td t-attf-style="padding:9px 15px; font-weight:bold;">
+												<t>
+													<span t-field="o.report_name"> # </span>
+												</t>
+												<br/>
+												<span t-field="o.name"/>
+											</td>
+											<td colspan="2" t-attf-style="background-color:#f2f2f2; height:4px; color: #{theme_text_color or '#000000'};"/>
+											<td/>
+											<td t-attf-style="padding:5px 15px; font-weight:bold;">
+												<t t-if="o.state == 'sale'">
+													<strong>Order Date:</strong>
+													<br/>
+													<span t-field="o.date_order"/>
+												</t>
+												<t t-else="">
+													<strong>Quotation Date:</strong>
+													<br/>
+													<span t-field="o.date_order"/>
+												</t>
+												
+												<!-- <span t-field="context_timestamp(datetime.datetime.today())"/> -->
+											</td>
+											<td t-attf-style="padding:5px 15px; font-weight:bold;">
+												<span class="text-left">Your Reference:</span>
+												<br/>
+												<span t-field="o.job_reference.customer_ref"/>
+											</td>
+											<td t-attf-style="padding:5px 15px; font-weight:bold;">
+												<span class="text-left">Salesperson:</span>
+												<br/>
+												<p t-field="o.user_id"/>
+											</td>
+										</tr>
+									</table>
+									<div border="0" cellpadding="0" cellspacing="0" t-attf-style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px; border-top:1px solid #{theme_color or '#000000'};" width="100%"></div>
+									<div class="oe_structure"/>
+								</div>
+
+								<!-- <h4 style="margin-left: 30px">Material Estimate</h4> -->
+								<br/>
+								<table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered table-striped" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+									<thead>
+										<tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="5%">No.</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="30%">Job Description</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="6%">Quantity</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="6%">UOM</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="6%">Unit Price</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="10%">Subtotal</th>
+										</tr>
+									</thead>
+									<tbody class="components_tbody">
+										<t t-set="no_char" t-value="'A'"/>	
+										<t t-set="total" t-value="0"/>
+										<t t-set="i_num" t-value="1"/>
+                                        <!-- Project Scope Row -->
+										<t t-foreach="scope_sect_prod_dict.items()" t-as="scope">
+
+										<t t-set="no_num" t-value="0"/>
+										<t t-set="subtotal" t-value="0"/>
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-att-style="'font-weight: bold'"  t-esc="no_char" />
+											</td>
+											<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-att-style="'font-weight: bold'"  t-esc="scope[0]" />
+											</td>
+											<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+<!--												<span t-att-style="'font-weight: bold'" t-esc="o.currency_id.symbol" />-->
+<!--												<span t-att-style="'font-weight: bold'" t-esc="'{:,.2f}'.format(scope[1]['total'])"/>-->
+											</td>
+										</tr>
+
+										<t t-foreach="scope[1]['children'].items()" t-as="section">
+											<t t-set="variable_char_num" t-value="'a'"/>
+											<t t-set="i_var" t-value="0"/>
+											<t t-set="no_num" t-value="no_num + 1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: normal'" t-esc="no_num" />
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: normal'" t-esc="section[0]"/>
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: normal'" t-esc="'{:,.2f}'.format(section[1]['qty'])"/>
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: normal'" t-esc="section[1]['uom']"/>
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<t t-if="is_rounding == True">
+														<span t-att-style="'font-weight: normal'" t-esc="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: normal'" t-esc="'{:,.0f}'.format(round(section[1]['total']/section[1]['qty'], 0))"/>
+													</t>
+													<t t-if="is_rounding == False">
+														<span t-att-style="'font-weight: normal'" t-esc="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: normal'" t-esc="'{:,.2f}'.format(section[1]['total']/section[1]['qty'])"/>
+													</t>
+												</td>
+												<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<t t-if="is_rounding == True">
+														<span t-att-style="'font-weight: normal'" t-esc="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: normal'" t-esc="'{:,.0f}'.format(round(section[1]['total'], 0))"/>
+													</t>
+													<t t-if="is_rounding == False">
+														<span t-att-style="'font-weight: normal'" t-esc="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: normal'" t-esc="'{:,.2f}'.format(section[1]['total'])"/>
+													</t>
+												</td>
+											</tr>
+
+											<t t-foreach="section[1]['children'].items()" t-as="product">
+												<tr>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-esc="product[0]"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-esc="'{:,.2f}'.format(product[1]['qty'])"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-esc="product[1]['uom']"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<t t-if="is_rounding == True">
+															<span t-att-style="'font-weight: normal'" t-esc="o.currency_id.symbol" />
+															<span t-att-style="'font-weight: normal'" t-esc="'{:,.0f}'.format(round(product[1]['unit_price'], 0))"/>
+														</t>
+														<t t-if="is_rounding == False">
+															<span t-att-style="'font-weight: normal'" t-esc="o.currency_id.symbol" />
+															<span t-att-style="'font-weight: normal'" t-esc="'{:,.2f}'.format(product[1]['unit_price'])"/>
+														</t>
+													</td>
+													<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<t t-if="is_rounding == True">
+															<span t-att-style="'font-weight: normal'" t-esc="o.currency_id.symbol" />
+															<span t-att-style="'font-weight: normal'" t-esc="'{:,.0f}'.format(round(product[1]['total'], 0))"/>
+														</t>
+														<t t-if="is_rounding == False">
+															<span t-att-style="'font-weight: normal'" t-esc="o.currency_id.symbol" />
+															<span t-att-style="'font-weight: normal'" t-esc="'{:,.2f}'.format(product[1]['total'])"/>
+														</t>
+													</td>
+												</tr>
+											</t>
+											<t t-set="subtotal" t-value="subtotal + section[1]['total']"/>
+										</t>
+										<!-- Subtotal Row -->
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'font-weight: bold; padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												Subtotal <span t-att-style="'font-weight: bold'"  t-esc="o.getRoman(i_num)" />
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<t t-if="is_rounding == True">
+													<span t-att-style="'font-weight: bold'" t-esc="o.currency_id.symbol" />
+													<span t-att-style="'font-weight: bold'" t-esc="'{:,.0f}'.format(round(subtotal, 0))"/>
+												</t>
+												<t t-if="is_rounding == False">
+													<span t-att-style="'font-weight: bold'" t-esc="o.currency_id.symbol" />
+													<span t-att-style="'font-weight: bold'" t-esc="'{:,.2f}'.format(subtotal)"/>
+												</t>
+											</td>
+										</tr>
+										<!-- Empty Row -->
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+										</tr>
+										<t t-set="no_char" t-value="chr(ord(no_char)+1)"/>
+										<t t-set="i_num" t-value="i_num+1"/>
+									</t>
+
+										<!-- Labour -->
+
+										<t t-set="check_scope_labour" t-value="o.check_scope_labour_line(o)"/>
+										<!-- Labour Line -->
+										<t t-if="check_scope_labour == False">
+											<!-- Labour Line Title -->
+											<t t-set="i_labour" t-value="1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'" t-esc="no_char" />
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'">Labour</span>
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+											</tr>
+
+											<t t-set="no_char" t-value="chr(ord(no_char)+1)"/>
+
+											<t t-foreach="o.labour_line_ids" t-as="labour">
+												<t t-if="labour.project_scope.name == False">
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'" t-esc="i_labour" />
+													</td>
+													<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="labour.labour_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="labour.quantity"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="labour.uom_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(labour.unit_price)" />
+													</td>
+													<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(labour.subtotal)" />
+													</td>
+
+													<t t-set="i_labour" t-value="i_labour + 1"/>
+												</t>
+											</t>
+												<tr>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+												</tr>
+										</t>
+										
+										<!-- Internal Assets -->
+
+										<t t-set="check_scope_internal" t-value="o.check_scope_internal_asset(o)"/>
+										<!-- Internal Assets Line -->
+										<t t-if="check_scope_internal == False">
+											<!-- Internal Asseta Line Title -->
+											<t t-set="i_internal" t-value="1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'" t-esc="no_char" />
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'">Internal Asset</span>
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+											</tr>
+
+											<t t-set="no_char" t-value="chr(ord(no_char)+1)"/>
+
+											<t t-foreach="o.internal_asset_line_ids" t-as="internal">
+												<t t-if="internal.project_scope.name == False">
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'" t-esc="i_internal" />
+													</td>
+													<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="internal.asset_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="internal.quantity"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="internal.uom_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(internal.unit_price)" />
+													</td>
+													<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(internal.subtotal)" />
+													</td>
+
+													<t t-set="i_internal" t-value="i_internal + 1"/>
+												</t>
+											</t>
+												<tr>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+												</tr>
+										</t>
+										<!-- Equipment Lease -->
+
+										<t t-set="check_scope_equipment" t-value="o.check_scope_internal_asset(o)"/>
+										<!-- Equipment Lease Line -->
+										<t t-if="check_scope_equipment == False">
+											<!-- Equipment Lease Line Title -->
+											<t t-set="i_equipment" t-value="1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'" t-esc="no_char" />
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'">Equipment Lease</span>
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+											</tr>
+
+											<t t-foreach="o.equipment_line_ids" t-as="equipment">
+												<t t-if="equipment.project_scope.name == False">
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'" t-esc="i_equipment" />
+													</td>
+													<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="equipment.equipment_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="equipment.quantity"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="equipment.uom_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(equipment.unit_price)" />
+													</td>
+													<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(equipment.subtotal)" />
+													</td>
+
+													<t t-set="i_equipment" t-value="i_equipment + 1"/>
+												</t>
+											</t>
+												<tr>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+												</tr>
+										</t>
+
+										<!-- Empty Row -->
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+										</tr>
+
+										<!-- Empty Row -->
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-att-style="'font-weight: bold'" >Tax Amount</span>
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<t t-if="is_rounding == True">
+													<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol"/>
+													<span t-att-style="'font-weight: bold'"  t-esc="'{:,.0f}'.format(round(o.amount_tax, 0))"/>
+												</t>
+												<t t-if="is_rounding == False">
+													<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol"/>
+													<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(o.amount_tax)"/>
+												</t>
+
+											</td>
+										</tr>
+
+										<!-- Total -->
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-Left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-att-style="'font-weight: bold'" >Total</span>
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<t t-if="is_rounding == True">
+													<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol"/>
+													<span t-att-style="'font-weight: bold'"  t-esc="'{:,.0f}'.format(round(o.amount_total, 0))"/>
+												</t>
+												<t t-if="is_rounding == False">
+													<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol"/>
+													<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(o.amount_total)"/>
+												</t>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+
+								<span t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">Total in word: <t t-esc="o.said"/></span>
+							<hr style="border: 1px solid black"></hr>
+						</div>
+					</t>
+				</t>
+			</t>
+
+		</xpath>
+	</template>
+
+		<template id="sale_order_mail_custom_equip">
+				<t t-call="web.html_container">
+					<t t-foreach="docs" t-as="o">
+
+						<t t-call="equip3_construction_sales_operation.sale_order_print_out_doc_report_external_layout">
+							<t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+							<t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+							<t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+							<t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+							<t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+							<t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+							<t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+
+							<div class="page" style="margin-top: 500px">
+								<div class="oe_structure" style="margin-top: 500px" />
+								<div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'" style="margin-top: 500px">
+									<table t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:12px; position: static; margin-left: 30px'" >
+										<style>
+											tr {height: 25px;font-weight: normal;}
+										</style>
+										<tr>
+											<td style="min-width: 50px;" >Project</td>
+                                			<td style="width: 50px; text-align: center;">:</td>
+											<td style="width: 300px;">
+												<span t-field="o.project_id.name" />
+											</td>
+
+											<td style="width: 10px; text-align: center;"> </td>
+											<td style="min-width: 50px;">Category</td>
+                                			<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.report_contract_category" />
+											</td>
+										</tr>
+										<tr>
+											<td style="min-width: 50px;">Planned Start Date</td>
+                                			<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.start_date" />
+											</td>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Down Payment</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.down_payment"/>%
+											</td>
+										</tr>
+										<tr>
+											<td style="min-width: 50px;">Planned End Date</td>
+                                			<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.end_date" />
+											</td>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Retention 1</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.retention1" />%
+											</td>
+										</tr> 
+										<tr>
+											<td style="min-width: 50px;">Location</td>
+                                			<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span style="max-width: 300px;" t-field="o.report_street" />
+											</td>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Retention 1 Term</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.retention_term_1.name" />
+											</td>
+										</tr>
+										<tr>
+											<td></td>
+                                			<td style="width: 50px; text-align: center;"></td>
+											<td>
+												<span t-field="o.report_country" />
+											</td>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Retention 2</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.retention2" />%
+											</td>
+										</tr>
+											<t t-if="o.contract_category == 'var'"> 
+												<td style="min-width: 50px;">Main Contract</td>
+												<td style="width: 50px; text-align: center;">:</td>
+												<td>
+													<span t-field="o.main_contract_ref.name" />
+												</td>
+											</t>
+											<t t-if="o.contract_category == 'main'"> 
+												<td></td>
+												<td style="width: 50px; text-align: center;"></td>
+												<td>
+													
+												</td>
+											</t>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Retention 2 Term</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.retention_term_2.name" />
+											</td>
+										<tr>
+											<t t-if="o.contract_category == 'var'">
+												<td style="min-width: 50px;">Cost Sheet</td>
+												<td style="width: 50px; text-align: center;">:</td>
+												<td>
+													<span t-field="o.cost_sheet_ref.name" />
+												</td>
+											</t>
+
+											<t t-if="o.contract_category == 'main'"> 
+												<td></td>
+												<td style="width: 50px; text-align: center;"></td>
+												<td>
+													
+												</td>
+											</t>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Taxes</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.report_tax" />
+											</td>
+										</tr>
+										<tr>
+											<td></td>
+                                			<td style="width: 50px; text-align: center;"></td>
+											<td>
+											</td>
+
+											<td style="width: 10px; text-align: center;"></td>
+											<td style="min-width: 50px;">Payment Term</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.payment_term_id.name" />
+											</td>
+										</tr>
+									</table>
+									<div class="oe_structure"/>
+									
+									<!-- <t t-call="general_template.template_watermark"/> -->
+									<!-- <hr t-attf-style="border: 1px solid #{theme_text_color or '#000000'} !important;"></hr> -->
+									<hr t-attf-style="border: 1px solid #{theme_color or '#000000'} !important;"></hr>
+
+									<table border="0" cellpadding="0" cellspacing="0" t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};" width="100%">
+										<tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+											<td t-attf-style="padding:9px 15px; font-weight:bold;">
+												<t>
+													<span t-field="o.report_name"> # </span>
+												</t>
+												<br/>
+												<span t-field="o.name"/>
+											</td>
+											<td colspan="2" t-attf-style="background-color:#f2f2f2; height:4px; color: #{theme_text_color or '#000000'};"/>
+											<td/>
+											<td t-attf-style="padding:5px 15px; font-weight:bold;">
+												<strong>Date of Estimate:</strong>
+												<br/>
+												<span t-field="o.create_date"/>
+												<!-- <span t-field="context_timestamp(datetime.datetime.today())"/> -->
+											</td>
+											<td t-attf-style="padding:5px 15px; font-weight:bold;">
+												<span class="text-left">Your Reference:</span>
+												<br/>
+												<span t-field="o.job_reference.customer_ref"/>
+											</td>
+											<td t-attf-style="padding:5px 15px; font-weight:bold;">
+												<span class="text-left">Salesperson:</span>
+												<br/>
+												<p t-field="o.team_id"/>
+											</td>
+										</tr>
+									</table>
+									<div border="0" cellpadding="0" cellspacing="0" t-attf-style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px; border-top:1px solid #{theme_color or '#000000'};" width="100%"></div>
+									<div class="oe_structure"/>
+								</div>
+
+								<!-- <h4 style="margin-left: 30px">Material Estimate</h4> -->
+								<br/>
+								<table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered table-striped" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+									<thead>
+										<tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="5%">No.</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="30%">Job Description</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="6%">Quantity</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="6%">UOM</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="6%">Unit Price</th>
+											<th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="10%">Subtotal</th>
+										</tr>
+									</thead>
+									<tbody class="components_tbody">
+										<t t-set="no_char" t-value="'A'"/>	
+										<t t-set="total" t-value="0"/>
+                                        <!-- Project Scope Row -->
+										<t t-foreach="o.project_scope_ids" t-as="scope_line">
+											<t t-set="no_num" t-value="0"/>
+											<t t-set="subtotal" t-value="0"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'" t-esc="no_char" />
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'"  t-field="scope_line.project_scope.name" />
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+											</tr>
+											<t t-set="no_char" t-value="chr(ord(no_char)+1)"/>
+                                       	 	<!-- Section, Quantity, UOM, Subtotal Row -->
+                                            <t t-foreach="o.section_ids" t-as="section_line">
+                                                <t t-if="section_line.project_scope.name == scope_line.project_scope.name">					
+                                                    <t t-set="variable_char_num" t-value="'a'"/>
+                                                    <t t-set="i_var" t-value="0"/>
+                                                    <t t-set="no_num" t-value="no_num + 1"/>
+                                                    <tr>
+                                                        <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-att-style="'font-weight: normal'" t-esc="no_num" />
+                                                        </td>
+                                                        <td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-att-style="'font-weight: normal'" t-field="section_line.section.name"/>
+                                                        </td>
+                                                        <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+															<span t-att-style="'font-weight: normal'" t-field="section_line.quantity"/>
+                                                        </td>
+                                                        <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-att-style="'font-weight: normal'" t-field="section_line.uom_id.name"/>
+                                                        </td>
+                                                        <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+															<span t-att-style="'font-weight: normal'" t-field="o.currency_id.symbol" />
+                                                            <span t-att-style="'font-weight: normal'" t-esc="'{:,.2f}'.format(section_line.unit_price)"/>
+                                                        </td>
+                                                        <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+															<span t-att-style="'font-weight: normal'" t-field="o.currency_id.symbol" />
+															<span t-att-style="'font-weight: normal'" t-esc="'{:,.2f}'.format(section_line.amount_line)"/>
+                                                        </td>
+                                                    </tr>
+													<t t-set="subtotal" t-value="subtotal + section_line.amount_line"/>
+                                                </t>
+                                            </t>
+											<!-- Subtotal Row -->
+											<tr>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'" >Subtotal</span>
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+													<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(scope_line.amount_line)" />
+												</td>
+											</tr>
+											<t t-set="total" t-value="total + subtotal"/>
+											<!-- Empty Row -->
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+											</tr>
+												
+										</t>
+
+										<!-- Labour -->
+
+										<t t-set="check_scope_labour" t-value="o.check_scope_labour_line(o)"/>
+										<!-- Labour Line -->
+										<t t-if="check_scope_labour == False">
+											<!-- Labour Line Title -->
+											<t t-set="i_labour" t-value="1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'" t-esc="no_char" />
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'">Labour</span>
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+											</tr>
+
+											<t t-set="no_char" t-value="chr(ord(no_char)+1)"/>
+
+											<t t-foreach="o.labour_line_ids" t-as="labour">
+												<t t-if="labour.project_scope.name == False">
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'" t-esc="i_labour" />
+													</td>
+													<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="labour.labour_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="labour.quantity"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="labour.uom_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(labour.unit_price)" />
+													</td>
+													<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(labour.subtotal)" />
+													</td>
+
+													<t t-set="i_labour" t-value="i_labour + 1"/>
+												</t>
+											</t>
+												<tr>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+												</tr>
+										</t>
+																				<!-- Internal Assets -->
+
+										<t t-set="check_scope_internal" t-value="o.check_scope_internal_asset(o)"/>
+										<!-- Internal Assets Line -->
+										<t t-if="check_scope_internal == False">
+											<!-- Internal Asseta Line Title -->
+											<t t-set="i_internal" t-value="1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'" t-esc="no_char" />
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'">Internal Asset</span>
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+											</tr>
+
+											<t t-set="no_char" t-value="chr(ord(no_char)+1)"/>
+
+											<t t-foreach="o.internal_asset_line_ids" t-as="internal">
+												<t t-if="internal.project_scope.name == False">
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'" t-esc="i_internal" />
+													</td>
+													<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="internal.asset_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="internal.quantity"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="internal.uom_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(internal.unit_price)" />
+													</td>
+													<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(internal.subtotal)" />
+													</td>
+
+													<t t-set="i_internal" t-value="i_internal + 1"/>
+												</t>
+											</t>
+												<tr>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+												</tr>
+										</t>
+										<!-- Equipment Lease -->
+
+										<t t-set="check_scope_equipment" t-value="o.check_scope_internal_asset(o)"/>
+										<!-- Equipment Lease Line -->
+										<t t-if="check_scope_equipment == False">
+											<!-- Equipment Lease Line Title -->
+											<t t-set="i_equipment" t-value="1"/>
+											<tr>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'" t-esc="no_char" />
+												</td>
+												<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													<span t-att-style="'font-weight: bold'">Equipment Lease</span>
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+												<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												</td>
+											</tr>
+
+											<t t-foreach="o.equipment_line_ids" t-as="equipment">
+												<t t-if="equipment.project_scope.name == False">
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'" t-esc="i_equipment" />
+													</td>
+													<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="equipment.equipment_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="equipment.quantity"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: normal'" t-field="equipment.uom_id.name"/>
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(equipment.unit_price)" />
+													</td>
+													<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+														<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol" />
+														<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(equipment.subtotal)" />
+													</td>
+
+													<t t-set="i_equipment" t-value="i_equipment + 1"/>
+												</t>
+											</t>
+												<tr>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+													<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+													</td>
+												</tr>
+										</t>
+
+										<!-- Empty Row -->
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+										</tr>
+
+										<!-- Empty Row -->
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-att-style="'font-weight: bold'" >Tax Amount</span>
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol"/>
+												<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(o.amount_tax)"/>
+											</td>
+										</tr>
+
+										<!-- Empty Row -->
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-att-style="'font-weight: bold'" >Tax Amount</span>
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol"/>
+												<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(o.amount_tax)"/>
+											</td>
+										</tr>
+
+										<!-- Total -->
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-Left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-att-style="'font-weight: bold'" >Total</span>
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+											</td>
+											<td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-att-style="'font-weight: bold'"  t-field="o.currency_id.symbol"/>
+												<span t-att-style="'font-weight: bold'"  t-esc="'{:,.2f}'.format(o.amount_total)"/>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+
+								<span t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">Total in word: <t t-esc="o.said"/></span>
+							<hr style="border: 1px solid black"></hr>
+						</div>
+					</t>
+				</t>
+			</t>
+	</template>
+
+</data>
+</odoo>
+

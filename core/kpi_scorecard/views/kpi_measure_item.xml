@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="kpi_measure_item_view_search" model="ir.ui.view">
+        <field name="name">kpi.measure.item.search</field>
+        <field name="model">kpi.measure.item</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="model_name"/>
+                <field name="measure_id"/>
+                <filter string="Archived"
+                        name="inactive"
+                        domain="[('active','=',False)]"
+                />
+                <group expand="0" string="Group By">
+                    <filter string="Measurement"
+                            name="group_measure"
+                            context="{'group_by': 'measure_id'}"
+                    />
+                    <filter string="Model"
+                            name="group_model"
+                            context="{'group_by': 'model_name'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="kpi_measure_item_view_form" model="ir.ui.view">
+        <field name="name">kpi.measure.item.form</field>
+        <field name="model">kpi.measure.item</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"
+                                   placeholder="KPI Measurement"
+                                   class="oe_inline"
+                            />
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="measure_id"
+                               options="{'no_create_edit': 1, 'no_quick_create': 1}" 
+                        />
+                        <field name="company_id"
+                               options="{'no_create_edit': 1, 'no_quick_create': 1}" 
+                               groups="base.group_multi_company"   
+                        />
+                        <field name="domain"
+                               widget="domain"
+                               options="{'model': 'model_name'}"
+                               style="min-height:200px !important;"
+                               attrs="{'invisible': ['|', ('model_name', '=', False), ('measure_type', 'not in', ['sum', 'average', 'count'])]}"
+                        />
+                    </group>
+                    <notebook>
+                        <page string="Notes">
+                            <field name="description"/>
+                        </page>
+                        <page string="Technical" invisible="1">
+                            <group>
+                                <field name="sequence"/>
+                                <field name="active"/>
+                                <field name="model_name" invisible="1"/>
+                                <field name="measure_type" invisible="1"/>
+                            </group>
+                        </page>
+                        <page string="Help" attrs="{'invisible': [('help_notes', '=', False)]}">
+                            <field name="kpi_help_dummy" invisible="1"/>
+                            <field name="help_notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="kpi_measure_item_view_tree" model="ir.ui.view">
+        <field name="name">kpi.measure.item.tree</field>
+        <field name="model">kpi.measure.item</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name='name'/>
+                <field name="measure_id"/>
+                <field name="active" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    <record id="kpi_measure_item_action" model="ir.actions.act_window">
+        <field name="name">Measurements (Variables)</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">kpi.measure.item</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" eval="kpi_measure_item_view_search"/>
+        <field name="domain">[('existing_kpi', '!=', False)]</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Add new measurements (variables) to calculate KPIs.
+                For example, won opportunities count for sales team 'Europe', total sales conducted by John Brown, etc.
+            </p>
+        </field>
+    </record>
+
+</odoo>

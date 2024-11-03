@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record id="project_budget_carry_from_id" model="ir.ui.view">
+        <field name="name">ba.credit.application.form.view</field>
+        <field name="model">project.budget.carry</field>
+        <field name="arch" type="xml">
+            <form string="Budget Carry Over" create="false" edit="false">
+                <header>
+                    <button string="Request for Approval" name="request_approval" type="object" class="btn-primary"
+                            attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('budget_carry_over_approval_matrix','=',False)]}"/>
+                    <button name="btn_approve" string="Approve" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|','|',('state', '!=', 'to_approve'), ('budget_carry_over_approval_matrix','=',False), ('is_approver', '=', False)]}"/>
+                    <button name="btn_submit" id="btn_submit_approval" string="Submit" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|',('state', '!=', 'approve'), ('budget_carry_over_approval_matrix','=',False),]}"/>
+                    <button string="Reject" name="action_reject" type="object"
+                            attrs="{'invisible': ['|','|',('state', '!=', 'to_approve'), ('budget_carry_over_approval_matrix','=',False), ('is_approver', '=', False)]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done" attrs="{'invisible': ['|', ('budget_carry_over_approval_matrix','=',True), ('state', '!=', 'reject')]}"/>
+                    <field name="state1" widget="statusbar" statusbar_visible="draft,approve,done" attrs="{'invisible': ['|', ('budget_carry_over_approval_matrix', '=', False), ('state', '=', 'reject')]}"/>
+                    <field name="state2" widget="statusbar" statusbar_visible="draft,reject" attrs="{'invisible': ['|', ('budget_carry_over_approval_matrix', '=', False), ('state', '!=', 'reject')]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" nolable="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="active" invisible="1"/>
+                            <field name="project_id" options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"/>
+                            <field name="from_project_budget_id"/>
+                            <field name="to_project_budget_id"/>
+                            <field name="approve_date" invisible='1'/>
+                        </group>
+                        <group>
+                            <field name="user_id" invisible="1"/>
+                            <field name="currency_id"/>
+                            <field name="company_id"/>
+                            <field name="branch_id" required="1" readonly="1"/>
+                            <field name="create_uid" string='Created By'/>
+                            <field name="create_date" string='Creation Date'/>
+                            <field name="department_type" invisible="1"/>
+                            <field name="budget_carry_over_approval_matrix" invisible="1"/>
+                            <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                            <field name="is_approver" invisible="1"/>
+                            <field name="approved_user_text" invisible="1"/>
+                            <field name="approved_user" invisible="1" readonly="0"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="feedback_parent" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string='Material Estimation'>
+                            <field name="budget_carry_material_ids" class="o_project_budget_line" readonly='1' force_save='1'>
+                                <tree editable="bottom">
+                                    <field name="sr_no"/>
+                                    <field name="date"/>
+                                    <field name="project_scope_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="section_name_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="variable_id" optional="hide" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="group_of_product_id"/>
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="unit_price" readonly="1" force_save="1"/>
+                                    <field name="total_amount" string="Budget Amount"/>
+                                    <field name="amount"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Labour Estimation">
+                            <field name="budget_carry_Labour_ids" class="o_project_budget_line" readonly='1' force_save='1'>
+                                <tree editable="bottom">
+                                    <field name="sr_no"/>
+                                    <field name="date"/>
+                                    <field name="project_scope_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="section_name_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="variable_id" optional="hide" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="group_of_product_id"/>
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="contractors" force_save="1"/>
+                                    <field name="time" force_save="1"/>
+                                    <field name="uom_id"/>
+                                    <field name="unit_price" readonly="1" force_save="1"/>
+                                    <field name="total_amount" string="Budget Amount"/>
+
+                                    <field name="amount"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Overhead Estimation">
+                            <field name="budget_carry_overhead_ids" class="o_project_budget_line" readonly='1' force_save='1'>
+                                <tree editable="bottom">
+                                    <field name="sr_no"/>
+                                    <field name="date"/>
+                                    <field name="project_scope_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="section_name_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="variable_id" optional="hide" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="overhead_category"/>
+                                    <field name="group_of_product_id"/>
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="unit_price" readonly="1"/>
+                                    <field name="total_amount" string="Budget Amount"/>
+                                    <field name="amount"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Asset Estimation">
+                            <notebook>
+                                <page string="Internal Asset">
+                                    <field name="budget_carry_internal_asset_ids" class="o_project_budget_line" readonly='1' force_save='1'>
+                                        <tree editable="bottom">
+                                            <field name="sr_no"/>
+                                            <field name="date"/>
+                                            <field name="project_scope_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                            <field name="section_name_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                            <field name="variable_id" optional="hide" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                            <field name="group_of_product_id" invisible="1"/>
+                                            <field name="asset_category_id"/>
+                                            <field name="asset_id"/>
+                                            <field name="description"/>
+                                            <field name="quantity"/>
+                                            <field name="uom_id"/>
+                                            <field name="unit_price" readonly="1"/>
+                                            <field name="total_amount" string="Budget Amount"/>
+                                            <field name="amount"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                                <page string="Equipment Lease Estimation">
+                                    <field name="budget_carry_equipment_ids" class="o_project_budget_line" readonly='1' force_save='1'>
+                                        <tree editable="bottom">
+                                            <field name="sr_no"/>
+                                            <field name="date"/>
+                                            <field name="project_scope_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                            <field name="section_name_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                            <field name="variable_id" optional="hide" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                            <field name="group_of_product_id"/>
+                                            <field name="product_id"/>
+                                            <field name="description"/>
+                                            <field name="quantity"/>
+                                            <field name="uom_id"/>
+                                            <field name="unit_price" readonly="1"/>
+                                            <field name="total_amount" string="Budget Amount"/>
+                                            <field name="amount"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                            </notebook>
+                        </page>
+                        <page string="Subcon Estimation">
+                            <field name="budget_carry_subcon_ids" class="o_project_budget_line" readonly='1' force_save='1'>
+                                <tree editable="bottom">
+                                    <field name="sr_no"/>
+                                    <field name="date"/>
+                                    <field name="project_scope_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="section_name_id" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="variable_id" optional="hide" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                    <field name="group_of_product_id" invisible="1" />
+                                    <field name="subcon_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="unit_price" readonly="1"/>
+                                    <field name="total_amount" string="Budget Amount"/>
+                                    <field name="amount"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="approval_matrix" string="Approval Matrix Line" attrs="{'invisible':[('budget_carry_over_approval_matrix','!=',True)]}">
+                            <group>
+                                <group>
+                                    <field name="approving_matrix_budget_carry_id" readonly="1"/>
+                                </group>
+                            </group>
+                            <field name="budget_carry_user_ids">
+                                <tree editable="bottom" create="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                    <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                    <field name="is_delegation_mail_sent" invisible="1"/>
+                                    <field name="minimum_approver" readonly="1" force_save="1"/>
+                                    <field name="timestamp" invisible="1" force_save="1"/>
+                                    <field name="approver_state" invisible="1" force_save="1"/>
+                                    <field name="approval_status" readonly="1" force_save="1"/>
+                                    <field name="approved_time" readonly="1" force_save="1"/>
+                                    <field name="is_approve" invisible="1"/>
+                                    <field name="approved_employee_ids" invisible="1"/>
+                                    <field name="feedback" readonly="1" force_save="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="project_budget_carry_tree_id" model="ir.ui.view">
+        <field name="name">ba.application.tree.view</field>
+        <field name="model">project.budget.carry</field>
+        <field name="arch" type="xml">
+            <tree multi_edit="1" sample="1" create="false" edit="false">
+                <field name="active" invisible="1"/>
+                <field name="name"/>
+                <field name="company_id" invisible="1"/>
+                <field name="branch_id" invisible="1"/>
+                <field name="from_project_budget_id"/>
+                <field name="to_project_budget_id"/>
+                <field name="create_date"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="state" widget="badge"
+                       decoration-primary="state == 'draft'"
+                       decoration-warning="state == 'to_approve'"
+                       decoration-success="state == 'approve'"
+                       decoration-success2="state == 'done'"
+                       decoration-danger="state == 'reject'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="project_budget_carry_action_id" model="ir.actions.act_window">
+        <field name="name">Budget Carry Over</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">project.budget.carry</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('department_type', '=', 'project')]</field>
+        <field name="context">{'default_department_type': 'project'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Budget Carry Over found, Let's create one!
+            </p>
+        </field>
+    </record>
+
+    <menuitem name="Budget Carry Over" id="project_budget_carry_menu_id"
+              parent='abs_construction_management.menu_projects'
+              action="project_budget_carry_action_id" 
+            groups="equip3_construction_accessright_setting.group_construction_engineer"
+              sequence="6"/>
+
+</odoo>

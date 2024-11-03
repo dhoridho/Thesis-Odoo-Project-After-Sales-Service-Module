@@ -1,0 +1,1105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_hr_payslip_tree_extend" model="ir.ui.view">
+        <field name="name">hr.payslip.tree.extend</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll_community.view_hr_payslip_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="create">0</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_hr_payslip_extend_form" model="ir.ui.view">
+        <field name="name">hr.payslip.extend.form</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll_community.view_hr_payslip_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="create">0</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_payslip_done']" position="before">
+                <field name="hide_button_refund" invisible="1"/>
+                <button string="Send Email" name="action_send_email_payslip" type="object" attrs="{'invisible':['|','|',('send_email_flag','=',True),('allow_send_email','=',False),('state','=','draft')]}"  class="oe_highlight"/>
+            </xpath>
+            <xpath expr="//button[@name='%(hr_payroll_community.act_payslip_lines)d'][1]" position="attributes">
+                    <attribute name="icon">o-hm-smart-hrm-payslip</attribute>
+            </xpath>
+            <xpath expr="//button[@name='refund_sheet']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|',('hide_button_refund', '=', True),('state','not in',['done'])]}</attribute>
+                <attribute name="states">""</attribute>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr='//group[@col="4"]' position="replace">
+                <group>
+                    <group>
+                        <field name="allowed_employee_ids" invisible="1"/>
+                        <field name="payslip_pesangon" invisible="1"/>
+                        <field name="send_email_flag" invisible="1"/>
+                        <field name="allow_send_email" invisible="1"/>
+                        <field name="payslip_period_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True, 'no_create_edit': True}" attrs="{'readonly':[('state','=','done')]}" required="1" force_save="1"/>
+                        <field name="month" options="{'no_open': True, 'no_create': True, 'no_quick_create': True, 'no_create_edit': True}" attrs="{'readonly':[('state','=','done')]}" widget="selection" required="1" force_save="1"/>
+                        <field name="month_name" force_save="1" invisible="1"/>
+                        <field name="year" force_save="1" invisible="1"/>
+                        <label for="date_from" string="Period"/>
+                        <div>
+                            <field name="date_from" class="oe_inline" attrs="{'readonly':['|',('state','not in',['draft']),('emp_tax_status','!=','pegawai_tidak_tetap')]}" force_save="1"/> - <field name="date_to" class="oe_inline" attrs="{'readonly':['|',('state','not in',['draft']),('emp_tax_status','!=','pegawai_tidak_tetap')]}" force_save="1"/>
+                        </div>
+                        <field name="payslip_report_date" force_save="1" invisible="1"/>
+                        <field name="number"/>
+                        <field name="name"/>
+                        <field name="contract_id" domain="[('employee_id','=',employee_id),('date_start','&lt;=',date_to),'|',('date_end','&gt;=',date_from),('date_end','=',False)]" context="{'default_employee_id': employee_id}"/>
+                        <field name="struct_id" attrs="{'required':[('contract_id','!=',False)]}" readonly="1" force_save="1"/>
+                        <field name="currency_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True, 'no_create_edit': True}" attrs="{'readonly':[('state','=','done')]}"/>
+                        <field name="company_id" readonly="1" force_save="1"/>
+                        <field name="department_id" readonly="1" force_save="1"/>
+                        <field name="job_id" readonly="1" force_save="1"/>
+                        <field name="rapel_amount" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="credit_note"/>
+                        <field name="refund_reference" attrs="{'invisible':[('state','!=','refund')]}"/>
+                        <field name="is_expatriate" force_save="1"/>
+                        <field name="expatriate_tax" force_save="1" attrs="{'invisible':[('is_expatriate','!=',True)]}"/>
+                        <field name="employee_tax_status" force_save="1" invisible="1"/>
+                        <field name="emp_tax_status" force_save="1"/>
+                        <field name="employee_payment_method" force_save="1" attrs="{'invisible': [('emp_tax_status','!=','pegawai_tidak_tetap')]}"/>
+                        <field name="npwp" force_save="1"/>
+                        <field name="kpp_id" force_save="1"/>
+                        <field name="kpp" force_save="1" invisible="1"/>
+                        <field name="ptkp_id" force_save="1"/>
+                        <field name="ptkp" force_save="1" invisible="1"/>
+                        <field name="tax_calculation_method" force_save="1"/>
+                        <field name="tax_period_length" force_save="1"/>
+                        <field name="tax_end_month" force_save="1"/>
+                        <field name="date_of_joining" force_save="1" invisible="1"/>
+                        <label for="years_of_service" string="Years of Service"/>
+                        <div class="o_row" name="years_of_service">
+                            <field name="years_of_service" readonly="1"/>
+                            <span>Year(s) - </span>
+                            <field name="months_of_service" readonly="1"/>
+                            <span>Month(s) - </span>
+                            <field name="days_of_service" readonly="1"/>
+                            <span>Day(s) </span>
+                        </div>
+                        <field name="masa_kerja" invisible="1"/>
+                        <field name="termination" force_save="1" invisible="1"/>
+                        <field name="termination_date" force_save="1" attrs="{'invisible':[('termination','!=',True)]}"/>
+                        <field name="period_tax_calculation_method" invisible="1"/>
+                        <field name="period_tax_calculation_schema" invisible="1"/>
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//sheet/notebook/page[3]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr='//field[@name="line_ids"]/tree/field[@name="quantity"]' position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr='//field[@name="line_ids"]/tree/field[@name="rate"]' position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr='//field[@name="line_ids"]/tree/field[@name="amount"]' position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr='//page/field[@name="worked_days_line_ids"]/tree' position="attributes">
+                <attribute name="create">0</attribute>
+                <attribute name="delete">0</attribute>
+            </xpath>
+            <xpath expr='//page/field[@name="input_line_ids"]/tree' position="attributes">
+                <attribute name="create">0</attribute>
+                <attribute name="delete">0</attribute>
+            </xpath>
+            <xpath expr="//sheet/notebook/page[last()]" position="after">
+                <page string="Tax Calculation Gross" attrs="{'invisible':['|',('tax_calculation_method','=','Gross-Up'),('period_tax_calculation_schema','!=','pph21_ter')]}">
+                    <separator string="Income Reguler"/>
+                    <field name="income_reguler_ter_ids">
+                        <tree string="Income Reguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Income irreguler"/>
+                    <field name="income_irreguler_ter_ids">
+                        <tree string="Income irreguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Deduction"/>
+                    <field name="deduction_ter_ids">
+                        <tree string="Deduction" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Reguler"/>
+                    <field name="pph21_ter_reguler_gross_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_able_income_from"/>
+                            <field name="tax_able_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp_ter"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Irreguler"/>
+                    <field name="pph21_ter_irreguler_gross_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_able_income_from"/>
+                            <field name="tax_able_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp_ter"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="TER Category"/>
+                    <field name="ter_category_gross_ids">
+                        <tree>
+                            <field name="sequence" invisible="1"/>
+                            <field name="category"/>
+                            <field name="ptkp_ids" widget="many2many_tags"/>
+                            <field name="bruto_income_from"/>
+                            <field name="bruto_income_to"/>
+                            <field name="bruto"/>
+                            <field name="ter_rate"/>
+                            <field name="pph21_ter"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Calculation"/>
+                    <group>
+                        <group>
+                            <field name="ter_akum_income_last_month_gross" readonly="1" force_save="1"/>
+                            <field name="ter_akum_irreguler_last_month_gross" readonly="1" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_income_reguler_gross" force_save="1"/>
+                            <field name="ter_akum_income_irreguler_gross" force_save="1"/>
+                            <field name="ter_bruto_gross" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_ded_last_month_gross" readonly="1" force_save="1"/>
+                            <field name="ter_neto_masa_sebelumnya_gross" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_ded_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_akum_ded_thn_gross" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_month_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_thn_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_total_peng_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_total_peng_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_peng_thn_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_peng_thn_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="peng_ptkp" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_peng_kena_pjk_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_peng_kena_pjk_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_thn_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_pjk_thn_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_terhutang_reguler_last_month_gross" readonly="1" force_save="1" invisible="1"/>
+                            <field name="ter_pjk_terhutang_irreguler_last_month_gross" readonly="1" force_save="1" invisible="1"/>
+                            <field name="ter_pjk_terhutang_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_pjk_terhutang_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pph21_paid_gross" readonly="1" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_diff_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_bln_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_pjk_natura_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Tax Calculation Gross Non Natura" groups="base.group_no_one">
+                    <separator string="Income Reguler"/>
+                    <field name="income_reguler_ter_ids">
+                        <tree string="Income Reguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Income irreguler"/>
+                    <field name="income_irreguler_ter_ids">
+                        <tree string="Income irreguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Deduction"/>
+                    <field name="deduction_ter_ids">
+                        <tree string="Deduction" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Reguler"/>
+                    <field name="pph21_ter_reguler_gross_non_natura_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_able_income_from"/>
+                            <field name="tax_able_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp_ter"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Irreguler"/>
+                    <field name="pph21_ter_irreguler_gross_non_natura_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_able_income_from"/>
+                            <field name="tax_able_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp_ter"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="TER Category"/>
+                    <field name="ter_category_gross_non_natura_ids">
+                        <tree>
+                            <field name="sequence" invisible="1"/>
+                            <field name="category"/>
+                            <field name="ptkp_ids" widget="many2many_tags"/>
+                            <field name="bruto_income_from"/>
+                            <field name="bruto_income_to"/>
+                            <field name="bruto"/>
+                            <field name="ter_rate"/>
+                            <field name="pph21_ter"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Calculation"/>
+                    <group>
+                        <group>
+                            <field name="ter_akum_income_last_month_gross_non_natura" readonly="1" force_save="1"/>
+                            <field name="ter_akum_irreguler_last_month_gross_non_natura" readonly="1" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_income_reguler_gross_non_natura" force_save="1"/>
+                            <field name="ter_akum_income_irreguler_gross_non_natura" force_save="1"/>
+                            <field name="ter_bruto_gross_non_natura" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_ded_last_month_gross_non_natura" readonly="1" force_save="1"/>
+                            <field name="ter_neto_masa_sebelumnya_gross_non_natura" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_ded_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_akum_ded_thn_gross_non_natura" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_month_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_reguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_irreguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_thn_reguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_total_peng_reguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_total_peng_irreguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_peng_thn_reguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_peng_thn_irreguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="peng_ptkp" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_peng_kena_pjk_reguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_peng_kena_pjk_irreguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_thn_reguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_pjk_thn_irreguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_terhutang_reguler_last_month_gross_non_natura" readonly="1" force_save="1" invisible="1"/>
+                            <field name="ter_pjk_terhutang_irreguler_last_month_gross_non_natura" readonly="1" force_save="1" invisible="1"/>
+                            <field name="ter_pjk_terhutang_reguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_pjk_terhutang_irreguler_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pph21_paid_gross_non_natura" readonly="1" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_diff_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_bln_gross_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Tax Calculation Gross Up" attrs="{'invisible':['|',('tax_calculation_method','not in',['Gross-Up','Mix']),('period_tax_calculation_schema','!=','pph21_ter')]}">
+                    <separator string="Income Reguler"/>
+                    <field name="income_reguler_ter_ids">
+                        <tree string="Income Reguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Income irreguler"/>
+                    <field name="income_irreguler_ter_ids">
+                        <tree string="Income irreguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Deduction"/>
+                    <field name="deduction_ter_ids">
+                        <tree string="Deduction" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Reguler"/>
+                    <field name="pph21_ter_reguler_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_able_income_from"/>
+                            <field name="tax_able_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp_ter"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Irreguler"/>
+                    <field name="pph21_ter_irreguler_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_able_income_from"/>
+                            <field name="tax_able_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp_ter"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="TER Category"/>
+                    <field name="ter_category_ids">
+                        <tree>
+                            <field name="sequence" invisible="1"/>
+                            <field name="category"/>
+                            <field name="ptkp_ids" widget="many2many_tags"/>
+                            <field name="bruto_income_from"/>
+                            <field name="bruto_income_to"/>
+                            <field name="bruto"/>
+                            <field name="ter_rate"/>
+                            <field name="pph21_ter"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Calculation"/>
+                    <group>
+                        <group>
+                            <field name="ter_akum_income_last_month" readonly="1" force_save="1"/>
+                            <field name="ter_akum_irreguler_last_month" readonly="1" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_income_reguler" force_save="1"/>
+                            <field name="ter_akum_income_irreguler" force_save="1"/>
+                            <field name="ter_bruto" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_ded_last_month" readonly="1" force_save="1"/>
+                            <field name="ter_neto_masa_sebelumnya" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_ded" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_akum_ded_thn" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_month" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_thn_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_total_peng_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_total_peng_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_peng_thn_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_peng_thn_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="peng_ptkp" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_peng_kena_pjk_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_peng_kena_pjk_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_thn_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_pjk_thn_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_terhutang_reguler_last_month" readonly="1" force_save="1" invisible="1"/>
+                            <field name="ter_pjk_terhutang_irreguler_last_month" readonly="1" force_save="1" invisible="1"/>
+                            <field name="ter_pjk_terhutang_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_pjk_terhutang_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pph21_paid" readonly="1" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_diff" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_bln" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_tunj_pjk_bln" readonly="1" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_pjk_natura" readonly="1" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_tunj_pjk_terhutang_reguler" readonly="1" force_save="1" invisible="1"/>
+                            <field name="ter_tunj_pjk_terhutang_irreguler" readonly="1" force_save="1" invisible="1"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Tax Calculation Gross Up Non Natura" groups="base.group_no_one">
+                    <separator string="Income Reguler"/>
+                    <field name="income_reguler_ter_ids">
+                        <tree string="Income Reguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Income irreguler"/>
+                    <field name="income_irreguler_ter_ids">
+                        <tree string="Income irreguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Deduction"/>
+                    <field name="deduction_ter_ids">
+                        <tree string="Deduction" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_category"/>
+                            <field name="category_on_natura_tax_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Reguler"/>
+                    <field name="pph21_ter_reguler_non_natura_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_able_income_from"/>
+                            <field name="tax_able_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp_ter"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Irreguler"/>
+                    <field name="pph21_ter_irreguler_non_natura_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_able_income_from"/>
+                            <field name="tax_able_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp_ter"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="TER Category"/>
+                    <field name="ter_category_non_natura_ids">
+                        <tree>
+                            <field name="sequence" invisible="1"/>
+                            <field name="category"/>
+                            <field name="ptkp_ids" widget="many2many_tags"/>
+                            <field name="bruto_income_from"/>
+                            <field name="bruto_income_to"/>
+                            <field name="bruto"/>
+                            <field name="ter_rate"/>
+                            <field name="pph21_ter"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Calculation"/>
+                    <group>
+                        <group>
+                            <field name="ter_akum_income_last_month_non_natura" readonly="1" force_save="1"/>
+                            <field name="ter_akum_irreguler_last_month_non_natura" readonly="1" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_income_reguler_non_natura" force_save="1"/>
+                            <field name="ter_akum_income_irreguler_non_natura" force_save="1"/>
+                            <field name="ter_bruto_non_natura" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_ded_last_month_non_natura" readonly="1" force_save="1"/>
+                            <field name="ter_neto_masa_sebelumnya_non_natura" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_ded_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_akum_ded_thn_non_natura" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_month_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_reguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_biaya_jab_irreguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_akum_thn_reguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_total_peng_reguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_total_peng_irreguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_peng_thn_reguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_peng_thn_irreguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="peng_ptkp" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_peng_kena_pjk_reguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_peng_kena_pjk_irreguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_thn_reguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_pjk_thn_irreguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_terhutang_reguler_last_month_non_natura" readonly="1" force_save="1" invisible="1"/>
+                            <field name="ter_pjk_terhutang_irreguler_last_month_non_natura" readonly="1" force_save="1" invisible="1"/>
+                            <field name="ter_pjk_terhutang_reguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_pjk_terhutang_irreguler_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pph21_paid_non_natura" readonly="1" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_diff_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="ter_pjk_bln_non_natura" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_tunj_pjk_bln_non_natura" readonly="1" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="ter_tunj_pjk_terhutang_reguler_non_natura" readonly="1" force_save="1" invisible="1"/>
+                            <field name="ter_tunj_pjk_terhutang_irreguler_non_natura" readonly="1" force_save="1" invisible="1"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Tax Calculation Gross Up" attrs="{'invisible':['|',('tax_calculation_method','not in',['Gross-Up','Mix']),('period_tax_calculation_schema','=','pph21_ter')]}">
+                    <separator string="Income Reguler"/>
+                    <field name="income_reguler_ids">
+                        <tree string="Income Reguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_calculation_method" invisible="1"/>
+                            <field name="tax_category"/>
+                        </tree>
+                    </field>
+                    <separator string="Income irreguler"/>
+                    <field name="income_irreguler_ids">
+                        <tree string="Income irreguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_calculation_method" invisible="1"/>
+                            <field name="tax_category"/>
+                        </tree>
+                    </field>
+                    <separator string="Deduction"/>
+                    <field name="deduction_ids">
+                        <tree string="Deduction" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_calculation_method" invisible="1"/>
+                            <field name="tax_category"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Reguler"/>
+                    <field name="pph21_reguler_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_income_from"/>
+                            <field name="tax_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Irreguler"/>
+                    <field name="pph21_irreguler_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_income_from"/>
+                            <field name="tax_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Calculation Gross Up"/>
+                    <group>
+                        <group>
+                            <field name="akum_income_last_month" readonly="1" force_save="1" attrs="{'invisible':['|',('employee_tax_status','=','Pegawai Tidak Tetap / Harian Lepas'),('period_tax_calculation_method','=','monthly')]}"/>
+                            <field name="akum_irreguler_last_month" readonly="1" force_save="1" attrs="{'invisible':[('employee_tax_status','=','Pegawai Tidak Tetap / Harian Lepas')]}"/>
+                        </group>
+                        <group>
+                            <field name="akum_income" force_save="1"/>
+                            <field name="akum_irreguler" force_save="1"/>
+                            <field name="bruto" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="akum_ded_last_month" readonly="1" force_save="1" attrs="{'invisible':['|',('employee_tax_status','=','Pegawai Tidak Tetap / Harian Lepas'),('period_tax_calculation_method','=','monthly')]}"/>
+                            <field name="neto_masa_sebelumnya" force_save="1" attrs="{'invisible':[('period_tax_calculation_method','=','monthly')]}"/>
+                        </group>
+                        <group>
+                            <field name="akum_ded" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="akum_ded_thn" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="biaya_jab_month_reg" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="biaya_jab" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="biaya_jab_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="akum_thn" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="total_peng_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="total_peng_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="peng_thn_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="peng_ptkp" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="peng_kena_pjk_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="peng_thn_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <!--<div style="color: white !important;">.&#160;</div>-->
+                            <field name="peng_kena_pjk_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="pjk_thn_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="pjk_thn_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="pjk_terhutang_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="pjk_terhutang_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="pjk_terhutang_reguler_last_month" readonly="1" force_save="1" attrs="{'invisible':['|',('employee_tax_status','=','Pegawai Tidak Tetap / Harian Lepas'),('period_tax_calculation_method','=','monthly')]}"/>
+                            <field name="pjk_terhutang_irreguler_last_month" readonly="1" force_save="1" attrs="{'invisible':['|',('employee_tax_status','=','Pegawai Tidak Tetap / Harian Lepas'),('period_tax_calculation_method','=','monthly')]}"/>
+                        </group>
+                        <group>
+                            <field name="pjk_bln_reguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="pjk_bln_irreguler" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="pjk_pph26" force_save="1" attrs="{'invisible':[('expatriate_tax','!=','PPh 26')]}"/>
+                        </group>
+                        <group></group>
+                        <group>
+                            <field name="tunj_pjk_reguler" force_save="1"/>
+                            <field name="tunj_pjk_irreguler" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="kelebihan_pajak" force_save="1" attrs="{'invisible':[('termination','!=',True)]}"/>
+                        </group>
+                    </group>
+               </page>
+               <page string="Tax Calculation Gross" attrs="{'invisible':['|',('tax_calculation_method','=','Gross-Up'),('period_tax_calculation_schema','=','pph21_ter')]}">
+                    <separator string="Income Reguler"/>
+                    <field name="income_reguler_ids">
+                        <tree string="Income Reguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_calculation_method" invisible="1"/>
+                            <field name="tax_category"/>
+                        </tree>
+                    </field>
+                    <separator string="Income irreguler"/>
+                    <field name="income_irreguler_ids">
+                        <tree string="Income irreguler" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_calculation_method" invisible="1"/>
+                            <field name="tax_category"/>
+                        </tree>
+                    </field>
+                    <separator string="Deduction"/>
+                    <field name="deduction_ids">
+                        <tree string="Deduction" decoration-info="amount == 0">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="tax_calculation_method" invisible="1"/>
+                            <field name="tax_category"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Reguler"/>
+                    <field name="pph21_reguler_gross_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_income_from"/>
+                            <field name="tax_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket Irreguler"/>
+                    <field name="pph21_irreguler_gross_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_income_from"/>
+                            <field name="tax_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <group>
+                        <group>
+                            <field name="akum_income_last_month_gross" readonly="1" force_save="1" attrs="{'invisible':['|',('employee_tax_status','=','Pegawai Tidak Tetap / Harian Lepas'),('period_tax_calculation_method','=','monthly')]}"/>
+                            <field name="akum_irreguler_last_month_gross" readonly="1" force_save="1" attrs="{'invisible':[('employee_tax_status','=','Pegawai Tidak Tetap / Harian Lepas')]}"/>
+                        </group>
+                        <group>
+                            <field name="akum_income_gross" force_save="1"/>
+                            <field name="akum_irreguler_gross" force_save="1"/>
+                            <field name="bruto_gross" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="akum_ded_last_month_gross" readonly="1" force_save="1" attrs="{'invisible':['|',('employee_tax_status','=','Pegawai Tidak Tetap / Harian Lepas'),('period_tax_calculation_method','=','monthly')]}"/>
+                            <field name="neto_masa_sebelumnya" force_save="1" attrs="{'invisible':[('period_tax_calculation_method','=','monthly')]}"/>
+                        </group>
+                        <group>
+                            <field name="akum_ded_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="akum_ded_thn_gross" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="biaya_jab_month_reg_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="biaya_jab_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="biaya_jab_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="akum_thn_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="total_peng_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="total_peng_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="peng_thn_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="peng_ptkp" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="peng_kena_pjk_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="peng_thn_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="peng_kena_pjk_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="pjk_thn_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="pjk_thn_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="pjk_terhutang_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="pjk_terhutang_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group>
+                            <field name="pjk_terhutang_reguler_last_month_gross" readonly="1" force_save="1" attrs="{'invisible':['|',('employee_tax_status','=','Pegawai Tidak Tetap / Harian Lepas'),('period_tax_calculation_method','=','monthly')]}"/>
+                            <field name="pjk_terhutang_irreguler_last_month_gross" readonly="1" force_save="1" attrs="{'invisible':['|',('employee_tax_status','=','Pegawai Tidak Tetap / Harian Lepas'),('period_tax_calculation_method','=','monthly')]}"/>
+                        </group>
+                        <group>
+                            <field name="pjk_bln_reguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                            <field name="pjk_bln_irreguler_gross" force_save="1" attrs="{'invisible':[('expatriate_tax','=','PPh 26')]}"/>
+                        </group>
+                        <group></group>
+                        <group>
+                            <field name="kelebihan_pajak_gross" force_save="1" attrs="{'invisible':[('termination','!=',True)]}"/>
+                        </group>
+                    </group>
+               </page>
+                <page string="Tax Calculation for non-Permanent Employees">
+                    <separator string="Income Reguler"/>
+                    <field name="income_reguler_non_permanent_ids">
+                        <tree string="Income Reguler" decoration-info="amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="tax_calculation_method" invisible="1"/>
+                            <field name="tax_category"/>
+                        </tree>
+                    </field>
+                    <separator string="Income irreguler"/>
+                    <field name="income_irreguler_non_permanent_ids">
+                        <tree string="Income irreguler" decoration-info="amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="category_id"/>
+                            <field name="employee_id" invisible="1"/>
+                            <field name="amount"/>
+                            <field name="tax_calculation_method" invisible="1"/>
+                            <field name="tax_category"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Bracket"/>
+                    <field name="pph21_ter_non_permanent_ids">
+                        <tree decoration-info="pph21_amount == 0">
+                            <field name="sequence" invisible="1"/>
+                            <field name="name"/>
+                            <field name="tax_able_income_from"/>
+                            <field name="tax_able_income_to"/>
+                            <field name="tax_rate"/>
+                            <field name="tax_penalty_rate"/>
+                            <field name="pkp_ter"/>
+                            <field name="pph21_amount"/>
+                        </tree>
+                    </field>
+                    <separator string="TER Category"/>
+                    <field name="ter_category_non_permanent_ids">
+                        <tree>
+                            <field name="sequence" invisible="1"/>
+                            <field name="category"/>
+                            <field name="ptkp_ids" widget="many2many_tags"/>
+                            <field name="bruto_income_from"/>
+                            <field name="bruto_income_to"/>
+                            <field name="bruto"/>
+                            <field name="ter_rate"/>
+                            <field name="pph21_ter"/>
+                        </tree>
+                    </field>
+                    <separator string="TER Daily Rate"/>
+                    <field name="ter_daily_rate_ids">
+                        <tree>
+                            <field name="sequence" invisible="1"/>
+                            <field name="daily_bruto_income_from"/>
+                            <field name="daily_bruto_income_to"/>
+                            <field name="bruto"/>
+                            <field name="ter_rate"/>
+                            <field name="pph21_ter"/>
+                        </tree>
+                    </field>
+                    <separator string="Tax Calculation"/>
+                    <group>
+                        <group>
+                            <field name="ter_akum_income_reguler_non_permanent" force_save="1"/>
+                            <field name="ter_akum_income_irreguler_non_permanent" force_save="1"/>
+                            <field name="ter_bruto_non_permanent" force_save="1"/>
+                            <field name="ter_pjk_non_permanent" force_save="1"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Late Check-in Details">
+                    <field name="late_deduction_ids">
+                        <tree editable="bottom" create="0" delete="0">
+                            <field name="hour_from" widget="float_time" force_save="1" invisible="1"/>
+                            <field name="date_checkin" force_save="1"/>
+                            <field name="attendance_formula_id" force_save="1" invisible="1"/>
+                            <field name="tolerance_for_late" widget="float_time" force_save="1"/>
+                            <field name="number_of_hours" widget="float_time" force_save="1"/>
+                            <field name="amount" force_save="1"/>
+                        </tree>
+                    </field>
+                    <group col="6" class="mt-0 mt-md-0">
+                        <group colspan="4">
+                        </group>
+                        <group class="oe_right" colspan="2">
+                            <field name="total_late_amount" force_save="1"/>
+                        </group>
+                        <div class="oe_clear"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_payslip_run_extend_form" model="ir.ui.view">
+        <field name="name">hr.payslip.run.extend.form</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="inherit_id" ref="hr_payroll_community.hr_payslip_run_form"/>
+        <field name="arch" type="xml">
+            <xpath expr='//header/button[@name="draft_payslip_run"]' position="after">
+                <button string="Confirm All Payslips" name="confirm_all_payslips" type="object" class="oe_highlight" attrs="{'invisible':[('state','in',['close','refund'])]}"/>
+                <button string="Send Email" name="action_send_email_payslip" type="object" attrs="{'invisible':['|','|',('send_email_flag','=',True),('allow_send_email','=',False),('is_confirm_all','=',False)]}" class="oe_highlight"/>
+                <button string="Refund All Payslips" name="action_refund_payslips" type="object" class="oe_highlight" attrs="{'invisible':['|',('hide_button_refund', '=', True),('state','not in',['close'])]}"/>
+                <field name="is_confirm_all" invisible="1" readonly="1"/>
+                <field name="send_email_flag" invisible="1"/>
+                <field name="allow_send_email" invisible="1"/>
+                <field name="hide_button_refund" invisible="1"/>
+            </xpath>
+            <xpath expr='//header/button[2]' position="attributes">
+                <attribute name="attrs">{'invisible': [('is_confirm_all', '!=', False)]}</attribute>
+                <attribute name="states">""</attribute>
+            </xpath>
+            <xpath expr='//group[@col="4"]' position="replace">
+                <group>
+                    <group>
+                        <field name="employee_tax_status" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                        <field name="payslip_period_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True, 'no_create_edit': True}" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+                        <field name="month" options="{'no_open': True, 'no_create': True, 'no_quick_create': True, 'no_create_edit': True}" attrs="{'readonly':[('state','not in',['draft'])]}" widget="selection"/>
+                        <label for="date_start" string="Period"/>
+                         <div>
+                               <field name="date_start" class="oe_inline" attrs="{'readonly':['|',('state','not in',['draft']),('employee_tax_status','!=','pegawai_tidak_tetap')]}" force_save="1"/> - <field name="date_end" class="oe_inline" attrs="{'readonly':['|',('state','not in',['draft']),('employee_tax_status','!=','pegawai_tidak_tetap')]}" force_save="1"/>
+                         </div>
+                        <field name="payslip_batch_report_date" force_save="1" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="journal_id"/>
+                        <field name="move_id"/>
+                        <field name="credit_note"/>
+                        <field name="move_refund_id" attrs="{'invisible':[('state','!=','refund')]}"/>
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr='//field[@name="slip_ids"]' position="replace">
+                <field name="slip_ids">
+                    <tree string="Payslips" create="0">
+                        <field name="number"/>
+                        <field name="employee_id"/>
+                        <field name="name"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="state"/>
+                        <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        <field name="payslip_run_id" invisible="1"/>
+                    </tree>
+                </field>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_payslip_run_account_form_extend" model="ir.ui.view">
+        <field name="name">hr.payslip.run.account.form.extend</field>
+        <field name="model">hr.payslip.run</field>
+        <field name="inherit_id" ref="hr_payroll_account_community.hr_payslip_run_form_inherit"/>
+        <field name="arch" type="xml">
+            <field name='journal_id' position="after">
+                <field name="move_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr_payroll_community.action_view_hr_payslip_form" model="ir.actions.act_window">
+        <field name="name">Employee Payslips</field>
+        <field name="res_model">hr.payslip</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="search_view_id" ref="hr_payroll_community.view_hr_payslip_filter"/>
+        <field name="domain">[('payslip_pesangon', '=', False)]</field>
+    </record>
+
+    <menuitem action="hr_payroll_community.action_view_hr_payslip_form"
+              id="hr_payroll_community.menu_department_tree"
+              parent="hr_payroll_community.menu_hr_payroll_community_root"
+              groups="hr_payroll_community.group_hr_payroll_community_manager"
+              sequence="5"/>
+
+</odoo>

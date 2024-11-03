@@ -1,0 +1,120 @@
+<odoo>
+    <data>
+        <!-- PURCHASE TENDER TREE VIEW -->
+        <record id="purchase_tender_view_tree_inherited_purchase" model="ir.ui.view">
+            <field name="name">purchase.tender.tree.inherited.purchase</field>
+            <field name="model">purchase.agreement</field>
+            <field name="inherit_id" ref="sh_po_tender_management.sh_purchase_agreement_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree/field[@name='sh_purchase_user_id']" position="after">
+                    <field name="project"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Add fields Project, Sub Contracting (Selection) and Is Subcontracting (Boolean) -->
+        <!-- fields sub_contracting will show when is_subcontracting = true -->
+        <record id="sh_purchase_agreement_form_view_sh_po_tender_management_1" model="ir.ui.view">
+            <field name="name">sh.purchase.agreement.form.view.sh.po.tender.management</field>
+            <field name="model">purchase.agreement</field>
+            <field name="inherit_id" ref="sh_po_tender_management.sh_purchase_agreement_form_view"/>
+            <field name="arch" type="xml">
+                <!-- Adding split purchase button in purchase agreement model-->
+                <xpath expr="//button[@name='action_new_quotation']" position="after">
+                    <button string="Split Material Agreement" class="oe_highlight"
+                            context="{'default_agreement_id': active_id,'default_temp_current_vendors':partner_ids}" name="split_purchase_agreement" type="object"
+                            attrs="{'invisible':['|', '|', ('project', '=', False), ('state1','!=','confirm'), ('is_goods_orders','=',True)]}"/>
+                </xpath>
+                <xpath expr="//field[@name='sh_agreement_type']" position="after">
+                    <field name="project"/>
+                    <field name="budgeting_method" widget="radio" readonly="1" attrs="{'invisible': [('project', '=', False)]}"/>
+                    <field name="budgeting_period" invisible="1" readonly="1"/>
+                    <field name="cost_sheet" domain="[('project_id', '=', project)]" force_save="1" attrs="{'invisible': [('project', '=', False)], 'required':['|', '|', ('project', '=', False), ('is_subcontracting','=',True), ('is_material_orders','=',True)], 'readonly': True}"/>
+                    <field name="project_budget" domain="[('project_id', '=', project)]" force_save="1" attrs="{'readonly': True, 'invisible': ['|', '|', ('project', '=', False), ('is_multiple_budget', '=', True),('budgeting_period', '=', 'project')]}"/>
+                    <field name="is_multiple_budget_procurement" invisible='1'/>
+                    <label for="is_multiple_budget" attrs="{'invisible': ['|', '|', ('project', '=', False), ('is_multiple_budget_procurement', '=', False), ('budgeting_period', '=', 'project')]}"/>
+                    <div name="multiple_budget_div" class="d-flex" attrs="{'invisible': ['|', '|', ('project', '=', False), ('is_multiple_budget_procurement', '=', False), ('budgeting_period', '=', 'project')]}">
+                        <field name="is_multiple_budget" nolabel="1"/>
+                        <field name="multiple_budget_ids" widget="many2many_tags"
+                        attrs="{'required': [('is_multiple_budget', '!=', False)]}" nolabel="1"/>
+                    </div>
+                </xpath>
+                <xpath expr="//field[@name='branch_id']" position="attributes">
+                    <attribute name="attrs">{'readonly':['|', '|', ('state1', '=', 'confirm'), ('state4', 'in', ['waiting_approval', 'tender_approved']), ('project', '!=', False)]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='account_tag_ids']" position="after">
+                    <field name="sub_contracting" widget='radio' invisible="1" attrs="{'invisible': [('project', '=', False)]}"/>
+                    <field name="material_order" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='sub_contracting']" position="after">
+                    <field name="material_request" domain="[('project', '=', project)]" attrs="{'invisible':['|', ('project', '=', False), ('is_orders','=',False)]}"/>
+                    <field name="is_subcontracting" force_save="1" invisible="1"/>
+                    <field name="is_material_orders" force_save="1" invisible="1"/>
+                    <field name="is_orders" force_save="1" invisible="1"/>
+                    <field name="is_asset_cons_order" force_save="1" invisible="1"/>
+                </xpath>
+                <xpath expr="//page[1]" position="attributes">
+                    <attribute name="name">product</attribute>
+                    <attribute name="attrs">{'invisible':[('is_subcontracting','=',True)]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='sh_purchase_agreement_line_ids']" position="attributes">
+                    <attribute name="class">o_agreement_tender_product_line</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='sh_purchase_agreement_line_ids']/tree/field[@name='sh_product_id']" position="before">
+                    <field name="var_material_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="cs_material_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="cs_labour_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="cs_overhead_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="cs_equipment_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="cs_subcon_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="bd_material_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="bd_labour_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="bd_overhead_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="bd_equipment_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="bd_subcon_id" optional="hide" readonly="1" force_save='1' attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+                    <field name="type" attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+				    <field name="project_scope" attrs="{'column_invisible': [('parent.project', '=', False)]}"
+                           options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                    <field name="section" attrs="{'column_invisible': [('parent.project', '=', False)]}"
+                           options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                    <field name="variable" attrs="{'column_invisible': [('parent.project', '=', False)]}"
+                           options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                    <field name="group_of_product" attrs="{'column_invisible': [('parent.project', '=', False)]}"/>
+			    </xpath>
+                <xpath expr="//notebook/page/field[@name='sh_purchase_agreement_line_ids']/tree/field[@name='sh_qty']" position="after">
+				    <field name="budget_quantity"/>
+			    </xpath>
+                <!-- Button for create RFQ -->
+                <xpath expr="//button[@name='action_new_quotation2']" position="attributes">
+                    <attribute name="attrs">{'invisible':['|', ('state','in',['draft','waiting_approval','bid_selection','closed','cancel']), ('is_subcontracting','=',True)]}</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_new_quotation2']" position="after">
+                    <button name="action_new_quotation3" string="New Quotation" type="object" class="oe_highlight" attrs="{'invisible':['|', ('state','in',['draft','waiting_approval','bid_selection','closed','cancel']), ('is_subcontracting','=',False)]}" />
+                </xpath>
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button name="action_material_tender"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="o-hm-smart-crm-agreement"
+                            attrs="{'invisible': ['|', '|', ('project', '=', False), ('state', 'in', ('draft')),('total_split_tender', '=', 0)]}">
+                        <field name="total_split_tender" widget="statinfo" string="Split Material"/>
+                    </button>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- purchase.agreement inherit search view -->
+        <record id="purchase_tender_inherit_search_groupby_project" model="ir.ui.view">
+            <field name="name">purchase.tender.inherit.search.groupby.project</field>
+            <field name="model">purchase.agreement</field>
+            <field name="inherit_id" ref="equip3_purchase_other_operation.search_purchase_agreement_view_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="inside">
+                    <group string="Group By">
+                        <filter name="project" string="Project" context="{'group_by': 'project'}" />
+                    </group>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

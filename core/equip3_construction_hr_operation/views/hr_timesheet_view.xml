@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="hr_timesheet_line_tree_const_inherit" model="ir.ui.view">
+        <field name="name">account.analytic.line.tree.hr_timesheet.const.inherit</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="hr_timesheet.hr_timesheet_line_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position='after'>
+                <field string="Status" name="primary_status"/>
+                <button string="Start" name="start" type="object" class="btn-primary" attrs="{'invisible': [('primary_status', '!=', 'ready')]}"/>
+                <button string="Pause" name="pause" type="object" class="btn-primary" attrs="{'invisible': [('primary_status', '!=', 'in_progress')]}"/>
+                <button string="Continue" name="start_again" type="object" class="btn-primary" attrs="{'invisible': [('primary_status', '!=', 'paused')]}"/>
+                <button string="Done" name="done" type="object" class="btn-primary" attrs="{'invisible': [('primary_status', 'in', ('draft', 'ready', 'waiting', 'complete'))]}"/>
+            </xpath>
+            <xpath expr="//field[@name='task_id']" position='after'>
+                <field name="labour_name" attrs="{'invisible': ['|', ('project_id', '=', False),('task_id', '=', False)]}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='unit_amount']" position='attributes'>
+                <attribute name="string">Duration (Hours)</attribute>
+                <attribute name="widget">float_time_hms</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="edit_view_job_cost_sheet_menu_tree_const_inherit" model="ir.ui.view">
+        <field name="name">account.analytic.line.form.const.inherit</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="hr_timesheet.hr_timesheet_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[1]" position='before'>
+                <header>
+                    <button string="confirm" name="confirm" type="object" class="btn-primary" attrs="{'invisible': [('primary_status', '!=', 'draft')]}"/>
+                    <button string="Start" name="start" type="object" class="btn-primary" attrs="{'invisible': [('primary_status', '!=', 'ready')]}"/>
+                    <button string="Pause" name="pause" type="object" class="btn-primary" attrs="{'invisible': [('primary_status', '!=', 'in_progress')]}"/>
+                    <button string="Continue" name="start_again" type="object" class="btn-primary" attrs="{'invisible': [('primary_status', '!=', 'paused')]}"/>
+                    <button string="Done" name="done" type="object" class="btn-primary" attrs="{'invisible': [('primary_status', 'in', ('draft', 'ready', 'waiting', 'complete'))]}"/>
+                    <field name="primary_status" widget="statusbar" statusbar_visible="ready,in_progress,complete"/>
+                </header>
+            </xpath>
+            <xpath expr="//field[@name='unit_amount']" position='after'>
+                <field name="duration" widget="progress_time_counter" readonly="1"/>
+                <field name="hr_working_duration" invisible="1" force_save="1"/> 
+            </xpath>
+            <xpath expr="//field[@name='task_id']" position='after'>
+                <field name="labour_name" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='unit_amount']" position='attributes'>
+                <attribute name="string">Duration (Hours)</attribute>
+                <attribute name="widget">float_time_hms</attribute>
+            </xpath>
+            <xpath expr="//field[@name='amount']" position='attributes'>
+                <attribute name="attrs">{'invisible': [('task_id', '!=', False), ('project_id', '!=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='amount']" position='after'>
+                <field name="labour_amount" widget="monetary" string="Amount" readonly="1" attrs="{'invisible': ['|', ('task_id', '=', False), ('project_id', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="job_order_timesheet_line_view_form" model="ir.ui.view">
+        <field name="name">job.order.timesheet.line.view.form</field>
+        <field name="model">timesheet.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group name="group_1">
+                        <group name="group_1_1">
+                            <field name="name"/>
+                            <field name="project_id"/>
+                            <field name="employee_id"/>
+                            <field name="start_date"/>
+                        </group>
+                        <group name="group_1_2">
+                            <field name="date"/>
+                            <field name="task_id"/>
+                            <field name="company_id"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="worker_ids" widget="one2many" nolabel="1"/>
+                        <field name="duration"/>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="hr_timesheet.act_hr_timesheet_line" model="ir.actions.act_window">
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{
+            "search_default_week":1
+        }</field>
+    </record>
+
+</odoo>

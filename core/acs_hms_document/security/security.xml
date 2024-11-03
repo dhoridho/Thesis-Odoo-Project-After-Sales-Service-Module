@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+    	<record model="ir.module.category" id="document_category">
+            <field name="name">Document Management System</field>
+            <field name="description">Manage your Company Documents.</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="group_document_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="category_id" ref="document_category"/>
+        </record>
+
+        <record id="group_document_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="category_id" ref="document_category"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+            <field name="implied_ids" eval="[(4, ref('acs_hms_document.group_document_user'))]"/>
+        </record>
+
+    </data>
+
+    <data noupdate="1">
+
+        <!--For Directory-->
+        <record model="ir.rule" id="document_directory_user_rule">
+            <field name="name">Document Directory: User</field>
+            <field name="model_id" ref="acs_hms_document.model_document_directory"></field>
+            <field name="groups" eval="[(4,ref('group_document_user'))]"></field>
+            <field name="domain_force">['|', ('user_ids', 'in', [user.id]), ('department_id.member_ids', 'in', user.employee_ids.ids)]</field>
+            <field eval="0" name="perm_write"></field>
+            <field eval="1" name="perm_read"></field>
+            <field eval="0" name="perm_unlink"></field>
+            <field eval="0" name="perm_create"></field>
+        </record>
+
+        <record model="ir.rule" id="document_directory_manager_rule">
+            <field name="name">Document Directory: Manager</field>
+            <field name="model_id" ref="acs_hms_document.model_document_directory"></field>
+            <field name="groups" eval="[(4,ref('group_document_manager'))]"></field>
+            <field name="domain_force">[]</field>
+            <field eval="1" name="perm_write"></field>
+            <field eval="1" name="perm_read"></field>
+            <field eval="1" name="perm_unlink"></field>
+            <field eval="1" name="perm_create"></field>
+        </record>
+
+    </data>
+</odoo>
+

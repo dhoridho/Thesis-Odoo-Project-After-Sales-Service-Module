@@ -1,0 +1,55 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+
+{
+    'name': 'Equip3 HR Attendance Extend',
+    'version': '1.7.18',
+    'author': 'Hashmicro / Arivarasan',
+    'website': "https://www.hashmicro.com",
+    'category': 'Human Resources/Attendances',
+    'summary': """
+    Added some new fields and overrided the list view.
+    """,
+    'depends': ['base', 'equip3_hr_masterdata_employee', 'hr_attendance', 'equip3_hr_working_schedule',
+                'hr_attendance_base', 'hr_attendance_face_recognition', 'hr_attendance_geolocation',
+                'geo_location_attendance_knk', 'equip3_hr_employee_access_right_setting', 'resource', 'equip3_hr_recruitment_extend','web_image_webcam'],
+    'data': [
+        'views/assets.xml',
+        'views/hr_employee.xml',
+        'views/hr_attendance_change.xml',
+        'views/hr_schedule_exchange.xml',
+        'security/ir.model.access.csv',
+        'wizard/working_approve_wizard.xml',
+        'wizard/attendance_change_wizard.xml',
+        'wizard/attendance_offline_approval_wizard.xml',
+        'data/sequence.xml',
+        'views/equip3_hr_attendance.xml',
+        'views/res_config_settings_views.xml',
+        'views/hr_attendance_geolocation.xml',
+        'views/web_asset_backend_template.xml',
+        'data/scheduler.xml',
+        'data/mail_data.xml',
+        'data/wa_template.xml',
+        'views/hr_attendance_approval_matrix.xml',
+        'views/hr_attendance_view.xml',
+        'report/hr_roster_calendar.xml',
+        'report/hr_attendance_report.xml',
+        'report/hr_attendance_change_analysis.xml',
+        'report/hr_daily_attendance_report.xml',
+        'views/attendance_flow.xml',
+        'views/res_users.xml',
+        'views/hr_attendance_offline.xml',
+        'views/hr_attendance_reason_categ.xml',
+        'views/hr_attendance_offline_approval_matrix.xml',
+        'views/res_partner.xml',
+    ],
+    'qweb': [
+        "static/src/xml/attendance.xml",
+        "static/src/xml/attendance_flow.xml",
+        "static/src/xml/modal_reason.xml",
+    ],
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+}

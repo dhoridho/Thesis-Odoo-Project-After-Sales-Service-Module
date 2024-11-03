@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="custom_assets_backend" name="Custom Assets" inherit_id="portal.assets_frontend">
+        <xpath expr="//script[last()]" position="after">
+            <script type="text/javascript" src="/sh_po_tender_portal/static/src/js/custom.js"></script>
+        </xpath>
+    </template>
+    <template id="tender_portal_my_home_menu" name="Portal layout : Tender menu entries" inherit_id="portal.portal_breadcrumbs" priority="20">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <t t-if="request.env.user.is_tendor_vendor==True">
+                <li t-if="page_name == 'tender' or tender" t-attf-class="breadcrumb-item #{'active ' if not tender else ''}">
+                    <a t-if="tender" t-attf-href="/my/tender?{{ keep_query() }}">Purchase Tenders</a>
+                    <t t-else="">Purchase Tenders</t>
+                </li>
+                <li t-if="tender" class="breadcrumb-item active">
+                    <span t-field="tender.name" />
+                </li>
+            </t>
+        </xpath>
+    </template>
+    <template id="portal_tender_my_home" name="Portal My Home : Tender entries" inherit_id="portal.portal_my_home" priority="20">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-if="request.env.user.is_tendor_vendor==True">
+                <t t-if="tender_count" t-call="portal.portal_docs_entry">
+                    <t t-set="title">Purchase Tenders </t>
+                    <t t-if="tenders">
+                        <t t-set="url" t-value="'/my/tender'" />
+                    </t>
+                    <t t-set="count" t-value="tender_count" />
+                </t>
+            </t>
+        </xpath>
+    </template>
+    <template id="portal_my_tenders" name="My Tenders">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True" />
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Purchase Tenders</t>
+            </t>
+            <t t-if="not tenders">
+                <p>There are currently no Tenders for your account.</p>
+            </t>
+            <t t-if="tenders" t-call="portal.portal_table">
+                <thead>
+                    <tr>
+                        <th>Tender #</th>
+                        <th class="text-right">Tender Type</th>
+                        <th class="text-right">Vendor</th>
+                        <th class="text-right">Purchase Representative</th>
+                        <th class="text-right">Tender Deadline</th>
+                        <th class="text-right">Status</th>
+                        <th>Action</th>
+                        <th style="display:none;"></th>
+                    </tr>
+                </thead>
+                <t t-foreach="tenders" t-as="tender">
+                    <tr>
+                        <td>
+                            <a t-att-href="'/my/tender/'+str(tender.id)"><t t-esc="tender.name" /></a>
+                        </td>
+                        <td class="text-right"><span t-field="tender.sh_agreement_type.name" /></td>
+                        <t t-if="tender.sh_vender_id">
+                            <td class="text-right"><span t-field="tender.sh_vender_id.name" /></td>
+                        </t>
+                        <t t-if="not tender.sh_vender_id">
+                            <td class="text-right"></td>
+                        </t>
+                        <t t-if="tender.sh_purchase_user_id">
+                            <td class="text-right"><span t-field="tender.sh_purchase_user_id.name" /></td>
+                        </t>
+                        <t t-if="not tender.sh_purchase_user_id">
+                            <td class="text-right"></td>
+                        </t>
+                        <t t-if="tender.sh_agreement_deadline">
+                            <td class="text-right"><span t-field="tender.sh_agreement_deadline" /></td>
+                        </t>
+                        <t t-if="not tender.sh_agreement_deadline">
+                            <td class="text-right"></td>
+                        </t>
+                        <td class="text-right"><span t-field="tender.state" /></td>
+                        <t t-if="tender.state=='bid_selection'">
+                            <td>
+                                <button class="btn_add_bid btn btn-secondary">Add/Update Bid</button>
+                            </td>
+                        </t>
+                        <td style="display:none;">
+                        	<input type="hidden" id="tender_id" name="tender_id" t-att-value="tender.id" t-att-tender_id="tender.id" />
+                        </td>
+                    </tr>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="portal_tender_form_template" name="Tender Portal Template" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'" />
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="tender.get_portal_url(report_type='pdf', download=True)" title="Download"><i class="fa fa-download" /> Download</a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav"></ul>
+                            </li>
+                            <li class="list-group-item flex-grow-1">
+                                <div class="small mb-1"><strong class="text-muted">Responsible</strong></div>
+                                <div class="row flex-nowrap">
+                                    <div class="col flex-grow-0 pr-2">
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="tender.create_uid.image_1024" t-att-src="image_data_uri(tender.create_uid.image_1024)" alt="Contact" />
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="not tender.create_uid.image_1024" src="/web/static/src/img/placeholder.png" alt="Contact" />
+                                    </div>
+                                    <div class="col pl-0" style="min-width: 150px;">
+                                        <span t-field="tender.create_uid" t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}' />
+                                        <a href="#discussion" class="small"><i class="fa fa-comment"></i> Send message</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </t>
+                </t>
+                <!-- Page content -->
+                <div id="tender_content" class="col-12 col-lg justify-content-end">
+                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="sh_po_tender_portal.tender_portal_content" />
+                    </div>
+
+                    <!-- chatter -->
+                    <div id="tender_communication" class="mt-4" t-if="request.env.user.has_group('sh_po_tender_management.sh_purchase_tender_user')">
+                        <h2>History</h2>
+                        <t t-call="portal.message_thread">
+                            <t t-set="object" t-value="tender" />
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+    <template id="tender_portal_content" name="Tender Portal Content">
+        <!-- Intro -->
+        <div id="introduction" t-attf-class="pb-2 pt-3 #{'card-header bg-white' if report_type == 'html' else ''}">
+            <h2 class="my-0">
+                <em t-esc="tender.name" />
+            </h2>
+        </div>
+        <br />
+        <div class="row">
+            <div class="mb-3 col-12">
+                <t t-if="tender.state=='bid_selection'">
+                    <button style="margin-left: 20px;" id="btn_add_bid_form" class="btn btn-secondary" t-att-data-id="tender.id" t-att-data-name="tender.id" t-att-data-value="tender.id">Add/Update Bid</button>
+                </t>
+            </div>
+        </div>
+        <div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+            <!-- Informations -->
+            <div id="informations">
+                <div class="row">
+                    <div class="mb-3 col-6"><strong>Purchase Representative:</strong><span t-field="tender.sh_purchase_user_id" /></div>
+                    <div class="mb-3 col-6"><strong>Tender Deadline:</strong><span t-field="tender.sh_agreement_deadline" t-options='{"widget": "date"}' /></div>
+                </div>
+                <div class="row">
+                    <div class="mb-3 col-6"><strong>Tender Type:</strong><span t-field="tender.sh_agreement_type" /></div>
+                    <div class="mb-3 col-6"><strong>Ordering Date:</strong><span t-field="tender.sh_order_date" t-options='{"widget": "date"}' /></div>
+                </div>
+                <div class="row">
+                    <div class="mb-3 col-6"><strong>Source Document:</strong><span t-field="tender.sh_source" /></div>
+                    <div class="mb-3 col-6"><strong>Delivery Date:</strong><span t-field="tender.sh_delivery_date" t-options='{"widget": "date"}' /></div>
+                </div>
+            </div>
+            <section id="details" style="page-break-inside: auto;" class="mt32">
+                <h3 id="details">Operations</h3>
+                <table class="table table-sm" id="tender_table">
+                    <thead class="bg-100">
+                        <tr>
+                            <th class="text-left">Products</th>
+                            <th class="text-right">Quantity</th>
+                            <th class="text-right">Ordered Quantities</th>
+                        </tr>
+                    </thead>
+                    <tbody class="sale_tbody">
+                        <t t-foreach="tender.sh_purchase_agreement_line_ids" t-as="line">
+                            <tr>
+                                <td id="product_name"><span t-field="line.sh_product_id" /></td>
+                                <td class="text-right">
+                                    <div id="quote_qty">
+                                        <span t-field="line.sh_qty" />
+                                    </div>
+                                </td>
+                                <td class="text-right">
+                                    <span t-field="line.sh_ordered_qty" />
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                <br/>
+                <t t-if="request.env.company.sh_manage_tender_doc_portal">
+                <h3 id="sh_document">Documents</h3>
+                <div class="row">
+                		<t t-foreach="request.env['ir.attachment'].sudo().search([('res_model','=','purchase.agreement'),('res_id','=',tender.id),('sh_is_publish_in_portal','=',True)])" t-as="user_document">
+	                		<div class="col-4 my-2">
+	                			<div style='display: flex;align-items: center;background: #3aadaa;border-radius: 3px;justify-content: space-between;overflow: hidden;'>
+	                				<div style='display: flex;align-items:center;width:89%;'>
+			                				<t t-set="img_src" t-value="'/web/image/' + str(user_document.id)"/>
+			                				<div style='display:block;'>
+			                                     <t t-set="webimage" t-value="user_document.mimetype"/>
+			                                     <div t-if="user_document.type == 'url'" class="o_url_image fa fa-link fa-3x text-muted" aria-label="Image is a link"/>
+			                                     <img t-elif="webimage=='image/jpeg' or webimage=='image/jpg' or webimage=='image/gif' or webimage=='image/png'" t-att-src="img_src" alt="Document" class="o_attachment_image" style='height:30px;width:30px;display:block;'/>
+			                                     <div t-else="webimage!='image/jpeg' or webimage!='image/jpg' or webimage!='image/gif' or webimage!='image/png'" class="o_image o_image_thumbnail" t-att-data-mimetype="user_document.mimetype" style='height:30px;width:30px;display:block;'/>
+			                            	</div>
+			                            <div style='overflow: hidden;text-overflow: ellipsis;display: -webkit-box;-webkit-line-clamp: 1;-webkit-box-orient: vertical;color: #fff;width: 89%;    margin-left: 6px;'>
+			                            	<span t-esc="user_document.name" t-att-title='user_document.name'/>
+			                            </div>
+			                        </div>
+		                            
+	                				<div>
+					                    <input type="hidden" id="attachment_id" name="attachment_id" t-att-value="user_document.id" />
+					                    <a t-att-href="'/attachment/download?attachment_id=%i' % user_document.id" style='color: #fff;height: 100%;padding: 7px 9px;'>
+					                        <span class="fa fa-download" />
+					                    </a>
+				                    </div>
+			                    </div>
+			                </div>
+		                </t>
+                </div>
+                </t>
+            </section>
+        </div>
+    </template>
+</odoo>

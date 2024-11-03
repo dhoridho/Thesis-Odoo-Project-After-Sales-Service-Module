@@ -1,0 +1,104 @@
+<odoo>
+	<record id="equip3_purchase_operation.action_report_purchase_comparison" model="ir.actions.report">
+		<field name="name">Purchase Comparison</field>
+		<field name="model">purchase.order</field>
+		<field name="report_type">qweb-pdf</field>
+		<field name="model">purchase.order</field>
+        <field name="report_name">equip3_purchase_operation.purchase_comparison_pdf</field>
+        <field name="report_file">equip3_purchase_operation.purchase_comparison_pdf</field>
+		<field name="binding_model_id" eval="False"/>
+		<field name="binding_type">report</field>
+	</record>
+	<template id="purchase_comparison_pdf" name="Purchase Comparison Chart">
+        <t t-call="web.html_container">
+            <div class="page">
+                <style>
+                    body, header, footer {
+                    font-family: Arial,Helvetica,sans-serif !important;
+                    font-size: 14px;
+                    line-height: 1.25 !important;
+                    }
+                    table, th, td {
+                        border-collapse: collapse;
+                    }
+
+                    .table th, .table td {
+                        padding: 6px !important;
+                    }
+                </style>
+
+				<table class="table table-bordered">
+					<body>
+						<tr><td t-att-colspan="report_column"><h2 style="text-align: center;">Purchase Comparison Chart</h2></td></tr>
+						<tr>
+							<th style="border:1px solid black; text-align: left; background-color: #CCCCCC">Reference</th>
+							<t t-foreach="rfq_info" t-as="rfq">
+								<th colspan="3" style="text-align:center; border:1px solid black; background-color: #CCCCCC">
+									<span t-esc="rfq['rfq_name']" />
+								</th>
+							</t>
+						</tr>
+						<tr>
+							<th style="border:1px solid black; text-align: left;">Vendor</th>
+							<t t-foreach="supplier" t-as="name">
+								<th colspan="3" style="text-align:center; border:1px solid black;">
+									<span t-esc="name['sname']" />
+								</th>
+							</t>
+						</tr>
+						<tr>
+							<th style="border:1px solid black; text-align: left; background-color: #CCCCCC">Products</th>
+							<t t-foreach="rfq_info" t-as="rec">
+								<th style="text-align:center; border:1px solid black; background-color: #CCCCCC">Quantity</th>
+								<th style="text-align:center; border:1px solid black; background-color: #CCCCCC">Unit Price</th>
+								<th style="text-align:center; border:1px solid black; background-color: #CCCCCC">Subtotal</th>
+							</t>
+						</tr>
+						<t t-set="row" t-value="1"/>
+						<t t-foreach="data" t-as="product">
+							<t t-if="row % 2 == 0">
+								<tr>
+									<td style="border:1px solid black; text-align: left; background-color: #CCCCCC"><span t-esc="product['product_name']" /></td>
+									<t t-foreach="product['record']" t-as="rec">
+										<td style="border:1px solid black; background-color: #CCCCCC"><span t-esc="rec['qty']" /> <span t-esc="rec['uom']" /></td>
+										<td style="text-align:right; border:1px solid black; background-color: #CCCCCC"><span t-esc="rec['price']" /></td>
+										<td style="text-align:right; border:1px solid black; background-color: #CCCCCC"><span t-esc="rec['subtotal']" /></td>
+									</t>
+								</tr>
+							</t>
+							<t t-else="">
+								<tr>
+									<td style="border:1px solid black; text-align: left;"><span t-esc="product['product_name']" /></td>
+									<t t-foreach="product['record']" t-as="rec">
+										<td style="border:1px solid black;"><span t-esc="rec['qty']" /> <span t-esc="rec['uom']" /></td>
+										<td style="text-align:right; border:1px solid black;"><span t-esc="rec['price']" /></td>
+										<td style="text-align:right; border:1px solid black;"><span t-esc="rec['subtotal']" /></td>
+									</t>
+								</tr>
+							</t>
+							<t t-set="row" t-value="row + 1"/>
+						</t>
+						<tr>
+							<t t-if="row % 2 == 0">
+								<th style="border:1px solid black; text-align: left; background-color: #CCCCCC">Total</th>
+								<t t-foreach="rfq_info" t-as="rfq">
+									<th colspan="3" style="text-align:center; border:1px solid black; background-color: #CCCCCC">
+										<span t-esc="rfq['amount']" />
+									</th>
+								</t>
+							</t>
+							<t t-else="">
+								<th style="border:1px solid black; text-align: left;">Total</th>
+								<t t-foreach="rfq_info" t-as="rfq">
+									<th colspan="3" style="text-align:center; border:1px solid black;">
+										<span t-esc="rfq['amount']" />
+									</th>
+								</t>
+							</t>
+						</tr>
+					</body>
+				</table>
+			</div>
+		</t>
+	</template>
+</odoo>

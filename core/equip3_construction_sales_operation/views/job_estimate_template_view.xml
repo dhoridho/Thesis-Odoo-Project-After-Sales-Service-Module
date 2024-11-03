@@ -1,0 +1,821 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="job_estimate_template_form_view" model="ir.ui.view">
+            <field name="name">edit.job.estimate.form.view</field>
+            <field name="model">job.estimate.template</field>
+            <field name="arch" type="xml">
+                <form string="BOQ Template">
+                    <sheet>
+                        <div class="oe_title pr-0">
+                            <h1 class="d-flex flex-row justify-content-between">
+                                <field name="name" placeholder="Template Name" class="o_task_name text-truncate"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="company_id" invisible="1"/>
+                                <field name="project_scope_computed" invisible="1" widget="many2many_tags"/>
+                                <field name="section_name_computed" invisible="1" widget="many2many_tags"/>
+                                <field name="company_currency_id" readonly="1" invisible="1"/>
+                                <field name="create_uid" string='Created By'/>
+                                <field name="create_date" string='Creation Date'/>
+                            </group> 
+                        </group>
+                        <notebook>
+                            <page string="Project Scope" name="project_scope">
+                                <field name="project_scope_ids" widget="one2many_list" class="o_job_estimates_scope">
+                                    <tree string="Project Scope" editable="bottom">
+                                        <control>
+                                            <create name="add_product_control" string="Add a scope"/>
+                                        </control>
+                                        <field name="sequence" widget="handle" />
+                                        <field name="sr_no"/>
+                                        <field name="project_scope" options="{'no_quick_create':True}"/>
+                                        <!-- <field name="description" /> -->
+                                        <field name="subtotal" readonly="1" force_save="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="scope_id" invisible="1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                    </tree>
+                                </field>
+                                <group>
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                                        <!-- <field name="total_material_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_labour_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_overhead_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_assets_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_subcon_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/> -->
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="total_job_estimate"/>
+                                        </div>
+                                        <field name="total_job_estimate" nolabel="1" class="oe_subtotal_footer_separator"
+                                            widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Section" name="section">
+                                <field name="section_ids" widget="one2many_list" class="o_job_estimates_section">
+                                    <tree string="Section" editable="bottom">
+                                        <control>
+                                            <create name="add_product_control" string="Add a section"/>
+                                        </control>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="sr_no"/>
+                                        <field name="project_scope"
+                                               options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                               domain="[('id','in',parent.project_scope_computed)]"/>
+                                        <field name="section_name"
+                                               attrs="{'readonly': [('project_scope', '=', False)]}" options="{'no_quick_create':True}"/>
+                                        <!-- <field name="description" attrs="{'readonly': [('project_scope', '=', False)]}"/> -->
+                                        <field name="quantity" attrs="{'readonly': [('project_scope', '=', False)]}" />
+                                        <field name="uom_id" attrs="{'readonly': [('project_scope', '=', False)]}" />
+                                        <field name="subtotal" readonly="1" force_save="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="section_id" invisible="1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                    </tree>
+                                </field>
+                                <group>
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                                        <!-- <field name="total_material_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_labour_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_overhead_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_assets_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_subcon_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/> -->
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="total_job_estimate"/>
+                                        </div>
+                                        <field name="total_job_estimate" nolabel="1" class="oe_subtotal_footer_separator"
+                                            widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Variable" name="variable">
+                                <field name="variable_ids" widget="one2many_list" class="o_job_estimates_variable">
+                                    <tree string="Variable" editable="bottom">
+                                        <control>
+                                            <create name="add_product_control" string="Add a variable"/>
+                                        </control>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="sr_no"/>
+                                        <field name="project_scope" 
+                                               options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                               domain="[('id','in',parent.project_scope_computed)]"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                        <field name="section_name"
+                                                options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                attrs="{'readonly': [('project_scope', '=', False)]}"
+                                                domain="[('id','in',project_section_computed)]"/>
+                                        <field name="variable_name" 
+                                               attrs="{'readonly': [('section_name', '=', False)]}"
+                                               options="{'no_quick_create':True}"
+                                               context="{'default_variable_subcon':False}"/>
+                                        <field name="variable_quantity" attrs="{'readonly': [('variable_name', '=', False)]}"/>
+                                        <field name="variable_uom" attrs="{'readonly': [('variable_name', '=', False)]}"/>
+                                        <field name="total_variable" invisible="1" force_save="1"/>
+                                        <field name="subtotal" readonly="1" force_save="1" widget="monetary"
+                                               options="{'currency_field': 'currency_id'}"
+                                               invisible="1"/>
+                                        <field name="variable_id" invisible="1"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                        <field name="onchange_pass" invisible="1"/>
+                                    </tree>
+                                </field>
+                                <group>
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                                        <!-- <field name="total_material_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_labour_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_overhead_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_assets_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_subcon_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/> -->
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="total_job_estimate"/>
+                                        </div>
+                                        <field name="total_job_estimate" nolabel="1" class="oe_subtotal_footer_separator"
+                                            widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Estimation">
+                                <notebook>
+                                    <page name="material_page" string="Material Estimation">
+                                        <field name="material_estimation_ids" widget="one2many_list"
+                                               class="o_job_estimates_line">
+                                            <tree string="Material Estimation" editable="bottom">
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="project_scope" 
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       domain="[('id','in',parent.project_scope_computed)]"/>
+                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                <field name="section_name"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       attrs="{'readonly': [('project_scope', '=', False)]}"
+                                                       domain="[('id','in',project_section_computed)]"/>
+                                                <field name="variable_ref" force_save="1"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       optional="hide"/>
+                                                <field name="group_of_product"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"/>
+                                                <field name="type" invisible="1"/>
+                                                <field name="product_id"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"
+                                                       options="{'no_create': True}"/>
+                                                <field name="product_uom_category_id" invisible="1"/>   
+                                                <field name="description"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"/>
+                                                <field name="coefficient"/>
+                                                <field name="quantity"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"/>
+                                                <field name="uom_id" required="1"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"
+                                                       domain="[('category_id', '=', product_uom_category_id)]"/>
+                                                <field name="unit_price"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"
+                                                       widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                <field name="subtotal" force_save="1" widget="monetary"
+                                                       options="{'currency_field': 'currency_id'}"/>
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="currency_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                        <group>
+                                            <group class="oe_subtotal_footer oe_right" colspan="2"
+                                                   name="total_material_estimate">
+                                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                                    <label for="total_material_estimate"/>
+                                                </div>
+                                                <field name="total_material_estimate" nolabel="1"
+                                                       class="oe_subtotal_footer_separator"
+                                                       widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            </group>
+                                        </group>
+                                    </page>
+                                    <page name="labour_page" string="Labour Estimation">
+                                        <field name="labour_estimation_ids" widget="one2many_list"
+                                               class="o_job_estimates_line">
+                                            <tree string="Labour Estimation" editable="bottom">
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="project_scope"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       domain="[('id','in',parent.project_scope_computed)]"/>
+                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                <field name="section_name"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       attrs="{'readonly': [('project_scope', '=', False)]}"
+                                                       domain="[('id','in',project_section_computed)]"/>
+                                                <field name="variable_ref" force_save="1"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       optional="hide"/>
+                                                <field name="group_of_product"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"/>
+                                                <field name="type" invisible="1"/>
+                                                <field name="product_id" domain="[('labour_type', '=', True)]"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"
+                                                       options="{'no_create': True}"
+                                                />
+                                                <field name="product_uom_category_id" invisible="1"/> 
+                                                <field name="description"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"/>
+                                                <field name="contractors"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"/>
+                                                <field name="coefficient"/>
+                                                <field name="time"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"/>
+                                                <field name="quantity"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}" invisible="1"/>
+                                                <field name="uom_id" required="1"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"
+                                                       domain="[('category_id', '=', product_uom_category_id)]"/>
+                                                <field name="unit_price"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"
+                                                       widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                <field name="subtotal" force_save="1" widget="monetary"
+                                                       options="{'currency_field': 'currency_id'}"/>
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="currency_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                        <group>
+                                            <group class="oe_subtotal_footer oe_right" colspan="2"
+                                                   name="total_material_estimate">
+                                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                                    <label for="total_labour_estimate"/>
+                                                </div>
+                                                <field name="total_labour_estimate" nolabel="1"
+                                                       class="oe_subtotal_footer_separator"
+                                                       widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            </group>
+                                        </group>
+                                    </page>
+                                    <page name="overhead_page" string="Overhead Estimation">
+                                        <field name="overhead_estimation_ids" widget="one2many_list"
+                                               class="o_job_estimates_line">
+                                            <tree string="Overhead Estimation" editable="bottom">
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="project_scope"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       domain="[('id','in',parent.project_scope_computed)]"/>
+                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                <field name="section_name"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       attrs="{'readonly': [('project_scope', '=', False)]}"
+                                                       domain="[('id','in',project_section_computed)]"/>
+                                                <field name="variable_ref" force_save="1"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       optional="hide"/>
+                                                <field name="overhead_catagory" required='1' 
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"/>
+                                                <field name="group_of_product"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"/>
+                                                <field name="overhead_catagory"/>
+                                                <field name="type" invisible="1"/>
+                                                <field name="product_id"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"
+                                                       options="{'no_create': True}"/>
+                                                <field name="product_uom_category_id" invisible="1"/> 
+                                                <field name="description"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"/>
+                                                <field name="coefficient"/>
+                                                <field name="quantity"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"/>
+                                                <field name="uom_id" required="1"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"
+                                                       domain="[('category_id', '=', product_uom_category_id)]"/>
+                                                <field name="unit_price"
+                                                       attrs="{'readonly': [('product_id', '=', False)]}"
+                                                       widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                <field name="subtotal" force_save="1" widget="monetary"
+                                                       options="{'currency_field': 'currency_id'}"/>
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="currency_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                        <group>
+                                            <group class="oe_subtotal_footer oe_right" colspan="2"
+                                                   name="total_material_estimate">
+                                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                                    <label for="total_overhead_estimate"/>
+                                                </div>
+                                                <field name="total_overhead_estimate" nolabel="1"
+                                                       class="oe_subtotal_footer_separator"
+                                                       widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            </group>
+                                        </group>
+                                    </page>
+
+                                    <page name="asset_astimation_page" string="Asset Estimation">
+                                        <notebook>
+                                            <page name="internal_asset" string="Internal Asset Estimation">
+                                                <field name="asset_estimation_ids" widget="one2many_list"
+                                                       class="o_job_estimates_line">
+                                                    <tree string="Asset" editable="bottom">
+                                                        <field name="sequence" widget="handle"/>
+                                                        <field name="sr_no"/>
+                                                        <field name="project_scope"
+                                                               options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                               domain="[('id','in',parent.project_scope_computed)]"/>
+                                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                        <field name="section_name"
+                                                               options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                               attrs="{'readonly': [('project_scope', '=', False)]}"
+                                                               domain="[('id','in',project_section_computed)]"/>
+                                                        <field name="variable_ref" force_save="1"
+                                                               attrs="{'readonly': [('section_name', '=', False)]}"
+                                                               options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                               optional="hide"/>
+                                                        <field name="asset_category_id" required="1"
+                                                               attrs="{'readonly': [('section_name', '=', False)]}"/>
+                                                        <field name="asset_id" required="1"
+                                                               attrs="{'readonly': [('section_name', '=', False)]}"
+                                                               options="{'no_create': True}"/>
+                                                        <field name="type" invisible="1"/>
+                                                        <field name="description"
+                                                               attrs="{'readonly': [('asset_id', '=', False)]}"/>
+                                                        <field name="coefficient"/>
+                                                        <field name="quantity"
+                                                               attrs="{'readonly': [('asset_id', '=', False)]}"/>
+                                                        <field name="uom_id"
+                                                               attrs="{'readonly': [('asset_id', '=', False)]}"/>
+                                                        <field name="unit_price"
+                                                               attrs="{'readonly': [('asset_id', '=', False)]}"/>
+                                                        <field name="subtotal"/>
+                                                        <field name="company_id" invisible="1"/>
+                                                        <field name="currency_id" invisible="1"/>
+                                                    </tree>
+                                                </field>
+                                                <group >
+                                                    <group class="oe_subtotal_footer oe_right" colspan="2"
+                                                           name="total_material_estimate">
+                                                        <field name="total_internal_assets_estimate" widget='monetary'
+                                                               options="{'currency_field': 'currency_id'}"
+                                                               force_save='1'/>
+                                                        <field name="total_equipment_estimate" widget='monetary'
+                                                               options="{'currency_field': 'currency_id'}"
+                                                               force_save='1'/>
+                                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                                            <label for="total_assets_estimate"/>
+                                                        </div>
+                                                        <field name="total_assets_estimate" nolabel="1"
+                                                               class="oe_subtotal_footer_separator"
+                                                               widget='monetary'
+                                                               options="{'currency_field': 'currency_id'}"
+                                                               force_save='1'/>
+                                                    </group>
+                                                </group>
+                                            </page>
+                                            <page name="equipment_page" string="Equipment Lease Estimation">
+                                                <field name="equipment_estimation_ids" widget="one2many_list"
+                                                       class="o_job_estimates_line">
+                                                    <tree string="Equipment Estimation" editable="bottom">
+                                                        <control>
+                                                            <create name="add_product_control" string="Add a product"/>
+                                                        </control>
+                                                        <field name="sequence" widget="handle"/>
+                                                        <field name="sr_no"/>
+                                                        <field name="project_scope"
+                                                               options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                               domain="[('id','in',parent.project_scope_computed)]"/>
+                                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                        <field name="section_name"
+                                                               options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                               attrs="{'readonly': [('project_scope', '=', False)]}"
+                                                               domain="[('id','in',project_section_computed)]"/>
+                                                        <field name="variable_ref" force_save="1"
+                                                               attrs="{'readonly': [('section_name', '=', False)]}"
+                                                               options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                               optional="hide"/>
+                                                        <field name="group_of_product"
+                                                               attrs="{'readonly': [('section_name', '=', False)]}"/>
+                                                        <field name="type" invisible="1"/>
+                                                        <field name="product_id"
+                                                               attrs="{'readonly': [('section_name', '=', False)]}"
+                                                               options="{'no_create': True}"/>
+                                                        <field name="product_uom_category_id" invisible="1"/> 
+                                                        <field name="description"
+                                                               attrs="{'readonly': [('product_id', '=', False)]}"/>
+                                                        <field name="coefficient"/>
+                                                        <field name="quantity"
+                                                               attrs="{'readonly': [('product_id', '=', False)]}"/>
+                                                        <field name="uom_id" required="1"
+                                                               attrs="{'readonly': [('product_id', '=', False)]}"
+                                                               domain="[('category_id', '=', product_uom_category_id)]"/>
+                                                        <field name="unit_price"
+                                                               attrs="{'readonly': [('product_id', '=', False)]}"
+                                                               widget="monetary"
+                                                               options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="subtotal" force_save="1" widget="monetary"
+                                                               options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="company_id" invisible="1"/>
+                                                        <field name="currency_id" invisible="1"/>
+                                                    </tree>
+                                                </field>
+                                                <group>
+                                                    <group class="oe_subtotal_footer oe_right" colspan="2"
+                                                           name="total_material_estimate">
+                                                        <field name="total_internal_assets_estimate" widget='monetary'
+                                                               options="{'currency_field': 'currency_id'}"
+                                                               force_save='1'/>
+                                                        <field name="total_equipment_estimate" widget='monetary'
+                                                               options="{'currency_field': 'currency_id'}"
+                                                               force_save='1'/>
+                                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                                            <label for="total_assets_estimate"/>
+                                                        </div>
+                                                        <field name="total_assets_estimate" nolabel="1"
+                                                               class="oe_subtotal_footer_separator"
+                                                               widget='monetary'
+                                                               options="{'currency_field': 'currency_id'}"
+                                                               force_save='1'/>
+                                                    </group>
+                                                </group>
+                                            </page>
+                                        </notebook>
+                                    </page>
+                                    <page string="Subcon Estimation" name="subcon_page">
+                                        <field name="subcon_estimation_ids" widget="one2many_list"
+                                               class="o_job_estimates_line">
+                                            <tree string="Subcon Estimation" editable="bottom">
+                                                <control>
+                                                    <create name="add_product_control" string="Add a subcon"/>
+                                                </control>
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="project_scope"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       domain="[('id','in',parent.project_scope_computed)]"/>
+                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                <field name="section_name"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       attrs="{'readonly': [('project_scope', '=', False)]}"
+                                                       domain="[('id','in',project_section_computed)]"/>
+                                                <field name="variable_ref" force_save="1"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"
+                                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                       optional="hide"/>
+                                                <field name="variable" force_save="1"
+                                                       attrs="{'readonly': [('section_name', '=', False)]}"
+                                                       options="{'no_quick_create':True, 'no_create':True}"
+                                                       context="{'default_variable_subcon':True}"/>
+                                                <field name="type" invisible="1"/>
+                                                <field name="description"
+                                                       attrs="{'readonly': [('variable', '=', False)]}"/>
+                                                <field name="coefficient"/>
+                                                <field name="quantity"
+                                                       attrs="{'readonly': [('variable', '=', False)]}"/>
+                                                <field name="uom_id" required="1"
+                                                       attrs="{'readonly': [('variable', '=', False)]}"/>
+                                                <field name="unit_price"
+                                                       attrs="{'readonly': [('variable', '=', False)]}"
+                                                       widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                                <field name="subtotal" force_save="1" widget="monetary"
+                                                       options="{'currency_field': 'currency_id'}"/>
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="currency_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                        <group>
+                                            <group class="oe_subtotal_footer oe_right" colspan="2"
+                                                   name="total_material_estimate">
+                                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                                    <label for="total_subcon_estimate"/>
+                                                </div>
+                                                <field name="total_subcon_estimate" nolabel="1"
+                                                       class="oe_subtotal_footer_separator"
+                                                       widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            </group>
+                                        </group>
+                                    </page>
+                                </notebook>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter" name="chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="project_scope_view_template" model="ir.ui.view">
+            <field name="name">project.scope.view.template</field>
+            <field name="model">project.scope.estimate.template</field>
+            <field name="arch" type="xml">
+                <form string="Project Scope">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="scope_id" string='BOQ Template'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="description"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+        <record id="section_view_template" model="ir.ui.view">
+            <field name="name">section.view.template</field>
+            <field name="model">section.estimate.template</field>
+            <field name="arch" type="xml">
+                <form string="Section">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="section_id" string='BOQ Template'/>
+                                <field name="project_scope"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="section_name"/>
+                                <field name="description"/>
+                                <field name="quantity"/>
+                                <field name="uom_id"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="variable_view_template" model="ir.ui.view">
+            <field name="name">variable.view.template</field>
+            <field name="model">variable.estimate.template</field>
+            <field name="arch" type="xml">
+                <form string="Variable">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="variable_id" string='BOQ Template'/>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="variable_name"/>
+                                <field name="variable_quantity"/>
+                                <field name="variable_uom"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="material_view_template" model="ir.ui.view">
+            <field name="name">material.view.template</field>
+            <field name="model">material.estimate.template</field>
+            <field name="arch" type="xml">
+                <form string="Material">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="material_id" string='BOQ Template'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="product_id"/>
+                                <field name="description"/>
+                                <field name="uom_id"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="labour_view_template" model="ir.ui.view">
+            <field name="name">labour.view.template</field>
+            <field name="model">labour.estimate.template</field>
+            <field name="arch" type="xml">
+                <form string="Labour">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="labour_id" string='BOQ Template'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="product_id"/>
+                                <field name="description"/>
+                                <field name="uom_id"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="subcon_view_template" model="ir.ui.view">
+            <field name="name">subcon.view.template</field>
+            <field name="model">subcon.estimate.template</field>
+            <field name="arch" type="xml">
+                <form string="SUbcon">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="subcon_id" string='BOQ Template'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="variable"/>
+                                <field name="description"/>
+                                <field name="uom_id"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="overhead_view_template" model="ir.ui.view">
+            <field name="name">overhead.view.template</field>
+            <field name="model">overhead.estimate.template</field>
+            <field name="arch" type="xml">
+                <form string="Overhead">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="overhead_id" string='BOQ Template'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="product_id"/>
+                                <field name="description"/>
+                                <field name="uom_id"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="equipment_view_template" model="ir.ui.view">
+            <field name="name">equipment.view.template</field>
+            <field name="model">equipment.estimate.template</field>
+            <field name="arch" type="xml">
+                <form string="Equipment">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="equipment_id" string='BOQ Template'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="product_id"/>
+                                <field name="description"/>
+                                <field name="uom_id"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="job_estimate_template_view_tree" model="ir.ui.view">
+            <field name="name">job.estimate.template.view.tree</field>
+            <field name="model">job.estimate.template</field>
+            <field name="arch" type="xml">
+                <tree multi_edit="1" sample="1">
+                    <field name="name" class="font-weight-bold"/>
+                    <field name="total_job_estimate" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="company_currency_id" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="action_job_estimate_template" model="ir.actions.act_window">
+            <field name="name">BOQ Template</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">job.estimate.template</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No BOQ Template found. Let's create one!
+                </p>
+            </field>
+        </record>
+
+        <menuitem
+            id="job_estimate_template_menu"
+            name="BOQ Template"
+            action="action_job_estimate_template"
+            parent="equip3_sale_masterdata.menu_sale_config_config"
+            sequence="1"/>
+
+
+    </data>
+</odoo> 
+    

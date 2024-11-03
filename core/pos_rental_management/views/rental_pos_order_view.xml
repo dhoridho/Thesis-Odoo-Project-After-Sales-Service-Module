@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2015-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- "License URL : <https://store.webkul.com/license.html/>" -->
+
+<odoo>
+
+    <record id="pos_rental_order_tree" model="ir.ui.view">
+        <field name="name">rental.pos.order.tree</field>
+        <field name="model">rental.pos.order</field>
+        <field name="arch" type="xml">
+            <tree string="Rental Pos Order" create="0">
+                <field name='full_product_name'/>
+                <field name='order_id'/>
+                <field name='partner_id'/>
+                <field name='date_order' string="Order Date"/>
+                <field name='state'/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pos_rental_order_form" model="ir.ui.view">
+        <field name="name">rental.pos.order.form</field>
+        <field name="model">rental.pos.order</field>
+        <field name="arch" type="xml">
+            <form string="Rental Pos Order" create="0">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name='full_product_name'/>
+                            <field name='product_id'/>
+                            <field name='order_id'/>
+                            <field name='partner_id'/>
+                            <field name='security_price' widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name='price_unit' widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name='price_subtotal_incl' widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name='currency_id' invisible="1"/>
+                            <field name='return_order' attrs="{'invisible':[('state','!=', 'free')]}"/>
+                        </group>
+                        <group>
+                            <field name='date_order' string="Order Date"/>
+                            <field name='qty'/>
+                            <field name='selected_tenure_string'/>
+                            <field name='refund_security_amount' widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible':[('state','!=', 'free')]}"/>
+                            <field name='extra_refund_amount' widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible':[('state','!=', 'free')]}"/>
+                            <field name='deducted_amount' widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible':[('state','!=', 'free')]}"/>
+                            <field name='return_date' attrs="{'invisible':[('state','!=', 'free')]}"/>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="pos_rental_order_search_view" model="ir.ui.view">
+        <field name="model">rental.pos.order</field>
+        <field name="arch" type="xml">
+            <search string="Search Rented Products">
+                <field name='product_id'/>
+                <field name='order_id'/>
+                <field name='state'/>
+                <field name='partner_id'/>
+                <field name='date_order'/>
+                <filter string="Rented" name="rented" domain="[('state','=','rented')]"/>
+                <filter string="Free" name="free" domain="[('state','=','free')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Order Ref" name="groupby_order_id" context="{'group_by': 'order_id'}"/>
+                    <filter string="Customer" name="groupby_partner_id" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Product" name="groupby_product_id" context="{'group_by': 'product_id'}"/>
+                    <filter string="Order Date" name="order_date" context="{'group_by':'date_order'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="pos_rental_order_action" model="ir.actions.act_window">
+        <field name="name">Rented Products</field>
+        <field name="res_model">rental.pos.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="pos_rental_order_search_view"/>
+    </record>
+
+    <menuitem id="menu_pos_rental_order" parent="point_of_sale.pos_config_menu_catalog" action="pos_rental_order_action" sequence="3" groups="point_of_sale.group_pos_manager,point_of_sale.group_pos_user"/>
+
+
+</odoo>
+
+                            

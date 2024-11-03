@@ -1,0 +1,219 @@
+<odoo>
+
+    <!-- Portal View -->
+    <template id="portal_my_home_menu_hms" name="Portal layout : HMS Data" inherit_id="portal.portal_breadcrumbs" priority="20">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'lab_result' or lab_result" t-attf-class="breadcrumb-item #{'active ' if not lab_results else ''}">
+                <a t-if="lab_result" t-attf-href="/my/lab_results?{{ keep_query() }}">Lab Results</a>
+                <t t-else="">Lab Results</t>
+            </li>
+            <li t-if="lab_result" class="breadcrumb-item active">
+                <t t-esc="lab_result.name"/>
+            </li>
+
+            <li t-if="page_name == 'lab_request' or lab_request" t-attf-class="breadcrumb-item #{'active ' if not lab_requests else ''}">
+                <a t-if="lab_request" t-attf-href="/my/lab_requests?{{ keep_query() }}">Lab Request</a>
+                <t t-else="">Lab Requests</t>
+            </li>
+            <li t-if="lab_request" class="breadcrumb-item active">
+                <t t-esc="lab_request.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_my_home" name="Portal My Home: HMS entries" inherit_id="portal.portal_my_home" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-if="lab_request_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Lab Requests</t>
+                <t t-set="url" t-value="'/my/lab_requests'"/>
+                <t t-set="count" t-value="lab_request_count"/>
+            </t>
+            <t t-if="lab_result_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Lab Results</t>
+                <t t-set="url" t-value="'/my/lab_results'"/>
+                <t t-set="count" t-value="lab_result_count"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="lab_results" name="My Lab Results">
+        <t t-call="portal.portal_layout">
+
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Lab Results</t>
+            </t>
+            <t t-if="not lab_results">
+                <p>There are currently no Lab Results for your account.</p>
+            </t>
+
+            <div t-if="lab_results" class="panel panel-default">
+                <div class="table-responsive">
+                    <table class="table table-hover bg-white status_table o_portal_my_doc_table">
+                        <thead>
+                            <tr class="active">
+                                <th>Name</th>
+                                <th>Lab Test</th>
+                                <th>Request</th>
+                                <th>Date Analysis</th>
+                                <th>Diagnosis</th>
+                            </tr>
+                        </thead>
+
+                        <t t-foreach="lab_results" t-as="result">
+                            <tr>
+                                <td>
+                                    <a t-attf-href="/my/lab_results/#{result.id}?{{ keep_query() }}"><t t-esc="result.name"/></a>
+                                </td>
+                                <td>
+                                    <span t-field="result.test_id.name"/>
+                                </td>
+                                <td>
+                                    <span t-field="result.request_id.name"/>
+                                </td>
+                                <td>
+                                    <span t-field="result.date_analysis"/>
+                                </td>
+                                <td>
+                                    <span t-field="result.diagnosis"/>
+                                </td>
+                                <td>
+                                    <a class="btn btn-primary" target="_blank" title="Lab Report"
+                                        t-att-href="'/report/pdf/acs_laboratory.report_acs_lab_test/'+str(result.id)">Print</a>
+                                </td>
+                            </tr>
+                        </t>
+                    </table>
+                </div>
+            </div>
+            <div t-if="pager" class="o_portal_pager text-center">
+                <t t-call="portal.pager"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="my_lab_test_result" name="Lab Result" >
+        <t t-call="portal.portal_layout">
+            <!-- Page Content -->
+            <div id="result_content" class="col-12 col-lg mt32">
+                <div t-if="lab_result.attachment_ids" id="result_communication" class="mt-4">
+                    <h2>Related Documents</h2>
+                    <div class="table-responsive">
+                        <table class="table table-hover bg-white status_table o_portal_my_doc_table">
+                            <thead>
+                                <tr class="active">
+                                    <th>Document</th>
+                                    <th>Name</th>
+                                    <th class="col-md-8">Description</th>
+                                </tr>
+                            </thead>
+
+                            <t t-foreach="lab_result.attachment_ids" t-as="document">
+                                <tr>
+                                    <td>Document <t t-esc="document.id"/></td>
+                                    <td>
+                                        <div>
+                                          <a t-att-href="'/web/content?model=ir.attachment&amp;field=datas&amp;id=%s&amp;download=true&amp;filename_field=name' % document.id"><span class="fa fa-download"/><span t-field="document.name"/></a>
+                                        </div>
+                                    </td>
+                                    <td><span t-field="document.description"/></td>
+                                </tr>
+                            </t>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="o_portal_html_view shadow p-3" style="background-color: white;">
+                    <iframe id="result_html" width="100%" height="1080px" frameborder="0" scrolling="no" t-att-src="'/report/html/acs_laboratory.report_acs_lab_test/'+str(lab_result.id)"/>
+                </div>
+                <!-- chatter -->
+                <div id="result_communication" class="mt-4">
+                    <h2>History</h2>
+                    <t t-call="portal.message_thread">
+                        <t t-set="object" t-value="lab_result"/>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Lab Request -->
+    <template id="lab_requests" name="My Lab Request">
+        <t t-call="portal.portal_layout">
+
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Lab Requests</t>
+            </t>
+            <t t-if="not lab_requests">
+                <p>There are currently no Lab Requests for your account.</p>
+            </t>
+
+            <div t-if="lab_requests" class="panel panel-default">
+                <div class="table-responsive">
+                    <table class="table table-hover bg-white status_table o_portal_my_doc_table">
+                        <thead>
+                            <tr class="active">
+                                <th>Name</th>
+                                <th>Test Type</th>
+                                <th>Request Date</th>
+                                <th>Total Amount</th>
+                                <th name="th_state">Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <t t-foreach="lab_requests" t-as="lab_req">
+                            <tr>
+                                <td>
+                                    <a t-attf-href="/my/lab_requests/#{lab_req.id}?{{ keep_query() }}"><t t-esc="lab_req.name"/></a>
+                                </td>
+                                <td>
+                                    <span t-field="lab_req.test_type"/>
+                                </td>
+                                <td>
+                                    <span t-field="lab_req.date"/>
+                                </td>
+                                <td>
+                                    <span t-field="lab_req.total_price"/>
+                                </td>
+                                <td name="td_state">
+                                    <span t-field="lab_req.state"/>
+                                </td>
+                                <td>
+                                    <a class="btn btn-primary" target="_blank" title="Lab Report"
+                                        t-att-href="'/report/pdf/acs_laboratory.report_acs_lab_prescription/'+str(lab_req.id)">Print</a>
+                                </td>
+                            </tr>
+                        </t>
+                    </table>
+                </div>
+            </div>
+            <div t-if="pager" class="o_portal_pager text-center">
+                <t t-call="portal.pager"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="my_lab_test_request" name="Lab Request" >
+        <t t-call="portal.portal_layout">
+            <!-- Page Content -->
+            <div id="request_content" class="col-12 col-lg mt32">
+
+                <div class="o_portal_html_view shadow p-3" style="background-color: white;">
+                    <iframe id="request_html" width="100%" height="1080px" frameborder="0" scrolling="no" t-att-src="'/report/html/acs_laboratory.report_acs_lab_prescription/'+str(lab_request.id)"/>
+                </div>
+                <!-- chatter -->
+                <div id="request_communication" class="mt-4">
+                    <h2>History</h2>
+                    <t t-call="portal.message_thread">
+                        <t t-set="object" t-value="lab_request"/>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

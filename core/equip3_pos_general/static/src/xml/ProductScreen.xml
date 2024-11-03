@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="ProductScreenInherit" t-inherit="point_of_sale.ProductScreen" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('rightpane')]" position="replace"/>
+        <xpath expr="//div[hasclass('leftpane')]" position="replace">
+            <t>
+                <!-- <FeatureButtons
+                        t-if="env.pos.config.buttons_box_style == 'left' and state.showButtons and !env.isMobile and state.screen == 'Products'"
+                        controlButtons="controlButtons"/> -->
+                <div class="rightpane"
+                     t-if="!env.isMobile || mobile_pane === 'right' || state.cashControl"
+                     t-att-class="{
+                        'oe_hidden': state.cashControl
+                     }">
+                    <!-- single screen -->
+                    <t t-if="state.screen == 'Products'">
+                        <ProductsWidget t-if="!state.cashControl"/>
+                        <t t-if="env.isMobile">
+                            <MobileOrderWidget pane="mobile_pane" t-on-switchpane="switchPane"/>
+                        </t>
+                        <div class="placeholder-Base"/>
+                        <div class="block-screen" t-if="blockScreen">
+                            Return Mode is [On], Locked add products to cart. If you wanted Exchange cart, Please Click to button [Return Mode] on Dock Buttons (Buttom of Page)
+                        </div>
+                        <ProductCheckOut t-if="state.displayCheckout and env.pos.showFullFeatures"
+                                         openCart="state.openCart" controlButtons="controlButtons" client="client"/>
+                    </t>
+                    <t t-if="state.screen == 'Payment'">
+                        <PaymentScreen isShown="true" singleScreen="true"/>
+                    </t>
+                    <t t-if="state.screen == 'Clients'">
+                        <ClientListScreen isShown="true" singleScreen="true"/>
+                    </t>
+                    <t t-if="state.screen == 'Receipt'">
+                        <ReprintReceiptScreen isShown="true" singleScreen="true" order="env.pos.get_order()"/>
+                    </t>
+                    <t t-if="state.screen == 'Floors'">
+                        <FloorScreen/>
+                    </t>
+                    <t t-if="state.screen == 'Split'">
+                        <SplitBillScreen/>
+                    </t>
+                    <t t-if="state.screen == 'Tickets'">
+                        <TicketScreen/> 
+                    </t>
+                    <div class="placeholder-Base"/>
+                    <div id="livestream_scanner" t-if="!env.isMobile">
+                        <div id="interactive" class="viewport"></div>
+                        <div class="camera_error"></div>
+                    </div>
+                </div>
+                <ProductScreenSection1 t-if="state.screen != 'Clients'" state="state" open_cart="!env.isMobile || mobile_pane === 'left' || state.cashControl"/>
+
+
+                <div class="leftpane left_02" t-if="!env.isMobile || mobile_pane === 'left' || state.cashControl"
+                     t-att-class="{
+                        'scale-mode': state.screen != 'Products',
+                        'oe_hidden': !state.openCart and !state.cashControl
+                     }">
+                    <t t-if="state.cashControl">
+                        <CashBoxOpening cashControl="state"/>
+                    </t>
+                    <t t-else="">
+                        <div id="livestream_scanner" t-if="env.isMobile">
+                            <div id="interactive" class="viewport"></div>
+                            <div class="camera_error"></div>
+                        </div>
+                        <OrderWidget t-on-click="backToCart"/>
+
+                        <div class="summary-border-line" t-on-click="ShowSummary">
+                            <div class="fa fa-angle-double-up button-summary-minimize"/>
+                        </div>
+                        <table class='order-summary-data oe_hidden'>
+                            <style></style>
+                            <colgroup>
+                                <col width='40%'/>
+                                <col width='60%'/>
+                            </colgroup>
+                            <tr class="receipt-line tr-summary-receipt-number" t-if="!env.isMobile" style="cursor: unset">
+                                <td style="text-align: left; padding-left: 1vw; font-weight: bold;">
+                                    RECEIPT NUMBER
+                                </td>
+                                <td style="text-align: right; padding-right: 1vw; font-weight: bold;">
+                                    <t t-esc="env.pos.get_order()['name']"/>
+                                    at
+                                    <t t-esc="env.pos.get_order()['created_time']"/>
+                                </td>
+                            </tr>
+                            <tr class="receipt-line tr-summary-total-item-qty" style="cursor: unset">
+                                <td style="text-align: left; padding-left: 1vw; font-weight: bold;">
+                                    TOTAL ITEMS
+                                </td>
+                                <td style="text-align: right; padding-right: 1vw; font-weight: bold;" class="summary-item-qty">
+                                    <!-- <span t-esc="props.totalItems" class="summary-item"/>
+                                    <span> / </span>
+                                    <span t-esc="props.totalQuantities" class="summary-qty"/> -->
+                                    <span t-esc="props.totalQuantities" class="summary-qty"/>
+                                </td>
+                            </tr>
+                            <tr class="receipt-line tr-summary-before-taxes" style="cursor: unset">
+                                <td style="text-align: left; padding-left: 1vw; font-weight: bold;">
+                                    TOTAL BEFORE TAX
+                                </td>
+                                <td style="text-align: right; padding-right: 1vw; font-weight: bold;" class="summary-before-tax">
+                                    <t t-esc="props.totalWithOutTaxes"/>
+                                </td>
+                            </tr>
+                            <tr class="receipt-line underline tr-summary-discount" style="color: black;" t-on-click="setDiscount">
+                                <td style="text-align: left; cursor: pointer; color: black; padding-left: 1vw; font-weight: bold;">
+                                    DISCOUNT
+                                </td>
+                                <td style="text-align: right; color: black; padding-right: 1vw; font-weight: bold;" class="summary-discount">
+                                    <t t-esc="props.discount"/>
+                                </td>
+                            </tr>
+                            <tr class="receipt-line underline tr-summary-set-taxes" style="color: black; " t-on-click="setTaxes">
+                                <td style="text-align: left; color: black; padding-left: 1vw; font-weight: bold;">
+                                    TAXES
+                                </td>
+                                <td style="text-align: right; color: black; padding-right: 1vw; font-weight: bold;" class="summary-tax">
+                                    <t t-esc="props.tax"/>
+                                </td>
+                            </tr>
+                            <tr class="receipt-line summary-employee-budget-line tr-summary-employee-budget" style="cursor: unset; display:none;">
+                                <td style="text-align: left; padding-left: 1vw; font-weight: bold; color: #e04040;">
+                                    Employee Budget <span class="employee_name"></span>
+                                </td>
+                                <td style="text-align: right; padding-right: 1vw; font-weight: bold;color: #e04040;" class="summary-employee-budget">
+                                    N/A
+                                </td>
+                            </tr> 
+                            <tr class="receipt-line summary-exchange-amount-line tr-summary-exchange-amount" style="cursor: unset; display:none;">
+                                <td style="text-align: left; padding-left: 1vw; font-weight: bold; color: #e04040;">
+                                    Exchange Amount
+                                </td>
+                                <td style="text-align: right; padding-right: 1vw; font-weight: bold;color: #e04040;" class="summary-exchange-amount">
+                                    N/A
+                                </td>
+                            </tr> 
+       <!--                      <tr class="receipt-line tr-summary-rounding-multiplier" style="color: black; " t-if="env.pos.company.rounding_multiplier and env.pos.company.is_order_rounding and env.pos.company.order_rounding_type">
+                                <td style="text-align: left; color: black; padding-left: 1vw; font-weight: bold;">
+                                    ROUNDING
+                                </td>
+                                <td style="text-align: right !important; color: black; padding-right: 1vw; font-weight: bold;" class="summary-rounding_order">
+                                    <t t-esc="rounding_order"/>
+                                </td>
+                            </tr>
+                     -->
+
+                            <tr class="receipt-line tr-summary-grand-total" style="color: black; ">
+                                <td style="text-align: left; color: black; padding-left: 1vw; font-weight: bold;">
+                                    GRAND TOTAL
+                                </td>
+                                <td style="text-align: right; color: black; padding-right: 1vw; font-weight: bold;" class="summary-grand-total">
+                                    <t t-esc="props.totalWithTaxes"/>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <button class="button sync_session_order_submit" 
+                            t-if="env and env.pos and env.pos.config and env.pos.config.is_manual_sync_for_sync_between_session"
+                            t-on-click="onClickSyncSessionOrderSubmit"
+                            t-att-data-screen_type="env.pos.config.screen_type"
+                            t-att-class="env.pos.config.screen_type == 'cashier' and 'oe_hidden' ">
+                            <span>
+                                <t t-if="pos_sync_session_order.state == 'connecting'">
+                                    <i aria-label="Sync Connecting" title="Sync Connecting" class="fa fa-fw fa-spin fa-spinner"></i>
+                                </t>
+                                <span>SUBMIT</span>
+                            </span>
+                        </button>
+
+                        <button class="button pay total-value order-total-btn"
+                            t-att-class="payButtonClasses"
+                            t-on-click="_onClickPayBtn"
+                        t-if="env.pos.config.screen_type == 'cashier'">
+                            <t t-if="!env.pos.session.restaurant_order">
+                                <t t-if="payButtonClasses['warning']">
+                                    RETURN
+                                </t>
+                                <t t-if="payButtonClasses['auto_promo']">
+                                    <span style="font-size: 22px;">
+                                        <i class="fa fa-check"/>
+                                        Apply Promotion
+                                    </span>
+                                </t>
+                                <t t-if="!payButtonClasses['warning'] and !payButtonClasses['auto_promo']">
+                                    <font size="4px">PAY - Total  </font><span class="pos_order_total"><t t-esc="env.pos.format_currency(env.pos.get_order().get_total_with_tax(),false,env.pos.get_order().currency)" /></span>
+                                    <t t-if="pos_sync_session_order.p_state == 'connecting'">
+                                        <i aria-label="Sync Connecting" title="Sync Connecting" class="fa fa-fw fa-spin fa-spinner"></i>
+                                    </t>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <i class="fa fa-check"/>
+                                PLACE
+                            </t>
+                        </button>
+
+                        <button class="button pay total-value highlight"
+                                t-if="!env.pos.session.restaurant_order and !env.isMobile and env.pos.config.allow_payment and state.screen != 'Products'"
+                                style="text-align: center; padding: 0px !important; border-radius: 3px; width: 100% !important; font-size: 30px; border-top"
+                                t-on-click="backToCart">
+                            <i class="fa fa-angle-double-left fa-fw"/>
+                            BACK to CART
+                        </button>
+                        
+                        <t t-if="env.isMobile">
+                            <MobileOrderWidget pane="mobile_pane" t-on-switchpane="switchPane"/>
+                        </t>
+
+                    </t>
+                </div>
+            </t>
+        </xpath>
+    </t>
+
+    <t t-name="OrderSummary" t-inherit="point_of_sale.OrderSummary" t-inherit-mode="extension" owl="1">
+        <xpath expr="//table[hasclass('summary-table')]" position="attributes">
+            <attribute name="style">display: none !important;</attribute>
+        </xpath>
+    </t>
+
+</templates>

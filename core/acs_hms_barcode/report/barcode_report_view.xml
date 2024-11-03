@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="patient_barcode_table">
+        <div style="width:350px; height:310px; float:left; margin:0 50px; margin-bottom:1px; font-size:19px; border:0px solid #fff; margin-left:30px;">
+            <table class="table">
+                <tr>
+                    <td>
+                        <div class="row">
+                            <div class="col-7">
+                                <span t-esc="patient.name"/>
+                                <span t-esc="patient.partner_id"
+                                    t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
+                            </div>
+                            <div class="col-4">
+                                <span t-field="patient.image_128"
+                                    t-options="{'widget': 'image', 'class': 'img-rounded'}"/>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="float:left;">
+                        <center>
+                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' %('Code128',patient.barcode,440,62)"/>
+                        </center>
+                        <center>
+                            <span t-field="patient.barcode"/>
+                        </center>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+    <!-- A4 Paper Format -->
+    <template id="report_patient_barcode">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <div class="page">
+                        <t t-if="starting_position">
+                            <t t-foreach="range(starting_position-1)" t-as="s">
+                                <div style="width:350px;height:210px;float:left;margin:0 40px;font-size:13px;margin-bottom:1px;border:0px solid #fff;margin-left:10px;">
+                                    <table class="table">
+                                        <tr>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </t>
+                        </t>
+                        <t t-foreach="range(quantity)" t-as="l">
+                            <t t-call="acs_hms_barcode.patient_barcode_table">
+                                <t t-set="patient" t-value="doc"/>
+                            </t>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_patient_barcode" model="ir.actions.report">
+        <field name="name">Patient BarCode</field>
+        <field name="model">hms.patient</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms_barcode.report_patient_barcode</field>
+        <field name="report_file">acs_hms_barcode.report_patient_barcode</field>
+        <field name="print_report_name">(object.code or object.name).replace('/','_')+'_BarCode'</field>
+        <field name="binding_model_id" ref="model_hms_patient"/>
+        <field name="binding_type">action</field>
+        <field name="groups_id" eval="[(4, ref('acs_hms.group_hms_receptionist'))]"/>
+    </record>
+
+    <!-- Label Printer Format -->
+
+    <template id="report_patient_barcode_lable">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc"> 
+                <t t-call="web.basic_layout">
+                    <t t-set="doc" t-value="doc.with_context({'lang':doc.lang})"/>
+                    <div class="page">
+                        <div class="oe_structure"/>
+                        <t t-call="acs_hms_barcode.patient_barcode_table">
+                            <t t-set="patient" t-value="doc"/>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_patient_barcode_lable" model="ir.actions.report">
+        <field name="name">Patient BarCode LP</field>
+        <field name="model">hms.patient</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms_barcode.report_patient_barcode_lable</field>
+        <field name="report_file">acs_hms_barcode.report_patient_barcode_lable</field>
+        <field name="print_report_name">(object.code or object.name).replace('/','_')+'_BarCode'</field>
+        <field name="binding_model_id" ref="model_hms_patient"/>
+        <field name="groups_id" eval="[(4, ref('acs_hms.group_hms_receptionist'))]"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

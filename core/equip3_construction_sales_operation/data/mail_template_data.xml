@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!--Email template -->
+        <record id="bi_job_cost_estimate_customer.job_estimate_email_template" model="mail.template">
+            <field name="name">BOQ - Send by Email</field>
+            <field name="email_from">${(object.user_id.email and '%s &lt;%s&gt;' % (object.user_id.name, object.user_id.email) or '')|safe}</field>
+            <field name="subject">${object.company_id.name}  (Ref ${object.name or 'n/a' })</field>
+            <field name="partner_to">${object.partner_id.id}</field>
+            <field name="model_id" ref="bi_job_cost_estimate_customer.model_job_estimate"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="report_template" ref="bi_job_cost_estimate_customer.action_report_job_estimate"/>
+            <field name="report_name">${(object.name or '').replace('/','_')}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 12px;">
+                        Hello,
+                        <br/><br/>
+                        <p>Here is your estimate of the <strong>${object.name}</strong> for the project <strong>${object.project_id.name}</strong>.</p>
+                        <strong> Material Estimate </strong> amounting in <strong>${format_amount(object.total_material_estimate, object.currency_id)}</strong>, 
+                        <strong> Labour Estimate </strong> amounting in <strong>${format_amount(object.total_labour_estimate, object.currency_id)}</strong>, 
+                        <strong> Overhead Estimate </strong> amounting in <strong>${format_amount(object.total_overhead_estimate, object.currency_id)}</strong>, 
+                        <strong> Equipment Estimate </strong> amounting in <strong>${format_amount(object.total_equipment_estimate, object.currency_id)}</strong>, 
+                        <strong> and Subcon Estimate </strong> amounting in <strong>${format_amount(object.total_subcon_estimate, object.currency_id)}</strong>, 
+                        <p><strong> Total BOQ </strong> amounting in <strong>${format_amount(object.total_job_estimate, object.currency_id)}</strong>.</p>
+                        <br/>
+                        <p>You can reply to this email if you have any questions.</p>
+                        <p>Thank you,</p>
+                        <p style="color:#888888;">
+                        % if object.user_id and object.user_id.signature:
+                            ${object.user_id.signature | safe}
+                        % endif
+                        </p>
+                    </p>
+                </div>
+            </field>
+        </record>
+
+        <record id="email_template_internal_job_estimate_approval" model="mail.template">
+            <field name="name">[1] Reminder for BOQ Approval</field>
+            <field name="email_from">${ctx.get('email_from')}</field>
+            <field name="email_to">${ctx.get('email_to')}</field>
+            <field name="subject">Request For Approval</field>
+            <field name="model_id" ref="bi_job_cost_estimate_customer.model_job_estimate"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Date: ${ctx.get('date')}</p>
+                <p>Subject : Reminder for BOQ Approval</p>
+                <p>Dear ${ctx.get('approver_name')},</p>
+                <p>Based on the BOQ Approval Request ${object.name}. You have approval pending that need your decision to approve or reject the BOQ Approval request for project ${object.project_id.name}.</p>
+                <p>You can approve or reject the BOQ Approval request by clicking this button:</p>
+                <div style = "margin: 16px;">
+                    <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                    color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                    margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                    cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                    border: 1px solid #875A7B; border-radius:3px">${object.name}</a></div>
+                <p>If you have any questions, please don’t hestitate to contact us.</p>
+                <p>Thank you,</p>
+                ]]>
+            </field>
+        </record>
+
+        <record id="email_template_reminder_for_job_estimate_approval" model="mail.template">
+            <field name="name">[2] Reminder for BOQ Approval</field>
+            <field name="email_from">${ctx.get('email_from')}</field>
+            <field name="email_to">${ctx.get('email_to')}</field>
+            <field name="subject">Submitter Approval</field>
+            <field name="model_id" ref="bi_job_cost_estimate_customer.model_job_estimate"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Date: ${ctx.get('date')}</p>
+                <p>Subject : Reminder for BOQ Approval</p>
+                <p>Dear ${ctx.get('approver_name')},</p>
+                <p>Based on the BOQ Approval Request ${object.name}. You have approval pending that need your decision to approve or reject the BOQ Approval request for project ${object.project_id.name}. For the Information, the previous approver was ${ctx.get('submitter')}.
+                </p>
+                <p>You can approve or reject the BOQ Approval request by clicking this button:</p>
+                <div style = "margin: 16px;">
+                    <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                    color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                    margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                    cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                    border: 1px solid #875A7B; border-radius:3px">${object.name}</a></div>
+                <p>If you have any questions, please don’t hestitate to contact us.</p>
+                <p>Thank you,</p>
+                ]]>
+            </field>
+        </record>
+
+        <record id="email_template_job_estimate_approved" model="mail.template">
+            <field name="name">Approval of BOQ Request</field>
+            <field name="email_from">${ctx.get('email_from')}</field>
+            <field name="email_to">${ctx.get('email_to')}</field>
+            <field name="subject">Approval of BOQ Request</field>
+            <field name="model_id" ref="bi_job_cost_estimate_customer.model_job_estimate"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Date: ${ctx.get('date')}</p>
+                <p>Subject : Approval of BOQ Request</p>
+                <p>Dear ${object.employee_id.name},</p>
+                <p>Based on the BOQ Approval Request ${object.name}. Your BOQ approval request has been Approved.</p>
+                <p>You can check it now by clicking this button:</p>
+                <div style = "margin: 16px;">
+                    <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                    color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                    margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                    cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                    border: 1px solid #875A7B; border-radius:3px">${object.name}</a></div>
+                <p>If you have any questions, please don’t hestitate to contact us.</p>
+                <p>Thank you,</p>
+                ]]>
+            </field>
+        </record>
+
+        <record id="email_template_job_estimate_rejected" model="mail.template">
+            <field name="name">Rejection of BOQ Request</field>
+            <field name="email_from">${ctx.get('email_from')}</field>
+            <field name="email_to">${ctx.get('email_to')}</field>
+            <field name="subject">Rejection of BOQ Request</field>
+            <field name="model_id" ref="bi_job_cost_estimate_customer.model_job_estimate"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Date: ${ctx.get('date')}</p>
+                <p>Subject : Rejection of BOQ Request</p>
+                <p>Dear ${object.employee_id.name},</p>
+                <p>Based on the BOQ Approval Request ${object.name}. Your BOQ approval request has been Rejected.</p>
+                <p>You can check it now by clicking this button:</p>
+                <div style = "margin: 16px;">
+                    <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                    color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                    margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                    cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                    border: 1px solid #875A7B; border-radius:3px">${object.name}</a></div>
+                <p>If you have any questions, please don’t hestitate to contact us.</p>
+                <p>Thank you,</p>
+                ]]>
+            </field>
+        </record>
+
+        <record id="email_template_reminder_for_sale_order_other_approval_const" model="mail.template">
+            <field name="name">Reminder for Over Limit Approval Request</field>
+            <field name="email_from">${ctx.get('email_from')}</field>
+            <field name="email_to">${ctx.get('email_to')}</field>
+            <field name="subject">Submitter Approval</field>
+            <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Date: ${ctx.get('date')}</p>
+                <p>Subject : Reminder for Over Limit Approval</p>
+                <p>Dear ${ctx.get('approver_name')},</p>
+                <p>Based on the Over Limit Approval Request ${object.name}. You have approval pending that need your decision to approve or reject the Over Limit Approval request from ${object.partner_id.name}. For the Information, the previous approver was ${ctx.get('submitter')}.
+                </p>
+                <p>You can approve or reject the Over Limit Approval request by clicking this button:</p>
+                <div style = "margin: 16px;">
+                    <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                    color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                    margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                    cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                    border: 1px solid #875A7B; border-radius:3px">${object.name}</a></div>
+                <p>If you have any questions, please don’t hestitate to contact us.</p>
+                <p>Thank you,</p>
+                ]]></field>
+        </record>
+
+        <record id="email_template_internal_sale_other_order_approval_const" model="mail.template">
+            <field name="name">Reminder for Over Limit Approval Request</field>
+            <field name="email_from">${ctx.get('email_from')}</field>
+            <field name="email_to">${ctx.get('email_to')}</field>
+            <field name="subject">Request For Approval</field>
+            <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Date: ${ctx.get('date')}</p>
+                <p>Subject : Reminder for Over Limit Approval</p>
+                <p>Dear ${ctx.get('approver_name')},</p>
+                <p>Based on the Over Limit Approval Request ${object.name}. You have approval pending that need your decision to approve or reject the Over Limit Approval request from ${object.partner_id.name}.</p>
+                <p>You can approve or reject the Over Limit Approval request by clicking this button:</p>
+                <div style = "margin: 16px;">
+                    <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                    color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                    margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                    cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                    border: 1px solid #875A7B; border-radius:3px">${object.name}</a></div>
+                <p>If you have any questions, please don’t hestitate to contact us.</p>
+                <p>Thank you,</p>
+                ]]></field>
+        </record>
+
+        <record id="email_template_credit_limit_const" model="mail.template">
+                <field name="name">Credit Limit</field>
+                <field name="email_from">${ctx.get('email_from')}</field>
+                <field name="subject">Credit Limit</field>
+                <field name="email_to">${ctx.get('email_to')}</field>
+                <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+                <field name="auto_delete" eval="True"/>
+                <field name="body_html"><![CDATA[
+                    <p> Hello ${ctx.get('user_name')},</p>
+                    <br />
+                    <p> This email is to inform you there is over credit limit in  ${object.name} need approval.</p>
+                    <br />
+                    <p>Customer : ${object.partner_id.name} </p>
+                    <p>Available Credit Limit : ${object.partner_id.customer_credit_limit} </p>
+                    <p>Company : ${object.company_id.name} </p>
+                    %if object.branch_id:
+                        <p>Branch : ${object.branch_id.name}</p>
+                        <br />
+                    %else:
+                        <p>Branch : </p>
+                        <br />
+                    %endif
+                    <table cellspacing="0" cellpadding="0" style="width:900px;border-collapse:collapse;background:inherit;color:inherit;border:1px solid black;">
+                        <thead>
+                            <th style="border:1px solid black;text-align:center;">Product</th>
+                            <th style="border:1px solid black;text-align:center;">Requested Qty</th>
+                            <th style="border:1px solid black;text-align:center;">Uom</th>
+                            <th style="border:1px solid black;text-align:center;">Unit Price</th>
+                            <th style="border:1px solid black;text-align:center;">Amount</th>
+                        </thead>
+                        <tbody style="border:1px solid black;">
+                            % for line in object.order_line:
+                                <tr style="border:1px solid black;">
+                                    <td style="border:1px solid black;text-align:center;">${line.product_id.name}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.product_uom_qty}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.product_uom.name}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.price_unit}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.price_subtotal}</td>
+                                </tr>
+                            % endfor
+                                <tr style="border:1px solid black;">
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td style="border:1px solid black;text-align:center;"><b> Total</b></td>
+                                    <td style="border:1px solid black;text-align:center;"><b>${object.amount_untaxed}</b></td>
+                                </tr>
+                        </tbody>
+                    </table>
+                    <div style = "margin: 16px;">
+                    <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                    color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                    margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                    cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                    border: 1px solid #875A7B; border-radius:3px">View Quotation.</a></div>
+                    <p>Thank You.</p>
+                    ]]></field>
+            </record>
+
+            <record id="email_template_invoice_overdue_const" model="mail.template">
+                <field name="name">Invoice Overdue</field>
+                <field name="email_from">${ctx.get('email_from')}</field>
+                <field name="subject">Invoice Overdue</field>
+                <field name="email_to">${ctx.get('email_to')}</field>
+                <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+                <field name="auto_delete" eval="True"/>
+                <field name="body_html"><![CDATA[
+                    <p> Hello ${ctx.get('user_name')},</p>
+                    <br />
+                    <p> This email is to inform you there is invoice overdue in  ${object.name} need approval.</p>
+                    <br />
+                    <p>Customer : ${object.partner_id.name} </p>
+                    <p>Available Credit Limit : ${object.partner_id.customer_credit_limit} </p>
+                    <p>Invoice Overdue : ${ctx.get('invoice_number')} </p>
+                    <p>Company : ${object.company_id.name} </p>
+                    %if object.branch_id:
+                        <p>Branch : ${object.branch_id.name}</p>
+                        <br />
+                    %else:
+                        <p>Branch : </p>
+                        <br />
+                    %endif
+                    <table cellspacing="0" cellpadding="0" style="width:900px;border-collapse:collapse;background:inherit;color:inherit;border:1px solid black;">
+                        <thead>
+                            <th style="border:1px solid black;text-align:center;">Product</th>
+                            <th style="border:1px solid black;text-align:center;">Requested Qty</th>
+                            <th style="border:1px solid black;text-align:center;">Uom</th>
+                            <th style="border:1px solid black;text-align:center;">Unit Price</th>
+                            <th style="border:1px solid black;text-align:center;">Amount</th>
+                        </thead>
+                        <tbody style="border:1px solid black;">
+                            % for line in object.order_line:
+                                <tr style="border:1px solid black;">
+                                    <td style="border:1px solid black;text-align:center;">${line.product_id.name}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.product_uom_qty}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.product_uom.name}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.price_unit}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.price_subtotal}</td>
+                                </tr>
+                            % endfor
+                                <tr style="border:1px solid black;">
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td style="border:1px solid black;text-align:center;"><b> Total</b></td>
+                                    <td style="border:1px solid black;text-align:center;"><b>${object.amount_untaxed}</b></td>
+                                </tr>
+                        </tbody>
+                    </table>
+                    <div style = "margin: 16px;">
+                    <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                    color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                    margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                    cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                    border: 1px solid #875A7B; border-radius:3px">View Quotation.</a></div>
+                    <p>Thank You.</p>
+                    ]]>
+                </field>
+            </record>
+
+            <record id="email_template_credit_limit_invoice_overdue_const" model="mail.template">
+                <field name="name">Credit Limit And Invoice Overdue</field>
+                <field name="email_from">${ctx.get('email_from')}</field>
+                <field name="subject">Credit Limit And Invoice Overdue</field>
+                <field name="email_to">${ctx.get('email_to')}</field>
+                <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+                <field name="auto_delete" eval="True"/>
+                <field name="body_html"><![CDATA[
+                    <p> Hello ${ctx.get('user_name')},</p>
+                    <br />
+                    <p> This email is to inform you there is over credit limit and invoice overdue in  ${object.name} need approval.</p>
+                    <br />
+                    <p>Customer : ${object.partner_id.name} </p>
+                    <p>Available Credit Limit : ${object.partner_id.customer_credit_limit} </p>
+                    <p>Invoice Overdue : ${ctx.get('invoice_number')} </p>
+                    <p>Company : ${object.company_id.name} </p>
+                    %if object.branch_id:
+                        <p>Branch : ${object.branch_id.name}</p>
+                        <br />
+                    %else:
+                        <p>Branch : </p>
+                        <br />
+                    %endif
+                    <table cellspacing="0" cellpadding="0" style="width:900px;border-collapse:collapse;background:inherit;color:inherit;border:1px solid black;">
+                        <thead>
+                            <th style="border:1px solid black;text-align:center;">Product</th>
+                            <th style="border:1px solid black;text-align:center;">Requested Qty</th>
+                            <th style="border:1px solid black;text-align:center;">Uom</th>
+                            <th style="border:1px solid black;text-align:center;">Unit Price</th>
+                            <th style="border:1px solid black;text-align:center;">Amount</th>
+                        </thead>
+                        <tbody style="border:1px solid black;">
+                            % for line in object.order_line:
+                                <tr style="border:1px solid black;">
+                                    <td style="border:1px solid black;text-align:center;">${line.product_id.name}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.product_uom_qty}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.product_uom.name}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.price_unit}</td>
+                                    <td style="border:1px solid black;text-align:center;">${line.price_subtotal}</td>
+                                </tr>
+                            % endfor
+                                <tr style="border:1px solid black;">
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td style="border:1px solid black;text-align:center;"><b> Total</b></td>
+                                    <td style="border:1px solid black;text-align:center;"><b>${object.amount_untaxed}</b></td>
+                                </tr>
+                        </tbody>
+                    </table>
+                    <div style = "margin: 16px;">
+                    <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                    color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                    margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                    cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                    border: 1px solid #875A7B; border-radius:3px">View Quotation.</a></div>
+                    <p>Thank You.</p>
+                    ]]></field>
+            </record>
+
+            
+            <record id="sh_group_sale_order_partner_credit_limit_const" model="res.groups">
+                <field name="name">Approval On Hold Sale Orders</field>
+                <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_manager'))]" />
+                <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]" />
+                <field name="comment">This user will have rights to confirm sale order that exceeds credit limit of selected partner.</field>
+            </record>
+
+            <record id="email_template_internal_sale_order_approval_const" model="mail.template">
+                <field name="name">[1] Reminder for Contract Approval</field>
+                <field name="email_from">${ctx.get('email_from')}</field>
+                <field name="email_to">${ctx.get('email_to')}</field>
+                <field name="subject">Request For Approval</field>
+                <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+                <field name="auto_delete" eval="True"/>
+                <field name="body_html"><![CDATA[
+                    <p>Date: ${ctx.get('date')}</p>
+                    <p>Subject : Reminder for Contract Approval</p>
+                    <p>Dear ${ctx.get('approver_name')},</p>
+                    <p>Based on the Contract Approval Request ${object.name}. You have approval pending that need your decision to approve or reject the Contract Approval request for project ${object.project_id.name} [${object.partner_id.name}].</p>
+                    <p>You can approve or reject the Contract Approval request by clicking this button:</p>
+                    <div style = "margin: 16px;">
+                        <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                        color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                        margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                        cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                        border: 1px solid #875A7B; border-radius:3px">${object.name}</a></div>
+                    <p>If you have any questions, please don’t hestitate to contact us.</p>
+                    <p>Thank you,</p>
+                    ]]></field>
+            </record>
+
+            <record id="email_template_reminder_for_sale_order_approval_const" model="mail.template">
+                <field name="name">[2] Reminder for Contract Approval</field>
+                <field name="email_from">${ctx.get('email_from')}</field>
+                <field name="email_to">${ctx.get('email_to')}</field>
+                <field name="subject">Submitter Approval</field>
+                <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+                <field name="auto_delete" eval="True"/>
+                <field name="body_html"><![CDATA[
+                    <p>Date: ${ctx.get('date')}</p>
+                    <p>Subject : Reminder for Contract Approval</p>
+                    <p>Dear ${ctx.get('approver_name')},</p>
+                    <p>Based on the Contract Approval Request ${object.name}. You have approval pending that need your decision to approve or reject the Contract Approval request for project ${object.project_id.name} [${object.partner_id.name}]. For the Information, the previous approver was ${ctx.get('submitter')}.
+                    </p>
+                    <p>You can approve or reject the Contract Approval request by clicking this button:</p>
+                    <div style = "margin: 16px;">
+                        <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                        color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                        margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                        cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                        border: 1px solid #875A7B; border-radius:3px">${object.name}</a></div>
+                    <p>If you have any questions, please don’t hestitate to contact us.</p>
+                    <p>Thank you,</p>
+                    ]]></field>
+            </record>
+
+    
+            <record id="email_template_sale_order_approval_approved" model="mail.template">
+                <field name="name">Approval of Contract Request</field>
+                <field name="email_from">${ctx.get('email_from')}</field>
+                <field name="email_to">${ctx.get('email_to')}</field>
+                <field name="subject">Approval of Contract Request</field>
+                <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+                <field name="auto_delete" eval="True"/>
+                <field name="body_html"><![CDATA[
+                    <p>Date: ${ctx.get('date')}</p>
+                    <p>Subject : Approval of Contract Request</p>
+                    <p>Dear ${object.employee_id.name},</p>
+                    <p>Based on the Contract Approval Request ${object.name}. Your contract approval request has been Approved.</p>
+                    <p>You can check it now by clicking this button:</p>
+                    <div style = "margin: 16px;">
+                        <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                        color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                        margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                        cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                        border: 1px solid #875A7B; border-radius:3px">${object.name}</a></div>
+                    <p>If you have any questions, please don’t hestitate to contact us.</p>
+                    <p>Thank you,</p>
+                    ]]>
+                </field>
+            </record>
+
+        <record id="email_template_sale_order_approval_rejected" model="mail.template">
+            <field name="name">Rejection of Contract Request</field>
+            <field name="email_from">${ctx.get('email_from')}</field>
+            <field name="email_to">${ctx.get('email_to')}</field>
+            <field name="subject">Rejection of Contract Request</field>
+            <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <p>Date: ${ctx.get('date')}</p>
+                <p>Subject : Rejection of Contract Request</p>
+                <p>Dear ${object.employee_id.name},</p>
+                <p>Based on the Contract Approval Request ${object.name}. Your contract approval request has been Rejected.</p>
+                <p>You can check it now by clicking this button:</p>
+                <div style = "margin: 16px;">
+                    <a href=${ctx.get('url')} style = "padding: 5px 10px; font-size: 12px; line-height: 18px;
+                    color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; 
+                    margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; 
+                    cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B;
+                    border: 1px solid #875A7B; border-radius:3px">${object.name}</a></div>
+                <p>If you have any questions, please don’t hestitate to contact us.</p>
+                <p>Thank you,</p>
+                ]]>
+            </field>
+        </record>
+
+
+        <!-- <record id="default_confirmation_template_sale_const" model="ir.config_parameter">
+            <field name="key">equip3_construction_sales_operation.default_confirmation_template_sale_const</field>
+            <field name="value" ref="equip3_construction_sales_operation.mail_template_sale_const_confirmation"/>
+        </record> -->
+        
+        <record id="email_template_edi_sale_const" model="mail.template">
+            <field name="name">Sales Order: Send by email Construction</field>
+            <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+            <field name="subject">${object.company_id.name} ${object.state in ('draft', 'sent') and (ctx.get('proforma') and 'Proforma' or 'Quotation') or 'Order'} (Ref ${object.name or 'n/a' })</field>
+            <field name="email_from">${(object.user_id.email_formatted or user.email_formatted) | safe}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="report_template" ref="equip3_construction_sales_operation.action_report_sale_order_send_by_mail"/>
+            <field name="report_name">${(object.report_title or '').replace('/','_')}</field>
+            <field name="partner_to">${object.partner_id.id}</field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        % set doc_name = 'quotation' if object.state in ('draft', 'sent') else 'order'
+                        Hello,
+                        <br/><br/>
+                        Your
+                        % if ctx.get('proforma'):
+                            Pro forma invoice for ${doc_name} <strong>${object.name}</strong>
+                            % if object.origin:
+                                (with reference: ${object.origin} )
+                            % endif
+                            amounting in <strong>${format_amount(object.amount_total, object.pricelist_id.currency_id)}</strong> is available.
+                        % else:
+                            ${doc_name} <strong>${object.name}</strong>
+                            % if object.origin:
+                                (with reference: ${object.origin} )
+                            % endif
+                            amounting in <strong>${format_amount(object.amount_total, object.pricelist_id.currency_id)}</strong> is ready for review.
+                        % endif
+                        <br/><br/>
+                        Do not hesitate to contact us if you have any questions.
+                        <br/>
+                    </p>
+                </div>
+            </field>
+            <!-- <field name="report_template" ref="mb_cons_sales_modifier.sales_cons_print"/> -->
+            <!-- <field name="report_name">${(object.name or '').replace('/','_')}</field> -->
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <record id="mail_template_sale_const_confirmation" model="mail.template">
+            <field name="name">Sales Order: Confirmation Email</field>
+            <field name="model_id" ref="equip3_construction_sales_operation.model_sale_order_const"/>
+            <field name="subject">${object.company_id.name} (Ref ${object.name or 'n/a' })</field>
+            <field name="email_from">${(object.user_id.email_formatted or user.email_formatted) | safe}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="report_template" ref="equip3_construction_sales_operation.action_report_sale_order_send_by_mail"/>
+            <field name="report_name">${(object.report_title or '').replace('/','_')}</field>
+            <field name="partner_to">${object.partner_id.id}</field>
+            <field name="body_html" type="html">
+    <div style="margin: 0px; padding: 0px;">
+        <p style="margin: 0px; padding: 0px; font-size: 12px;">
+            Hello,
+            <br/><br/>
+            Your order <strong>${object.name}</strong> amounting in <strong>${format_amount(object.amount_total, object.currency_id)}</strong>
+            % if object.state == 'sale' or (transaction and transaction.state in ('done', 'authorized')) :
+                has been confirmed.<br/>
+                Thank you for your trust!
+            % endif
+            <br/><br/>
+            Do not hesitate to contact us if you have any questions.
+            <br/><br/>
+        </p>
+    </div></field>
+            <!-- <field name="report_template" ref="mb_cons_sales_modifier.sales_cons_print"/>
+            <field name="report_name">${(object.name or '').replace('/','_')}</field> -->
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <template id="manage_broadcast_order" name="Manage Job list">
+            <t t-call="website.layout">
+                <div class="delivery_controlsection col-md-12">
+                    <style>
+                        #right-panel {
+                        font-family: 'Roboto','sans-serif';
+                        line-height: 30px;
+                        padding-left: 10px;
+                        }
+
+                        #right-panel select, #right-panel input {
+                        font-size: 15px;
+                        }
+
+                        #right-panel select {
+                        width: 100%;
+                        }
+
+                        #right-panel i {
+                        font-size: 12px;
+                        }
+                        html, body {
+                        height: 100%;
+                        margin: 0;
+                        padding: 0;
+                        }
+
+                        #map {
+                        margin-top:10px;
+                        height:500px;
+                        width:100%;
+                        border:1px solid red;
+                        }
+
+                        .delivery_controlsection{
+                        min-height:500px;
+                        display:inline-flex;
+                        }
+
+                        #right-panel {
+                        margin: 20px;
+                        border-width: 2px;
+                        width: 20%;
+                        height: 400px;
+                        float: left;
+                        text-align: left;
+                        padding-top: 0;
+                        }
+                    </style>
+                    <div class="delivercontrol_section panel panel-primary filterable col-md-12">
+                        <h5 class="background">
+                            <span>Broadcast Order</span>
+                        </h5>
+                        <br/>
+                        <br/>
+                        <div class="pull-right">
+                            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+                            <form class="mt8 float-right" role="search" t-attf-action="/driver/broadcast/order" method="get">
+                                <t t-call="website.website_search_box"/>
+                            </form>
+                        </div>
+                        <div class="table-responsive replace_table">
+                            <table id="display_broadcast_order" class="table table-striped">
+                                <thead>
+                                    <tr class="filters">
+                                        <th>
+                                            <input name="txt-order-no" type="text" class="form-control"
+                                                   placeholder="Order No" disabled="1"/>
+                                        </th>
+                                        <th>
+                                            <input name="txt-cust-name" type="text" class="form-control"
+                                                   placeholder="Customer Name" disabled="1"/>
+                                        </th>
+                                        <th>
+                                            <input name="txt-cust-area" type="text" class="form-control"
+                                                   placeholder="Customer Address" disabled="1"/>
+                                        </th>
+                                        <th>
+                                            <input name="txt-cust-phone" type="text" class="form-control"
+                                                   placeholder="Phone" disabled="1"/>
+                                        </th>
+                                        <th>
+                                            <input name="txt-distance" type="text" class="form-control"
+                                                   placeholder="Distance" disabled="1"/>
+                                        </th>
+                                        <th>
+                                            <input name="txt-price" type="text" class="form-control"
+                                                   placeholder="Price" disabled="1"/>
+                                        </th>
+
+                                        <th>
+                                            <input name="sel-order-status" type="text" class="form-control"
+                                                   placeholder="Status" disabled="1"/>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="manage_broadcast_order">
+                                    <t t-foreach="picking_orders" t-as="picking">
+                                        <t t-if="picking.order_source=='sale'">
+                                            <tr t-att-id="picking.sale_order.id">
+                                                <td>
+                                                    <a t-att-href="'/page/broadcast/order-view/' + str(picking.sale_order.id)">
+                                                        <span t-field="picking.sale_order.name"/>
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    <span t-field="picking.sale_order.partner_id.name"/>
+                                                </td>
+                                                <td>
+                                                    <span t-field="picking.sale_order.partner_id"
+                                                        t-options='{"widget": "contact", "fields": ["address"], "no_marker": True, "phone_icons": True}'/>
+                                                </td>
+                                                <td>
+                                                    <span t-field="picking.sale_order.partner_id.phone"/>
+                                                </td>
+                                                <td>
+                                                    <span t-field="picking.distance_btn_2_loc"/><span> KM</span>
+                                                </td>
+                                                <td>
+                                                    <span t-field="picking.sale_order.amount_total"/>
+                                                </td>
+                                                <td>
+                                                    <span t-field="picking.state"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+        <template id="broadcast-order-view" name="Sale Order">
+            <div id="spinner"/>
+            <t t-call="website.layout">
+                <div class="oe_structure">
+                    <div class="container">
+                        <div class="viewjoblist_mainsection">
+                            <h5 class="background">
+                                <span t-field="order.name"/>
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-7">
+
+                                    <div class="joblist_tablecoloumn">
+                                        <div class="form-group field-name sizealign">
+                                            <div>
+                                                <input class="form-control" id="order_number" type="hidden"
+                                                       name="order_number"
+                                                       t-att-value="order.name" t-att-data-order_id="order.id"/>
+
+                                                <input class="form-control" id="picking_order_number" type="hidden"
+                                                       name="picking_order_number"
+                                                       t-att-value="picking_order.id" t-att-data-order_id="picking_order.id"/>
+                                            </div>
+
+                                            <div class="joblist_left">
+                                                <label class="control-label">Customer Name</label>
+                                                <input class="form-control" type="text" name="customer_name"
+                                                       t-att-value="order.partner_id.name" readonly="readonly"/>
+                                            </div>
+
+                                            <div class="joblist_right">
+                                                <label class="control-label">Order Source</label>
+                                                <input class="form-control" type="text" name="order_source"
+                                                       value="Web" readonly="readonly"/>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="form-group field-name sizealign">
+                                            <div class="joblist_left">
+                                                <label class="control-label">Customer Phone</label>
+                                                <div class="input-group mb-3">
+                                                    <input class="form-control" type="text" name="customer_phone" id="customer_phone"
+                                                       t-att-value="order.partner_id.phone"/>
+                                                    <div class="input-group-append">
+                                                        <button class="btn btn-dark joblist_call_customer" type="button">Call</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="joblist_right">
+                                                <label class="control-label">Payment Status</label>
+                                                <input class="form-control" type="text" name="payment_status"
+                                                       t-att-value="picking_order_payment_status" readonly="readonly"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group field-name sizealign">
+                                            <div class="joblist_right">
+                                                <label class="control-label">Customer Address</label>
+                                                    <div class="address_col" t-field="order.partner_id"
+                                                        t-options='{"widget": "contact", "fields": ["address"], "no_marker": True, "phone_icons": True}'/>
+                                                </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="col-md-5">
+                                        <div class="form-group field-name sizealign joblist_tablecoloumn">
+                                            <div>
+                                                <label class="control-label">Order Details</label>
+                                                <div class="address_col">
+                                                    <table class="table table-condensed">
+
+                                                        <thead>
+                                                            <tr>
+                                                                <th width="80%">Product Name</th>
+                                                                <th width="20%" class="text-right">Qty</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="sale_tbody">
+                                                            <t t-foreach="order.order_line" t-as="lines">
+                                                                <tr>
+                                                                    <td>
+                                                                        <span t-field="lines.name"/>
+                                                                    </td>
+                                                                    <td class="text-right">
+                                                                        <span t-field="lines.product_uom_qty"/>
+                                                                    </td>
+                                                                </tr>
+                                                            </t>
+                                                        </tbody>
+                                                        <tfooter>
+                                                                <tr>
+                                                                    <td>
+                                                                        <span>Total</span>
+                                                                    </td>
+                                                                    <td class="text-right">
+                                                                        <span t-field="order.amount_total"/>
+                                                                    </td>
+                                                                </tr>
+                                                        </tfooter>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="viewjoblist_button">
+                                        <t t-if="picking_order.state == 'created'">
+                                            <div class="col-sm-2">
+                                                <button class="joblist_buttons broadcast_accept_order">
+                                                    Accept Order
+                                                </button>
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <p style="text-align:center;">
+                                                    <a style="float:left;" href="/driver/broadcast/order"
+                                                       class="joblist_buttons back_and_issue">
+                                                        Back
+                                                    </a>
+                                                </p>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>

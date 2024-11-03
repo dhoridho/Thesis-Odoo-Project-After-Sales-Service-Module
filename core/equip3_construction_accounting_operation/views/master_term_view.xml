@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="progressive_milestone_term_view_form" model="ir.ui.view">
+            <field name="name">progressive.milestone.term.view.form</field>
+            <field name="model">progressive.milestone.term</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" required="1" />
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="milestone_term" string="Milestone and Contract Terms" >
+                                <field name="milestone_term_ids" widget="one2many_list" class="o_milestone_line">
+                                    <tree editable='bottom' string="Milestone and Terms">
+                                        <control>
+                                            <create name="add_product_control" string="Add a milestone and term"/>
+                                        </control>
+                                        <field name="sequence" widget="handle" invisible="1"/>
+                                        <field name="sr_no"/>
+                                        <field name="milestone_id" invisible="1"/>
+                                        <field name="name" required="1"/>
+                                        <field name="type_milestone" string="Claim Type" required="1"/>
+                                        <field name="claim_percentage" string="Contract Terms (%)" attrs="{'readonly':[('type_milestone','in',('retention1','retention2'))]}" force_save="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="sale_order_const_view_form_inherit_milestone" model="ir.ui.view">
+            <field name="name">sale.order.const.view.form.inherit.milestone</field>
+            <field name="model">sale.order.const</field>
+            <field name="inherit_id" ref="equip3_construction_sales_operation.sale_order_const_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group[@name='main_form']" position="inside">
+                    <field name="is_set_custom_claim" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='project_details']" position="inside">
+                    <group string="Custom Claim" attrs="{'invisible':[('is_set_custom_claim','=',False)]}">
+                        <group>
+                            <field name="claim_type" force_save="1" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="progressive_milestone_term" string="Milestone and Contract Terms" attrs="{'invisible':[('claim_type','!=','milestone')]}">
+                            <group invisible="1">
+                                <group class="col-lg-6 mr-6">
+                                    <field name="progressive_milestone_term_id" force_save="1" attrs="{'invisible':[('claim_type','!=','milestone')], 'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}"/>
+                                </group>              
+                            </group>
+                            <field name="milestone_term_ids" widget="one2many_list" class="o_milestone_line_sale" force_save="1" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle" invisible="1"/>
+                                    <field name="sr_no"/>
+                                    <field name="order_id" invisible="1"/>
+                                    <field name="name" required="1"/>
+                                    <field name="type_milestone" string="Claim Type" required="1" readonly="1"/>
+                                    <field name="claim_percentage" string="Contract Terms (%)" attrs="{'readonly':[('type_milestone','in',('retention1','retention2'))]}" force_save="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="monthly_claim" string="Monthly Claim" attrs="{'invisible':[('claim_type','!=','monthly')], 'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}">
+                            <group>
+                                <group>
+                                    <label for="start_month" string="Start Month" invisible="1"/>
+                                    <div class="o_row">
+                                        <field name="start_month" force_save="1" invisible="1" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}" />
+                                        <field name="start_date_year" invisible="1" />
+                                        <field name="end_date_year" invisible="1" />
+                                        <field name="start_year" force_save="1" invisible="1"
+                                            attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}"
+                                            domain="[('name', '&lt;=', end_date_year), ('name', '&gt;=', start_date_year)]"
+                                        />
+                                    </div>
+                                    <label for="repeat_on_month" string="Repeat On" />
+                                    <div class="o_row">
+                                        <field name="repeat_on_month" force_save="1" attrs="{'required': [('claim_type', '=', 'monthly')]}" readonly='1' />
+                                        <field name="repeat_day" force_save="1" attrs="{'invisible': [('repeat_on_month', '=', 'day')], 'required': [('claim_type', '=', 'monthly'), ('repeat_on_month', '=', 'date')], 'readonly': ['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}" />
+                                        <field name="repeat_week" force_save="1" attrs="{'invisible': [('repeat_on_month', '=', 'date')], 'required': [('claim_type', '=', 'monthly'), ('repeat_on_month', '=', 'day')], 'readonly': ['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}" />
+                                        <field name="repeat_weekday" force_save="1" attrs="{'invisible': [('repeat_on_month', '=', 'date')], 'required': [('claim_type', '=', 'monthly'), ('repeat_on_month', '=', 'day')], 'readonly': ['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}" />
+                                    </div>
+                                </group>
+								<group>
+                                    <field name="is_create_automatically" force_save="1" attrs="{'invisible': [('claim_type', '!=', 'monthly')], 'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}"/>
+									<label for="repeat_time" string="Time" attrs="{'invisible': ['|', ('claim_type', '!=', 'monthly'), ('is_create_automatically', '=', False)]}"/>
+									<div class="o_row" attrs="{'invisible': ['|', ('claim_type', '!=', 'monthly'), ('is_create_automatically', '=', False)]}">
+										<field name="repeat_time" force_save="1" readonly="1"/>
+									</div>
+								</group>
+                            </group>
+                        </page>
+                    </notebook>
+                </xpath> 
+
+            </field>
+        </record>
+
+        <record id="purchase_order_view_form_inherit_milestone" model="ir.ui.view">
+            <field name="name">purchase.order.view.form.inherit.milestone</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="equip3_construction_purchase_operation.direct_purchase_form_view_equip3_purchase_other_operation_const_rfq_2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='partner_id']" position="before">
+                    <field name="is_set_custom_claim" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='project_details']" position="inside">
+                    <group string="Custom Claim" attrs="{'invisible':[('is_set_custom_claim','=',False)]}">
+                        <group>
+                            <field name="claim_type" force_save="1" attrs="{'readonly':['|', ('state', '!=', 'draft'), ('addendum_payment_method', '!=', 'split_payment')]}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="progressive_milestone_term" string="Milestone and Contract Terms" attrs="{'invisible':[('claim_type','!=','milestone')]}">
+                            <group invisible="1">
+                                <group class="col-lg-6 mr-6">
+                                    <field name="progressive_milestone_term_id" force_save="1" attrs="{'invisible':[('claim_type','!=','milestone')], 'readonly':['|', ('state', '!=', 'draft'), ('addendum_payment_method', '!=', 'split_payment')]}"/>
+                                </group>              
+                            </group>
+                            <field name="milestone_term_ids" widget="one2many_list" class="o_milestone_line_sale" force_save="1" attrs="{'readonly':['|', ('state', '!=', 'draft'), ('addendum_payment_method', '!=', 'split_payment')]}">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle" invisible="1"/>
+                                    <field name="sr_no"/>
+                                    <field name="order_id" invisible="1"/>
+                                    <field name="name" required="1" />
+                                    <field name="type_milestone" string="Claim Type" required="1" readonly="1"/>
+                                    <field name="claim_percentage" string="Contract Terms (%)" />
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="monthly_claim" string="Monthly Claim" attrs="{'invisible':[('claim_type','!=','monthly')], 'readonly':['|', ('state', '!=', 'draft'), ('addendum_payment_method', '!=', 'split_payment')]}">
+                            <group>
+                                <group>
+                                    <label for="repeat_on_month" string="Repeat On" />
+                                    <div class="o_row">
+                                        <field name="repeat_on_month" force_save="1" attrs="{'required': [('claim_type', '=', 'monthly')]}" readonly='1' />
+                                        <field name="repeat_day" force_save="1" attrs="{'invisible': [('repeat_on_month', '=', 'day')], 'required': [('claim_type', '=', 'monthly'), ('repeat_on_month', '=', 'date')], 'readonly':['|', ('state', '!=', 'draft'), ('addendum_payment_method', '!=', 'split_payment')]}" />
+                                        <field name="repeat_week" force_save="1" attrs="{'invisible': [('repeat_on_month', '=', 'date')], 'required': [('claim_type', '=', 'monthly'), ('repeat_on_month', '=', 'day')], 'readonly':['|', ('state', '!=', 'draft'), ('addendum_payment_method', '!=', 'split_payment')]}" />
+                                        <field name="repeat_weekday" force_save="1" attrs="{'invisible': [('repeat_on_month', '=', 'date')], 'required': [('claim_type', '=', 'monthly'), ('repeat_on_month', '=', 'day')], 'readonly':['|', ('state', '!=', 'draft'), ('addendum_payment_method', '!=', 'split_payment')]}" />
+                                    </div>
+                                </group>
+								<group>
+                                    <field name="is_create_automatically" force_save="1" attrs="{'invisible': [('claim_type', '!=', 'monthly')], 'readonly':['|', ('state', '!=', 'draft'), ('addendum_payment_method', '!=', 'split_payment')]}"/>
+									<label for="repeat_time" string="Time" attrs="{'invisible': ['|', ('claim_type', '!=', 'monthly'), ('is_create_automatically', '=', False)]}"/>
+									<div class="o_row" attrs="{'invisible': ['|', ('claim_type', '!=', 'monthly'), ('is_create_automatically', '=', False)]}">
+										<field name="repeat_time" force_save="1" readonly="1"/>
+									</div>
+								</group>
+                            </group>
+                        </page>
+                    </notebook>
+                </xpath> 
+
+            </field>
+        </record>
+
+        <record id="progressive_claim_view_form_inherit_milestone" model="ir.ui.view">
+            <field name="name">progressive.claim.view.form.inherit.milestone</field>
+            <field name="model">progressive.claim</field>
+            <field name="inherit_id" ref="equip3_construction_accounting_operation.progressive_claim_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group[@name='main_form']/group[@name='right_section_main']/field[@name='create_date']" position="after">
+                    <field name="is_set_custom_claim" invisible="1" force_save="1" readonly='1'/>
+                    <field name="show_claim_revise_button" invisible="1" />
+                    <field name="count_change" invisible="1" />
+                </xpath>
+
+                <xpath expr="//page[@name='related_contract_po_ids']" position="after">
+                    <page name="custom_claim" string="Custom Claim Configuration"  attrs="{'invisible':[('is_set_custom_claim','=',False)]}">
+                        <group attrs="{'invisible':[('is_set_custom_claim','=',False)]}">
+                            <group>
+                                <field name="claim_type" force_save="1" readonly='1'/>
+                            </group>
+                            <group>
+                                <button name="action_claim_revise" string="Change Custom Claim" type="object" class="oe_highlight" attrs="{'invisible':['|', '|', '|', ('show_claim_revise_button','=',False), ('invoiceable_rent1','=',True), ('invoiceable_rent2','=',True), ('state', 'in', ['done','cancel'])]}"/>
+                            </group>
+                        </group>
+                        <notebook> 
+                            <page name="progressive_milestone_term" string="Milestone and Contract Terms" attrs="{'invisible':[('claim_type','!=','milestone')]}">
+                                <group>
+                                    <field name="milestone_term_ids" class="o_milestone_line_sale" attrs="{'invisible':[('claim_type','!=','milestone')]}" nolabel="1" force_save="1" readonly='1'>
+                                        <tree editable="bottom">
+                                            <field name="sequence" widget="handle" invisible="1"/>
+                                            <field name="sr_no"/>
+                                            <field name="claim_id" invisible="1"/>
+                                            <field name="name" />
+                                            <field name="type_milestone" string="Claim Type"/>
+                                            <field name="claim_percentage" string="Contract Terms (%)" />
+                                            <field name="is_invoiced" string="Invoiced" />
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page name="monthly_claim" string="Monthly Claim" attrs="{'invisible':[('claim_type','!=','monthly')]}">
+                                <group>
+                                    <group>
+                                        <label for="repeat_on_month" string="Repeat On" attrs="{'invisible': [('claim_type', '!=', 'monthly')]}"/>
+                                        <div class="o_row" attrs="{'invisible': [('claim_type', '!=', 'monthly')]}">
+                                            <field name="repeat_on_month" force_save="1" readonly='0'/>
+                                            <field name="repeat_day" attrs="{'invisible': [('repeat_on_month', '=', 'day')]}" force_save="1" readonly='0'/>
+                                            <field name="repeat_week" attrs="{'invisible': [('repeat_on_month', '=', 'date')]}" force_save="1" readonly='0'/>
+                                            <field name="repeat_weekday" attrs="{'invisible': [('repeat_on_month', '=', 'date')]}" force_save="1" readonly='0'/>
+                                        </div>
+                                    </group>
+                                    <group>
+                                        <field name="is_create_automatically" attrs="{'invisible': [('claim_type', '!=', 'monthly')]}" force_save="1" readonly='1'/>
+										<label for="repeat_time" string="Time" attrs="{'invisible': ['|', ('claim_type', '!=', 'monthly'), ('is_create_automatically', '=', False)]}" />
+										<div class="o_row" attrs="{'invisible': ['|', ('claim_type', '!=', 'monthly'), ('is_create_automatically', '=', False)]}">
+                                            <field name="repeat_time" force_save="1" readonly='1'/>
+                                        </div>
+                                    </group>   
+                                </group>
+                            </page>
+                            <page name="change_custom_claim" string="Change History" attrs="{'invisible':[('count_change', '&lt;', 1)]}">
+                                <field name="change_term_ids" widget="one2many_list" readonly="1">
+                                    <tree editable="bottom">
+                                        <field name="sequence" invisible="1"/>
+                                        <field name="sr_no" string='History'/>
+                                        <field name="claim_id" invisible="1"/>
+                                        <field name="start_date" />
+                                        <field name="end_date"/>
+                                        <field name="changer"/>
+                                        <field name="claim_type" invisible="1"/>
+                                    </tree>
+                                    <form>
+                                        <sheet>
+                                            <group name="main">
+                                                <group name="left">
+                                                    <field name="start_date" />
+                                                    <field name="claim_type" invisible="1"/>
+                                                </group>
+                                                <group name="right">
+                                                    <field name="end_date" />
+                                                </group>
+                                            </group>
+                                            <notebook> 
+                                                <page name="progressive_milestone_term" string="Milestone and Contract Terms" attrs="{'invisible':[('claim_type','!=','milestone')]}">
+                                                    <group>
+                                                        <field name="milestone_term_ids" class="o_milestone_line_sale" attrs="{'invisible':[('claim_type','!=','milestone')]}" nolabel="1" force_save="1" readonly='1'>
+                                                            <tree editable="bottom">
+                                                                <field name="sequence" widget="handle" invisible="1"/>
+                                                                <field name="sr_no"/>
+                                                                <field name="name" />
+                                                                <field name="type_milestone" string="Claim Type"/>
+                                                                <field name="claim_percentage" string="Contract Terms (%)" />
+                                                                <field name="is_invoiced" string="Invoiced" force_save="1"/>
+                                                            </tree>
+                                                        </field>
+                                                    </group>
+                                                </page>
+                                                <page name="monthly_claim" string="Monthly Claim" attrs="{'invisible':[('claim_type','!=','monthly')]}">
+                                                    <group>
+                                                        <group>
+                                                            <label for="repeat_on_month" string="Repeat On" attrs="{'invisible': [('claim_type', '!=', 'monthly')]}"/>
+                                                            <div class="o_row" attrs="{'invisible': [('claim_type', '!=', 'monthly')]}">
+                                                                <field name="repeat_on_month" force_save="1" readonly='1'/>
+                                                                <field name="repeat_day" attrs="{'invisible': [('repeat_on_month', '=', 'day')]}" force_save="1" readonly='1'/>
+                                                                <field name="repeat_week" attrs="{'invisible': [('repeat_on_month', '=', 'date')]}" force_save="1" readonly='1'/>
+                                                                <field name="repeat_weekday" attrs="{'invisible': [('repeat_on_month', '=', 'date')]}" force_save="1" readonly='1'/>
+                                                            </div>
+                                                        </group>
+                                                        <group>
+                                                            <field name="is_create_automatically" attrs="{'invisible': [('claim_type', '!=', 'monthly')]}" force_save="1" readonly='1'/>
+                                                            <label for="repeat_time" string="Time" attrs="{'invisible': ['|', ('claim_type', '!=', 'monthly'), ('is_create_automatically', '=', False)]}" />
+                                                            <div class="o_row" attrs="{'invisible': ['|', ('claim_type', '!=', 'monthly'), ('is_create_automatically', '=', False)]}">
+                                                                <field name="repeat_time" force_save="1" readonly='1'/>
+                                                            </div>
+                                                        </group>   
+                                                    </group>
+                                                </page>   
+                                            </notebook>
+                                        </sheet>
+                                    </form>
+                                </field>
+                            </page>
+                        </notebook>
+                    </page>
+                </xpath> 
+            </field>
+        </record>
+                
+                
+        <!-- setting tab inherit -->
+        <record id="project_project_form_inherited" model="ir.ui.view">
+            <field name="name">project.project.form.inherited.construction.inherit</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="equip3_construction_operation.project_invoice_form_inherited_edit"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@id='is_set_projects_type']" position="after">
+                    <div class="col-lg-6 o_setting_box"  id="custom_claim_settings">
+                        <div class="o_setting_left_pane">
+                            <field name="is_set_custom_claim"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="is_set_custom_claim" string="Set Custom Claim"/>
+                            <div class="text-muted">
+                                Can claim contract with custom claim (based on selected field on quotation)
+                            </div>
+                            <field name="project_director" invisible="1" />
+                            <div class="mt8" attrs="{'invisible' : [('is_set_custom_claim', '=', False)]}">
+                                <label for="notification_claim" />
+                                <field name="notification_claim" widget='many2many_tags' eval="[(6, 0, [user.id for user in project_director])]"/>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

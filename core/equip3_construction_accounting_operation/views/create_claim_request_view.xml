@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="create_request_form" model="ir.ui.view">
+            <field name="name">create_request_form</field>
+            <field name="model">claim.request</field>
+            <field name="arch" type="xml" >
+                <form string="Create Claim Request" >
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="to_approve,approved" />
+                    </header>
+                    <sheet >
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" />
+                            </h1>
+                        </div>
+                        <group invisible="1">
+                            <group >
+                                <field name="request_for" readonly="1"/>
+                            </group>
+                        </group>    
+                        <group>
+                            <group>
+                                <field name="project_id" readonly="1"/>
+                                <field name="contract_parent" readonly="1"
+                                       attrs="{'invisible':[('progressive_bill','=',True)]}"/> 
+                                <field name="contract_parent_po" readonly="1"
+                                       attrs="{'invisible':[('progressive_bill','=',False)]}" />
+                                <field name="po_subcon_line_id" attrs="{'invisible':[('progressive_bill','=',False)]}" readonly="1" invisible="1" force_save='1'/>
+                                <field name="partner_id" readonly="1" attrs="{'invisible':[('progressive_bill','=',True)]}"/>
+                                <field name="vendor" readonly="1" attrs="{'invisible':[('progressive_bill','=',False)]}"/>
+                                <field name="progressive_claim_id" invisible="1"/>
+                                <field name="progressive_bill" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="project_director" readonly="1" string='Project Manager'/>
+                                <field name="company_id" />
+                                <field name="branch_id" readonly="1" force_save="1"/>
+                                <field name="create_uid" string="Created By"/>
+                                <field name="create_date" string="Creation Date"/>
+                                <field name="is_claim_request_approval_matrix" invisible="1"/>
+                                <field name="is_approval_matrix_filled" invisible="1"/>
+                            </group>
+                            <group attrs="{'invisible': [('request_for', '!=', 'down_payment')]}">
+                                <group>
+                                    <field name="contract_amount" force_save="1" readonly="1" invisible="1"/>
+                                    <label for="requested_progress" string="Requested Down Payment"/>
+                                        <div>
+                                            <field name="requested_progress" class="oe_inline"/>
+                                            <label for="requested_progress" string="%%"  class="oe_inline"/>
+                                        </div>          
+                                </group>
+                            </group>
+                            <group attrs="{'invisible': [('request_for', '!=', 'progress')]}">
+                                <group>
+                                    <field name="contract_amount" force_save="1" readonly="1" invisible="1"/>
+                                    <label for="requested_progress" />
+                                        <div>
+                                            <field name="requested_progress" class="oe_inline" readonly="1" force_save="1"/>
+                                            <label for="requested_progress" string="%%"  class="oe_inline"/>
+                                        </div>
+                                </group>
+                            </group>
+                            <group attrs="{'invisible': [('request_for', '!=', 'retention1')]}">
+                                <group>
+                                    <field name="contract_amount" force_save="1" readonly="1" invisible="1"/>
+                                    <label for="requested_progress" string="Requested Retention 1"/>
+                                        <div>
+                                            <field name="requested_progress" class="oe_inline" readonly="1" force_save="1"/>
+                                            <label for="requested_progress" string="%%"  class="oe_inline"/>
+                                        </div>
+                                </group>
+                            </group>
+                            <group attrs="{'invisible': [('request_for', '!=', 'retention2')]}">
+                                <group>
+                                    <field name="contract_amount" force_save="1" readonly="1" invisible="1"/>
+                                    <label for="requested_progress" string="Requested Retention 2"/>
+                                        <div>
+                                            <field name="requested_progress" class="oe_inline" readonly="1" force_save="1"/>
+                                            <label for="requested_progress" string="%%"  class="oe_inline"/>
+                                        </div>
+                                </group>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="max_claim"/>
+                                    <field name="remaining_request" invisible="1"/>
+                                    <field name="gross_amount" invisible="1"/>
+                                    <field name="dp" invisible="1"/>
+                                    <field name="reten" invisible="1"/>
+                                    <field name="amount_approved" invisible="1"/>
+                                    <field name="perc_approved" invisible="1"/>
+                                    <field name="max_percen" invisible="1"/>
+                                </group>         
+                            </group>
+                            <group invisible="1">  
+                                <field name="last_progress" readonly="1" force_save="1"/>
+                                <field name="account_1"/>
+                                <field name="account_2" />
+                                <field name="account_3"/>
+                                <field name="account_4"/>
+                            </group>
+                            <group invisible="1"> 
+                                <field name="contract_amount"/>
+                                <field name="down_payment"/>
+                                <field name="retention1"/>
+                                <field name="retention1_amount" />
+                                <field name="retention2"/>
+                                <field name="retention2_amount" />
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="request_line_ids" string="Request Lines" attrs="{'invisible': [('request_for', '!=', 'progress')]}">
+                                <field name="request_line_ids" widget="one2many_list" class="o_request_line_wiz">
+                                    <tree editable='bottom'>
+                                        <control>
+                                            <create name="add_product_control" string="Add a job order"/>
+                                        </control>
+                                        <field name="sequence" invisible="1"/>
+                                        <field name="sr_no"/>
+                                        <field name="progressive_bill" invisible="1"/>
+                                        <field name="work_order" string="Job Order"
+                                            options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                                            attrs="{'column_invisible':[('parent.progressive_bill','=',True)], 'required':[('parent.progressive_bill','=',False)]}"/>
+                                        <field name="work_order_sub" string="Job Order"
+                                            options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                                            attrs="{'column_invisible':[('parent.progressive_bill','=',False)], 'required':[('parent.progressive_bill','=',True)]}"/>
+                                        <field name="wo_prog_temp" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="stage" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="stage_new" readonly="1" force_save="1" attrs="{'column_invisible':[('parent.progressive_bill','=',True)]}"/>
+                                        <field name="worker_assigned_to" invisible="1" readonly="1" force_save="1"/>
+                                        <field name="assigned_to" readonly="1" force_save="1"/>
+                                        <field name="completion_date" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="stage_weightage" readonly="1" force_save="1" optional="hide" 
+                                               attrs="{'column_invisible':[('parent.progressive_bill','=',True)]}" />
+                                        <field name="work_subcon_weightage" readonly="1" force_save="1" optional="hide" 
+                                               attrs="{'column_invisible':[('parent.progressive_bill','=',False)]}" />
+                                        <field name="work_weightage" readonly="1" force_save="1" optional="hide" />
+                                        <field name="last_progress" readonly="1" force_save="1" optional="hide" />
+                                        <field name="work_progress" readonly="1" force_save="1" optional="hide" />
+                                        <field name="progress" force_save="1"/>
+                                        <field name="project_id" invisible="1" />
+                                        <field name="contract_parent" invisible="1"/>
+                                        <field name="contract_parent_po" invisible="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Approval Matrix Line" attrs="{'invisible': [('is_claim_request_approval_matrix', '=', False)]}">
+                                <group name="approval">
+                                    <group >
+                                        <field name="approving_matrix_sale_id" attrs="{'invisible': [('is_claim_request_approval_matrix', '=', False)]}"/>
+                                    </group>
+                                </group>
+                                <field name="approval_matrix_ids" context="{'approval_matrix_ids': approval_matrix_ids}" class="o_sale_approval_matrix_line">
+                                    <tree editable="bottom">
+                                        <field name="sequence" />
+                                        <field name="approvers" widget="many2many_tags"/>
+                                        <field name="minimum_approver" />
+                                        <field name="approval_status" />
+                                        <field name="approved_time" />
+                                        <field name="feedback" />
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet> 
+                    <footer>
+                        <button name="send_request" string="Approve" type="object" class="oe_highlight" attrs="{'invisible': [('is_claim_request_approval_matrix', '=', True)]}"/>
+                        <button name="send_request" string="Request For Approval" type="object" class="oe_highlight" attrs="{'invisible': [('is_claim_request_approval_matrix', '=', False)]}"/>
+                        <button string="Cancel" special="cancel" class="btn-secondary"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    
+    </data>
+</odoo>

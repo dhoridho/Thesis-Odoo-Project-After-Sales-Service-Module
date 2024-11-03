@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record id="sh_rfq_custom_checklist_tree_view_inherit" model="ir.ui.view">
+        <field name="name">rfq.custom.checklist.tree</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_kpis_tree" />
+        <field name="arch" type="xml">
+            <field name="amount_total" position="after">
+                <field name="custom_checklist" widget="progressbar" groups="sh_all_in_one_purchase_tools.group_enable_purchase_checklist"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="sh_po_custom_checklist_tree_view_inherit" model="ir.ui.view">
+        <field name="name">po.custom.checklist.tree</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree" />
+        <field name="arch" type="xml">
+            <field name="state" position="after">
+                <field name="custom_checklist" widget="progressbar" groups="sh_all_in_one_purchase_tools.group_enable_purchase_checklist"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="sh_purchase_order_custom_checklist_kanban_view_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.custom.checklist.kanban</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_kanban" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('o_kanban_record_bottom')]" position="before">
+                <div groups="sh_all_in_one_purchase_tools.group_enable_purchase_checklist">
+                    <field name="custom_checklist" string="Checklist" widget="percentpie" style="background: Blue;" />
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sh_rfq_custom_checklist_search_view_inherit" model="ir.ui.view">
+        <field name="name">rfq.custom.checklist.search</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.view_purchase_order_filter" />
+        <field name="arch" type="xml">
+            <filter name="activities_exception" position="after">
+                <filter string="Complete Checklist" name="complete_state" domain="[('complete_state','=', True)]" groups="sh_all_in_one_purchase_tools.group_enable_purchase_checklist"/>
+                <filter string="Uncompleted Checklist" name="uncomplete_state" domain="[('complete_state','=', False)]" groups="sh_all_in_one_purchase_tools.group_enable_purchase_checklist"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="sh_purchase_order_custom_checklist_search_view_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.custom.checklist.search</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_search" />
+        <field name="arch" type="xml">
+            <filter name="activities_exception" position="after">
+                <filter string="Complete Checklist" name="complete_state" domain="[('complete_state','=', True)]" groups="sh_all_in_one_purchase_tools.group_enable_purchase_checklist"/>
+                <filter string="Uncompleted Checklist" name="uncomplete_state" domain="[('complete_state','=', False)]" groups="sh_all_in_one_purchase_tools.group_enable_purchase_checklist"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="sh_purcahse_custom_checklist_form_view" model="ir.ui.view">
+        <field name="name">purchase.custom.checklist.form</field>
+        <field name="model">purchase.custom.checklist</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" />
+                            <field name="company_id" invisible="1" />
+                        </group>
+                        <group>
+                            <field name="description" />
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sh_purchase_custom_checklist_tree_view" model="ir.ui.view">
+        <field name="name">purchase.custom.checklist.tree</field>
+        <field name="model">purchase.custom.checklist</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" />
+                <field name="description" />
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_menu_purchase_custom_checklist">
+        <field name="name">Purchase Checklist</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">purchase.custom.checklist</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_purchase_custom_checklist" groups="sh_all_in_one_purchase_tools.group_enable_purchase_checklist" name="Purchase Custom Checklist" action="action_menu_purchase_custom_checklist" parent="purchase.menu_purchase_config" />
+
+    <record id="sh_purchase_lead_custom_checklist_form_view_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.custom.checklist.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="custom_checklist" string="Checklist" groups="sh_all_in_one_purchase_tools.group_enable_purchase_checklist">
+                    <button name="%(action_menu_purchase_custom_checklist)d" type="action" class="oe_stat_button" style="height: 40px; background: White;">
+                        <field name="custom_checklist" string="Checklist Completed" widget="percentpie" style="height: 30px; background: White;" />
+                    </button>
+                    <span style="padding-left:50px;">Checklist Template </span>
+                    <field name="custom_checklist_template_ids" widget="many2many_tags" />
+                    <field name="complete_state" invisible="1" />
+                    <field name="custom_checklist_ids">
+                        <tree editable="bottom" decoration-danger="state=='cancelled'" decoration-success="state=='completed'">
+                            <field name="name" />
+                            <field name="description" />
+                            <field name="updated_date" />
+                            <field name="state" />
+                            <button string="Complete" name="btn_check" type="object" icon="fa-check" attrs="{'invisible':[('state','=','completed')]}" />
+                            <button string="Cancel" name="btn_close" type="object" icon="fa-close" attrs="{'invisible':[('state','=','cancelled')]}" />
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

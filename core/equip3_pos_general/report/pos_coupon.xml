@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    
+    <template id="pos_coupon_barcode_report_doc">
+        <div style="width: 32%; display: inline-table; height: 10rem;">
+            <table class="table table-bordered mb-0" style="border: 2px solid black;">
+                <tr>
+                    <th class="table-active text-left" style="height: 4rem; background: white; border: none;">
+                    	<div style="font-size: 12px; font-weight: normal;">
+	                        <div>
+	                            <span>Coupon Name:</span>
+	                            <span t-field="o.name"/>
+	                        </div>
+	                        <div>
+	                            <span>Expired Date:</span>
+	                            <span t-field="o.end_date"/>
+	                        </div>
+	                        <div>
+	                            <span>Product:</span>
+	                            <span t-esc="o.product_display_name"/>
+	                        </div>
+	                        <div>
+	                            <span>Min Purchase QTY:</span>
+	                            <span t-esc="o.minimum_purchase_quantity"/>
+	                        </div>
+	                        <div>
+	                            <t t-if="o.reward_type == 'Discount'">
+	                                <span>Discount Amount:</span>
+	                                <t t-if="o.reward_discount_type == 'Fixed'">
+	                                    <span t-esc="o.reward_discount_amount" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+	                                </t>
+	                                <t t-if="o.reward_discount_type == 'Percentage'">
+	                                    <span t-esc="o.reward_discount_amount"/>%
+	                                </t>
+	                            </t>
+	                            <t t-if="o.reward_type == 'Free Item'">
+	                                <span>Free Product:</span>
+	                                <span t-esc="o.reward_product_display_name"/>
+	                            </t>
+	                        </div>
+                    	</div>
+                    </th>
+                </tr>
+                <tr>
+                    <td class="text-center align-middle" style="height: 6rem; background: white; border: none;">
+                        <t t-if="o.number">
+                            <img alt="Barcode" t-if="len(o.number) == 13"
+                                 t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('EAN13', quote_plus(o.number or ''), 600, 150)"
+                                 style="width:100%;height:4rem;"/>
+                            <img alt="Barcode" t-elif="len(o.number) == 8"
+                                 t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('EAN8', quote_plus(o.number or ''), 600, 150)"
+                                 style="width:100%;height:4rem;"/>
+                            <img alt="Barcode" t-else=""
+                                 t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', quote_plus(o.number or ''), 600, 150)"
+                                 style="width:100%;height:4rem"/>
+                            <span t-field="o.number"/>
+                        </t>
+                        <t t-else="">
+                            <span class="text-muted">No barcode available</span>
+                        </t>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+    <template id="pos_coupon_barcode_report">
+        <t t-call="web.basic_layout">
+            <div class="page">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="equip3_pos_general.pos_coupon_barcode_report_doc"/>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <record id="pos_coupon_barcode_action_report" model="ir.actions.report">
+        <field name="name">Coupon (Barcode)</field>
+        <field name="model">pos.coupon</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_pos_general.pos_coupon_barcode_report</field>
+        <field name="report_file">equip3_pos_general.pos_coupon_barcode_report</field>
+        <field name="print_report_name">object.number</field>
+        <field name="binding_model_id" ref="equip3_pos_masterdata.model_pos_coupon"/>
+        <field name="binding_type">report</field>
+    </record>
+
+
+    <template id="pos_coupon_qrcode_report_doc">
+        <div style="width: 32%; display: inline-table; height: 10rem;">
+            <table class="table table-bordered mb-0" style="border: 2px solid black;">
+                <tr>
+                    <th class="table-active text-left" style="height: 4rem; background: white; border: none;">
+                        <div style="font-size: 12px; font-weight: normal;">
+                            <div>
+                                <span>Coupon Name:</span>
+                                <span t-field="o.name"/>
+                            </div>
+                            <div>
+                                <span>Expired Date:</span>
+                                <span t-field="o.end_date"/>
+                            </div>
+                            <div>
+                                <span>Product:</span>
+                                <span t-esc="o.product_display_name"/>
+                            </div>
+                            <div>
+                                <span>Min Purchase QTY:</span>
+                                <span t-esc="o.minimum_purchase_quantity"/>
+                            </div>
+                            <div>
+                                <t t-if="o.reward_type == 'Discount'">
+                                    <span>Discount Amount:</span>
+                                    <t t-if="o.reward_discount_type == 'Fixed'">
+                                        <span t-esc="o.reward_discount_amount" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                    </t>
+                                    <t t-if="o.reward_discount_type == 'Percentage'">
+                                        <span t-esc="o.reward_discount_amount"/>%
+                                    </t>
+                                </t>
+                                <t t-if="o.reward_type == 'Free Item'">
+                                    <span>Free Product:</span>
+                                    <span t-esc="o.reward_product_display_name"/>
+                                </t>
+                            </div>
+                        </div>
+                    </th>
+                </tr>
+                <tr>
+                    <td class="text-center align-middle" style="height: 6rem; background: white; border: none;">
+                        <t t-if="o.number">
+							<img alt="qrcode"  
+								t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s'%('QR', o.number or '', 150, 150)"
+                                style="width:auto;height:6rem"/>
+                            <div style="font-size: 10px;">
+                            	<span t-field="o.number"/>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <span class="text-muted">No qrcode available</span>
+                        </t>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+    <template id="pos_coupon_qrcode_report">
+        <t t-call="web.basic_layout">
+            <div class="page">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="equip3_pos_general.pos_coupon_qrcode_report_doc"/>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <record id="pos_coupon_qrcode_action_report" model="ir.actions.report">
+        <field name="name">Coupon (QR Code)</field>
+        <field name="model">pos.coupon</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_pos_general.pos_coupon_qrcode_report</field>
+        <field name="report_file">equip3_pos_general.pos_coupon_qrcode_report</field>
+        <field name="print_report_name">object.number</field>
+        <field name="binding_model_id" ref="equip3_pos_masterdata.model_pos_coupon"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+    <!-- mining.operations.two form view -->
+    <record id="mining_operations_two_view_form" model="ir.ui.view">
+        <field name="name">mining.operations.two.view.form</field>
+        <field name="model">mining.operations.two</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="site_id" options="{'no_create_edit': True, 'no_create': True}"/>
+                            <field name="name"/>
+                            <field name="operation_type_id"/>
+                            <field name="uom_id" options="{'no_create_edit': True, 'no_create': True}"/>
+                            <field name="uom_category_id" invisible="1"/>
+                            <field name="location_id" attrs="{'invisible': [('operation_type_id', '!=', 'processing')], 'required': [('operation_type_id', '=', 'processing')]}"/>
+                            <field name="location_src_id" attrs="{'invisible': [('operation_type_id', '!=', 'shipment')], 'required': [('operation_type_id', '=', 'shipment')]}"/>
+                            <field name="location_dest_id" attrs="{'invisible': [('operation_type_id', '!=', 'shipment')], 'required': [('operation_type_id', '=', 'shipment')]}"/>
+                        </group>
+                        <group>
+                            <field name="company_id" force_save="1"/>
+                            <field name="branch_id" options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="next_primary" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="line_ids" string="Product" attrs="{'invisible': [('operation_type_id', '==', 'processing')]}">
+                            <field name="line_ids" context="{'default_primary': next_primary}">
+                                <tree string="Product" editable="bottom">
+                                    <field name="operation_id" invisible="1"/>
+                                    <field name="product_id" domain="[('uom_id.category_id', '=', operation_uom_category_id)]" options="{'no_create_edit': True, 'no_create': True}"/>
+                                    <field name="uom_id" domain="[('category_id', '=', operation_uom_category_id)]" options="{'no_create_edit': True, 'no_create': True}"/>
+                                    <field name="operation_uom_category_id" invisible="1"/>
+                                    <field name="update_sequence" optional="hide"/>
+                                    <field name="primary" widget="boolean_toggle"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="input_line_ids" string="Input" attrs="{'invisible': [('operation_type_id', '!=', 'processing')]}">
+                            <field name="input_line_ids" context="{'default_primary': next_primary}">
+                                <tree string="Product" editable="bottom">
+                                    <field name="input_operation_id" invisible="1"/>
+                                    <field name="product_id" domain="[('uom_id.category_id', '=', input_operation_uom_category_id)]"/>
+                                    <field name="uom_id" domain="[('category_id', '=', input_operation_uom_category_id)]"/>
+                                    <field name="qty"/>
+                                    <field name="input_operation_uom_category_id" invisible="1"/>
+                                    <field name="update_sequence" optional="hide"/>
+                                    <field name="primary" widget="boolean_toggle"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                    <notebook>
+                        <page name="output_line_ids" string="Output" attrs="{'invisible': [('operation_type_id', '!=', 'processing')]}">
+                            <field name="output_line_ids" context="{'default_primary': next_primary}">
+                                <tree string="Product" editable="bottom">
+                                    <field name="output_operation_id" invisible="1"/>
+                                    <field name="product_id" domain="[('uom_id.category_id', '=', output_operation_uom_category_id)]"/>
+                                    <field name="uom_id" domain="[('category_id', '=', output_operation_uom_category_id)]"/>
+                                    <field name="qty"/>
+                                    <field name="output_operation_uom_category_id" invisible="1"/>
+                                    <field name="update_sequence" optional="hide"/>
+                                    <field name="primary" widget="boolean_toggle"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- mining.operations.two tree view -->
+    <record id="mining_operations_two_view_tree" model="ir.ui.view">
+        <field name="name">mining.operations.two.view.tree</field>
+        <field name="model">mining.operations.two</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="operation_type_id" required="1"/>
+            </tree>
+        </field>
+    </record>
+    
+    <!-- mining.operations.two action window -->
+    <record id="mining_operations_two_action" model="ir.actions.act_window">
+        <field name="name">Operations</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.operations.two</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Add Operations
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,195 @@
+<odoo>
+
+    <!-- Portal View -->
+    <template id="portal_my_home_menu_hms" name="Portal layout : ACS Data" inherit_id="portal.portal_breadcrumbs" priority="20">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'consent_form' or consent_form" t-attf-class="breadcrumb-item #{'active ' if not consent_form else ''}">
+                <a t-if="consent_form" t-attf-href="/my/consentforms?{{ keep_query() }}">Consent Forms</a>
+                <t t-else="">Consent Forms</t>
+            </li>
+            <li t-if="consent_form" class="breadcrumb-item active">
+                <t t-esc="consent_form.name"/>
+            </li>
+
+        </xpath>
+    </template>
+
+    <template id="portal_my_home" name="Portal My Home: HMS entries" inherit_id="portal.portal_my_home" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-if="consent_form_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Consent Forms</t>
+                <t t-set="url" t-value="'/my/consentforms'"/>
+                <t t-set="count" t-value="consent_form_count"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="my_consent_forms" name="My Consent Forms">
+        <t t-call="portal.portal_layout">
+
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Digial Document</t>
+            </t>
+            <t t-if="not consent_forms">
+                <p>There are currently no Consent Forms for your account.</p>
+            </t>
+
+            <div t-if="consent_forms" class="panel panel-default">
+                <div class="table-responsive">
+                    <table class="table table-hover bg-white status_table o_portal_my_doc_table">
+                        <thead>
+                            <tr class="active">
+                                <th>Name</th>
+                                <th>Subject</th>
+                                <th>Reference</th>
+                                <th>Date</th>
+                                <th>State</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <t t-foreach="consent_forms" t-as="consent_form">
+                            <tr>
+                                <td>
+                                    <a t-attf-href="/my/consentforms/#{consent_form.id}?{{ keep_query() }}"><t t-esc="consent_form.name" /></a>
+                                </td>
+                                <td>
+                                    <span t-field="consent_form.subject" />
+                                </td>
+                                <td>
+                                    <t t-foreach="consent_form.tag_ids" t-as="tag">
+                                        <span class="badge badge-pill badge-success">
+                                            <i class="fa fa-fw fa-check "/>
+                                            <span class="hidden-xs"> 
+                                                <t t-esc="tag.name"/>
+                                            </span>
+                                        </span>
+                                    </t>
+                                </td>
+                                <td>
+                                    <span t-field="consent_form.date"/>
+                                </td>
+                                <td>
+                                    <span t-field="consent_form.state"/>
+                                </td>
+                                <td>
+                                    <a class="btn btn-primary" target="_blank" title="Digial Document" t-att-href="'/report/pdf/acs_consent_form.consent_form_report/'+str(consent_form.id)">Print</a>
+                                </td>
+                            </tr>
+                        </t>
+                    </table>
+                </div>
+            </div>
+            <div t-if="pager" class="o_portal_pager text-center">
+                <t t-call="portal.pager"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="my_consent_form" name="My Digial Document Sign" inherit_id="portal.portal_sidebar" primary="True">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-set="o_portal_fullwidth_alert" groups="acs_consent_form.group_consent_form_manager">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url" t-value="'/web#model=%s&amp;id=%s&amp;action=%s&amp;view_type=form' % (consent_form._name, consent_form.id, action.id)"/>
+                </t>
+            </t>
+            <div class="row mt16 o_portal_doc_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <a t-if="consent_form.acs_has_to_be_signed and consent_form.state=='tosign'" role="button" class="btn btn-primary btn-block mb8" data-toggle="modal" data-target="#modalaccept" href="#">
+                                    <i class="fa fa-check"/>Accept &amp; Sign
+                                </a>
+
+
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn" t-attf-href="/my/consentforms/#{consent_form.id}?report_type=pdf&amp;download=True" title="Download"><i class="fa fa-download"/> Download</a>
+                                    </div>
+                                    <div class="btn-group flex-grow-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_print_btn o_portal_invoice_print" t-attf-href="/my/consentforms/#{consent_form.id}?report_type=pdf" id="print_invoice_report" title="Print" target="_blank"><i class="fa fa-print"/> Print</a>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="navspy list-group-item pl-0 flex-grow-1" t-ignore="true" role="complementary">
+                                <ul class="nav flex-column bs-sidenav"></ul>
+                            </li>
+                        </ul>
+                    </t>
+                </t>
+
+                <!-- Page content -->
+                <div id="document_page_content" class="col-12 col-lg justify-content-end">
+                    <!-- modal relative to the actions sign -->
+                    <div role="dialog" class="modal fade" id="modalaccept">
+                        <div class="modal-dialog" t-if="consent_form">
+                            <form id="accept" method="POST" t-att-data-order-id="consent_form.id" class="js_accept_json modal-content js_website_submit_form">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                <header class="modal-header">
+                                    <h4 class="modal-title">Accept Details</h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">&amp;times;</button>
+                                </header>
+                                <main class="modal-body" id="sign-dialog">
+                                    <p>
+                                        <span>By signing this, I agree to the All terms:</span>
+                                        <ul>
+                                            <li><span>Accepted on the behalf of:</span> <b t-field="consent_form.partner_id.commercial_partner_id"/></li>
+                                        </ul>
+                                    </p>
+                                    <t t-call="portal.signature_form">
+                                        <t t-set="call_url" t-value="consent_form.get_portal_sign_url()"/>
+                                        <t t-set="default_name" t-value="consent_form.partner_id.name"/>
+                                    </t>
+                                </main>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- status messages -->
+                    <div t-if="message == 'sign_ok'" class="alert alert-success alert-dismissable d-print-none" role="status">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">&amp;times;</button>
+                        <strong>Thank You!</strong><br/>
+                        Your declaration has been signed.
+                    </div>
+                    <!-- main content -->
+                    <div class="card pb-5">
+                        <div t-call="acs_consent_form.my_document_content"/>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="my_document_content" name="Document Content" >
+        <div id="consent_form_report_content" class="col-12 col-lg mt32">
+            <div class="o_portal_html_view shadow p-3" style="background-color: white;">
+                <script type="text/javascript">
+                  function resizeIframe(iframe) {
+                    iframe.height = iframe.contentWindow.document.body.scrollHeight + "px";
+                  }
+                </script>
+                <iframe id="result_html" width="100%" frameborder="0" t-att-src="'/my/consentforms/'+str(consent_form.id)+'?access_token='+str(consent_form.access_token)+'&amp;report_type=html'" onload="resizeIframe(this)"/>
+                
+                <!-- Iframe causes length issue-->
+                <!-- <iframe id="result_html" width="100%" frameborder="0" t-att-src="'/report/html/acs_consent_form.consent_form_report/'+str(consent_form.id)" onload="resizeIframe(this)"/> -->
+
+                <!-- Belowcode gives UI Issue-->
+                <!-- <t t-set="doc" t-value="consent_form.sudo()"/>
+                <t t-call="acs_consent_form.consent_form_report_document" t-lang="doc.partner_id.lang"/> -->
+
+            </div>
+            <!-- chatter -->
+            <div id="consent_form_communication" class="mt-4">
+                <h2>History</h2>
+                <t t-call="portal.message_thread">
+                    <t t-set="object" t-value="consent_form"/>
+                </t>
+            </div>
+        </div>
+    </template>
+
+</odoo>

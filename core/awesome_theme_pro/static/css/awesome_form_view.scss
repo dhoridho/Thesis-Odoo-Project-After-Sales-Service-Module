@@ -1,0 +1,912 @@
+
+.o_input, .single-line, .js_import_options input {
+    -webkit-appearance: none;
+    background-color: #fff;
+    background-image: none;
+    border-radius: 4px;
+    border: 1px solid #dcdfe6;
+    box-sizing: border-box;
+    color: #606266;
+    font-size: inherit;
+    height: 34px;
+    line-height: 34px;
+    outline: none;
+    padding: 0 10px;
+    width: 100%;
+
+    &:focus {
+        border-color: #66afe9;
+        outline: 0;
+    }
+
+    &:hover {
+        border-color: #c0c4cc;
+    }
+
+    input {
+        &.o_input {
+            height: 30px;
+        }
+    }
+}
+
+.o_form_view {
+    background-color: transparent;
+
+    .o_form_sheet_bg {
+        border-bottom: 1px solid #ddd;
+        background: transparent
+    }
+
+    .o_group {
+        .o_td_label {
+            border-right: none
+        }
+    }
+
+    .o_form_sheet_bg {
+        border: none;
+        background: transparent;
+
+        > .o_form_sheet {
+            min-width: inherit;
+        }
+    }
+
+    .o_form_statusbar{
+
+        @include media-breakpoint-down(sm) {
+            padding-left: 0px;
+        }
+
+        > .o_statusbar_status {
+            background-color: #006fe6;
+            > .o_arrow_button.btn-primary.disabled:after {
+                border-left-color: #006fe6;
+            }
+        }
+
+        .o_statusbar_buttons_dropdown.dropdown-toggle {
+            width: 80px;
+            padding-left: 0px;
+            border: none;
+            border-right: 1px solid;
+            border-radius: 0px;
+        }
+
+        .dropdown-menu {
+            padding: 5px;
+            button {
+                margin-bottom: 5px;
+                width: 150px;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+
+    .oe_button_box {
+        + .oe_title,  + .oe_avatar + .oe_title {
+            width: auto;
+        }
+    }
+
+    .o_cp_pager {
+        margin-right: 5px;
+        .o_pager_counter {
+            margin: 5px;
+            padding: 5px;
+        }
+    }
+
+    .o_list_table {
+        border-top: 1px solid #ebebeb;
+        margin-top: 5px;
+    }
+}
+
+
+.o_form_view {
+
+    @include media-breakpoint-up(md) {
+        display: flex;
+        flex-flow: column nowrap;
+        min-height: 100%;
+    }
+
+    // Sheet
+    .o_form_sheet_bg {
+        flex: 1 0 auto;
+        border-bottom: 1px solid gray('300');
+
+        > .o_form_sheet {
+            @include make-container();
+            @include make-container-max-widths();
+
+            border: 1px solid gray('300');
+            box-shadow: 0 5px 20px -15px black;
+            margin: $o-sheet-vpadding * 0.2 auto;
+
+            @include media-breakpoint-up(md) {
+                margin: $o-sheet-vpadding*0.5 auto;
+            }
+
+            padding: $o-sheet-vpadding;
+
+            @include o-form-sheet-inner-right-padding;
+            @include o-form-sheet-inner-left-padding;
+
+            // Selection
+            > .o_selection {
+                float: right;
+            }
+        }
+    }
+
+    // Title & avatar
+    .oe_title {
+        color: $headings-color;
+        @include media-breakpoint-up(vsm, $o-extra-grid-breakpoints) {
+            padding-right: $o-innergroup-rpadding;
+        }
+    }
+
+    .oe_avatar + .oe_title {
+        padding-right: $o-avatar-size + 10;
+    }
+
+    // Groups
+    .o_group {
+        // all groups take width 100% in mobile
+        @mixin o-generate-groups($n) {
+            @for $i from 1 through $n {
+                .o_group_col_#{$i} {
+                    @include media-breakpoint-down(md) {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+        @include o-generate-groups($o-form-group-cols);
+
+        &.o_inner_group {
+            > tbody > tr > td {
+                padding: 0 $o-innergroup-rpadding 0 0;
+            }
+        }
+
+        @include media-breakpoint-up(vsm, $o-extra-grid-breakpoints) {
+            .o_field_widget {
+                &.o_text_overflow {
+                    width: 1px!important; 
+                    // hack to make the table layout believe it is a small element (so that the table does not grow too much) ...
+                    min-width: 100%;     
+                    // ... but in fact it takes the whole table space
+                }
+            }
+
+            .o_form_label {
+                margin-bottom: $o-form-spacing-unit;
+            }
+        }
+        
+        @include media-breakpoint-down(md) {
+            &.o_label_nowrap .o_form_label {
+                white-space: normal;
+            }
+        }
+    }
+
+    // Labels
+    .o_form_label {
+        margin: auto;
+        text-align: right;
+
+        &.o_form_label_empty, &.o_form_label_false {
+            opacity: 0.5;
+            font-weight: normal;
+        }
+
+        @include media-breakpoint-down(sm) {
+            font-size: $o-font-size-base-touch;
+        }
+
+        &:after {
+            content: ":"
+        }
+    }
+
+    // Chatter
+    > .oe_chatter, .o_FormRenderer_chatterContainer {
+        flex: 1000 0 auto;
+        @include make-container();
+        // @include make-container-max-widths();
+        padding: $grid-gutter-width*0.25 0;
+    }
+
+    @include media-breakpoint-up(xl) {
+        > .oe_chatter, .o_FormRenderer_chatterContainer {
+            max-width: 530px;
+        }
+    }
+
+    // Notebooks
+    .o_notebook {
+        > .o_notebook_headers {
+            @include o-form-sheet-negative-margin;
+
+            > .nav.nav-tabs {
+                @include o-form-sheet-inner-left-padding;
+                //border-bottom: $nav-tabs-border-width solid gray('400');
+
+                > .nav-item {
+                    white-space: nowrap;
+
+                    > .nav-link {
+                        color: $body-color;
+                        //border-color: gray('400');
+                        //background-color: white;
+
+                        &:hover, &:focus, &:active {
+                            outline: none;
+                            color: $link-color;
+                        }
+
+                        &.active {
+                           //border-bottom-color: white;
+
+                            &, &:hover, &:focus, &:active {
+                                color: $headings-color;
+                                //border-top-color: $o-brand-odoo;
+                            }
+                        }
+
+                        &.disabled {
+                            color: $text-muted;
+                        }
+                    }
+                }
+            }
+        }
+
+        > .tab-content {
+            border-bottom: 1px solid gray('400');
+
+            > .tab-pane {
+
+                > :first-child {
+                    // Reset margin to 0 and use tab-pane's padding
+                    // to define the distance between panel and content
+                    margin-top: 0;
+
+                    // These elements will appear attached to the tabs
+                    &.oe_form_field_html {
+                        @include o-form-sheet-negative-margin;
+                        margin-top: -$o-horizontal-padding;
+                        border: none;
+
+                        .note-editor.panel {
+                            border: none;
+                        }
+
+                        .note-toolbar.panel-heading {
+                            @include o-form-sheet-inner-left-padding;
+                            @include o-form-sheet-inner-right-padding;
+                            border-top: none;
+                            padding-top: $o-horizontal-padding*0.3;
+                           // background: white;
+
+                            .btn-secondary {
+                                @include o-hover-text-color($body-color, $link-color);
+                            }
+                        }
+
+                        .note-editing-area, .o_readonly {
+                            padding: $card-spacer-y $card-spacer-x;
+                            @include o-form-sheet-inner-left-padding;
+                            @include o-form-sheet-inner-right-padding;
+                        }
+
+                        // If immediatly followed by an .oe_clear element, the note-editor it's the 'only'
+                        // tab's element. Reset margins to push the bar at the bottom.
+                        + .oe_clear:last-child {
+                            margin-bottom: -$o-horizontal-padding - $o-sheet-vpadding - $o-form-spacing-unit;
+                        }
+                    }
+
+                    &.o_field_x2many.o_field_x2many_list {
+                        display: block;
+                        width: auto;
+                        @include o-form-sheet-negative-margin;
+                        margin-top: -$o-horizontal-padding;
+
+                        // use original padding-left for handle cell in editable list
+                        tr > :first-child.o_handle_cell {
+                            padding-left: $o-horizontal-padding;
+                        }
+                        tr > :first-child {
+                            @include o-form-sheet-inner-left-padding;
+                        }
+                        tr > :last-child {
+                            @include o-form-sheet-inner-right-padding;
+                        }
+                    }
+                }
+            }
+        }
+
+        &:last-child > .tab-content {
+            border-bottom: none;
+        }
+    }
+
+    // Notebooks for small screen
+    @include media-breakpoint-down(sm) {
+
+        .o_notebook .o_notebook_headers {
+            overflow-x: auto;
+            &::-webkit-scrollbar {
+                display: none;
+            }
+            .nav.nav-tabs {
+                flex-flow: row nowrap;
+            }
+        }
+
+        .o_cp_buttons {
+            width: 100%;
+            div, .o-kanban-button-new {
+                width: 100%;
+            }
+        }
+
+        .o_cp_action_menus {
+            padding: 5px;
+        }
+    }
+
+    // One2Many List views
+    .o_field_widget {
+        .o_list_table {
+            &.table-striped {
+                > tbody {
+                    > tr:not(.o_data_row) > td {
+                        border-top: none;
+                    }
+                }
+                // Show "border" if tfoot has content only
+                > tfoot > tr {
+                    // box-shadow: inset 0 1px 0 gray('300');
+                    > td {
+                        border:none;
+    
+                        &:empty {
+                            padding: 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Translate icon
+    .o_field_translate {
+        padding-right: 0;
+    }
+
+    // Specific style classes
+    .o_group.o_inner_group.oe_subtotal_footer {
+        border-top: 1px solid gray('300');
+        .oe_subtotal_footer_separator {
+            border-top: 1px solid gray('300');
+        }
+    }
+    
+    // Status Bar
+    .o_form_statusbar {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+
+        > .o_statusbar_status  {
+            .dropdown-menu {
+                .o_arrow_button {
+                    font-weight: 500;
+                    padding: 0.75rem;
+                   
+                    &.btn-primary.disabled {
+                        font-weight: bold;
+                    }
+        
+                    // Last element at the right should respect overall padding
+                    &:first-of-type {
+                        padding-right: $o-horizontal-padding;
+                    }
+                }
+            }
+        }
+    }
+
+    @include media-breakpoint-up(xxl, $o-extra-grid-breakpoints) {
+        flex-flow: row nowrap;
+        height: 100%;
+
+        > .o_form_sheet_bg {
+            flex: 1 1 auto; // Side chatter is disabled if this has to shrink but this was added for safety
+            // width: $o-form-sheet-min-width + 2 * $o-horizontal-padding;
+            // max-width: map-get($container-max-widths, xl) + 2 * $o-horizontal-padding; // would be logical but breaks no-chatter form views
+            padding: 0 $o-horizontal-padding;
+            overflow: auto;
+            border-bottom: none;
+
+            > :not(.o_form_sheet) {
+                margin-left: -$o-horizontal-padding;
+                margin-right: -$o-horizontal-padding;
+            }
+            > .o_form_sheet {
+                width: 100%;
+                max-width: map-get($container-max-widths, xl);
+            }
+        }
+
+        > .oe_chatter, .o_FormRenderer_chatterContainer {
+            // flex: 1 1 auto; // Side chatter is disabled if this has to shrink but this was added for safety
+            width: $o-chatter-min-width;
+            max-width: 530px;
+            padding: 0;
+            overflow: auto;
+            border-left: 1px solid gray('300');
+            background-color: white;
+
+            .o_chatter_topbar {
+                height: $o-statusbar-height + $nav-tabs-border-width;
+
+                .btn, .btn.o_active {
+                    border-top: 0;
+                }
+
+            }
+
+            &.o_chatter_composer_active {
+                .o_chatter_topbar {
+                    .btn, .btn.o_active {
+                        border-top: 0;
+
+                        &:first-child {
+                            border-left: 0;
+                        }
+                    }
+                }
+            }
+
+            .o_thread_composer {
+                border-width: 1px 0;
+                margin-top: 0;
+
+                // have mention drowdown below composer
+                .o_composer_mention_dropdown {
+                    position: absolute;
+                    top: 100%;
+
+                    > .dropdown-menu {
+                        top: 100%;
+                        bottom: auto;
+                    }
+                }
+            }
+        }
+    }
+
+    .o_field_widget {
+        &.o_field_many2one {
+            .o_external_button {
+                background: transparent;
+            
+                &:hover {
+                    background: transparent;
+                }
+            
+                &:focus {
+                    outline: none;
+                    background: transparent;
+                }
+            
+                &:active {
+                    background: transparent;
+                }
+            }
+        }
+    
+        .o_input_dropdown > input {
+            height: 34px;
+            line-height: 34px;
+            padding-right: 15px;
+            cursor: pointer;
+        }
+        
+        .o_field_color {
+            width: 24px;
+            height: 24px;
+            border-radius: 5px;
+        }
+
+        .o_input_dropdown {
+            .o_dropdown_arrow {
+                position: absolute;
+                line-height: 34px;
+                top: 0px;
+                bottom: 0px;
+                left: auto;
+                bottom: auto;
+                right: 8px;
+                color: #c0c4cc;
+                font-size: 14px;
+                cursor: pointer;
+                pointer-events: none;
+                -webkit-transition: -webkit-transform .3s;
+                transition: -webkit-transform .3s;
+                transition: transform .3s;
+                transition: transform .3s, -webkit-transform .3s;
+                -webkit-transform: rotateZ(180deg);
+                transform: rotateZ(180deg);
+
+                &.awesome_reverse {
+                    -webkit-transform: rotateZ(0);
+                    transform: rotateZ(0)
+                }
+            }
+        }
+    
+        &.o_field_many2manytags {
+            overflow: hidden;
+            .o_input_dropdown {
+                .o_dropdown_arrow {
+                    right: 3px;
+                }
+            }
+        }
+    
+        &.o_form_uri {
+            line-height: 36px;
+        }
+    }
+}
+
+// Overriden style when form view in modal
+.modal .modal-dialog {
+    .o_form_view {
+        @include media-breakpoint-down(md) {
+            .o_group.o_inner_group > tbody > tr > td.o_td_label {
+                min-width: 100px;
+            }
+        }
+    }
+    &.modal-sm .o_form_view {
+        .o_group {
+            @include form-break-table;
+        }
+    }
+}
+
+// XXS form view specific rules
+.o_form_view.o_xxs_form_view {
+    .o_group {
+        // Target XXS form view on mobile devices in portrait mode
+        @include media-breakpoint-down(sm) {
+            &.o_inner_group > tbody > tr > td {
+                .o_field_widget {
+                    margin-bottom: $o-form-spacing-unit * 4;
+                }
+            }
+        }
+        .o_td_label .o_form_label {
+            font-weight: normal;
+        }
+    }
+
+    .o_form_label {
+        margin-top: 3px;
+        font-size: $o-label-font-size-factor * $o-font-size-base-touch;
+        font-weight: normal;
+        color: $o-brand-secondary;
+
+        &.o_form_label_empty {
+            display: none;
+        }
+    }
+}
+
+
+.custom-control-label::before {
+    top: .1rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    left: -0.25rem;
+    background-color: #fff;
+    border: 1px solid #adb5bd;
+    transition: all 250ms cubic-bezier(0.27, 0.01, 0.38, 1.06);
+    box-shadow: none;
+}
+
+.custom-radio {
+    .custom-control-label::after {
+        content: '';
+        border-radius: 50%;
+        transform: scale(0);
+        background-image: none !important;
+        position: absolute;
+        background: #1c66d4;
+        width: 10px;
+        height: 10px;
+        top: 4px;
+        left: -.2px;
+        transition: all 250ms cubic-bezier(0.27, 0.01, 0.38, 1.06);
+        transition-delay: .1s;
+        opacity: 0;
+        transform: scale(0);
+    }
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+    color: #fff;
+    border-color: #adb5bd;
+    background-color: transparent;
+}
+
+.custom-control.custom-checkbox {
+    .custom-control-input:not(:checked):not(:indeterminate) ~ .custom-control-label:before {
+        background: none;
+        outline: none
+    }
+}
+
+.custom-checkbox {
+    .custom-control-label{
+        &::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 6px;
+            width: 5px;
+            height: 10px;
+            border-right: 2px solid #adb5bd;
+            border-bottom: 2px solid #adb5bd;
+            background-image: none !important;
+        }
+
+        &::before {
+            content: '';
+            left: 1px;
+        }
+    }
+}
+
+.form-control:focus {
+    color: #495057;
+    background-color: #FFFFFF;
+    border-color: #007bff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(233, 236, 239, 0.25);
+}
+
+.ui-autocomplete {
+    margin-top: 3px;
+}
+
+.o_setting_right_pane{
+    .o_web_settings_invite {
+        margin: 8px;
+    }
+}
+
+.o_external_button {
+    background: none;
+    border: none;
+
+    &:hover {
+        background: none;
+        border: none;
+        box-shadow: none;
+    }
+}
+
+.note-editor {
+    border: 1px solid #dcdfe6 !important;
+
+    .panel-heading{
+        &.note-toolbar {
+            border-bottom: 1px solid #dcdfe6;
+            background-color: #ffffff;
+            color: #212529;
+
+            .btn {
+                border-left: none; 
+                border-right: none; 
+                background: transparent;
+            }
+    
+            .dropdown-item {
+                background-color: #595964;
+                color: #C6C6C6;
+            }
+    
+            .btn-group.show > .btn {
+                background: #dee2e6;
+                color: rgba(76,76,76,0.82);
+            }
+
+            .dropdown-item:not(.d-none) ~ .dropdown-item {
+                border-top: none;
+            }
+        }
+    }
+}
+
+.o_input_dropdown {
+    .o_dropdown_arrow {
+        position: absolute;
+        line-height: 34px;
+        top: 0px;
+        bottom: 0px;
+        left: auto;
+        bottom: auto;
+        right: 8px;
+        color: #c0c4cc;
+        font-size: 14px;
+        cursor: pointer;
+        pointer-events: none;
+        -webkit-transition: -webkit-transform .3s;
+        transition: -webkit-transform .3s;
+        transition: transform .3s;
+        transition: transform .3s, -webkit-transform .3s;
+        -webkit-transform: rotateZ(180deg);
+        transform: rotateZ(180deg);
+    }
+}
+
+.o_field_binary_file {
+    .btn, button {
+        margin-left: 5px;
+    }
+}
+
+.nav-tabs {
+    .nav-link.active,  .nav-item.show .nav-link {
+        color: #495057;
+        background-color: #FFFFFF;
+        border-color: #dee2e6 #dee2e6 #FFFFFF;
+    }
+}
+
+.o_field_binary_file > .btn {
+    padding: 0px 10px;
+    height: 34px;
+    line-height: 34px;
+}
+
+.o_required_modifier.o_input,
+.o_required_modifier .o_input {
+    background-color: #f8f8ff !important;
+}
+
+.oe_title {
+    h1 {
+        padding: 10px 0px;
+    }
+}
+
+.awesome_pop_form {
+
+    width: 768px;
+    position: fixed !important;
+    right: 0px;
+    top: 0px;
+    border-left: solid 1px #ced4da;
+    z-index: 999;
+    bottom: 0px;
+    background: white;
+    box-shadow: -4px 0px 10px 0 rgba(0,0,0,0.1);
+    padding-bottom: 50px;
+
+    transform: translateX(20%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.25, 0.5, 0.5, 0.9);
+
+    &.awesome_show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .o_control_panel {
+        height: 60px;
+        box-shadow: 1px 4px 15px 0 rgba(0, 0, 0, 0.1);
+    }
+
+    .awesome_footer {
+        margin-left: 0px !important;
+    }
+
+    .o_form_view {
+        flex-flow: column nowrap !important;
+
+        .o_form_sheet_bg {
+            overflow: inherit;
+            
+            margin-left: 0px;
+            margin-right: 0px;
+            padding: 0px;
+            border-left: 0px;
+            border-right: 0px;
+
+            .o_form_sheet {
+                box-shadow: none !important;
+                width: 100%;
+                border-left: 0px;
+                border-right: 0px;
+            }
+
+            > :not(.o_form_sheet) {
+                margin-left: 0px;
+                margin-right: 0px;
+            }
+        }
+
+        .o_FormRenderer_chatterContainer {
+            width: 100%;
+            max-width: 100%;
+            border-left: 0px;
+            border-right: 0px;
+        }
+
+        .o_cp_pager {
+            .o_pager_counter {
+                margin-left: 1rem;
+                margin-right: 1rem;
+            }
+        }
+    }
+
+    .awesome_pop_form_footer {
+        position: absolute;
+        z-index: 1000;
+        background: white;
+        border-top: 1px solid #dee2e6;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 50px;
+        box-shadow: 0 -4px 15px 0 rgba(0,0,0,0.1);
+        margin: 0px !important;
+    }
+    
+    .awesome_pop_form_header {
+        box-shadow: 0 3px 10px 0 rgba(0,0,0,0.1);
+        border-bottom: 1px solid #dee2e6;
+    }
+}
+
+.o_form_view .o_form_statusbar > .o_statusbar_status > .o_arrow_button.btn-primary.disabled {
+    background-color: #007bff;
+}
+
+.note-popover .popover .popover-body .dropdown-menu, .panel-heading.note-toolbar .dropdown-menu {
+    border: none;
+    background-color: inherit;
+    border-color: inherit;
+    box-shadow: inherit;
+}
+
+.o_field_x2many_list {
+    border: 1px solid #dcdfe6;
+    .o_list_table {
+        border-top: none;
+        margin-top: 0px;
+    }
+}
+
+.o_form_view  {
+    .o_notebook{
+        .tab-content {
+            padding:10px
+        }
+    }
+}

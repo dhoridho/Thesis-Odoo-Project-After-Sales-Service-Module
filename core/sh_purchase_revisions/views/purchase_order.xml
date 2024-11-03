@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <record id="sh_action_purchase_order_quotation_revision" model="ir.actions.act_window">
+        <field name="name">Purchase Revisions</field>
+        <field name="res_model">purchase.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="purchase.purchase_order_kpis_tree" />
+        <field name="domain">[('sh_purchase_order_id', '=', active_id)]</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Revised Purchase Order.
+            </p>
+        </field>
+    </record>
+
+    <record id="purchase_order_inherited_view_sh_purchase_revisions" model="ir.ui.view">
+        <field name="name">purchase.order.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_confirm']" position="after">
+                <button name="sh_quotation_revision" string="Purchase Order Revisions" class="oe_highlight" type="object" attrs="{'invisible':['|',('sh_purchase_revision_config','=',False),('state','!=', 'cancel')]}" />
+            </xpath>
+
+            <field name="name" position="after">
+                <field name="sh_purchase_order_id" invisible="1" />
+                <field name="sh_purchase_revision_config" invisible="1" />
+            </field>
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_inline oe_stat_button" type="object" name="open_quality_check" icon="fa-clipboard" attrs="{'invisible':['|',('po_count','=',0),('sh_purchase_revision_config','=',False)]}">
+                    <field string="Purchase Revisions" name="po_count" widget="statinfo" />
+                </button>
+            </xpath>
+
+            <xpath expr="//page[@name='purchase_delivery_invoice']" position="after">
+                <page string="Purchase Revisions" name="quotation_revision" attrs="{'invisible':['|',('po_count','=',0),('sh_purchase_revision_config','=',False)]}">
+                    <group>
+                        <field name="sh_revision_po_id" widget="many2many_list" nolabel="1" readonly="1" />
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

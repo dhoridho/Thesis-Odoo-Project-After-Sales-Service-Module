@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_hr_company_document_form" model="ir.ui.view">
+            <field name="name">hr.company.document.form</field>
+            <field name="model">hr.company.document</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button string="Submit" class="btn-primary" groups="equip3_hr_employee_access_right_setting.group_hr_officer" type="object"
+                                name="submit"
+                                attrs="{'invisible': [('state','not in',('draft'))]}"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,submitted"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" readonly="1"/>
+                                <field name="title" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="general_document" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="document_type" attrs="{'invisible': [('general_document', '!=', False)], 'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="company_id"/>
+                            </group>
+                            <group>
+                                <field name="revision" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="start_date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="employee_ids" widget="many2many_tags"
+                                       attrs="{'invisible': ['|',('general_document', '!=', False), ('document_type', '!=', 'employee')], 'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="job_position_ids" widget="many2many_tags"
+                                       attrs="{'invisible': ['|',('general_document', '!=', False), ('document_type', '!=', 'job_position')], 'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="department_ids" widget="many2many_tags"
+                                       attrs="{'invisible': ['|',('general_document', '!=', False), ('document_type', '!=', 'department')], 'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="create_date"/>
+                                <field name="create_uid"/>
+                            </group>
+                        </group>
+                        <group>
+                            <label for="description"/>
+                            <div>
+                                <field name="description" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            </div>
+                        </group>
+                        <notebook>
+                            <page name="attachment" string="Attachment">
+                                <field name="attachment_ids" nolabel = "1" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                                    <tree editable = "bottom">
+                                        <field name = "attachment_name" readonly="1" force_save="1" invisible="1"/>
+                                        <field name = "attachment" filename="attachment_name" widget="binary"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_hr_company_document_tree" model="ir.ui.view">
+            <field name="name">hr.company.document.tree</field>
+            <field name="model">hr.company.document</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="title"/>
+                    <field name="start_date"/>
+                    <field name="create_uid"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_hr_company_document" model="ir.actions.act_window">
+            <field name="name">Company's Document</field>
+            <field name="res_model">hr.company.document</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to Create a New Record.
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="hr_company_document_menu"
+                name="Company's Document"
+                action="action_hr_company_document"
+                parent="hr.menu_hr_employee_payroll"
+                groups="hr.group_hr_user"
+                sequence="1"/>
+
+        <record model="ir.ui.view" id="company_document_inherit_form_view">
+            <field name="name">hr.employee.form.inherit.view</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <div class="oe_button_box" position="inside">
+                    <button class="oe_stat_button" name="company_document_view" type="object" icon="o-hm-smart-hrm-company-s-document">
+                        <span>Company's Document</span>
+                    </button>
+                </div>
+            </field>
+        </record>
+
+    </data>
+</odoo>

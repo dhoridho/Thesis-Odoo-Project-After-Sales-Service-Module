@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="awesome_theme_pro.ControlPanel.mode1" owl="1">
+        <div class="o_control_panel d-flex flex-wrap align-items-center">
+
+            <!-- put the search bar to header -->
+            <Portal t-if="props.isActive" target="'.awesome_search_bar'">
+                <div t-ref="search_bar_ref" t-attf-class="d-flex flex-fill align-itens-center awesome_hook_hide">
+                    <t t-if="state.isMobile">
+                        <div t-if="props.withSearchBar">
+                            <a href="#" class="nav-link" title="Search" data-toggle="dropdown" aria-expanded="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </a>
+                            <div class="dropdown-menu p-2 ml-2">
+                                <div class="o_searchview flex-fill" role="search" aria-autocomplete="list" >
+                                    <i class="o_searchview_icon fa fa-search"
+                                        title="Search..."
+                                        role="img"
+                                        aria-label="Search..." />
+                                    <SearchBar t-if="props.withSearchBar" fields="fields"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="" >
+                        <div t-if="props.withSearchBar" class="o_cp_searchview" role="search" t-ref="searchView">
+                            <div class="o_searchview" role="search" aria-autocomplete="list">
+                                
+                                <div class="dropdown" style="position: static">
+                                    <i class="o_searchview_icon fa fa-filter search_option_dropdown_toggler" t-on-click="_OptionDropdownToggleClick" title="Search Options" aria-label="Search Option" />
+                                    <div class="dropdown-menu awesome_search_option_dropdown" t-ref="optionDropDown">
+                                        <div class="nav nav-pills" id="nav-tab" role="tablist">
+                                            <a class="nav-link active" t-if="props.searchMenuTypes.includes('filter')" id="filter-tab" data-toggle="tab" href="#nav-filter" role="tab" aria-controls="nav-filter" aria-selected="true">filter</a>
+                                            <a class="nav-link" t-if="props.searchMenuTypes.includes('groupBy')" id="groupBy-tab" data-toggle="tab" href="#nav-groupBy" role="tab" aria-controls="nav-groupBy" aria-selected="false">groupBy</a>
+                                            <a class="nav-link" t-if="props.searchMenuTypes.includes('comparison') and model.get('filters', f => f.type === 'comparison').length"  id="comparison-tab" data-toggle="tab" href="#nav-comparison" role="tab" aria-controls="nav-comparison" aria-selected="false">comparison</a>
+                                            <a class="nav-link" t-if="props.searchMenuTypes.includes('favorite')" id="favorite-tab" data-toggle="tab" href="#nav-favorite" role="tab" aria-controls="nav-favorite" aria-selected="false">favorite</a>
+                                        </div>
+                                        <div class="tab-content mt-3" id="nav-tabContent">
+                                            <div class="tab-pane fade show active" id="nav-filter" role="tabpanel" aria-labelledby="nav-filter-tab">
+                                                <AwesomeFilterMenu class="o_filter_menu" fields="fields" />
+                                            </div>
+                                            <div t-if="props.searchMenuTypes.includes('groupBy')" class="tab-pane fade" id="nav-groupBy" role="tabpanel" aria-labelledby="nav-groupBy-tab">
+                                                 <AwesomeGroupByMenu  class="o_group_by_menu" fields="fields" />
+                                            </div>
+                                            <div class="tab-pane fade" id="nav-comparison" role="tabpanel" aria-labelledby="nav-comparison-tab">
+                                                <AwesomeComparisonMenu class="o_comparison_menu" />
+                                            </div>
+                                            <div class="tab-pane fade" id="nav-favorite" role="tabpanel" aria-labelledby="nav-favorite-tab">
+                                                <AwesomeFavoriteMenu  class="o_favorite_menu" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                  </div>
+                                <SearchBar t-if="props.withSearchBar" fields="fields"/>
+                                <i class="o_searchview_icon search_icon_right fa fa-search" title="Search..." role="img" aria-label="Search..." />
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </Portal>
+
+            <!-- put the buttons left -->
+            <div class="flex-fill d-flex align-items-center">
+                <div class="o_cp_buttons" role="toolbar" aria-label="Control panel buttons" t-ref="buttons">
+                    <t t-slot="buttons"/>
+                </div>
+                <ActionMenus t-if="props.actionMenus and props.actionMenus.items" t-props="props.actionMenus"/>
+            </div>
+
+            <!-- puthe breadcrumbs right -->
+            <ol t-if="props.withBreadcrumbs" class="breadcrumb align-items-center" role="navigation">
+                <li t-foreach="props.breadcrumbs" t-as="bc" t-key="bc.controllerID" class="breadcrumb-item" t-att-class="{ o_back_button: bc_index === props.breadcrumbs.length - 1 }" t-att-accesskey="bc_last and 'b'" t-on-click.prevent="trigger('breadcrumb-clicked', { controllerID: bc.controllerID })">
+                    <a t-if="bc.title" href="#" t-esc="bc.title"/>
+                    <em t-else="" class="text-warning">Unnamed</em>
+                </li>
+                <li class="breadcrumb-item active">
+                    <t t-if="props.title" t-esc="props.title"/>
+                    <em t-else="" class="text-warning">Unnamed</em>
+                </li>
+            </ol>
+
+            <!-- put the pager to footer -->
+           <Portal t-if="props.isActive" target="'.awesome_pager_box'">
+                <div t-attf-class="{{state.awesome_hook_hide? 'awesome_hook_hide': ''">
+                    <div class="flex-fill" />
+                    <Pager t-if="props.pager and props.pager.limit" t-props="props.pager"/>
+                    <dev class="flex-fill" />
+                </div>
+            </Portal>
+
+            <!-- put the switcher box -->
+            <Portal t-if="props.isActive " target="'.awesome_switcher_box'">
+                <div t-attf-class="{{state.awesome_hook_hide? 'awesome_hook_hide': ''">
+                    <t t-if="state.isMobile">
+                        <button t-if="props.views.length gt 1" class="btn btn-secondary" data-toggle="dropdown" aria-expanded="false">
+                            <span t-attf-class="o_switch_view_button_icon fa fa-lg {{get_active_view_icon(env)}}"/>
+                        </button>
+                        <ul class="dropdown-menu awesome_view_type_drowdown">
+                            <t t-foreach="props.views" t-as="view" t-key="view.type || undefined">
+                                <t t-call="web.ViewSwitcherButton"/>
+                            </t>
+                        </ul>
+                    </t>
+                    <t t-else="">
+                        <nav t-if="props.views.length gt 1" class="btn-group o_cp_switch_buttons" role="toolbar" aria-label="View switcher">
+                            <t t-foreach="props.views" t-as="view" t-key="view.type || undefined">
+                                <t t-call="web.ViewSwitcherButton"/>
+                            </t>
+                        </nav>
+                    </t>
+                </div>
+          </Portal>
+        </div>
+    </t>
+
+    <t t-name="awesome_theme_pro.ControlPanel.mode2" owl="1">
+        <div class="o_control_panel d-flex flex-wrap align-items-center">
+            <!-- put the search bar to header -->
+            <Portal t-if="props.isActive" target="'.awesome_search_bar'">
+                <t t-if="state.isMobile">
+                    <div class="nav-item">
+                        <a href="#" class="nav-link" title="Search" data-toggle="dropdown" aria-expanded="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        </a>
+                        <div class="dropdown-menu p-2 ml-2">
+                            <div class="o_searchview flex-fill" role="search" aria-autocomplete="list" >
+                                <i class="o_searchview_icon fa fa-search"
+                                    title="Search..."
+                                    role="img"
+                                    aria-label="Search..." />
+                                <SearchBar t-if="props.withSearchBar" fields="fields"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+                <t t-else="" >
+                    <div class="o_cp_searchview" role="search" t-ref="searchView">
+                        <div t-if="props.withSearchBar" class="o_searchview" role="search" aria-autocomplete="list">
+                            <i class="o_searchview_icon fa fa-search" title="Search..." role="img" aria-label="Search..." />
+                            <SearchBar t-if="props.withSearchBar" fields="fields"/>
+                        </div>
+                    </div>
+                </t>
+            </Portal>
+
+            <!-- puthe breadcrumbs left -->
+            <ol t-if="props.withBreadcrumbs" class="breadcrumb align-items-center" role="navigation">
+                <li t-foreach="props.breadcrumbs" t-as="bc" t-key="bc.controllerID" class="breadcrumb-item" t-att-class="{ o_back_button: bc_index === props.breadcrumbs.length - 1 }" t-att-accesskey="bc_last and 'b'" t-on-click.prevent="trigger('breadcrumb-clicked', { controllerID: bc.controllerID })">
+                    <a t-if="bc.title" href="#" t-esc="bc.title"/>
+                    <em t-else="" class="text-warning">Unnamed</em>
+                </li>
+                <li class="breadcrumb-item active">
+                    <t t-if="props.title" t-esc="props.title"/>
+                    <em t-else="" class="text-warning">Unnamed</em>
+                </li>
+            </ol>
+
+            <!-- put the buttons right -->
+            <div class="flex-fill d-flex align-items-center justify-content-end pr-2">
+                <div class="o_cp_buttons" role="toolbar" aria-label="Control panel buttons" t-ref="buttons">
+                    <t t-slot="buttons"/>
+                </div>
+                <ActionMenus t-if="props.actionMenus and props.actionMenus.items" t-props="props.actionMenus"/>
+            </div>
+
+            <!-- put the pager to footer -->
+            <Portal t-if="props.isActive" target="'.awesome_pager_box'">
+                <div>
+                    <div class="flex-fill" />
+                    <Pager t-if="props.pager and props.pager.limit" t-props="props.pager"/>
+                    <dev class="flex-fill" />
+                </div>
+            </Portal>
+
+            <!-- put the switcher box -->
+            <Portal t-if="props.isActive" target="'.awesome_switcher_box'">
+                <div>
+                    <t t-if="state.isMobile">
+                        <div>
+                            <button t-if="props.views.length gt 1" class="btn btn-secondary" data-toggle="dropdown" aria-expanded="false">
+                                <span t-attf-class="o_switch_view_button_icon fa fa-lg {{get_active_view_icon(env)}}"/>
+                            </button>
+                            <ul class="dropdown-menu awesome_view_type_drowdown">
+                                <t t-foreach="props.views" t-as="view" t-key="view.type || undefined">
+                                    <t t-call="web.ViewSwitcherButton"/>
+                                </t>
+                            </ul>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <nav t-if="props.views.length gt 1" class="btn-group o_cp_switch_buttons" role="toolbar" aria-label="View switcher">
+                            <t t-foreach="props.views" t-as="view" t-key="view.type || undefined">
+                                <t t-call="web.ViewSwitcherButton"/>
+                            </t>
+                        </nav>
+                    </t>
+                </div>
+            </Portal>
+        </div>
+    </t>
+
+    <!-- the system contrl pannel -->
+    <t t-name="awesome_theme_pro.ControlPanel.mode3" owl="1">
+        <div  class="o_control_panel">
+            <div class="o_cp_top">
+                <div class="o_cp_top_left">
+                    <ol t-if="props.withBreadcrumbs" class="breadcrumb" role="navigation">
+                        <li t-foreach="props.breadcrumbs" t-as="bc" t-key="bc.controllerID" class="breadcrumb-item" t-att-class="{ o_back_button: bc_index === props.breadcrumbs.length - 1 }" t-att-accesskey="bc_last and 'b'" t-on-click.prevent="trigger('breadcrumb-clicked', { controllerID: bc.controllerID })">
+                            <a t-if="bc.title" href="#" t-esc="bc.title"/>
+                            <em t-else="" class="text-warning">Unnamed</em>
+                        </li>
+                        <li class="breadcrumb-item active">
+                            <t t-if="props.title" t-esc="props.title"/>
+                            <em t-else="" class="text-warning">Unnamed</em>
+                        </li>
+                    </ol>
+                </div>
+                
+                <!-- put the search bar to header when it is in mobile device -->
+                <div t-if="!state.isMobile" class="o_cp_top_right">
+                    <div class="o_cp_searchview" role="search" t-ref="searchView">
+                        <div t-if="props.withSearchBar" class="o_searchview" role="search" aria-autocomplete="list">
+                            <i class="o_searchview_icon fa fa-search" title="Search..." role="img" aria-label="Search..." />
+                            <SearchBar t-if="props.withSearchBar" fields="fields"/>
+                        </div>
+                    </div>
+                </div>
+                <t t-else="" >
+                    <Portal target="'.awesome_search_bar'">
+                        <div class="nav-item">
+                            <a href="#" class="nav-link" title="Search" data-toggle="dropdown" aria-expanded="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </a>
+                            <div class="dropdown-menu p-2 ml-2">
+                                <div class="o_searchview flex-fill" role="search" aria-autocomplete="list" >
+                                    <i class="o_searchview_icon fa fa-search"
+                                        title="Search..."
+                                        role="img"
+                                        aria-label="Search..." />
+                                    <SearchBar t-if="props.withSearchBar" fields="fields"/>
+                                </div>
+                            </div>
+                        </div>
+                    </Portal>
+                </t>
+            </div>
+            <div class="o_cp_bottom">
+                <div class="o_cp_bottom_left">
+                    <div class="o_cp_buttons" role="toolbar" aria-label="Control panel buttons" t-ref="buttons">
+                        <t t-slot="buttons"/>
+                    </div>
+                    <ActionMenus t-if="props.actionMenus and props.actionMenus.items" t-props="props.actionMenus" />
+                </div>
+                
+                <div class="o_cp_bottom_right">
+                    <div class="btn-group o_search_options position-static" role="search" t-ref="searchViewButtons">
+                        <t t-if="props.withSearchBar">
+                            <FilterMenu t-if="props.searchMenuTypes.includes('filter')" class="o_filter_menu" fields="fields" />
+                            <GroupByMenu t-if="props.searchMenuTypes.includes('groupBy')" class="o_group_by_menu" fields="fields" />
+                            <ComparisonMenu t-if="props.searchMenuTypes.includes('comparison') and model.get('filters', f => f.type === 'comparison').length" class="o_comparison_menu" />
+                            <FavoriteMenu t-if="props.searchMenuTypes.includes('favorite')" class="o_favorite_menu" />
+                        </t>
+                    </div>
+
+                    <div class="o_cp_pager" role="search" t-ref="pager">
+                        <Pager t-if="props.pager and props.pager.limit" t-props="props.pager"/>
+                    </div>
+
+                    <nav t-if="props.views.length gt 1" class="btn-group o_cp_switch_buttons" role="toolbar" aria-label="View switcher">
+                        <t t-foreach="props.views" t-as="view" t-key="view.type">
+                            <t t-call="web.ViewSwitcherButton"/>
+                        </t>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- the system contrl pannel -->
+    <t t-name="awesome_theme_pro.ControlPanel.mode4" owl="1">
+        <div class="o_control_panel d-flex flex-wrap align-items-center">
+
+            <!-- put the search bar to header -->
+            <Portal t-if="props.isActive" target="'.awesome_search_bar'">
+                <div t-ref="search_bar_ref" t-attf-class="d-flex flex-fill align-itens-center awesome_hook_hide">
+                    <t t-if="state.isMobile">
+                        <div t-if="props.withSearchBar">
+                            <a href="#" class="nav-link" title="Search" data-toggle="dropdown" aria-expanded="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </a>
+                            <div class="dropdown-menu p-2 ml-2">
+                                <div class="o_searchview flex-fill" role="search" aria-autocomplete="list" >
+                                    <i class="o_searchview_icon fa fa-search"
+                                        title="Search..."
+                                        role="img"
+                                        aria-label="Search..." />
+                                    <SearchBar t-if="props.withSearchBar" fields="fields"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-else="" >
+                        <div t-if="props.withSearchBar" class="o_cp_searchview" role="search" t-ref="searchView">
+                            <div class="o_searchview" role="search" aria-autocomplete="list">
+                                <i class="o_searchview_icon fa fa-search" title="Search..." role="img" aria-label="Search..." />
+                                <SearchBar t-if="props.withSearchBar" fields="fields"/>
+                            </div>
+                        </div>
+                    </t>
+                    <!-- put the search option on header -->
+                    <div class="btn-group o_search_options position-static" role="search" t-ref="searchViewButtons">
+                        <t t-if="props.withSearchBar">
+                            <FilterMenu t-if="props.searchMenuTypes.includes('filter')" class="o_filter_menu" fields="fields" />
+                            <GroupByMenu t-if="props.searchMenuTypes.includes('groupBy')" class="o_group_by_menu" fields="fields" />
+                            <ComparisonMenu t-if="props.searchMenuTypes.includes('comparison') and model.get('filters', f => f.type === 'comparison').length" class="o_comparison_menu" />
+                            <FavoriteMenu t-if="props.searchMenuTypes.includes('favorite')" class="o_favorite_menu" />
+                        </t>
+                    </div>
+                </div>
+            </Portal>
+
+            <!-- put the buttons left -->
+            <div class="flex-fill d-flex align-items-center">
+                <div class="o_cp_buttons" role="toolbar" aria-label="Control panel buttons" t-ref="buttons">
+                    <t t-slot="buttons"/>
+                </div>
+                <ActionMenus t-if="props.actionMenus and props.actionMenus.items" t-props="props.actionMenus"/>
+            </div>
+
+            <!-- puthe breadcrumbs right -->
+            <ol t-if="props.withBreadcrumbs" class="breadcrumb align-items-center" role="navigation">
+                <li t-foreach="props.breadcrumbs" t-as="bc" t-key="bc.controllerID" class="breadcrumb-item" t-att-class="{ o_back_button: bc_index === props.breadcrumbs.length - 1 }" t-att-accesskey="bc_last and 'b'" t-on-click.prevent="trigger('breadcrumb-clicked', { controllerID: bc.controllerID })">
+                    <a t-if="bc.title" href="#" t-esc="bc.title"/>
+                    <em t-else="" class="text-warning">Unnamed</em>
+                </li>
+                <li class="breadcrumb-item active">
+                    <t t-if="props.title" t-esc="props.title"/>
+                    <em t-else="" class="text-warning">Unnamed</em>
+                </li>
+            </ol>
+
+            <!-- put the pager to footer -->
+           <Portal t-if="props.isActive" target="'.awesome_pager_box'">
+                <div t-attf-class="{{state.awesome_hook_hide? 'awesome_hook_hide': ''">
+                    <div class="flex-fill" />
+                    <Pager t-if="props.pager and props.pager.limit" t-props="props.pager"/>
+                    <dev class="flex-fill" />
+                </div>
+            </Portal>
+
+            <!-- put the switcher box -->
+            <Portal t-if="props.isActive " target="'.awesome_switcher_box'">
+                <div t-attf-class="{{state.awesome_hook_hide? 'awesome_hook_hide': ''">
+                    <t t-if="state.isMobile">
+                        <button t-if="props.views.length gt 1" class="btn btn-secondary" data-toggle="dropdown" aria-expanded="false">
+                            <span t-attf-class="o_switch_view_button_icon fa fa-lg {{get_active_view_icon(env)}}"/>
+                        </button>
+                        <ul class="dropdown-menu awesome_view_type_drowdown">
+                            <t t-foreach="props.views" t-as="view" t-key="view.type || undefined">
+                                <t t-call="web.ViewSwitcherButton"/>
+                            </t>
+                        </ul>
+                    </t>
+                    <t t-else="">
+                        <nav t-if="props.views.length gt 1" class="btn-group o_cp_switch_buttons" role="toolbar" aria-label="View switcher">
+                            <t t-foreach="props.views" t-as="view" t-key="view.type || undefined">
+                                <t t-call="web.ViewSwitcherButton"/>
+                            </t>
+                        </nav>
+                    </t>
+                </div>
+          </Portal>
+        </div>
+    </t>
+
+    <t t-name="awesome_theme_pro.pop_form_control_pannel" owl="1">
+        <div class="o_control_panel d-flex flex-wrap align-items-center awesome_pop_form_header">
+            <div class="d-flex align-items-center flex-fill justify-content-between">
+                <ol t-if="props.withBreadcrumbs" class="breadcrumb align-items-center d-none d-lg-block" role="navigation">
+                    <li t-foreach="props.breadcrumbs" t-as="bc" t-key="bc.controllerID" class="breadcrumb-item" t-att-class="{ o_back_button: bc_index === props.breadcrumbs.length - 1 }" t-att-accesskey="bc_last and 'b'" t-on-click.prevent="trigger('breadcrumb-clicked', { controllerID: bc.controllerID })">
+                        <a t-if="bc.title" href="#" t-esc="bc.title"/>
+                        <em t-else="" class="text-warning">Unnamed</em>
+                    </li>
+                    <li class="breadcrumb-item active">
+                        <t t-if="props.title" t-esc="props.title"/>
+                        <em t-else="" class="text-warning">Unnamed</em>
+                    </li>
+                </ol>
+                <ActionMenus t-if="props.actionMenus and props.actionMenus.items" t-props="props.actionMenus"/>
+                <div/>
+            </div>
+
+            <!-- puthe breadcrumbs right -->
+            <div class="d-flex align-items-center awesome_pop_form_footer">
+                <!-- put the buttons left -->
+                <div class="flex-fill d-flex align-items-center pl-3">
+                    <div class="o_cp_buttons" role="toolbar" aria-label="Control panel buttons" t-ref="buttons">
+                        <t t-slot="buttons"/>
+                    </div>
+                </div>
+                <div class="d-flex flex-fill">
+                    <Pager t-if="props.pager and props.pager.limit" t-props="props.pager"/>
+                </div>
+                <div class="pr-3">
+                    <t t-if="state.isMobile">
+                        <button t-if="props.views.length gt 1" class="btn btn-secondary" data-toggle="dropdown" aria-expanded="false">
+                            <span t-attf-class="o_switch_view_button_icon fa fa-lg {{get_active_view_icon(env)}}"/>
+                        </button>
+                        <ul class="dropdown-menu awesome_view_type_drowdown">
+                            <t t-foreach="props.views" t-as="view" t-key="view.type || undefined">
+                                <t t-call="web.ViewSwitcherButton"/>
+                            </t>
+                        </ul>
+                    </t>
+                    <t t-else="">
+                        <nav t-if="props.views.length gt 1" class="btn-group o_cp_switch_buttons" role="toolbar" aria-label="View switcher">
+                            <t t-foreach="props.views" t-as="view" t-key="view.type || undefined">
+                                <t t-call="web.ViewSwitcherButton"/>
+                            </t>
+                        </nav>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-extend="web.SearchPanel">
+        <t t-jquery="section" t-operation="after">
+            <div class="awesome_search_pannel_toggler">
+                <i class="fa fa-angle-double-right"></i>
+            </div>
+        </t>
+    </t>
+
+</templates>

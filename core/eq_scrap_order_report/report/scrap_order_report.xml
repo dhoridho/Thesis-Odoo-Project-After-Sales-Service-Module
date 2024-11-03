@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="scrap_order_report_document">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <t t-set="scrap_order_ids" t-value="docs.get_scrap_order_data()"/>
+                    <t t-set="has_lot_serial" t-value="scrap_order_ids.mapped('lot_id')"/>
+                    <br/>
+                    <div style="font-size:19px;font-weight:bold;text-align:center;">
+                        Scrap Order Report
+                    </div>
+                    <div class="row">
+                        <span style="font-size:16px;text-align:left;padding-left:15px;">
+                            Date:
+                            <span t-esc="docs.start_date.strftime('%d-%m-%Y')"/>
+                            To
+                            <span t-esc="docs.end_date.strftime('%d-%m-%Y')"/>
+                        </span>
+                    </div>
+
+                    <table class="table table-condensed mt48">
+                        <thead>
+                            <tr>
+                                <th><strong>Date</strong></th>
+                                <th><strong>Name</strong></th>
+                                <th><strong>Product</strong></th>
+                                <th><strong>Quantity</strong></th>
+                                <th t-if="has_lot_serial"><strong>Lot/Serial Number</strong></th>
+                                <th><strong>Location</strong></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="scrap_order_ids" t-as="l">
+                                <td>
+                                    <span t-esc="l.date_done.strftime('%d-%m-%Y')"/>
+                                </td>
+                                <td>
+                                    <span t-field="l.name"/>
+                                </td>
+                                <td>
+                                    <span t-field="l.product_id"/>
+                                </td>
+                                <td>
+                                    <span t-field="l.scrap_qty"/>
+                                    <span t-field="l.product_uom_id"/>
+                                </td>
+                                <td t-if="has_lot_serial">
+                                    <span t-field="l.lot_id"/>
+                                </td>
+                                <td>
+                                    <span t-field="l.location_id"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border-top:1px solid black;font-weight:bold;"><span>Total</span></td>
+                                <td colspan="2" style="border-top:1px solid black;font-weight:bold;"/>
+                                <td style="border-top:1px solid black;font-weight:bold;">
+                                    <span t-esc="sum(scrap_order_ids.mapped('scrap_qty'))"/>
+                                </td>
+                                <t t-if="has_lot_serial">
+                                    <td colspan="2" style="border-top:1px solid black;font-weight:bold;"/>
+                                </t>
+                                <t t-if="not has_lot_serial">
+                                    <td style="border-top:1px solid black;font-weight:bold;"/>
+                                </t>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </t>
+        </template>
+
+        <template id="scrap_order_report">
+            <t t-call="web.html_container">
+                <t t-call="eq_scrap_order_report.scrap_order_report_document"/>
+            </t>
+        </template>
+
+    </data>
+</odoo>

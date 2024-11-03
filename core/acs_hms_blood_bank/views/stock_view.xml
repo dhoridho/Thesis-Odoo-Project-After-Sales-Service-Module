@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Lot Views -->
+    <record id="view_production_lot_form" model="ir.ui.view">
+        <field name="name">stock.production.lot.form</field>
+        <field name="model">stock.production.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form" />
+        <field name="arch" type="xml">
+            <group name="main_group" position="after">
+                <group>
+                    <group>
+                        <field name="is_blood_product" invisible="1"/>
+                        <field name="blood_group" readonly="1"/>
+                        <field name="requisition_id" attrs="{'invisible': [('is_blood_product','=',False)]}"/>
+                        <field name="donor_partner_id" attrs="{'invisible': [('is_blood_product','=',False)]}"/>
+                    </group>
+                    <group>
+                        <field name="issuance_id" attrs="{'invisible': [('is_blood_product','=',False)]}"/>
+                        <field name="receiver_partner_id" attrs="{'invisible': [('is_blood_product','=',False)]}"/>
+                    </group>
+                </group>
+            </group>
+        </field>
+    </record>
+
+    <record id="view_hms_lot_search" model="ir.ui.view">
+        <field name="name">Lot/Serial Search</field>
+        <field name="model">stock.production.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter"/>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Lot/Serial Number" filter_domain="['|', ('name', 'ilike', self),('ref', 'ilike', self)]"/>
+                <field name="product_id"/>
+                <separator/>
+                <filter string="Available for Requisition" name="available_for_requisition" domain="[('requisition_id', '=', False), ('issuance_id', '=', False)]"/>
+                <filter string="Available for Issueance" name="available_for_issueance" domain="[('requisition_id', '!=', False), ('issuance_id', '=', False)]"/>
+                <filter string="Issued Product" name="type_company" domain="[('requisition_id', '!=', False), ('issuance_id', '!=', False)]"/>
+
+                <group expand="0" string="Group By">
+                    <filter name="group_by_product" string="Product" domain="[]" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_by_blood_group" string="Blood Group" domain="[]" context="{'group_by': 'blood_group'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_blood_product_lots" model="ir.actions.act_window">
+        <field name="name">Lots/Serial Numbers</field>
+        <field name="res_model">stock.production.lot</field>
+        <field name="domain">[('is_blood_product','=',True)]</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_hms_lot_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add a Blood Receiver.
+            </p>
+        </field>
+    </record>
+    <record id="product_template_action_blood" model="ir.actions.act_window">
+        <field name="name">Blood Bags</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="product.product_template_kanban_view"/>
+        <field name="domain">[('hospital_product_type','=','blood')]</field>
+        <field name="context">{
+            'search_default_hospital_product_type': 'blood',
+            'default_hospital_product_type': 'blood'}</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_carry_over_asset_budget_tree" model="ir.ui.view">
+        <field name="name">view.carry.over.asset.budget.tree</field>
+        <field name="model">carry.over.asset.budget</field>
+        <field name="arch" type="xml">
+            <tree string="Carry Asset Budget">
+                <field name="name"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <!-- <field name="amount_planned"/>
+                <field name="amount_used"/>
+                <field name="amount_remaining"/> -->
+                <field name="parent_id"/>
+                <field name="branch_id"/>
+                <field name="state" optional="show" widget="badge" 
+                        attrs="{'decoration-success':'state == \'confirm\'','decoration-muted':'state == \'draft\''}"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_carry_over_asset_budget_form" model="ir.ui.view">
+        <field name="name">view.carry.over.asset.budget.form</field>
+        <field name="model">carry.over.asset.budget</field>
+        <field name="arch" type="xml">
+            <form string="Carry Asset Budget">
+                <header>
+                    <!-- <button name="request_approval" string="Request Approval" type="object" states="draft"/> -->
+                    <button name="action_confirm" string="Confirm" type="object" states="draft" class="oe_highlight"/>
+                    <!-- <button name="action_approve" string="Approve" type="object" states="to_approve"/> -->
+                    <!-- <button name="action_validate" string="Validate" type="object" states="confirm" class="oe_highlight"/>
+                    <button name="action_done" string="Done" type="object" states="validate" class="oe_highlight"/>
+                    <button name="action_reject" string="Reject" type="object" states="confirm"/>
+                    <button name="action_cancel" string="Cancel" type="object" states="confirm,validate"/> -->
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" attrs="{'readonly':[('state','!=','draft')]}" placeholder="Budget Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="budget_reference" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <!-- <field name="is_parent_budget" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="parent_id" attrs="{'readonly':[('state','!=','draft')]}"/> -->
+                            <field name="account_tag_ids" widget="many2many_tags" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                        <group>
+                             <label for="date_from" string="Period"/>
+                            <div>
+                                <field name="date_from" class="oe_inline"
+                                       attrs="{'readonly':[('state','!=','draft')]}"/>
+                                -
+                                <field name="date_to" class="oe_inline" attrs="{'readonly':[('state','!=','draft')]}"
+                                       nolabel="1"/>
+                            </div>
+                            <field name="company_id" readonly="1"/>
+                            <field name="branch_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                    </group>
+                </sheet>
+                <notebook>
+                    <page string="Asset Budget Lines">
+                        <field name="asset_budget_line_ids" context="{'default_date_from': date_from,'default_date_to': date_to,'default_account_tag_ids': account_tag_ids}"
+                                   nolabel="1" attrs="{'readonly':[('state','!=','draft')]}">
+                            <tree string="Carry Over Asset Budget Line" editable="bottom">
+                                <field name="asset_budgetary_position_id"/>
+                                <field name="account_tag_ids" widget="many2many_tags"/>
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                                <field name="planned_amount"/>
+                                <field name="carry_over_amount" readonly="1" force_save="1"/>
+                                <field name="final_amount" readonly="1" force_save="1"/>
+                                <button type="object" name="action_open_asset_budget_entries" string="Entries..."
+                                            icon="fa-arrow-circle-o-right"/>
+                                <!-- <field name="transfer_amount"/> -->
+                                <!-- <field name="used_amount"/>
+                                <field name="remaining_amount"/> -->
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_carry_over_asset_budget_search" model="ir.ui.view">
+        <field name="name">carry.over.asset.budget.search</field>
+        <field name="model">carry.over.asset.budget</field>
+        <field name="arch" type="xml">
+            <search string="Carry Asset Budget">
+                <field name="name" string="Carry Asset Budget"/>
+
+            </search>
+        </field>
+    </record>
+
+    <record id="action_carry_over_asset_budget" model="ir.actions.act_window">
+        <field name="name">Carry Over Asset Budget</field>
+        <field name="res_model">carry.over.asset.budget</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <!-- <field name="context">{'default_is_parent_budget': True}</field> -->
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to create a new carry asset budget.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_carry_asset_budget" name="Carry Over Asset Budget" action="action_carry_over_asset_budget" parent="menu_asset_budget" sequence="2"/>
+</odoo>

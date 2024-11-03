@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="app_view_location_form" model="ir.ui.view">
+        <field name="name">app.stock.location.form</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button string="All Move"
+                        class="oe_stat_button"
+                        icon="fa-list-ul" name="act_move_all_location_open" type="object"
+                />
+                <button string="Move In"
+                        class="oe_stat_button"
+                        icon="fa-inbox-in" name="act_move_in_location_open" type="object"
+                />
+                <button string="Move Out"
+                        class="oe_stat_button"
+                        icon="fa-inbox-out" name="act_move_out_location_open" type="object"
+                />
+            </xpath>
+            <xpath expr="//field[@name='return_location']" position="after">
+                <field name="day_limit"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--看板视图-->
+    <record id="view_location_kanban" model="ir.ui.view">
+        <field name="name">stock.location.kanban</field>
+        <field name="model">stock.location</field>
+        <field name="arch" type="xml">
+            <kanban string="Stock Location" class="oe_background_grey o_kanban_dashboard o_stock_kanban">
+                <field name="active"/>
+                <field name="display_name"/>
+                <field name="name"/>
+                <field name="usage"/>
+                <field name="day_limit"/>
+                <field name="company_id"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card">
+                            <div class="o_kanban_card_header">
+                                <a class="o_kanban_card_header_title" type="edit">
+                                    <div class="o_primary">
+                                        <field name="display_name"/>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="container o_kanban_card_content o_visible">
+                                <div class="row">
+                                    <div class="col-6 col-xs-6 o_kanban_primary_left">
+                                        <div>
+                                            <button class="btn btn-primary mt8 mb4"
+                                                    name="%(stock.location_open_quants)d" type="action"
+                                                    context="{'search_default_internal_loc': 1}">Current Stock
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-primary"
+                                                    name="%(stock.act_product_location_open)d" type="action"
+                                                    context="{'location_id': active_id}">Products
+                                            </button>
+                                        </div>
+                                        <div class="o_secondary mt8">
+                                            <field class="o_secondary" name="usage"/>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-xs-6 o_kanban_primary_right">
+                                        <div class="o_kanban_card_manage_title">
+                                            <h4>Recent <strong><field name="day_limit"/></strong> days</h4>
+                                        </div>
+                                        <div class="mt8">
+                                            <a name="act_move_all_location_open" type="object">All Move</a>
+                                        </div>
+                                        <div class="mt8">
+                                            <a name="act_move_in_location_open" type="object">Move In</a>
+                                        </div>
+                                        <div class="mt8">
+                                            <a name="act_move_out_location_open" type="object">Move Out</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!--搜索增加分组-->
+    <record id="app_view_location_search" model="ir.ui.view">
+        <field name="name">app.stock.location.search</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                   <group expand="0" name="group_by" string="Group By">
+                       <filter name="group_usage" string="Location Type" context="{'group_by' : 'usage'}"/>
+                       <filter name="group_posx" string="Corridor (X)" context="{'group_by' : 'posx'}"/>
+                       <filter name="group_posy" string="Shelves (Y)" context="{'group_by' : 'posy'}"/>
+                       <filter name="group_posz" string="Height (Z)	" context="{'group_by' : 'posz'}"/>
+                   </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!--action 增加看板-->
+    <record id="stock.action_location_form" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,form</field>
+    </record>
+</odoo>

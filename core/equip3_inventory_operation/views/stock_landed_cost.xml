@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="stock_landed_cost_inherit_view_id" model="ir.ui.view">
+        <field name="name">model.name.inherit.view.form</field>
+        <field name="model">stock.landed.cost</field>
+        <field name="inherit_id" ref="stock_landed_costs.view_stock_landed_cost_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='date']" position="before">
+                <field name="picking_ids_domain" invisible="1"/>
+                <label for="from_date" string="Period"/>
+                <div name="period" class="d-flex">
+                    <div>
+                        <label for="from_date" string="From Date"/>
+                        <field name="from_date"/>
+                    </div>
+                    <div class="mx-2"></div>
+                    <div>
+                        <label for="to_date" string="To Date"/>
+                        <field name="to_date"/>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='picking_ids']" position="before">
+                <field name="picking_type_id" widget="radio" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='picking_ids']" position="attributes">
+                <attribute name="attrs">{'invisible': [('target_model', '!=', 'picking')],
+                                         'readonly' : [('state', '=', 'done')],
+                                         'required' : [('target_model', '=', 'picking')]}</attribute>
+                <attribute name="domain">picking_ids_domain</attribute>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="vendor_bill" widget="radio"/>
+                <field name="account_move_ids" widget="many2many_tags" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='vendor_bill_id']" position="attributes">
+                <attribute name="attrs">{'invisible': [('vendor_bill', '=', 'create_bill')], 'required': [('vendor_bill', '=', 'draft_bill')]}</attribute>
+                <attribute name="string">Bill</attribute>
+            </xpath>
+            <xpath expr="//field[@name='target_model']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='account_move_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='additional_costs']/field[@name='cost_lines']/tree/field[@name='split_method']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='additional_costs']/field[@name='cost_lines']/tree/field[@name='split_method']" position="before">
+                <field name="split_method_lite"/>
+                <field name="bill_id" readonly="1" force_save="1" optional="hide"/>
+            </xpath>
+            <xpath expr="//page[@name='additional_costs']/field[@name='cost_lines']/tree/field[@name='product_id']" position="after">
+                <field name="partner_id" required="1"/>
+            </xpath>
+            <xpath expr="//page[@name='additional_costs']" position="attributes">
+                <attribute name="attrs">{'invisible': [('vendor_bill', '=', 'draft_bill')]}</attribute>
+            </xpath>
+
+            <xpath expr="//page[@name='additional_costs']" position="after">
+                <page string="Additional Costs" name="additional_costs_draft_bill" attrs="{'invisible':[('vendor_bill', '=', 'create_bill')]}">
+                    <field name="cost_lines_no_create">
+                        <form string="Cost Lines" create="0">
+                            <group>
+                                <group>
+                                    <field name="product_id" domain="[('landed_cost_ok', '=', True)]" context="{'default_landed_cost_ok': True}"/>
+                                    <field name="price_unit"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </group>
+                                <group>
+                                    <field name="split_method_lite"/>
+                                    <field name="account_id" options="{'no_create': True}"/>
+                                </group>
+                            </group>
+                            <label for="name"/>
+                            <field name="name"/>
+                        </form>
+                        <tree string="Cost Lines" editable="bottom" create="0">
+                            <field name="product_id" domain="[('landed_cost_ok', '=', True)]" context="{'default_landed_cost_ok': True, 'default_type': 'service'}"/>
+                            <field name="partner_id" required="1"/>
+                            <field name="name"/>
+                            <field name="account_id" options="{'no_create': True}"/>
+                            <field name="split_method_lite"/>
+                            <field name="split_method" invisible="1"/>
+                            <field name="price_unit"/>
+                            <field name="bill_id" readonly="1" force_save="1" optional="hide"/>
+                            <field name="currency_id" invisible="1"/>
+                        </tree>
+                    </field>
+                    <group class="oe_subtotal_footer oe_right">
+                        <field name="currency_id" invisible="1"/>
+                        <field name="amount_total"/>
+                        <button colspan="2" name="compute_landed_cost" string="Compute" type="object" class="oe_right btn-secondary" states="draft"/>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//page[@name='valuation_adjustments']" position="after">
+                <page string="Product Cost Lines" name="product_cost_lines">
+                    <field name="product_cost_lines">
+                        <tree string="Product Cost Lines" editable="bottom" create="0" delete="0">
+                            <field name="cost_line_id" invisible="1"/>
+                            <field name="picking_id" string="Transfer Document"/>
+                            <field name="move_id" invisible="1"/>
+                            <field name="product_id" required="1"/>
+                            <field name="service_product_id" invisible="1"/>
+                            <field name="warehouse_id" optional="hide"/>
+                            <field name="qty"/>
+                            <field name="uom_id" required="1"/>
+                            <field name="former_cost"/>
+                            <field name="additional_cost"/>
+                            <field name="new_cost"/>
+                            <field name="split_method_lite" invisible="1"/>
+                            <field name="partner_id" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+            <xpath expr="//page[@name='valuation_adjustments']//field[@name='cost_line_id']" position="after">
+                <field name="warehouse_id"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button string="Vendor Bills" type="object"
+                                name="action_view_vendor_bills"
+                                class="oe_stat_button"
+                                icon="o-hm-smart-all-purchased"
+                                attrs="{'invisible': ['|' , ('state', 'not in', ['done']), ('account_move_ids', '=', [])]}"/>
+                <button string="Journal Entries" type="object"
+                                name="action_view_journal_entries"
+                                class="oe_stat_button"
+                                icon="fa-usd"
+                                attrs="{'invisible': ['|' , ('state', 'not in', ['done']), ('stock_valuation_layer_ids', '=', [])]}"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="kpi_scorecard_line_view_search" model="ir.ui.view">
+        <field name="name">kpi.scorecard.line.search</field>
+        <field name="model">kpi.scorecard.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="kpi_id"/>
+                <filter string="Failed Targets"
+                        name="failures" 
+                        domain="[('result', '=', 'failure')]"
+                />
+                <filter string="Reached Targets"
+                        name="success" 
+                        domain="[('result', '=', 'success')]"
+                />
+                <filter string="Computation Errors"
+                        name="errors" 
+                        domain="[('result', '=', 'error')]"
+                />
+            </search>
+        </field>
+    </record>
+    <record id="kpi_scorecard_line_view_form" model="ir.ui.view">
+        <field name="name">kpi.scorecard.line.form</field>
+        <field name="model">kpi.scorecard.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="kpi_id"/>
+                        <field name="target_value"/>
+                        <field name="period_id"
+                               options="{'no_create_edit': 1, 'no_quick_create': 1}" 
+                               invisible="1" 
+                        />
+                    </group>
+                    <div attrs="{'invisible': [('help_notes', '=', False)]}">
+                        <field name="kpi_help_dummy" invisible="1"/>
+                        <label for="help_notes"  invisible="1"/>
+                        <field name="help_notes"/>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="kpi_scorecard_line_view_kanban" model="ir.ui.view">
+        <field name="name">kpi.scorecard.line.kanban</field>
+        <field name="model">kpi.scorecard.line</field>
+        <field name="arch" type="xml">
+            <kanban js_class="scorecard_kanban" 
+                    class="kpi-kanban-view"
+                    group_create="0"
+                    group_delete="0"
+                    group_edit="0" 
+                    archivable="0"
+                    quick_create="0"
+                    records_draggable="0"   
+            >
+                <field name="id"/>
+                <field name="kpi_id"/>
+                <field name="formatted_target_value"/>
+                <field name="formatted_actual_value"/>
+                <field name="computation_error"/>
+                <field name="result"/>
+                <field name="all_parents"/>
+                <field name="sequence"/>
+                <field name="description"/>
+                <field name="edit_rights"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="kpi-kanban-record-card"
+                             t-att-id="id"
+                        >
+                            <div t-attf-class="kpi-kanban-info text-#{record.result.raw_value == 'error' and 'muted' or ''}"                                 
+                                 t-attf-data-parent="#{record.all_parents.raw_value}"
+                                 t-attf-data-id="#{record.id.raw_value}"
+                                 t-attf-title="#{record.description.raw_value and record.description.raw_value or ''}"
+                            >
+                                <field name="kpi_id"/>
+                                <i t-if="record.computation_error.raw_value"
+                                   class="fa fa-warning text-danger" 
+                                   t-attf-title="#{record.computation_error.raw_value}"  
+                                > </i>
+                            </div>
+                            <div t-attf-class="kpi-kanban-figures text-center text-#{record.result.raw_value == 'success' and 'success' or record.result.raw_value == 'failure' and 'danger' or 'muted'}"
+                                 title="Actual Value"
+                            >
+                                <span class="kpi-kanban-show-figures">
+                                    <field name="formatted_actual_value"/>
+                                </span>
+                            </div>
+                            <div t-attf-class="kpi-kanban-figures-target text-center"
+                                 title="Target Value"   
+                            >
+                                <span class="kpi-kanban-show-figures">
+                                    <field name="formatted_target_value"/>
+                                </span>
+                            </div>
+                            <div class="kpi-kanban-buttons">
+                                <div class="pull-right">
+                                    <button type="button" 
+                                            class="btn btn-primary kpi-edit-target kpi-kanban-row-btn kpi-kanban-button kpi-kanban-conditional"
+                                            kpi-required="period,open"
+                                            t-attf-data-id="#{record.id.raw_value}"
+                                            title="Change Target"
+                                            t-if="record.edit_rights.raw_value"
+                                            name="kpi-edit-target"
+                                    >
+                                        <i class="fa fa-edit"></i>
+                                    </button>    
+                                    <button type="button" 
+                                            class="btn btn-primary kpi-show-history kpi-kanban-row-btn kpi-kanban-button kpi-kanban-conditional"
+                                            kpi-required="period"
+                                            t-attf-data-id="#{record.id.raw_value}"
+                                            title="History"
+                                            name="kpi-show-history"
+                                    >
+                                        <i class="fa fa-signal"></i>
+                                    </button> 
+                                    <button type="button" 
+                                            class="btn btn-primary kpi-remove-target kpi-kanban-row-btn kpi-kanban-button kpi-kanban-conditional"
+                                            kpi-required="period,open"
+                                            t-attf-data-id="#{record.id.raw_value}"
+                                            title="Delete Target"
+                                            t-if="record.edit_rights.raw_value"
+                                            name="kpi-remove-target"
+                                    >
+                                        <i class="fa fa-remove"></i>
+                                    </button> 
+                                </div>                            
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="kpi_scorecard_line_action" model="ir.actions.act_window">
+        <field name="name">KPI Scorecard</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">kpi.scorecard.line</field>
+        <field name="view_mode">kanban</field>
+        <field name="target">main</field> 
+        <field name="search_view_id" eval="kpi_scorecard_line_view_search"/>
+    </record>
+
+</odoo>

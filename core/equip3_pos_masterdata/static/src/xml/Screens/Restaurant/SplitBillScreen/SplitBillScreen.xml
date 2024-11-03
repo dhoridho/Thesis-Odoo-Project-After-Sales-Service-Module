@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+
+
+    <t t-name="SplitOrderline" t-inherit="pos_restaurant.SplitOrderline" t-inherit-mode="extension" owl="1">
+        <xpath expr="//span[hasclass('product-name')]" position="replace">
+        </xpath>
+        <xpath expr="//ul[hasclass('info-list')]" position="replace">
+        </xpath>
+        <xpath expr="//span[hasclass('price')]" position="replace">
+        </xpath>
+        <xpath expr="//li" position="inside">
+            <div class="row_item_split">
+                <div class="split_item_left">
+                    <p style="margin:unset;font-size: 21px;margin-bottom: 10px;">
+                        <b><t t-esc="props.line.get_product().display_name" /></b>
+                    </p>
+                    <p style="margin:unset;margin-bottom: 10px;">
+                        <t t-esc="env.pos.format_currency(props.line.get_unit_price()*props.line.get_quantity_str())" />
+                        <span style="color:white;">--</span>
+                        <span class="fa fa-circle"/>
+                        <span style="color:white;">--</span>
+                        <t t-esc="props.line.get_quantity_str()" />
+                        <span style="color:white;">--</span>
+                        <t t-esc="props.line.get_unit().name" />
+                    </p>
+                    <p style="margin:unset;margin-bottom: 10px;">
+                        <b>
+                            <t t-esc="env.pos.format_currency(props.line.get_unit_price())" />
+                        /
+                        <t t-esc="props.line.get_unit().name" />
+                        </b>
+                    </p>
+                    <br/>
+                </div>
+                <div class="split_item_right" style="display:block;position:relative;">
+                    <ul style="width: 100%;">
+                        <li style="color:white;">------</li>
+                        <li><input type="checkbox" t-on-click="checkbox_line"/><span class="split_checkmark"/></li>
+                        <li aria-label="Up Qty 1" role="img" title="Up Qty 1" class="faupdown oe_link_icon fa fa-plus oe_icon line-icon" t-on-click="add_qty"></li>
+                         <li><input type="number" t-att-value="props.split.quantity" min="0" t-att-max="props.split.max_qty" readonly="1"/></li>
+                         <li aria-label="Down Qty 1"  role="img" title="Down Qty 1" class="faupdown oe_link_icon fa fa-minus oe_icon line-icon" t-on-click="min_qty"></li>
+                        
+                       
+                        
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        </xpath>
+    </t> 
+
+    <t t-name="SplitBillScreen" t-inherit="pos_restaurant.SplitBillScreen" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('contents')]" position="replace">
+            <div class="contents">
+                <div class="ticket-screen" style="z-index:0;"> 
+                    <div class="screen-content" style="display:unset;">
+                        <div class="controls" style="    margin-top: -15px;">
+                            <div class="buttons" style="margin-left:15px;">
+                                <button class="highlight close-screen-button" t-on-click="back" style="background: unset !important; border: unset !important; box-shadow: unset !important; font-size: 20px;margin-left: unset; padding-left: unset;">
+                                    <i class="fa fa-chevron-left"></i>
+                                    <t t-if="!env.isMobile">Back</t>
+                                </button> 
+                                <h1 t-if="!env.isMobile" class="alert_line" style="margin-bottom: unset;margin-top:unset;margin-right: 20px; font-weight: 900;color:black;">
+                                
+                                       Split Bill 
+                                
+                                </h1>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="controls" style="position: absolute;top: 20px;right: 39px;">
+                        <div class="pay-button" style="float: right;">
+                            <div class="button button_process_splitbill" t-on-click="proceed">
+                        
+                                <span>Split &amp; Pay</span>
+                            </div>
+                        </div>
+                         <!-- t-if="env.pos.config.allow_split_table" -->
+                        <div class="pay-button" style="float: right;" t-if="env.pos.config.allow_split_table">
+                            <div class="button button_process_splitbill" t-on-click="doTransferTable">
+                
+                                <span>Transfer to another Table</span>
+                            </div>
+                        </div>
+                        <div class="order-info" style="border: unset; text-align: right; float: right;display:none;">
+                            <span class="subtotal">
+                                <t t-esc="env.pos.format_currency(newOrder.get_subtotal())" />
+                            </span>
+                        </div>
+                    </div>
+                <br/>
+                <div class="row-splitbillscreen">
+                    <div class="splitbillscreen_parent">
+                        <div class="splitbillscreen_parent1">
+                            <div class="splitbillscreen_box">
+                                <div class="splitbillscreen_header">
+                                    <p>Choose Split Type</p>
+                                </div>
+                                <div class="splitbillscreen_content_button">
+                                    <div class="button active" t-on-click="splitbuttonprocess(1)">
+                                        Split By Item
+                                    </div>
+                                    <div class="button"  t-on-click="splitbuttonprocess(2)">
+                                        Split Per Pax
+                                    </div>
+                                    <div class="button"  t-on-click="splitbuttonprocess(3)">
+                                        Split By Percentage
+                                    </div>
+                                    <div class="button"  t-on-click="splitbuttonprocess(4)">
+                                        Split By Total Amount
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <div class="splitbillscreen_parent_line">
+                        <div class="page_split_screen active">
+                            <div style="margin: unset;width: 100%;">
+                                <ul class="orderlines split_line_line">
+                                    <t t-foreach="orderlines" t-as="line" t-key="line.cid">
+                                        <SplitOrderline line="line" split="splitlines[line.id]" />
+                                    </t>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="page_split_screen">
+                            <div style="margin: unset;width: 100%;">
+                                <ul class="orderlines split_line_line">
+                                    <li class="orderline">
+                                        <div class="row_item_split">
+                                            <div class="split_item_left">
+                                                <p style="margin:unset;font-size: 21px;margin-bottom: 10px;">
+                                                    <b>Input Number of People</b>
+                                                </p>
+                                                <p style="margin:unset;margin-bottom: 10px;">
+                                                    <b>
+                                                        <span t-esc="env.pos.format_currency(env.pos.get_order().get_total_with_tax())" id="price_person_split"/>
+                                                    / Person
+                                                    
+                                                    </b>
+                                                </p>
+                                                <br/>
+                                            </div>
+                                            <div class="split_item_right" style="display:block;position:relative;">
+                                                <ul style="width: 100%;">
+                                                    <li style="color:white;">------</li>
+                                                   
+                                                    
+                                                    <li aria-label="Up Qty 1" role="img" title="Up Qty 1" class="faupdown oe_link_icon fa fa-plus oe_icon line-icon" t-on-click="add_qty"></li>
+                                                     <li><input type="number" id="number_person_split" value="1" min="1" readonly="1"/></li>
+                                                     <li aria-label="Down Qty 1" t-on-click="min_qty" role="img" title="Down Qty 1" class="faupdown oe_link_icon fa fa-minus oe_icon line-icon"></li>
+                                                    
+                                                   
+                                                    
+                                                    
+                                                    
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="page_split_screen">
+                            <div style="margin: unset;width: 100%;">
+                                <ul class="orderlines split_line_line ul_split_bill_percentage">
+                                    <li class="orderline">
+                                        <div class="row_item_split">
+                                            <div class="split_item_left">
+                                                <p style="margin:unset;font-size: 21px;margin-bottom: 10px;">
+                                                    <br/>
+                                                    <b>Split By</b>
+                                                </p>
+                                                
+                                                <br/>
+                                            </div>
+                                            <div class="split_item_right" style="display:block;position:relative;">
+                                                <ul style="width: 100%;" >
+                                                    <li style="color:white;">------</li>
+                                                   
+                                                    <li aria-label="Up Qty 1" role="img" title="Up Qty 1" class="faupdown oe_link_icon fa fa-plus oe_icon line-icon" t-on-click="add_qty"></li>
+                                                     <li><input type="number" id="number_percentage_split" value="0" min="1" readonly="1"/></li>
+                                                     <li aria-label="Down Qty 1" t-on-click="min_qty" role="img" title="Down Qty 1" class="faupdown oe_link_icon fa fa-minus oe_icon line-icon"></li>
+                                                   
+                                                    
+                                                    
+                                                    
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="page_split_screen">
+                            <div style="margin: unset;width: 100%;">
+                                <ul class="orderlines split_line_line ul_split_bill_amount">
+                                    <li class="orderline">
+                                        <div class="row_item_split">
+                                            <div class="split_item_left">
+                                                <p style="margin:unset;font-size: 21px;margin-bottom: 10px;">
+                                                    <br/>
+                                                    <b>Split By</b>
+                                                </p>
+                                                
+                                                <br/>
+                                            </div>
+                                            <div class="split_item_right" style="display:block;position:relative;">
+                                                <ul style="width: 100%;" >
+                                                    <li style="color:white;">------</li>
+                                                   
+                                                    <li aria-label="Up Qty 1" role="img" title="Up Qty 1" class="faupdown oe_link_icon fa fa-plus oe_icon line-icon" t-on-click="add_qty"></li>
+                                                     <li><input type="number" id="number_amount_split" value="0" min="1" readonly="1"/></li>
+                                                     <li aria-label="Down Qty 1" t-on-click="min_qty" role="img" title="Down Qty 1" class="faupdown oe_link_icon fa fa-minus oe_icon line-icon"></li>
+                                                   
+                                                    
+                                                    
+                                                    
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div> 
+                </div>
+               
+            </div> 
+            
+        </xpath>
+    </t>
+
+</templates>

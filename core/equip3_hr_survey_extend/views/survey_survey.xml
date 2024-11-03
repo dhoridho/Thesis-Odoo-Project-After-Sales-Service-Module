@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="ModelName_form_inherit" model="ir.ui.view">
+            <field name="name">equip3_survey_extend.survey.survey.form</field>
+            <field name="model">survey.survey</field>
+            <field name="inherit_id" ref="survey.survey_form"/>
+            <field name="arch" type="xml">
+                
+                <xpath expr="//div[@class='oe_title']" position="after">
+                    <group>
+                        <group>
+
+                            <field name="survey_type" readonly="1" force_save="True"/>
+                            <field name="category_id" string="Category" attrs="{'invisible':[('survey_type','not in',['general','kraepelin'])]}"/>
+                        </group>
+                    </group>
+                </xpath>
+
+                <xpath expr="//field[@name='question_and_page_ids']" position="attributes">
+                    <attribute name="context">{'default_question_type':survey_type,'default_is_read_only':True}
+                    </attribute>
+
+                </xpath>
+                <xpath expr="//field[@name='question_and_page_ids']/tree/field[@name='question_type']" position="after">
+                    <field name="code_ist" string="Code" attrs="{'column_invisible':[('parent.survey_type','!=','ist')],'required':[('parent.survey_type','=','ist')]}"/>
+                </xpath>
+
+                <xpath expr="//button[@name='action_survey_user_input_completed']" position="attributes">
+                    <attribute name="icon">o-hm-smart-hrm-answers</attribute>
+                </xpath>
+
+                <xpath expr="//page[@name='options']/group[@name='options']/group[@name='questions']/field[@name='questions_selection']" position="after">
+                    <field name="kraepelin_columns" attrs="{'invisible':[('survey_type','not in',['kraepelin'])]}" />
+                    <field name="kraepelin_rows" attrs="{'invisible':[('survey_type','not in',['kraepelin'])]}" />
+                    <field name="kraepelin_time_per_column" attrs="{'invisible':[('survey_type','not in',['kraepelin'])]}" />
+                </xpath>
+
+            </field>
+        </record>
+
+
+        <record model="ir.actions.act_window" id="action_survey_form_survey_extend">
+            <field name="name">Surveys</field>
+            <field name="res_model">survey.survey</field>
+            <field name="view_mode">kanban,tree,form,activity</field>
+            <field name="context">{'search_default_groupby_state': 1}</field>
+            <field name="domain">[]</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Add a new survey
+                </p>
+                <p>
+                    You can create surveys for different purposes: customer opinion, services feedback, recruitment
+                    interviews, employee's periodical evaluations, marketing campaigns, etc.
+                </p>
+                <p>
+                    Design easily your survey, send invitations and analyze answers.
+                </p>
+            </field>
+        </record>
+
+         <menuitem name="Surveys" id="survey.menu_survey_form" action="action_survey_form_survey_extend" parent="survey.menu_surveys" sequence="1"/>
+
+
+    </data>
+</odoo>

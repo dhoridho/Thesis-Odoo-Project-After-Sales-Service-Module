@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+
+    <record id="product_template_search_view_rental_pos" model="ir.ui.view">
+        <field name="name">product.template.search.pos.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="filter_to_sell" position="before">
+                <filter name="filter_available_for_rent" string="Available For Rent" domain="[('available_for_rent', '=', True)]"/>
+            </filter>
+        </field>
+    </record>
+
+
+    <record id="product_template_action_pos_rental_product" model="ir.actions.act_window">
+        <field name="name">Rental Products</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">kanban,tree,form,activity</field>
+        <field name="context" eval="{'search_default_filter_available_for_rent': 1, 'default_available_for_rent': True}"/>
+    </record>
+
+    <menuitem id="menu_pos_rental_products" action="product_template_action_pos_rental_product" parent="point_of_sale.pos_config_menu_catalog" sequence="5"/>
+
+
+    <record id="view_pos_rental_order_filter" model="ir.ui.view">
+        <field name="name">pos.order.list.select</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_order_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='invoiced']" position="after">
+                <filter string="Rental Orders" name="filter_is_rental_order" domain="[('is_rental_order', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_pos_pos_rental_form" model="ir.actions.act_window">
+        <field name="name">Rental Orders</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">pos.order</field>
+        <field name="view_mode">tree,form,kanban,pivot</field>
+        <field name="view_id" eval="False"/>
+        <field name="domain">[]</field>
+        <field name="context" eval="{'search_default_filter_is_rental_order': 1, 'default_is_rental_order': True}"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No orders found
+            </p>
+            <p>
+                To record new orders, start a new session.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_point_ofsale_rental" parent="point_of_sale.menu_point_of_sale" action="action_pos_pos_rental_form" sequence="2" groups="point_of_sale.group_pos_manager,point_of_sale.group_pos_user"/>
+
+</odoo>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="view_kitchen_dashboard" model="ir.ui.view">
+		<field name="name">view.kitchen.dashboard</field>
+		<field name="model">product.product</field>
+		<field name="priority" eval="500"/>
+		<field name="arch" type="xml">
+			<tree string="Kitchen Production" create="0" edit="1" delete="0" expand="true" js_class="kitchen_dashboard_list_view" editable="bottom">
+				<field name="id" invisible="1"/>
+				<field name="default_code" readonly="1"/>
+				<field name="name" string="Product" readonly="1"/>
+				<field name="kitchen_bom_id" string="Bill of Materials"/>
+				<field name="kitchen_safety_stock_qty" string="Safety Stock" readonly="1"/>
+				<field name="qty_available" string="Available Quantity" optional="hide" readonly="1"/>
+				<field name="virtual_available" string="Virtual Available" optional="hide" readonly="1"/>
+				<field name="free_qty" string="Free Quantity" optional="hide" readonly="1"/>
+				<field name="kitchen_inventory_quantity" string="Quantity on Hand" readonly="1"/>
+				<field name="incoming_qty" string="Forecasted Incoming" optional="hide" readonly="1"/>
+				<field name="kitchen_outgoing_qty" string="Forecasted Outgoing" readonly="1"/>
+				<field name="uom_id" readonly="1" string="UoM"/>
+				<field name="kitchen_to_produce_qty" string="To Produce" readonly="1"/>
+				<field name="stock_move_ids" invisible="1">
+					<tree>
+						<field name="product_qty"/>
+						<field name="state"/>
+					</tree>
+				</field>
+				<button name="action_produce" type="object" string="Produce" class="btn-primary" context="{'kitchen_to_produce_qty': kitchen_to_produce_qty}"/>
+			</tree>
+		</field>
+	</record>
+
+	<record id="view_kitchen_dashboard_filter" model="ir.ui.view">
+		<field name="name">view.kitchen.dashboard.filter</field>
+		<field name="model">product.product</field>
+		<field name="arch" type="xml">
+			<search string="Search Products">
+				<field name="produceable_in_kitchen"/>
+				<filter name="group_product_tmpl_id" string="Variants" context="{'group_by': 'product_tmpl_id'}"/>
+		   </search>
+		</field>
+	</record>
+
+	<record id="action_view_dashboard_kitchen" model="ir.actions.act_window">
+		<field name="name">Dashboard</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">product.product</field>
+		<field name="view_mode">tree</field>
+		<field name="view_id" ref="equip3_kitchen_operations.view_kitchen_dashboard"/>
+		<field name="search_view_id" ref="equip3_kitchen_operations.view_kitchen_dashboard_filter"/>
+		<!-- <field name="target">main</field> -->
+		<field name="context">{
+			'from_date': context_today().strftime('%Y-%m-%d'),
+			'to_date': (context_today() + relativedelta(days=7)).strftime('%Y-%m-%d'),
+		}</field>
+		<field name="domain">[('id', 'in', [])]</field>
+		<field name="help" type="html">
+			<p class="o_view_nocontent_empty_folder">
+				No data to display
+			</p>
+			<p>
+				Try to change the period or warehouse, or make sure there is produceable kitchen products.
+			</p>
+		</field>
+	</record>
+
+</odoo>

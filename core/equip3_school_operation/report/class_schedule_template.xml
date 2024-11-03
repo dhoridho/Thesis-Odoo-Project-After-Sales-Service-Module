@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="external_layout">
+            <t t-if="not o and doc">
+                <t t-set="o" t-value="doc"/>
+            </t>
+            <t t-if="o and 'company_id' in o">
+                <t t-set="company" t-value="o.company_id"></t>
+            </t>
+            <t t-if="not o or not 'company_id' in o">
+                <t t-set="company" t-value="res_company"></t>
+            </t>        
+            <t t-call="equip3_school_operation.timetable_class_schedule_header" />
+            <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+                <t t-raw="0"/>
+            </div>
+            <t t-call="general_template.templates_footer"/>
+        </template>
+    
+        <template id="timetable_class_schedule_header">
+            <div class="header" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <center>
+                                    <table border="0" cellpadding="0" cellspacing="0" style="padding:0px 20px 0px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+                                        <tr>
+                                            <td align="left" colspan="2" t-attf-style="color:#{text_color or '#ffffff'}; padding:0px 0px;" valign="top">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                    <tr>
+                                                        <td align="left" style="color:#4D4D4F; padding: 10px 20px 0px 20px; border-right: 1px solid #D4D1D1;" valign="top">
+                                                            <img style="max-height: 50px; margin-top: 8%;" t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo)" t-if="o.company_id.logo"/>
+                                                            <br/>
+                                                        </td>
+                                                        <td style="padding: 10px 20px 0px 20px;width:40%" valign="top">
+                                                            <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Address</p>
+                                                            <t t-call="general_template.templates_company_details"/>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </center>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+
+        <template id="report_print_class_schedule">
+            <t t-call="equip3_school_report.external_layout">
+                <t t-foreach="docs" t-as="o">
+                    <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+                    <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+                    <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+                    <t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+                    <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+                    <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+                    <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+                    <t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+                    <div class="page">
+                        <div class="oe_structure"/>
+                        <hr/>
+                        <t t-set='teacher' t-value="o.teacher_id"/>
+                        <div class="d-flex" id="informations">
+                            <div class="row mb-2 mt-3" style="margin-left: 10px;font-size:15px;">
+                                <table class="table" style="border: none;">
+                                    <tbody style="border: none;">
+                                      <tr style="border: none;">
+                                        <td style="border: none;">Academic Year </td>
+                                        <td style="border: none;">:</td>
+                                        <td style="border: none;"><span t-esc="o.year_id.name"/></td>
+                                      </tr>
+                                      <tr style="border: none;">
+                                        <td style="border: none;">Term </td>
+                                        <td style="border: none;">:</td>
+                                        <td style="border: none;"><span t-esc="o.term_id.name"/></td>
+                                      </tr>
+                                      <!-- <tr style="border: none;">
+                                        <td style="border: none;">Program </td>
+                                        <td style="border: none;">:</td>
+                                        <td style="border: none;"><span t-esc="'' if not teacher.program_id else teacher.program_id.name"/></td>
+                                      </tr>
+                                      <tr style="border: none;">
+                                        <td style="border: none;">Intake </td>
+                                        <td style="border: none;">:</td>
+                                        <td style="border: none;"><span t-esc="'' if not teacher.standard_id else teacher.standard_id.name"/></td>
+                                      </tr> -->
+                                      <tr style="border: none;">
+                                        <td style="border: none;">Teacher </td>
+                                        <td style="border: none;">:</td>
+                                        <td style="border: none;"><span t-esc="teacher.name"/></td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </div>
+                            </div>
+                        <t>
+                            <table width="100%" t-attf-style="border: 2px solid black;" class="mt-3">
+                                <thead style="text-align: center;">
+                                    <tr class="active">
+                                    <th width="15%" align="center" t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 1px solid black; page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#FFFFFF'};">Date</th>
+                                    <th align="center" t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 1px solid black; page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#FFFFFF'};">Study Day</th>
+                                    <th align="center" t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 1px solid black; page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#FFFFFF'};">Start Time</th>
+                                    <th align="center" t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 1px solid black; page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#FFFFFF'};">End Time</th>
+                                    <th align="center" t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 1px solid black; page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#FFFFFF'};">Subject</th>
+                                    <th align="center" t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 1px solid black; page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#FFFFFF'};">Classroom</th>                          
+                                    </tr>
+                                </thead>
+                                <tbody style="text-align: center;">
+                                    <t t-set='class_ids' t-value="teacher.ems_classes_ids.filtered(lambda x: x.year_id == o.year_id and x.term_id == o.term_id)"/>
+                                    <t t-foreach="class_ids" t-as="class_id">
+                                        <tr>
+                                            <td t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 2px solid black;">
+                                                <span t-field="class_id.class_date" t-options="{'widget': 'date'}"></span>
+                                            </td>
+                                            <td t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 2px solid black;">
+                                                <span t-field="class_id.study_day"></span>
+                                            </td>
+                                            <td t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 2px solid black;">
+                                                <span t-esc="'{0:02.0f}:{1:02.0f}'.format(*divmod(class_id.start_time * 60, 60)) + ' ' + ('' if not class_id.start_am_pm else class_id.start_am_pm.upper())"></span>
+                                            </td>
+                                            <td t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 2px solid black;">
+                                                <span t-esc="'{0:02.0f}:{1:02.0f}'.format(*divmod(class_id.end_time * 60, 60)) + ' ' + ('' if not class_id.start_am_pm else class_id.start_am_pm.upper())"></span>
+                                            </td>
+                                            <td t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 2px solid black;">
+                                                <span t-field="class_id.subject_id"></span>
+                                            </td>
+                                            <td t-attf-style="font-family: 'Helvetica';font-size: 12px;border: 2px solid black;">
+                                                <span t-field="class_id.classroom_id"></span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </template>
+
+        <template id="report_class_schedule">
+            <t t-call="web.html_container">
+                <t t-as="o" t-foreach="docs">
+                    <t t-call="equip3_school_operation.report_print_class_schedule"/>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bi_loyalty_generic.menu_web_loyalty_id" model="ir.ui.menu">
+        <field name="parent_id" ref="sale.sale_menu_root"/>
+        <field name="sequence">4</field>
+    </record>
+
+    <!-- sale.order inherit form view -->
+    <record id="view_order_form_inherit" model="ir.ui.view">
+        <field name="name">sale.order.inherit.view.form</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Add your xpath here -->
+            <xpath expr="//header" position="inside">
+                <!-- Add your fields here -->
+                <button string="Apply Voucher" name="apply_customer_voucher" type="object" class="oe_highlight" attrs="{'invisible':['|','|',('state','!=','draft'),('have_available_customer_voucher','!=',True),('show_cashback','=',True)]}"/>
+                <field name="have_available_customer_voucher" invisible="1"/>
+                <field name="show_cashback" invisible="1"/>
+            </xpath>
+            <xpath expr="//button[@name='action_view_invoice']" position="after">
+                <button name="action_view_cn_cashback" type="object" class="oe_stat_button" icon="o-hm-smart-all-invoices" attrs="{'invisible': [('cn_cashback_count', '=', 0)]}">
+                    <field name="cn_cashback_count" widget="statinfo" string="Cashback" id="cn_cashback_count"/>
+                </button>
+            </xpath>
+            <xpath expr="//page[@name='other_information']" position="after">
+                <page string="Cashback" name="cashback_line_ids" attrs="{'invisible': [('show_cashback','=', False)]}">
+                    <field name="cashback_line_ids">
+                        <tree create="false" edit="false" delete="true">
+                            <field name="sequence" readonly="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="name" readonly="1"/>
+                            <field name="product_uom_qty" readonly="1"/>
+                            <field name="price_unit" readonly="1"/>
+                            <field name="total" readonly="1"/>
+                            <field name="customer_voucher_id" readonly="1" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

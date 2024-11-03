@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	
+<templates id="order_reports_template" inherit_id="point_of_sale.template" xml:space="preserve">
+
+	<t t-name="ReportOrderButtonWidget"  owl="1">
+		<div class="control-button order_summary">
+			<div>
+				<i class="fa fa-shopping-cart"></i>
+				<span>Order Summary</span>
+			</div>
+		</div>
+	</t>
+
+	<t t-name="PopupOrderWidget" owl="1">
+		<div role="dialog" class="modal-dialog" >
+			<Draggable>
+				<div class="popup popup-confirm" >
+					<header class="title drag-handle">
+						Order Report
+					</header>
+					<main class="body">
+						<div class="body">
+							<div id="ordr_dt_strt" class="alert" style="color: #ec1010; font-size: inherit; margin: 5px; text-align: center;">
+								<span class="closebtn"></span>  
+								Please fill Start Date.
+							</div>
+							<div id="ordr_dt_end" class="alert" style="color: #ec1010; font-size: inherit; margin: 5px; text-align: center;">
+								<span class="closebtn"></span>  
+								Please fill End Date.
+							</div>
+							<div class="form-group" id="form1">  
+								<input id="ordr_crnt_ssn" class="ordr_crnt_ssn" type="checkbox"  
+								t-on-click="clickCurrentSession"  
+									style="min-height: 15px !important;width: 25px !important;box-shadow: none !important;"/>
+								<label for="ordr_crnt_ssn">Current Session</label>
+							</div>
+
+							<div class="left_pane" id="order_st" style="width: 49%;display:inline-block;">
+								<p class="text-center">Start Date</p>
+								<input type="date" name="st_date" id="ord_st_date"/>
+							</div>
+							<div class="right_pane" id="order_end" style="width: 50%;display:inline-block;">
+								<p class="text-center">End Date</p>
+								<input type="date" name="ed_date" id="ord_end_date"/>
+							</div>
+							<div class="full_bottom" style="margin-top: 30px;">
+								<span class="label">States</span>
+								<select class="oredr_state" id="ord_state">
+									<option>Select State</option>
+									<option value="draft">New</option>
+									<option value="cancel">Cancelled</option>
+									<option value="paid">Paid</option>
+									<option value="done">Posted</option>
+									<option value="invoiced">Invoiced</option>
+								</select>
+							</div>
+						</div>
+					</main>
+					<footer class="footer">
+						<div class="button confirm odoo-theme-button" t-on-click="print_order">
+							Print
+						</div>
+						<div class="button cancel odoo-theme-button" t-on-click="go_back_screen">
+							Close
+						</div>
+					</footer>
+				</div>
+			</Draggable>
+		</div>
+	</t>
+
+	<t t-name="OrderReceiptWidget" owl="1">
+		<div class="receipt-screen screen">
+			<div class="screen-content">
+				<div class="top-content">
+					<span class="button back" t-on-click="back">
+						<i class="fa fa-angle-double-left"></i>
+						<span> </span>
+						<span>Back</span>
+					</span>
+					<div class="top-content-center">
+						<h1> Order Summary</h1>
+					</div>
+				</div>
+				<div class="centered-content">
+					<div class="button print" t-on-click="printReceipt">
+						<i class="fa fa-print"></i>
+						<span> </span>
+						<span>Print</span>
+					</div>
+					<div class="pos-receipt-container">
+						<XMLPosOrderSummaryReceipt order="order_receipt_data"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</t>
+
+	<t t-name="XMLPosOrderSummaryReceipt" owl="1">
+		<div class="pos-receipt">
+
+			<t t-set="obj" t-value="props.order"/>
+			<img class="pos-receipt-logo" t-att-src='env.pos.company_logo_base64' alt="Logo"/>
+			<br/>
+			<div class="pos-receipt-contact">
+				<t t-if='env.pos.company.contact_address'>
+					<div><t t-esc='env.pos.company.contact_address' /></div>
+				</t>
+				<t t-if='env.pos.company.phone'>
+					<div>Tel:<t t-esc='env.pos.company.phone' /></div>
+				</t>
+				<t t-if='env.pos.company.vat'>
+					<div>VAT:<t t-esc='env.pos.company.vat' /></div>
+				</t>
+				<t t-if='env.pos.company.email'>
+					<div><t t-esc='env.pos.company.email' /></div>
+				</t>
+				<t t-if='env.pos.company.website'>
+					<div><t t-esc='env.pos.company.website' /></div>
+				</t>
+				<br/>
+
+				<t t-if='env.pos.get_cashier()'>
+					<div class='cashier'>
+						<div>Served by <t t-esc='env.pos.get_cashier().name' /></div>
+					</div>
+				</t>
+			</div>
+			<br />
+			<t t-if="!obj.order_current_session">
+				<div class="receipt-periods">
+					Start Date: <span style="float:right;" t-esc="obj.st_date"/>
+				</div>
+				<div class="receipt-periods">
+					End Date: <span style="float:right;" t-esc="obj.ed_date"/>
+				</div>
+			</t>
+			<br/>
+			<div class="pos-center-align">
+			<strong>Order Summary</strong>
+			</div><br />
+
+			<table class='receipt-orderlines' style="margin: 0px auto;">
+				<colgroup>
+					<col width='25%' />
+					<col width='25%' />
+					<col width='30%' />
+					<col width='20%' />
+				</colgroup>
+				<thead>
+					<tr style="border-bottom: 2px solid black;">
+						<th>Name</th>
+						<th class="pos-center-align">State</th>
+						<th class="pos-center-align">Order Date</th>
+						<th class="pos-right-align">Amount</th>
+					</tr>
+				</thead>
+				<tbody style="font-size:14px;">
+					<t t-set="tot" t-value="0.0"/>
+					<tr t-foreach="obj.summery" t-as="summery1">
+						<td>
+							<t t-esc="summery1.name"/>
+
+						</td>
+						<td class="pos-center-align">
+							<t t-esc="summery1.state"/>
+						</td>
+						<td class="pos-center-align">
+							<t t-esc="summery1.date_order_str"/>
+						</td>
+						<td class="pos-right-align">
+							<t t-esc="env.pos.format_currency_no_symbol(summery1.amount_total,'Product Price')"/>
+							<t t-set="tot" t-value="tot + summery1.amount_total" />
+						</td>
+					</tr>
+					<br />
+					<tr>
+						<th style="padding-top: 10px;">Total:</th>
+						<td></td>
+						<td></td>
+						<td class="pos-right-align" style="padding-top: 10px;">
+							<t t-esc="env.pos.format_currency_no_symbol(tot,'Product Price')"/>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<br />
+		</div>
+	</t>
+
+</templates>

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <record id="booking_order_quotation_tree" model="ir.ui.view">
+        <field name="name">quotation.tree.retail.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="type">tree</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree"/>
+        <field name="arch" type="xml">
+             <field name="company_id" position="after">
+                <field name="branch_id"  optional="show"/>
+            </field>
+            <field name="state" position="after">
+                <field name="reserve_from" string="Reserved From" widget="date" optional="show"/>
+                <field name="reserve_to" string="Reserved From" widget="date" optional="show"/>
+                <field name="reserve_table_id" optional="hide"/>
+                <field name="pos_config_id" optional="hide"/>
+                <field name="pos_location_id" optional="hide"/>
+                <field name="book_order" optional="hide"/>
+                <field name="pos_order_id" optional="hide"/>
+                <field name="delivery_phone" optional="hide"/>
+                <field name="delivery_date" optional="hide"/>
+                <field name="delivery_address" optional="hide"/>
+                <field name="delivered_date" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="booking_order_sale_tree" model="ir.ui.view">
+        <field name="name">sale.order.tree.retail.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="type">tree</field>
+        <field name="inherit_id" ref="sale.view_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="state" position="after">
+                <field name="reserve_from" string="Reserved From" widget="date" optional="show"/>
+                <field name="reserve_to" string="Reserved From" widget="date" optional="show"/>
+                <field name="reserve_table_id" optional="hide"/>
+                <field name="pos_branch_id" invisible="1"/>
+                <field name="pos_config_id"/>
+                <field name="pos_location_id"/>
+                <field name="book_order" optional="hide"/>
+                <field name="ean13" optional="hide"/>
+                <field name="delivery_phone" optional="hide"/>
+                <field name="delivery_date" optional="hide"/>
+                <field name="delivery_address" optional="hide"/>
+                <field name="delivered_date" optional="hide"/>
+            </field>
+        </field>
+    </record>
+    
+    <record id="booking_order_sale_form" model="ir.ui.view">
+        <field name="name">sale.order.form.retail.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="type">form</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_order']" position="after">
+                <field name="reserve_order" attrs="{'invisible': [('book_order', '=', True)]}"/>
+                <field name="reserve_no_of_guests" attrs="{'invisible': [('reserve_order', '=', False)]}"/>
+                <field name="reserve_mobile" attrs="{'invisible': [('reserve_order', '=', False)]}"/>
+                <field name="reserve_from"
+                       attrs="{'invisible': [('reserve_order', '=', False)], 'required': [('reserve_order', '=', True)]}"/>
+                <field name="reserve_to"
+                       attrs="{'invisible': [('reserve_order', '=', False)], 'required': [('reserve_order', '=', True)]}"/>
+                <field name="reserve_table_id"
+                       attrs="{'invisible': [('reserve_order', '=', False)], 'required': [('reserve_order', '=', True)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_reservation_orders" model="ir.actions.act_window">
+        <field name="name">Reservation Orders</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_id" ref="sale.view_quotation_tree"/>
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+        <field name="search_view_id" ref="sale.sale_order_view_search_inherit_quotation"/>
+        <field name="domain">[('reserve_order', '=', True)]</field>
+        <field name="context">{'default_reserve_order': True}</field>
+    </record>
+
+    <record id="view_sale_order_calendar_reservation" model="ir.ui.view">
+        <field name="name">sale.order.calendar.reservation</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <calendar string="Reservation Orders" date_start="reserve_from" date_stop="reserve_to" color="state">
+                <field name="partner_id"/>
+                <field name="reserve_table_id"/>
+                <field name="amount_total" widget="monetary"/>
+            </calendar>
+        </field>
+    </record>
+    <record id="sub_calendar_action_book_orders" model="ir.actions.act_window.view">
+        <field eval="1" name="sequence"/>
+        <field name="view_mode">calendar</field>
+        <field name="view_id" ref="view_sale_order_calendar_reservation"/>
+        <field name="act_window_id" ref="action_reservation_orders"/>
+    </record>
+
+    <record id="action_book_orders" model="ir.actions.act_window">
+        <field name="name">Booked Orders</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_id" ref="sale.view_quotation_tree"/>
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+        <field name="search_view_id" ref="sale.sale_order_view_search_inherit_quotation"/>
+        <field name="domain">[('book_order', '=', True), ('reserve_order', '=', False)]</field>
+        <field name="context">{'default_book_order': True}</field>
+    </record>
+
+
+
+    <menuitem id="menu_action_book_ordersnew"
+              action="action_book_orders"
+              parent="point_of_sale.menu_point_of_sale"
+              groups="equip3_pos_masterdata.group_pos_supervisor,equip3_pos_masterdata.group_pos_manager,equip3_pos_masterdata.group_pos_staff,equip3_pos_masterdata.group_pos_cashier,equip3_pos_masterdata.group_pos_waiter"
+              sequence="100" />
+
+    <menuitem id="menu_action_reservation_ordersnew"
+              action="action_reservation_orders"
+              groups="equip3_pos_masterdata.group_pos_supervisor,equip3_pos_masterdata.group_pos_manager,equip3_pos_masterdata.group_pos_staff,equip3_pos_masterdata.group_pos_cashier,equip3_pos_masterdata.group_pos_waiter"
+              parent="point_of_sale.menu_point_of_sale"
+              sequence="101" />
+
+    
+
+</odoo>

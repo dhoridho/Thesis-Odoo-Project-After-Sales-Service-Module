@@ -1,0 +1,1061 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_partner_line_tree" model="ir.ui.view">
+        <field name="name">view.res.partner.tree.inherits</field>
+        <field name="model">res.partner</field>
+        <field name="priority" eval="500"/>
+        <field name="arch" type="xml">
+            <tree>
+                 <!-- <field name="vendor_sequence"/> -->
+                <field name="display_name"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <field name="activity_ids"/>
+                <field name="city"/>
+                <field name="country_id"/>
+                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="inherit_stock_picking_form_view_operation" model="ir.ui.view">
+        <field name="name">stock.picking.form.view.inherit.operation</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">stock_picking_barcode_scanner</attribute>
+            </xpath>
+
+            <xpath expr="//sheet//group[1]" position="attributes">
+                <attribute name="invisible">
+                    context.get('incoming_location', False) or context.get('outgoing_location', False) or context.get('default_transfer_id', False) or context.get('transfer_type') in ('out','in') or context.get('all_operation_groups') or context.get('default_is_consignment') or context.get('pick', False) or context.get('pack', False) or context.get('output', False)</attribute>
+                    <!-- context.get('incoming_location', False) or context.get('outgoing_location', False) or context.get('default_transfer_id', False) or context.get('transfer_type') in ('out','in') or context.get('all_operation_groups')</attribute> -->
+            </xpath>
+            <xpath expr="//widget[2]" position="attributes">
+                 <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//notebook" position="before">
+                <group name = 'group_header_picking' col="3">
+                    <group name='group_body_picking1'>
+                        <div class="o_td_label">
+                            <label for="partner_id" string="Contact" style="font-weight:bold;"
+                                    attrs="{'invisible': [('transfer_id', '=', False)]}"/>
+                            <label for="partner_id" string="Customer" style="font-weight:bold;"
+                                    attrs="{'invisible': [('picking_type_code', '!=', 'outgoing')]}"/>
+                            <label for="partner_id" string="Vendor" style="font-weight:bold;"
+                                    attrs="{'invisible': [('picking_type_code', '!=', 'incoming')]}"/>
+                        </div>
+                        <field name="partner_id" nolabel="1"/>
+                        <field name="branch_id"></field>
+                        <field name="filter_dest_location" invisible="1"/>
+                        <field name="filter_source_location" invisible="1"/>
+                        <field name="filter_operation_picking_type" invisible="1"/>
+                        <field name="location_id"
+                            attrs="{'readonly': [('picking_type_code', '!=', 'outgoing')], 'readonly': ['|', ('transfer_id', '!=', False), ('state', '!=', 'draft')]}"
+                            domain="filter_source_location"
+                            readonly="context.get('outgoing_location', False)">
+                            <!-- domain="[('id', 'in', filter_source_location_ids)]" -->
+                        </field>
+                        <field name="location_dest_id"
+                            attrs="{'readonly': [('picking_type_code', '!=', 'incoming')], 'readonly': ['|', ('transfer_id', '!=', False), ('state', '!=', 'draft')]}"
+                            domain="filter_dest_location"
+                            readonly="context.get('incoming_location', False) or context.get('picking', False) or context.get('packing', False) or context.get('output', False)">
+                            <!-- domain="[('id', 'in', filter_dest_location_ids)]" -->
+                        </field>
+                        <field name="company_id"></field>
+                        <section class="oe_edit_only" attrs="{'invisible': [('state', 'not in', ['assigned','draft','confirmed'] )]}">
+                            <script type="text/javascript" src="/sh_all_in_one_mbs/static/src/js/ZXing.js"></script>
+                            <script type="text/javascript" src="/sh_all_in_one_mbs/static/src/js/sh_stock_barcode_mobile.js"></script>
+                            <div>
+                                <group name="scan_barcode">
+                                    <label for="sh_stock_barcode_mobile"/>
+                                    <div class="o_row">
+                                        <field name="sh_stock_barcode_mobile"/>
+                                        <a role="button" class="btn btn-primary oe_edit_only o_mbs_start_button" id="js_id_sh_stock_barcode_mobile_start_btn">
+                                            <i class="fa fa-barcode"></i> Start
+                                        </a>
+                                        <a role="button" style="display: none;" class="btn btn-danger oe_edit_only o_mbs_stop_button" id="js_id_sh_stock_barcode_mobile_reset_btn">
+                                            <i class="fa fa-barcode"></i> Stop
+                                        </a>
+                                    </div>
+                                    <field name="sh_stock_bm_is_cont_scan" invisible="1"/>
+                                </group>
+                            </div>
+
+                            <div id="js_id_sh_stock_barcode_mobile_vid_div" style="display: none;">
+                                <group style="margin-bottom: 10px;">
+                                    <div class="form-group row" style="margin-bottom: 0px;">
+                                        <strong style="align-self: center;" class="col-3">Camera</strong>
+                                        <select class="col-8 form-control" id="js_id_sh_stock_barcode_mobile_cam_select"> </select>
+                                    </div>
+                                </group>
+    
+                                <video id="video" class="cls_sh_all_in_one_mbs_video_tag" width="600" height="400" style="border: 1px solid gray;"></video>
+    
+                                <span style="display: block;">Result:</span>
+                                <code id="js_id_sh_stock_barcode_mobile_result"></code>
+                            </div>
+                        </section>
+                    </group>
+                    <group name='group_body_picking2'>
+                        <field name="create_date"></field>
+                        <field name="create_uid"></field>
+                        <field name="scheduled_date"></field>
+                        <field name="date_done"></field>
+                        <field name="return_date_limit"></field>
+                        <field name="is_complete_return" invisible="1" force_save="1" readonly="1"/>
+                    </group>
+                    <group name='group_body_picking3'>
+                        <field name="origin"></field>
+                        <field name="analytic_account_group_ids" widget="many2many_tags" domain="domain_analytic_account_group_ids"/>
+                        <field name="domain_analytic_account_group_ids" invisible="1"/>
+                        <field name="is_rn_request_approval_matrix" invisible="1"/>
+                        <field name="is_do_request_approval_matrix" invisible="1"/>
+                        <field name="rn_approval_matrix" attrs="{'invisible': ['|', ('picking_type_code', '!=', 'incoming'), ('is_rn_request_approval_matrix', '=', False)]}"/>
+                        <field name="do_approval_matrix" attrs="{'invisible': ['|', ('picking_type_code', '!=', 'outgoing'), ('is_do_request_approval_matrix', '=', False)]}"/>
+                        <field name="force_date" invisible="1"></field>
+                        <field name="current_user" invisible="1"></field>
+                    </group>
+                    <!-- <group name='group_body_picking4'>
+                    </group> -->
+                </group>
+
+                <group name='transfer_type' col="3" invisible="context.get('transfer_type') not in ('out','in')">
+                    <group name='transfer_type_1'>
+                        <field name="company_id"/>
+                        <field name="branch_id"></field>
+                        <field name="filter_dest_location" invisible="1"/>
+                        <field name="filter_source_location" invisible="1"/>
+                        <field name="filter_operation_picking_type" invisible="1"/>
+                        <field name="location_id"
+                            attrs="{'readonly': [('picking_type_code', '!=', 'outgoing')], 'readonly': ['|', ('transfer_id', '!=', False), ('state', '!=', 'draft')]}"
+                            domain="filter_source_location"
+                            readonly="context.get('outgoing_location', False)">
+                        </field>
+                        <field name="location_dest_id"
+                            attrs="{'readonly': [('picking_type_code', '!=', 'incoming')], 'readonly': ['|', ('transfer_id', '!=', False), ('state', '!=', 'draft')]}"
+                            domain="filter_dest_location"
+                            readonly="context.get('incoming_location', False) or context.get('picking', False) or context.get('packing', False) or context.get('output', False)"/>
+                        <field name="origin_src_location" attrs="{'invisible': [('origin_src_location', '=', False)]}"/>
+                    </group>
+                    <group name='transfer_type_2'>
+                        <field name="domain_analytic_account_group_ids" invisible="1"/>
+                        <field name="analytic_account_group_ids" widget="many2many_tags" domain="domain_analytic_account_group_ids" force_save="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="rn_approval_matrix" attrs="{'invisible': [('picking_type_code', '!=', 'incoming'),('is_rn_request_approval_matrix', '=', False )]}"/>
+                        <field name="current_user" invisible="1"/>
+                        <field name="origin"/>
+
+                    </group>
+                    <group name='transfer_type_3'>
+                        <field name="create_date"/>
+                        <field name="create_uid"/>
+                        <field name="scheduled_date" modifiers="{'readonly':[['state','in',['done','cancel']]]}"/>
+                        <field name="date_done" string="Received On" attrs="{'invisible': [('state', 'not in', ('done', 'cancel'))]}"/>
+                        <field name="return_date_limit" attrs="{'invisible': [('state', '!=', 'done')]}" />
+                        <field name="force_date" attrs="{'readonly': [('state', '=', 'done')]}" invisible="1"/>
+                    </group>
+                    <!-- <group name='group_body_picking4'>
+                    </group> -->
+                </group>
+
+
+                <group name='all_operation_group' col="3" invisible="not context.get('all_operation_groups')">
+                    <group name='all_operation_group1'>
+                        <field name="company_id"/>
+                        <field name="branch_id"></field>
+                        <field name="filter_dest_location" invisible="1"/>
+                        <field name="filter_source_location" invisible="1"/>
+                        <field name="filter_operation_picking_type" invisible="1"/>
+                        <field name="location_id"
+                            attrs="{'readonly': [('picking_type_code', '!=', 'outgoing')], 'readonly': ['|', ('transfer_id', '!=', False), ('state', '!=', 'draft')]}"
+                            domain="filter_source_location"
+                            readonly="context.get('outgoing_location', False)">
+                        </field>
+                        <field name="location_dest_id"
+                            attrs="{'readonly': [('picking_type_code', '!=', 'incoming')], 'readonly': ['|', ('transfer_id', '!=', False), ('state', '!=', 'draft')]}"
+                            domain="filter_dest_location"
+                            readonly="context.get('incoming_location', False) or context.get('picking', False) or context.get('packing', False) or context.get('output', False)"/>
+                        <field name="origin_src_location" attrs="{'invisible': [('origin_src_location', '=', False)]}"/>
+                        <div>
+                            <group name="scan_barcode" attrs="{'invisible': [('state', 'not in', ['assigned','draft','confirmed'] )]}">
+                                <label for="sh_stock_barcode_mobile"/>
+                                <div class="o_row">
+                                    <field name="sh_stock_barcode_mobile"/>
+                                    <a role="button" class="btn btn-primary oe_edit_only o_mbs_start_button" id="js_id_sh_stock_barcode_mobile_start_btn">
+                                        <i class="fa fa-barcode"></i> Start
+                                    </a>
+                                    <a role="button" style="display: none;" class="btn btn-danger oe_edit_only o_mbs_stop_button" id="js_id_sh_stock_barcode_mobile_reset_btn">
+                                        <i class="fa fa-barcode"></i> Stop
+                                    </a>
+                                </div>
+                                <field name="sh_stock_bm_is_cont_scan" invisible="1"/>
+                            </group>
+                        </div>
+                    </group>
+                    <group name='all_operation_group2'>
+                        <field name="scheduled_date" modifiers="{'readonly':[['state','in',['done','cancel']]]}"/>
+                        <field name="force_date" attrs="{'readonly': [('state', '=', 'done')]}" invisible="1"/>
+                        <field name="domain_analytic_account_group_ids" invisible="1"/>
+                        <field name="analytic_account_group_ids" widget="many2many_tags" domain="domain_analytic_account_group_ids" force_save="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="rn_approval_matrix" attrs="{'invisible': ['|',('picking_type_code', '!=', 'incoming'),('rn_approval_matrix', '=', False )]}"/>
+                        <field name="do_approval_matrix" attrs="{'invisible': ['|',('picking_type_code', '!=', 'outgoing'),('do_approval_matrix', '=', False )]}"/>
+                        <field name="current_user" invisible="1"/>
+                    </group>
+                    <group name='all_operation_group3'>
+                        <field name="partner_id"/>
+                        <field name="create_date"/>
+                        <field name="create_uid"/>
+                        <field name="date_done" string="Received On" attrs="{'invisible': [('state', 'not in', ('done', 'cancel'))]}"/>
+                        <field name="return_date_limit" attrs="{'invisible': [('state', '!=', 'done')]}" />
+                        <field name="origin"/>
+                    </group>
+                </group>
+
+            </xpath>
+
+            <xpath expr="//group[@name='group_header_picking']" position="attributes">
+                <attribute name="invisible">context.get('group_header', False)</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='action_see_move_scrap']" position="after">
+                <button name="action_view_journal_in_itr" string="Journal Items" type="object" class="oe_stat_button" icon="o-hm-smart-all-vendor-bill"/>
+                <!-- attrs="{'invisible': ['|', ('journal_button', '=', False),('transfer_id', '=', False)]}" -->
+            </xpath>
+            <!-- <xpath expr="//button[@name='190']" position="attributes">
+                <attribute name="icon">o-hm-smart-all-traceability</attribute>
+            </xpath> -->
+            <xpath expr="//button[@name='action_view_stock_valuation_layers']" position="attributes">
+                <attribute name="icon">o-hm-smart-all-valuation</attribute>
+            </xpath>
+            <xpath expr="//h1" position="after">
+                <h3>
+                    <field name="merge_info" attrs="{'invisible': [('state', '!=', 'cancel')]}"/>
+                </h3>
+            </xpath>
+            
+            <xpath expr="//field[@name='group_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            
+            <xpath expr="//button[@name='action_toggle_is_locked'][1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_toggle_is_locked'][2]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='operations']" position="after">
+                <page name="detailed_operations_hidden" position="move"/>
+                <page name="detailed_operations_shown" position="move"/>
+            </xpath>
+            <xpath expr="//label[@for='scheduled_date']" position="before">
+                <field name="create_date"/>
+                <field name="create_uid"/>
+                <field name="process_time" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='location_dest_id']" position="after">
+                <field name="picking_batch_id" invisible="1"/>
+                <field name="journal_cancel" invisible="1"/>
+                <field name="is_mbs_on_transfer_operations" invisible="1"/>
+                <field name="is_adjustable_picking" invisible="1"/>
+                <field name="force_validate_button" invisible="1"/>
+                <field name="journal_button" invisible="1"/>
+                <field name="is_invisible_button_serialize" invisible="1"/>
+            </xpath>
+            <xpath expr="//page[@name='note']//field[@name='note']" position="before">
+                    <field name="cancel_reason" placeholder="Cancel Reason"/>
+            </xpath>
+            <xpath expr="//field[@name='location_dest_id']" position="after">
+                <field name="origin_src_location" attrs="{'invisible': [('origin_src_location', '=', False)]}"/>
+                <field name="origin_dest_location" attrs="{'invisible': [('origin_dest_location', '=', False)]}"/>
+                <field name="analytic_account_group_ids" widget="many2many_tags" domain="[('company_id', '=', company_id)]" groups="analytic.group_analytic_tags" force_save="1" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+            </xpath>
+            <xpath expr="//button[@name='action_cancel']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='owner_id']" position="attributes">
+                <attribute name="domain">owner_id_domain</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_cancel']" position="after">
+                <button name="button_action_cancel" attrs="{'invisible': [('state', 'not in', ('assigned', 'confirmed', 'partially_available', 'draft', 'waiting'))]}" string="Cancel" groups="base.group_user" type="object"/>
+            </xpath>
+            <xpath expr="//button[@name='button_validate']" position="after">
+                <button name="action_serialize" type="object" string="Serialize" class="oe_stat_button" attrs="{'invisible': [('is_invisible_button_serialize', '=', True)]}">
+                </button>
+            </xpath>
+            <xpath expr="//button[@name='button_validate']" position="after">
+                <button name="force_validate" type="object" string="Force Validate" class="oe_stat_button" attrs="{'invisible': ['|', ('state', 'not in', ('assigned','confirmed')), ('force_validate_button', '=', False)]}">
+                </button>
+            </xpath>
+            <button name="%(stock.act_stock_return_picking)d" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('state', '!=', 'done'), ('is_return_orders', '=', True)]}</attribute>
+            </button>
+            <button name="%(stock.act_stock_return_picking)d" position="after">
+                <button name="%(stock.act_stock_return_picking)d" attrs="{'invisible': ['|', ('state', '!=', 'done'), ('transfer_id', '=', False)]}" string="Return" groups="base.group_user" type="action"/>
+            </button>
+
+            <xpath expr="//field[@name='date_done']" position="attributes">
+                <attribute name="attrs">{'invisible': [('state', 'not in', ('done', 'cancel'))]}</attribute>
+            </xpath>
+            <field name="origin" position='after'>
+                <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" force_save="1"/>
+                <field name="active" invisible="1"/>
+                <field name="is_picking_itr" invisible="1"/>
+            </field>
+            <xpath expr='//group[@name="other_infos"]/field[@name="company_id"]' position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='other_infos']" position="after">
+                <group name='sales_person' string="Sales" attrs="{'invisible':[('picking_type_code', '!=', 'outgoing')]}">
+                    <field name="sales_person_id" attrs="{'readonly':[('state', '!=', 'draft')]}" string="Salesperson"/>
+                </group>
+            </xpath>
+            <xpath expr='//field[@name="picking_type_id"]' position="attributes">
+                    <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr='//page[@name="extra"]//group' position="before">
+                <group>
+                    <group string="Operation Details" name="operation_details">
+                        <field name="filter_dest_location" invisible="1"/>
+                        <field name="filter_source_location" invisible="1"/>
+                        <field name="filter_operation_picking_type" invisible="1"/>
+                        <field name="filter_operation_picking_type_ids" invisible="1" widget="many2many_tags"/>
+                        <field name="picking_type_id" domain="filter_operation_picking_type"/>
+                        <field name="is_transfer_in" invisible="1"/>
+                        <field name="transfer_id" invisible="1"/>
+                        <field name="is_transfer_out" invisible="1"/>
+                        <field name="filter_source_location_ids" widget="many2many_tags" invisible="1"/>
+                        <field name="filter_dest_location_ids" widget="many2many_tags" invisible="1"/>
+                        <field name="is_show_location" invisible="1"/>
+                        <field name="is_return_orders" invisible="1"/>
+                    </group>
+                </group>
+            </xpath>
+           <!-- <xpath expr="//page[@name='operations']//field[@name='package_level_ids']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '=', 'done')], 'invisible': ['|', '|', ('picking_type_entire_packs', '=', False), ('show_operations', '=', True), ('picking_type_code', '=', 'outgoing')]}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='detailed_operations_shown']/field[@name='package_level_ids_details']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '=', 'done')], 'invisible': ['|', '|', ('picking_type_code', '=', 'outgoing'), ('picking_type_entire_packs', '=', False), ('show_operations', '=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='detailed_operations_hidden']/field[@name='package_level_ids_details']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '=', 'done')], 'invisible': ['|', '|', ('picking_type_code', '=', 'outgoing'), ('picking_type_entire_packs', '=', False), ('show_operations', '=', False)]}</attribute>
+            </xpath> -->
+            <!-- <xpath expr="//page[@name='operations']" position="after">
+                <page name="packages" string="Packages" attrs="{'readonly': [('state', '=', 'done')], 'invisible': ['|', ('show_entire_packs', '=', False), ('picking_type_code', '!=', 'outgoing')]}">
+                    <field name="delivery_package_level_ids" context="{'default_location_id': location_id, 'default_location_dest_id': location_dest_id, 'default_company_id': company_id}">
+                        <tree editable="bottom" decoration-muted="state == 'done'">
+                            <field name="is_fresh_package" invisible="1"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="package_id" attrs="{'readonly': [('state', 'in', ('confirmed', 'assigned', 'done', 'cancel'))]}" options="{'no_create': True}"/>
+                            <field name="location_id" options="{'no_create': True}" attrs="{'column_invisible': [('parent.picking_type_code', '=', 'incoming')]}" groups="stock.group_stock_multi_locations"/>
+                            <field name="location_dest_id" options="{'no_create': True}"  attrs="{'column_invisible': [('parent.picking_type_code', '=', 'outgoing')]}" groups="stock.group_stock_multi_locations"/>
+                            <field name="state"/>
+                            <field name="is_done" attrs="{'readonly': ['|', ('parent.state', 'in', ('draft', 'new', 'done')), ('is_fresh_package', '=', True)]}"/>
+                        </tree>
+                    </field>
+                    <field name="show_entire_packs" invisible="1"/>
+                </page>
+            </xpath> -->
+
+            <field name="location_id" position="attributes">
+                <attribute name="attrs">{'invisible': [('picking_type_code', '=', 'incoming'), ('is_show_location', '=', True)], 'readonly': ['|', ('transfer_id', '!=', False), ('state', '!=', 'draft')]}</attribute>
+                <attribute name="domain">filter_source_location</attribute>
+                <attribute name="force_save">1</attribute>
+                <attribute name="readonly">context.get('outgoing_location', False)</attribute>
+            </field>
+            <field name="location_dest_id" position="attributes">
+                <attribute name="attrs">{'invisible': [('picking_type_code', '=', 'outgoing'), ('is_show_location', '=', True)], 'readonly': ['|', ('transfer_id', '!=', False), ('state', '!=', 'draft')]}</attribute>
+                <attribute name="domain">filter_dest_location</attribute>
+                <attribute name="force_save">1</attribute>
+                <attribute name="readonly">context.get('incoming_location', False) or context.get('picking', False) or context.get('packing', False) or context.get('output', False)</attribute>
+            </field>
+            <xpath expr="//field[@name='move_ids_without_package']" position="attributes">
+                <attribute name="context">{'default_company_id': company_id, 'default_date': scheduled_date, 'default_date_deadline': date_deadline, 'picking_type_code': picking_type_code, 'default_picking_id': id, 'form_view_ref':'stock.view_move_form', 'address_in_id': partner_id, 'default_picking_type_id': picking_type_id, 'default_location_id': location_id, 'default_location_dest_id': location_dest_id, 'move_ids_without_package': move_ids_without_package}
+                </attribute>
+                <attribute name="attrs">
+                    {'readonly': ['|', ('state', '=', 'done'), '&amp;', ('state', 'in', ('done', 'waiting', 'assigned')), ('is_adjustable_picking', '=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='product_id']" position="after">
+                <field name="analytic_account_group_ids" widget="many2many_tags" groups="analytic.group_analytic_tags"/>
+                <field name="return_qty" invisible="1"/>
+                <field name="scheduled_date" invisible="1"/>
+                <field name="partner_id" invisible="1"/>
+                <field name="responsible" invisible="1"/>
+                <field name="process_status" invisible="1"/>
+                <field name="late_time" invisible="1"/>
+                <field name="late_time_hours" invisible="1"/>
+                <field name="process_time" invisible="1"/>
+                <field name="process_time_hours" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='move_line_nosuggest_ids']" position="attributes">
+                <attribute name="context">{'tree_view_ref': 'stock.view_stock_move_line_detailed_operation_tree', 'default_picking_id': id, 'default_location_id': location_id, 'default_location_dest_id': location_dest_id, 'default_company_id': company_id, 'move_line_nosuggest_ids': move_line_nosuggest_ids}</attribute>
+                <attribute name="attrs">
+                    {'readonly': ['|', '|', ('show_operations', '=', False), ('state', 'in', ('cancel', 'waiting', 'assigned')), '&amp;', ('state', 'in', ('done', 'waiting', 'assigned')), ('is_adjustable_picking', '=', False)]}</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='move_line_ids_without_package']" position="before">
+                <div class="mb-3">
+                    <span class="oe_grey">This table shows details of the lot/serial number of each product</span>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='move_line_nosuggest_ids']" position="before">
+                <div class="mb-3">
+                    <span class="oe_grey">This table shows details of the lot/serial number of each product</span>
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='move_line_ids_without_package']" position="attributes">
+                <attribute name="context">{'tree_view_ref': 'stock.view_stock_move_line_detailed_operation_tree', 'default_picking_id': id, 'default_location_id': location_id, 'default_location_dest_id': location_dest_id, 'default_company_id': company_id, 'move_line_ids_without_package': move_line_ids_without_package}
+                </attribute>
+                <attribute name="attrs">
+                    {'readonly': ['|', '|', ('show_operations', '=', False), ('state', 'in', ('waiting', 'assigned', 'done')), '&amp;', ('state', 'in', ('done', 'waiting', 'assigned')), ('is_adjustable_picking', '=', False)]}</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='product_id']" position="before">
+                <field name="sequence" widget="handle"/>
+                <field name="move_line_sequence" readonly="1" force_save="1"/>
+                <field name="is_adjustable_picking" invisible="1"/>
+                <field name="picking_state" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//label[@for='partner_id'][1]" position="attributes">
+                <attribute name="string">Customer</attribute>
+                <attribute name="attrs"></attribute>
+                <attribute name="invisible">context.get('outgoing', True)</attribute>
+            </xpath>
+            <xpath expr="//label[@for='partner_id'][2]" position="attributes">
+                <attribute name="string">Vendor</attribute>
+                <attribute name="attrs"></attribute>
+                <attribute name="invisible">context.get('incoming', True)</attribute>
+            </xpath>
+            <xpath expr="//label[@for='partner_id'][3]" position="attributes">
+                <attribute name="string">Contact</attribute>
+                <attribute name="attrs"></attribute>
+                <attribute name="invisible">context.get('all_operations', True)</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="attrs">{'invisible': [('picking_type_code', '=', 'internal')], 'readonly': [('state', 'in', ('waiting', 'assigned'))]}</attribute>
+                <attribute name="domain">partner_id_domain</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="partner_id_domain" invisible="1"/>
+                <field name="owner_id_domain" invisible="1"/>
+                <field name="is_source_package" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']//tree/button[@name='action_show_details']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('show_details_visible', '=', False), ('picking_code', 'in', ('incoming', 'outgoing'))]}</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']//tree/button[@name='action_show_details']" position="before">
+                <field name="price_unit" optional="hide"/>
+                <button name="action_show_details" class="oe_highlight" type="object" string="Details" width="0.1" attrs="{'invisible': [('picking_code', 'not in', ('incoming', 'outgoing'))]}" options="{&quot;warn&quot;: true}"/>
+                <button name="action_show_details" class="oe_highlight" type="object" string="Details" width="0.1"
+                attrs="{'invisible': ['|', ('parent.is_transfer_in', '=', True), '&amp;', '|', ('parent.is_transfer_in', '=', True), ('parent.transfer_id', '=', False), ('picking_code', '!=', ('internal'))]}"
+                options='{"warn": true}'/>
+
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']//tree/field[@name='product_uom_qty']" position="before">
+                <field name="initial_unit_of_measure" attrs="{'column_invisible': [('parent.picking_type_code', '!=', 'outgoing')], 'readonly': [('parent.state', '!=', 'draft')], 'required': [('picking_code', '=', 'outgoing')]}" />
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']//tree/field[@name='product_id']" position="after">
+                <field name="package_type" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']//tree/field[@name='product_qty']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//page[@name='operations']//button[@name='action_put_in_pack']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('state', 'in', ('draft', 'done', 'cancel')), ('picking_type_code', '=', 'incoming')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='scheduled_date']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', 'in', ('waiting', 'assigned'))]}</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']/tree" position="attributes">
+                <attribute name="class">oe_sequence</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='date_done']" position="attributes">
+                <attribute name="string">Delivered On</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='date_done']" position="after">
+                <field name="return_date_limit" attrs="{'invisible': [('state', '!=', 'done')]}"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Transfer Activity Log" groups="equip3_inventory_accessright_setting.group_allow_to_see_transfer_activity_log">
+                    <field name="transfer_log_activity_ids" editable="bottom" readonly="1">
+                        <tree>
+                            <field name="action"/>
+                            <field name="reference" invisible="1"/>
+                            <field name="state"/>
+                            <field name="timestamp"/>
+                            <field name="process_time"/>
+                            <field name="process_days"/>
+                            <field name="user_id"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+
+            <xpath expr="//page[@name='operations']//field[@name='package_level_ids']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', '|', ('picking_type_entire_packs', '=', False), ('show_operations', '=', True), ('picking_type_code', '=', 'outgoing')]}</attribute>
+            </xpath>
+
+            <xpath expr="//page[@name='detailed_operations_shown']/field[@name='package_level_ids_details']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', '|', ('picking_type_code', '=', 'outgoing'), ('picking_type_entire_packs', '=', False), ('show_operations', '=', False)]}</attribute>
+            </xpath>
+
+            <xpath expr="//page[3]" position="after">
+                <page name="packages" string="Packages" attrs="{'invisible': ['|', '|', ('picking_type_code', '!=', 'outgoing'), ('is_source_package', '!=', True), ('state', 'not in', ('assigned', 'done'))]}">
+                    <field name="package_level_ids_details" position="move"/>
+                    <field name="package_level_ids" position="move"/>
+                </page>
+            </xpath>
+
+            <xpath expr="//page[@name='packages']//field[@name='package_level_ids']" position="attributes">
+                <attribute name="attrs">{'readonly': ['|', ('is_source_package', '=', True), ('state', '=', 'done')], 'invisible': [('show_operations', '=', True)]}</attribute>
+    		    <attribute name="force_save">1</attribute>
+            </xpath>
+
+            <xpath expr="//page[@name='packages']//field[@name='package_level_ids_details']" position="attributes">
+                <attribute name="attrs">{'readonly': ['|', ('state', '=', 'done'), ('is_source_package', '=', True)], 'invisible': [('show_operations', '=', False)]}</attribute>
+                <attribute name="force_save">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='analytic_account_group_ids']" position="after">
+                <field name="is_rn_request_approval_matrix"  invisible="1"/>
+                <field name="approval_matrix_line_id" invisible="1"/>
+                <field name="is_approve_button" invisible="1"/>
+                <field name="is_reset_to_draft" invisible="1"/>
+                <field name="check_product" invisible="1"/>
+                <field name="rn_approval_matrix" attrs="{'invisible': [('picking_type_code', '!=', 'incoming'),('is_rn_request_approval_matrix', '=', False )]}"/>
+
+                <field name="is_do_request_approval_matrix" invisible="1"/>
+                <field name="do_approval_matrix_line_id" invisible="1"/>
+                <field name="is_approve_button_do" invisible="1"/>
+                <field name="is_reset_to_draft_do" invisible="1"/>
+                <field name="check_product" invisible="1"/>
+                <field name="current_user" invisible="1"/>
+                <field name="do_approval_matrix" attrs="{'invisible': ['|', ('picking_type_code', '=', 'incoming'),('do_approval_matrix', '=',False )]}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('is_rn_request_approval_matrix', '!=', False), ('is_do_request_approval_matrix', '!=', False)]}</attribute>
+            </xpath>
+<!--            <xpath expr="//field[@name='state']" position="attributes">-->
+<!--                <attribute name="attrs">{'invisible': [('is_do_request_approval_matrix','=', True)]}</attribute>-->
+<!--            </xpath>-->
+            <xpath expr="//field[@name='state']" position="after">
+                        <field name="status_1" widget="statusbar" statusbar_visible="draft,waiting_for_approval,approved,confirm,assigned,done" attrs="{'invisible': ['|','|', ('is_rn_request_approval_matrix','=', False), ('state', '!=', 'approved'), ('picking_type_code', '!=', 'incoming'), '|', '|', ('is_do_request_approval_matrix', '=', False),('state', '!=', 'approved'), ('picking_type_code', '!=', 'outgoing')]}"/>
+                        <field name="status_2" widget="statusbar" statusbar_visible="draft,waiting_for_approval,rejected" attrs="{'invisible': ['|', '|', ('is_rn_request_approval_matrix','=', False), ('state', '!=', 'rejected'), ('picking_type_code', '!=', 'incoming'), '|', '|', ('is_do_request_approval_matrix', '=', False),('state', '!=', 'rejected'), ('picking_type_code', '!=', 'outgoing')]}"/>
+                        <field name="status_3" widget="statusbar" statusbar_visible="draft,waiting_for_approval,confirm,assigned,done" attrs="{'invisible': ['|', '|', ('is_rn_request_approval_matrix','=', False), ('state', 'in', ('approved', 'rejected')), ('picking_type_code', '!=', 'incoming'), '|', '|', ('is_do_request_approval_matrix', '=', False),('state', 'in', ('approved', 'rejected')), ('picking_type_code', '!=', 'outgoing')]}"/>
+                        <field name="status_4" widget="statusbar" statusbar_visible="draft,confirmed,assigned,done" attrs="{'invisible': ['|', ('is_rn_request_approval_matrix','=', False), ('is_do_request_approval_matrix','=', False)]}"/>
+
+<!--                        <field name="status_1" widget="statusbar" statusbar_visible="draft,waiting_for_approval,approved,confirm,assigned,done" attrs="{'invisible': ['|','|', ('is_do_request_approval_matrix','=', False), ('state', '!=', 'approved'), ('picking_type_code', '!=', 'outgoing')]}"/>-->
+<!--                        <field name="status_2" widget="statusbar" statusbar_visible="draft,waiting_for_approval,rejected" attrs="{'invisible': ['|', '|', ('is_do_request_approval_matrix','=', False), ('state', '!=', 'rejected'), ('picking_type_code', '!=', 'outgoing')]}"/>-->
+<!--                        <field name="status_3" widget="statusbar" statusbar_visible="draft,waiting_for_approval,confirm,assigned,done" attrs="{'invisible': ['|', '|', ('is_do_request_approval_matrix','=', False), ('state', 'in', ('approved', 'rejected')), ('picking_type_code', '!=', 'outgoing')]}"/>-->
+<!--                        <field name="status_4" widget="statusbar" statusbar_visible="draft,confirm,assigned,done" attrs="{'invisible': ['|', '|', ('is_do_request_approval_matrix','=', False), ('state', 'in', ('approved', 'rejected')), ('picking_type_code', '=', 'outgoing')]}"/>-->
+            </xpath>
+
+            <xpath expr="//button[@name='action_confirm']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+<!--            <xpath expr="//button[@name='action_confirm']" position="attributes">-->
+<!--                <attribute name="attrs">{'invisible': ['|', ('is_do_request_approval_matrix','=', True), ('state', '!=', 'draft')]}</attribute>-->
+<!--            </xpath>-->
+            <xpath expr="//button[@name='action_confirm']" position="before">
+<!--                <button name="action_confirm" attrs="{'invisible': ['|', '|', ('is_rn_request_approval_matrix','=', False), ('state', 'in', ('approved', 'rejected')), ('picking_type_code', '=', 'incoming')]}" string="Mark as Todo" type="object" class="oe_highlight" groups="base.group_user"/>-->
+                <button name="action_request_for_approval" type="object" string="Request For Approval" class="oe_highlight" attrs="{'invisible': ['|', '|', '|', '|', ('is_rn_request_approval_matrix','=', False), ('state', '!=', 'draft'), ('check_product', '=', False), ('picking_type_code', '!=', 'incoming'),('current_user','!=', True)]}"/>
+                <button name="action_set_to_draft" type="object" string="Set to Draft" class="oe_stat_button" attrs="{'invisible': ['|', ('state', 'not in', ('rejected','cancel')), ('picking_type_code', '!=', 'incoming')]}"/>
+                <button name="action_approve" type="object" string="Approve" class="oe_highlight" attrs="{'invisible': ['|', '|', '|', ('is_rn_request_approval_matrix','=', False), ('is_approve_button', '=', False), ('state', '!=', 'waiting_for_approval'), ('picking_type_code', '!=', 'incoming')]}"/>
+                <button name="action_reject" type="object" string="Reject" class="oe_highlight"  attrs="{'invisible': ['|', '|', '|', ('is_rn_request_approval_matrix','=', False), ('is_approve_button', '=', False), ('state', '!=', 'waiting_for_approval'), ('picking_type_code', '!=', 'incoming')]}" />
+
+                <button name="action_request_for_approval_do" type="object" string="Request For Approval" class="oe_highlight" attrs="{'invisible': ['|', '|', '|', ('is_do_request_approval_matrix','=', False), ('state', '!=', 'draft'), ('check_product', '=', False), ('picking_type_code', '!=', 'outgoing')]}"/>
+                <button name="action_set_to_draft_do" type="object" string="Set to Draft" class="oe_stat_button" attrs="{'invisible': ['|', ('state', 'not in', ('rejected','cancel')), ('picking_type_code', '=', 'incoming')]}"/>
+                <button name="action_approve_do" type="object" string="Approve" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_do_request_approval_matrix','=', False), ('state', '!=', 'waiting_for_approval'), ('picking_type_code', '=', 'incoming')]}"/>
+                <button name="action_reject_do" type="object" string="Reject" class="oe_highlight"  attrs="{'invisible': ['|', '|', ('is_do_request_approval_matrix','=', False), ('state', '!=', 'waiting_for_approval'), ('picking_type_code', '=', 'incoming')]}" />
+                <!-- show in draft state if no approval rn/do -->
+                <button name="action_confirm" attrs="{'invisible': ['|', '|', '|', ('id', '=', False), ('picking_type_code', 'not in', ['outgoing', 'incoming']), ('state', '!=', 'draft'), '|', ('is_do_request_approval_matrix', '!=', False), ('is_rn_request_approval_matrix', '!=', False)]}" string="Mark as Todo" type="object" class="oe_highlight" groups="base.group_user"/>
+                <!-- show in approved state if approval rn/do -->
+                <button name="action_confirm" attrs="{'invisible': ['|',('picking_type_code', 'not in', ('outgoing', 'incoming')), ('state', '!=', 'approved')]}" string="Mark as Todo" type="object" class="oe_highlight" groups="base.group_user"/>
+                <!-- internal -->
+                <button name="action_confirm" attrs="{'invisible': ['|', '|', ('picking_type_code', '!=', 'internal'), ('is_transfer_in', '=', True), ('state', '!=', 'draft')]}" string="Mark as Todo" type="object" class="oe_highlight" groups="base.group_user"/>
+            </xpath>
+            <xpath expr="//page[@name='extra']" position="before">
+                    <page name="approved_matrix_ids" string="Approval Matrix Line" attrs="{'invisible': ['|', ('picking_type_code', '!=', 'incoming'),('is_rn_request_approval_matrix', '=', False )]}">
+<!--                        attrs="{'invisible': [('rn_approval_matrix', '=', False)]}">-->
+                            <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}" readonly="1" force_save="1">
+                                <tree editable="bottom">
+                                    <field name="sequence" />
+                                    <field name="approver" widget="many2many_tags"/>
+                                    <field name="minimal_approver" />
+                                    <field name="approval_status" />
+                                    <field name="state"/>
+                                    <field name="time_stamp" invisible="1"/>
+                                    <field name="feedback" />
+                                </tree>
+                            </field>
+                    </page>
+                    <page name="do_approved_matrix_ids" string="Approval Matrix Line" attrs="{'invisible': ['|', ('picking_type_code', '=', 'incoming'),('is_do_request_approval_matrix', '=', False )]}">
+                            <field name="do_approved_matrix_ids" context="{'do_approved_matrix_ids': do_approved_matrix_ids}" readonly="1" force_save="1">
+                                <tree editable="bottom">
+                                    <field name="sequence" />
+                                    <field name="approver" widget="many2many_tags"/>
+                                    <field name="minimal_approver" />
+                                    <field name="approval_status" />
+                                    <field name="time_stamp" invisible="1"/>
+                                    <field name="feedback" />
+                                </tree>
+                            </field>
+                    </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_package_level_tree_view" model="ir.ui.view">
+        <field name="name">Package Level</field>
+        <field name="model">stock.package_level</field>
+        <field name="inherit_id" ref="stock.package_level_tree_view_picking"/>
+        <field name="arch" type="xml">
+            <field name="package_id" position="after">
+                <field name="product_id"/>
+            </field>
+            <field name="is_done" position="after">
+               <field name="occupancy" />
+            </field>
+        </field>
+    </record>
+
+<!--    <record id="inherit_stock_picking_tree_view" model="ir.ui.view">-->
+<!--    <field name="name">stock.picking.tree.view.inherit</field>-->
+<!--    <field name="model">stock.picking</field>-->
+<!--    <field name="inherit_id" ref="stock.vpicktree"/>-->
+<!--    <field name="arch" type="xml">-->
+<!--        <xpath expr="//field[@name='location_dest_id']" position="after">-->
+<!--            <field name="origin_src_location" attrs="{'invisible': [('origin_src_location', '=', False)]}"/>-->
+<!--        </xpath>-->
+<!--    </field>-->
+<!--    </record>-->
+
+
+
+    <record id="stock_picking_form_view_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.form.view.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="branch.view_picking_form_inherit_branch"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='branch_id']" position="after">
+                <field name="filter_branch_ids" invisible="1" widget="many2many_tags"/>
+                <field name="qty_can_minus_boolean" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='branch_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', 'in', ('waiting', 'assigned'))]}</attribute>
+                <!-- <attribute name="domain">[('id', 'in', filter_branch_ids)]</attribute> -->
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_report_company_delivery_template_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.form.view.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="general_template.view_report_company_delivery_template"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='report_template_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_tree_stock_picking" model="ir.ui.view">
+        <field name="name">stock.picking.tree</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+           <tree create="false" default_order="id">
+                <header>
+                    <button name="do_unreserve" type="object" string="Unreserve"/>
+                </header>
+                <field name="priority" optional="show" widget="priority" nolabel="1"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="location_id" options="{'no_create': True}" string="From" groups="stock.group_stock_multi_locations" optional="show"/>
+                <field name="location_dest_id" options="{'no_create': True}" string="To" groups="stock.group_stock_multi_locations" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="signature" string="Signed" optional="hide" widget="boolean" groups="stock.group_stock_sign_delivery"/>
+                <field name="user_id" optional="hide" widget="many2one_avatar_user"/>
+                <field name="scheduled_date" optional="show" widget="remaining_days" attrs="{'invisible':[('state', 'in', ('done', 'cancel'))]}"/>
+                <field name="date_deadline" optional="hide" widget="remaining_days" attrs="{'invisible':[('state', 'in', ('done', 'cancel'))]}"/>
+                <field name="origin" optional="show"/>
+                <field name="group_id" invisible="1"/>
+                <field name="backorder_id" optional="hide"/>
+                <field name="picking_type_id" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="state" optional="show" widget="badge"
+                            decoration-success2="state == 'done'"
+                            decoration-secondary="state == 'draft'"
+                            decoration-success="state == 'assigned'"
+                            decoration-warning="state in ('waiting', 'waiting_of_approval')"
+                            decoration-danger3="state == 'cancel'"
+                            decoration-danger="state == 'rejected'"
+                            decoration-success3="state == 'approved'"
+                            decoration-warning2="state == 'confirmed'"/>
+                <field name="activity_exception_decoration" widget="activity_exception"/>
+                <field name="json_popover" nolabel="1" widget="stock_rescheduling_popover" attrs="{'invisible': [('json_popover', '=', False)]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="stock_picking_tree_inherit_1" model="ir.ui.view">
+        <field name="name">stock.picking.tree.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header//button[@name='do_unreserve']" position="before">
+                <button name="button_create_picking" class="btn btn-primary o_list_button_add" type="object" string ="Create Batch"/>
+            </xpath>
+            <xpath expr="//tree/field[@name='state']" position="replace">
+                <field name="state" optional="show" widget="badge"
+                            decoration-success2="state == 'done'"
+                            decoration-secondary="state == 'draft'"
+                            decoration-success="state == 'assigned'"
+                            decoration-warning="state == 'waiting'"
+                            decoration-warning3="state =='waiting_for_approval'"
+                            decoration-danger3="state == 'cancel'"
+                            decoration-danger="state == 'rejected'"
+                            decoration-success3="state == 'approved'"
+                            decoration-warning2="state == 'confirmed'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_picking_batch_tree_inherit_1" model="ir.ui.view">
+        <field name="name">stock.picking.batch.tree.inherit</field>
+        <field name="model">stock.picking.batch</field>
+        <field name="inherit_id" ref="stock_picking_batch.stock_picking_batch_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='state']" position="replace">
+                <field name="state" optional="show" widget="badge"
+                            decoration-success2="state == 'done'"
+                            decoration-secondary="state == 'draft'"
+                            decoration-warning="state == 'in_progress'"
+                            decoration-danger3="state == 'cancel'"/>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="action_internal_transfer_out_tree" model="ir.ui.view">
+        <field name="name">stock.picking.tree</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <tree create="false" default_order="id desc">
+                <header>
+                    <button name="do_unreserve" type="object" string="Unreserve"/>
+                </header>
+                <field name="priority" optional="show" widget="priority" nolabel="1"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="location_id" options="{'no_create': True}" string="From" groups="stock.group_stock_multi_locations" optional="show"/>
+                <field name="location_dest_id" options="{'no_create': True}" string="To" groups="stock.group_stock_multi_locations" optional="show"/>
+                <field name="origin_dest_location" />
+                <field name="partner_id" optional="show"/>
+                <field name="signature" string="Signed" optional="hide" widget="boolean" groups="stock.group_stock_sign_delivery"/>
+                <field name="user_id" optional="hide" widget="many2one_avatar_user"/>
+                <field name="scheduled_date" optional="show" widget="remaining_days" attrs="{'invisible':[('state', 'in', ('done', 'cancel'))]}"/>
+                <field name="date_deadline" optional="hide" widget="remaining_days" attrs="{'invisible':[('state', 'in', ('done', 'cancel'))]}"/>
+                <field name="origin" optional="show"/>
+                <field name="group_id" invisible="1"/>
+                <field name="backorder_id" optional="hide"/>
+                <field name="picking_type_id" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="state" optional="show" widget="badge"
+                            decoration-success2="state == 'done'"
+                            decoration-secondary="state == 'draft'"
+                            decoration-success="state == 'assigned'"
+                            decoration-warning="state == 'waiting'"
+                            decoration-warning3="state =='waiting_for_approval'"
+                            decoration-danger3="state == 'cancel'"
+                            decoration-danger="state == 'rejected'"
+                            decoration-success3="state == 'approved'"
+                            decoration-warning2="state == 'confirmed'"/>
+                <field name="activity_exception_decoration" widget="activity_exception"/>
+                <field name="json_popover" nolabel="1" widget="stock_rescheduling_popover" attrs="{'invisible': [('json_popover', '=', False)]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_internal_transfer_in_tree" model="ir.ui.view">
+        <field name="name">stock.picking.tree</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <tree create="false" default_order="id desc">
+                <header>
+                    <button name="do_unreserve" type="object" string="Unreserve"/>
+                </header>
+                <field name="priority" optional="show" widget="priority" nolabel="1"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="location_id" options="{'no_create': True}" string="From" groups="stock.group_stock_multi_locations" optional="show"/>
+                <field name="location_dest_id" options="{'no_create': True}" string="To" groups="stock.group_stock_multi_locations" optional="show"/>
+                <field name="origin_src_location" />
+                <field name="partner_id" optional="show"/>
+                <field name="signature" string="Signed" optional="hide" widget="boolean" groups="stock.group_stock_sign_delivery"/>
+                <field name="user_id" optional="hide" widget="many2one_avatar_user"/>
+                <field name="scheduled_date" optional="show" widget="remaining_days" attrs="{'invisible':[('state', 'in', ('done', 'cancel'))]}"/>
+                <field name="date_deadline" optional="hide" widget="remaining_days" attrs="{'invisible':[('state', 'in', ('done', 'cancel'))]}"/>
+                <field name="origin" optional="show"/>
+                <field name="group_id" invisible="1"/>
+                <field name="backorder_id" optional="hide"/>
+                <field name="picking_type_id" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="state" optional="show" widget="badge"
+                            decoration-success2="state == 'done'"
+                            decoration-secondary="state == 'draft'"
+                            decoration-success="state == 'assigned'"
+                            decoration-warning="state == 'waiting'"
+                            decoration-warning3="state =='waiting_for_approval'"
+                            decoration-danger3="state == 'cancel'"
+                            decoration-danger="state == 'rejected'"
+                            decoration-success3="state == 'approved'"
+                            decoration-warning2="state == 'confirmed'"/>
+                <field name="activity_exception_decoration" widget="activity_exception"/>
+                <field name="json_popover" nolabel="1" widget="stock_rescheduling_popover" attrs="{'invisible': [('json_popover', '=', False)]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="inherit_stock_move_line_tree_view" model="ir.ui.view">
+        <field name="name">stock.move.line.tree.view.inherit.custom</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="before">
+                <field name="sequence" widget="handle"/>
+                <field name="move_line_sequence" readonly="1" force_save="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_picking_receiving_note" model="ir.actions.act_window">
+        <field name="name">Receiving Notes</field>
+        <field name="res_model">stock.picking</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">tree,form,calendar</field>
+        <field name="domain">[('picking_type_code', '=', 'incoming')]</field>
+        <field name="context">{'picking_type_code': 'incoming','incoming' : False, 'outgoing_location' : True, 'date_done_string': 'Received On', 'group_header': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            Create a new Receiving Note.
+            </p>
+        </field>
+    </record>
+
+
+    <record id="action_delivery_order" model="ir.actions.act_window">
+        <field name="name">Delivery Orders</field>
+        <field name="res_model">stock.picking</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">tree,form,calendar</field>
+        <field name="domain">[('picking_type_code', '=', 'outgoing')]</field>
+        <field name="context">{'picking_type_code': 'outgoing', 'outgoing': False, 'incoming_location' : True, 'group_header': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create New Delivery Order
+            </p>
+        </field>
+
+    </record>
+
+    <record id="stock.all_picking" model="ir.ui.menu">
+        <field name="name">All Transfer Operations</field>
+    </record>
+
+    <record id="stock.stock_picking_rule" model="ir.rule">
+        <field name="active" eval="False"/>
+    </record>
+
+    <record id="action_from_interwarehouse_request" model="ir.actions.act_window">
+        <field name="name">Stock Picking</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('transfer_id', '=', self.id)]</field>
+        <field name="context">{'default_transfer_id': True, 'group_header': False}</field>
+    </record>
+
+    <record id="stock.action_picking_tree_all" model="ir.actions.act_window">
+        <field name="name">All Transfer Operations</field>
+        <field name="domain">[]</field>
+        <field name="context">{'contact_display': 'partner_address',
+                               'default_company_id': allowed_company_ids[0],
+                               'all_operations' : False,
+                               'group_header': True,
+                               'all_operation_groups': True,
+                               'create' : False,
+                               }</field>
+    </record>
+
+    <menuitem
+        id="stock_picking_receiving_note_menu"
+        name="Receiving Notes"
+        parent="menu_operations_transfer_operations"
+        action="stock_picking_receiving_note"
+        groups="stock.group_stock_manager,stock.group_stock_user"
+        sequence="6"/>
+
+    <menuitem
+        id="menu_delivery_order"
+        name="Delivery Orders"
+        parent="menu_operations_transfer_operations"
+        groups="stock.group_stock_manager,stock.group_stock_user"
+        action="action_delivery_order"
+        sequence="7"/>
+
+    <record id="action_internal_transfer_notes" model="ir.actions.act_window">
+            <field name="name">Interwarehouse Transfer Notes</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">stock.picking</field>
+            <field name="view_mode">tree,form,calendar</field>
+            <field name="domain">[('picking_type_code', '=', 'internal'), ('is_transfer_in', '=', False), ('is_transfer_out', '=', False)]</field>
+            <field name="context">{'create': False,'group_header': True}</field>
+            <field name="help" type="html">
+            <p class="oe_views_nocontent_create">
+            Click to add a new Internal Transfer Notes.
+            </p>
+            </field>
+    </record>
+
+    <menuitem name="Interwarehouse Transfer Notes"
+        id="menu_internal_transfer_notes"
+        parent="stock.menu_stock_warehouse_mgmt"
+        action="action_internal_transfer_notes"
+        sequence="8"/>
+
+        <record id="action_internal_transfer_in" model="ir.actions.act_window">
+            <field name="name">Interwarehouse Transfer In</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">stock.picking</field>
+            <field name="view_mode">tree,form,calendar</field>
+            <field name="view_id" ref="equip3_inventory_operation.action_internal_transfer_in_tree"/>
+            <field name="domain">[('picking_type_code', '=', 'internal'), ('is_transfer_in', '=', True), ('is_transfer_out', '=', False)]</field>
+            <field name="context">{'create': False, 'date_done_string': 'Received On', 'group_header': True, 'transfer_type': 'in'}</field>
+            <field name="help" type="html">
+            <p class="oe_views_nocontent_create">
+                Click to add a new Internal Transfer IN.
+            </p>
+            </field>
+        </record>
+
+        <menuitem name="Interwarehouse Transfer In"
+        id="menu_internal_transfer_in"
+        parent="equip3_inventory_operation.menu_operations_internal_transfer"
+        action="action_internal_transfer_in"
+        sequence="3"/>
+
+        <record id="action_internal_transfer_out" model="ir.actions.act_window">
+             <field name="name">Interwarehouse Transfer Out</field>
+             <field name="type">ir.actions.act_window</field>
+             <field name="res_model">stock.picking</field>
+             <field name="view_mode">tree,form,calendar</field>
+            <field name="view_id" ref="equip3_inventory_operation.action_internal_transfer_out_tree"/>
+             <field name="domain">[('picking_type_code', '=', 'internal'), ('is_transfer_in', '=', False), ('is_transfer_out', '=', True)]</field>
+             <field name="context">{'create': False, 'group_header': True, 'transfer_type': 'out'}</field>
+             <field name="help" type="html">
+               <p class="oe_views_nocontent_create">
+                Click to add a new Internal Transfer OUT.
+               </p>
+             </field>
+        </record>
+
+        <menuitem name="Interwarehouse Transfer Out"
+         id="menu_internal_transfer_out"
+         parent="equip3_inventory_operation.menu_operations_internal_transfer"
+         action="action_internal_transfer_out"
+         sequence="2"/>
+
+        <record model="ir.ui.menu" id="dev_rma.menu_dev_rma_rma_main">
+            <field name='name'>RMA</field>
+            <field name="active" eval="False"/>
+        </record>
+
+        <record id="inventory_operation_stock_return_picking_view_form" model="ir.ui.view">
+            <field name="name">inventory.operation.stock.return.picking.view.form</field>
+            <field name="model">stock.return.picking</field>
+            <field name="inherit_id" ref="stock.view_stock_return_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form/group[2]" position="after">
+                    <div attrs="{'invisible': [('is_return_possible', '=', True)]}">
+                        <p class="text-danger"><b>Product(s) Exceed the Return Before date</b></p>
+                    </div>
+                </xpath>
+                <xpath expr="//field[@name='location_id']" position="after">
+                    <field name="is_return_possible" invisible="1"/>
+                    <field name="return_reason" style="width: 300px;" required="1"/>
+                    <field name="return_reason_info" string="" placeholder="Return Reason"/>
+                    <field name="picking_type_code" invisible="1"/>
+                </xpath>
+                <!-- <field name="product_return_moves" position="attributes">
+                    <attribute name="attrs">{'invisible': [('picking_type_code', '=', 'outgoing')]}</attribute>
+                </field> -->
+                <xpath expr="//field[@name='product_return_moves']/.." position="before">
+                    <group>
+                        <field name="return_line_ids" nolabel="1" invisible="1">
+                            <tree create="0" editable="bottom">
+                                <field name="product_id" readonly="1" force_save="1"/>
+                                <field name="lot_id" readonly="1" force_save="1"/>
+                                <field name="qty"/>
+                                <field name="uom_id" readonly="1" force_save="1"/>
+                            </tree>
+                        </field>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+    <record id="inventory_operation_stock_picking_calendar" model="ir.ui.view">
+        <field name="name">inventory.operation.stock.picking.calendar</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.stock_picking_calendar"/>
+        <field name="arch" type="xml">
+            <xpath expr="//calendar" position="attributes">
+                <attribute name="mode">month</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="inventory_operation_delivery_view" model="ir.ui.view">
+        <field name="name">inventory.operation.delivery.view</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="delivery.view_picking_withcarrier_out_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='carrier_tracking_ref']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            
+            <xpath expr="//label[@for='carrier_tracking_ref']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="stock_picking_barcode_mobile_picking_form_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.barcode.mobile.picking.form.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="sh_all_in_one_mbs.sh_inventory_barcode_mobile_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sh_stock_barcode_mobile']" position="replace"></xpath>
+            <xpath expr="//field[@name='sh_stock_bm_is_cont_scan']" position="attributes">
+                <attribute name="attrs">{'invisible': [('is_mbs_on_transfer_operations', '=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//a[@id='js_id_sh_stock_barcode_mobile_start_btn']" position="attributes">
+                <attribute name="attrs">{'invisible': [('is_mbs_on_transfer_operations', '=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//section[contains(@class, 'o_mb_section')]" position="replace">
+            </xpath>
+        </field>
+    </record>
+
+    <function model="stock.picking" name="action_internal_transfer_menu"/>
+</odoo>

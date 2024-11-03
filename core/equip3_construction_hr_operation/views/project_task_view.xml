@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_task_tree_project_hr_inherit" model="ir.ui.view">
+        <field name="name">view.task.tree.project.hr.inherit</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="equip3_construction_masterdata.view_task_tree_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='allow_subtasks']" position="after">
+                <field name="planned_hours" sum="Initially Planned Hours"  optional="hide" widget="float_time_hms"/>
+                <field name="effective_hours" widget="float_time_hms" sum="Effective Hours" optional="hide"/>
+                <field name="remaining_hours" widget="float_time_hms" sum="Remaining Hours" optional="hide" decoration-danger="progress &gt;= 100" decoration-warning="progress &gt;= 80 and progress &lt; 100"/>
+                <field name="subtask_effective_hours" widget="float_time_hms" attrs="{'invisible' : [('allow_subtasks', '=', False)]}" optional="hide"/>
+                <field name="total_hours_spent" widget="float_time_hms" attrs="{'invisible' : [('allow_subtasks', '=', False)]}" optional="hide"/>
+                <field name="progress" string='Progress Hours' widget="progressbar" optional="hide" groups="hr_timesheet.group_hr_timesheet_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="edit_view_task_tree_external_own_job_hr_inherit" model="ir.ui.view">
+        <field name="name">edit.view.task.tree.external.own.job.hr.inherit</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="equip3_construction_operation.edit_view_task_tree_external_own_job"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='allow_subtasks']" position="after">
+                <field name="planned_hours" widget="float_time_hms" sum="Initially Planned Hours"  optional="hide"/>
+                <field name="effective_hours" widget="float_time_hms" sum="Effective Hours" optional="hide"/>
+                <field name="remaining_hours" widget="float_time_hms" sum="Remaining Hours" optional="hide" decoration-danger="progress &gt;= 100" decoration-warning="progress &gt;= 80 and progress &lt; 100"/>
+                <field name="subtask_effective_hours" widget="float_time_hms" attrs="{'invisible' : [('allow_subtasks', '=', False)]}" optional="hide"/>
+                <field name="total_hours_spent" widget="float_time_hms" attrs="{'invisible' : [('allow_subtasks', '=', False)]}" optional="hide"/>
+                <field name="progress" string='Progress Hours' widget="progressbar" optional="hide" groups="hr_timesheet.group_hr_timesheet_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="edit_view_task_tree_external_subcon_hr_inherit" model="ir.ui.view">
+        <field name="name">edit.view.task.tree.external.subcon.hr.inherit</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="equip3_construction_operation.edit_view_task_tree_external_subcon"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='allow_subtasks']" position="after">
+                <field name="planned_hours" widget="float_time_hms" sum="Initially Planned Hours"  optional="hide"/>
+                <field name="effective_hours" widget="float_time_hms" sum="Effective Hours" optional="hide"/>
+                <field name="remaining_hours" widget="float_time_hms" sum="Remaining Hours" optional="hide" decoration-danger="progress &gt;= 100" decoration-warning="progress &gt;= 80 and progress &lt; 100"/>
+                <field name="subtask_effective_hours" widget="float_time_hms" attrs="{'invisible' : [('allow_subtasks', '=', False)]}" optional="hide"/>
+                <field name="total_hours_spent" widget="float_time_hms" attrs="{'invisible' : [('allow_subtasks', '=', False)]}" optional="hide"/>
+                <field name="progress" string='Progress Hours' widget="progressbar" optional="hide" groups="hr_timesheet.group_hr_timesheet_user"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="add_fields_project_task_form_hr_inherit" model="ir.ui.view">
+        <field name="name">add.fields.project.task.form.hr.inherit</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="equip3_construction_operation.add_fields_project_task_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[@name='description_page']" position="after">
+                <page name="hr_progress_history" string="Progress History" groups="project.group_project_user">
+                    <group name="timesheet_timer" attrs="{'invisible' : [('custom_project_progress', '!=', 'timesheet')]}">
+                        <div class="row">
+                            <field name="is_live" invisible="1"/>
+                            <field name="is_pause" invisible="1"/>
+                            <field name="start_time" invisible="1"/>
+                            <field name="continue_time" invisible="1"/>
+                            <field name="end_time" invisible="1"/>
+                            <field name="total_pause_duration" invisible="1"/>
+                            <field name="custom_project_progress" invisible="1"/>
+                            <button name="start_work_hour" class="btn btn-primary" type="object" string="Start" attrs="{'invisible' : ['|','|','|', ('state', '!=', 'inprogress'), ('is_pause', '=', True), ('is_live', '=', True),('custom_project_progress', '!=', 'timesheet')]}"/>
+                            <button name="continue_work_hour" class="btn btn-primary" type="object" string="Continue" attrs="{'invisible' : ['|', ('is_pause', '=', False), ('is_live', '=', False)]}"/>
+                            <button name="pause_work_hour" class="btn btn-primary" type="object" string="Pause" attrs="{'invisible' : ['|', ('is_pause', '=', True), ('is_live', '=', False)]}"/>
+                            <button name="end_work_hour" class="btn btn-primary ml-2" type="object" string="Stop" attrs="{'invisible' : [('is_live', '=', False)]}"/>
+                        </div>
+                        <group attr="{'invisible' : [('custom_project_progress', '!=', 'timesheet')]}">
+                            <field name="work_hour_duration" widget="progress_time_counter" attr="{'invisible' : [('custom_project_progress', '!=', 'timesheet')]}"/>
+                        </group>
+                    </group>
+                    <notebook></notebook>
+                </page>
+            </xpath>
+
+            <xpath expr="//notebook/page[@name='hr_progress_history']/group[@name='timesheet_timer']" position="after">
+                <xpath expr="//field[@name='progress_history_ids']" position="move"/>
+            </xpath>
+
+            <xpath expr="//notebook/page[@name='progress_history']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//notebook/page[@name='hr_progress_history']/notebook" position="inside">
+                <page name="pause_history_page" string="Pause History" invisible="1">
+                    <field name="pause_history_ids" widget="one2many_list">
+                        <tree>
+                            <field name="start_time"/>
+                            <field name="pause_time"/>
+                            <field name="duration" widget="float_time_hms"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+
+            <xpath expr="//notebook/page[@name='hr_progress_history']" position="after">
+                <xpath expr="//notebook/page[@id='timesheets_tab']" position="move"/>
+
+            </xpath>
+
+            <xpath expr="//notebook/page[@id='timesheets_tab']/field[@name='timesheet_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='create_progress_history']" position="attributes">
+                <attribute name="attrs">{'invisible' : ['|', ('custom_project_progress', '=', 'timesheet'), ('state','in',['draft','pending','cancel','complete'])]}</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='progress_history_ids']/tree//field[@name='progress_summary']" position="after">
+                <field name="current_total_duration" widget="float_time_hms" attrs="{'column_invisible': [('parent.custom_project_progress','!=','timesheet')]}" force_save="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='assigned_to']" position="attributes">
+                <attribute name="attrs">{'required' : [('custom_project_progress', '=', 'timesheet')]}</attribute>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="add2_fields_project_task_form_inherit_hr_cons" model="ir.ui.view">
+            <field name="name">add2.fields.project.task.form.inherit.hr.cons</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="equip3_construction_operation.add2_fields_project_task_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group[1]/field[@name='duration']" position="attributes">
+                    <attribute name="attrs">{'invisible' : [('custom_project_progress', '=', 'timesheet')]}</attribute>
+                </xpath>
+            </field>
+        </record>
+
+    <record id="progress_history_form_default_inherit_hr" model="ir.ui.view">
+        <field name="name">progress.history.form.default.inherit.hr</field>
+        <field name="model">progress.history</field>
+        <field name="inherit_id" ref="equip3_construction_operation.progress_history_form_default"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='custom_project_progress']" position="after">
+                <field name="current_total_duration" readonly="1" widget="float_time_hms" attrs="{'invisible':[('custom_project_progress','!=','timesheet')]}"/>
+                <field name="worker_ids" widget="many2many_tags" attrs="{'invisible':['|', ('custom_project_progress','!=','timesheet'), ('is_using_labour_attendance','=',True)], 'required':[('custom_project_progress','=','timesheet')]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_task_form2_inherited_construction_inherit" model="ir.ui.view">
+        <field name="name">view_task_form2_inherited_construction_inherit</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="hr_timesheet.view_task_form2_inherited"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='planned_hours']" position="attributes">
+                <attribute name="widget">float_time_hms</attribute>
+            </xpath>
+            <xpath expr="//field[@name='progress']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='effective_hours']" position="attributes">
+                <attribute name="widget">float_time_hms</attribute>
+            </xpath>
+            <xpath expr="//field[@name='remaining_hours']" position="attributes">
+                <attribute name="widget">float_time_hms</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='timesheet_ids']" position="after">
+                <field name="timesheet_line_ids" widget="so_line_one2many">
+                    <tree>
+                        <field name="start_date"/>
+                        <field name="end_date"/>
+                        <field name="worker_ids" widget="many2many_tags"/>
+                        <field name="name"/>
+                        <field name="duration" widget="float_time_hms"/>
+                    </tree>
+                </field>
+            </xpath>
+
+            <xpath expr="//field[@name='remaining_hours']" position="after">
+                <field class="font-weight-bold" name="overtime_hours" widget="float_time_hms"/>
+            </xpath>
+
+        </field>
+    </record>
+
+
+
+</odoo>

@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+        <!-- rental.order pivot view -->
+        <record id="rental_order_view_pivot" model="ir.ui.view">
+            <field name="name">rental.order.line.view.pivot</field>
+            <field name="model">rental.order.line</field>
+            <field name="arch" type="xml">
+                <pivot string="Pivot Description">
+                    <!-- Add your fields here -->
+                    <field name="price_subtotal" type="measure"/>
+                    <field name="product_id" type="row"/>
+                    <field name="product_categ_id" type="row"/>
+                    <field name="lot_id" type="row"/>
+                </pivot>
+            </field>
+        </record>
+
+        <!-- rental.order.line graph view -->
+        <record id="rental_order_view_graph" model="ir.ui.view">
+            <field name="name">rental.order.line.view.graph</field>
+            <field name="model">rental.order.line</field>
+            <field name="arch" type="xml">
+                <graph string="Graph Description" type="line">
+                    <!-- Add your fields here -->
+                    <field name="order_date" type="row" interval="day"/>
+                    <field name="price_subtotal" type="measure"/>
+                </graph>
+            </field>
+        </record>
+        
+
+        <!-- rental.order action window -->
+        <record id="rental_order_pivot_action" model="ir.actions.act_window">
+            <field name="name">Rental Order Analysis</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">rental.order.line</field>
+            <field name="view_mode">pivot,graph</field>
+            <field name="view_ids"
+                   eval="[(5, 0, 0),
+                          (0, 0, {'view_mode': 'graph', 'view_id': ref('rental_order_view_graph')}),
+                          (0, 0, {'view_mode': 'pivot', 'view_id': ref('rental_order_view_pivot')})]"/>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    <!-- Add Text Here -->
+                </p><p>
+                    <!-- More details about what a user can do with this object will be OK --> 
+                </p>
+            </field>
+        </record>
+
+        <record id="view_production_lot_tree" model="ir.ui.view">
+            <field name="name">stock.production.lot.tree</field>
+            <field name="model">stock.production.lot</field>
+            <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="/tree" position="replace">
+                    <tree string="Lots/Serial Numbers" create="false" multi_edit="1">
+                    <field name="name" decoration-bf="1"/>
+                    <field name="ref" optional="show"/>
+                    <field name="product_id" readonly="1"/>
+                    <field name="product_qty"/>
+                    <field name="create_date" optional="show"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="alert_date" optional="hide" widget="remaining_days" attrs="{'invisible': [('product_qty', '&lt;=', 0)]}"/>
+                    <field name="use_date" optional="hide"/>
+                    <field name="removal_date" optional="hide"/>
+                    <field name="expiration_date" optional="hide"/>
+                    </tree>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_rental_order_tree" model="ir.ui.view">
+			<field name="name">rental.order.tree.inherit</field>
+			<field name="model">rental.order</field>
+			<field name="inherit_id" ref ="browseinfo_rental_management.view_rental_order_tree"/>
+			<field name="arch" type="xml">
+                <xpath expr="/tree" position="replace">
+                    <tree string="Rental Agreements">
+					<field name="name" string="Order Number" />
+					<field name="date_order" invisible="1" />
+					<field name="partner_id" />
+					<field name="state" />
+					<field name="agrement_ok" />
+				</tree>
+                </xpath>
+			</field>
+		</record>
+
+
+        <record id="return_of_assets_pivot" model="ir.ui.view">
+            <field name="name">return.of.assets.pivot</field>
+            <field name="model">return.of.assets</field>
+            <field name="arch" type="xml">
+                <pivot string="Return On Asset Pivot">
+                    <field name="product_template_id" type="row"/>
+                    <field name="lot_id" type="row"/>
+                    <field name="current_value" type="measure"/>
+                    <field name="work_order_cost_shadow" type="measure" string="Work Order Cost"/>
+                    <field name="repair_order_cost_shadow" type="measure" string="Repair Order Cost"/>
+                    <field name="income_shadow" type="measure" string="Income"/>
+                    <field name="retun_of_asset_shadow" type="measure" string="Return On Asset"/>
+                </pivot>
+            </field>
+        </record>
+
+
+            <record id="rental_retun_of_assets_action" model="ir.actions.act_window">
+                <field name="name">Return On Assets</field>
+                <field name="type">ir.actions.act_window</field>
+                <field name="res_model">return.of.assets</field>
+                <field name="view_mode">pivot</field>
+            </record>
+
+            
+
+        <!-- This Menu Item Must have a parent -->
+        <menuitem id="rental_report_menu_categ" name="Reporting" parent="equip3_rental_masterdata.menu_rental_root" sequence="4"/>
+        <!-- This Menu Item must have a parent and an action -->
+        <menuitem id="rental_order_pivot_menu_act" name="Rental Order Analysis" parent="rental_report_menu_categ" action="rental_order_pivot_action" sequence="10"/>
+
+
+        <menuitem id="return_of_assets_menu_act" name="Return On Assets" parent="rental_report_menu_categ" action="rental_retun_of_assets_action" sequence="20"/>
+    </data>
+</odoo>

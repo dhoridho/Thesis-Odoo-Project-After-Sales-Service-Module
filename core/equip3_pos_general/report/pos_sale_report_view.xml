@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="pos_sale_report_form_view" model="ir.ui.view">
+            <field name="name">pos.sale.report.form.view</field>
+            <field name="model">pos.sale.report</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="company_id" />
+                        <field name="branch_id" />
+                        <field name="session_ids" widget="many2many_tags" required="1" domain="[('company_id','=',company_id),('pos_branch_id','=',branch_id)]"/>
+                    </group>
+                    <group>
+                        <field name="report_type" required="1"/>
+                    </group>
+                    <footer>
+                        <button type="object" id="main_print_button" name="print_receipt"
+                                string="Print" class="oe_highlight"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_pos_sale_report" model="ir.actions.act_window">
+            <field name="name">Z Report</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">pos.sale.report</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <record id="pos_paper_format_new" model="report.paperformat">
+            <field name="name">Sales Details (Z Report) (b)</field>
+            <field name="default" eval="True" />
+            <field name="format">custom</field>
+            <field name="page_height">230</field>
+            <field name="page_width">100</field>
+            <field name="margin_top">25</field>
+            <field name="margin_bottom">15</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+            <field name="header_line" eval="False" />
+            <field name="orientation">Portrait</field>
+            <field name="header_spacing">17</field> 
+            <field name="dpi">110</field>
+        </record>
+
+        <record id="pos_paper_format_new_c" model="report.paperformat">
+            <field name="name">Sales Details (Z Report) (c)</field>
+            <field name="default" eval="True" />
+            <field name="format">custom</field>
+            <field name="page_height">230</field>
+            <field name="page_width">100</field>
+            <field name="margin_top">30</field>
+            <field name="margin_bottom">15</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+            <field name="header_line" eval="False" />
+            <field name="orientation">Portrait</field>
+            <field name="header_spacing">25</field>
+            <field name="dpi">110</field>
+        </record>
+
+        <record id="report_pos_sales_pdf" model="ir.actions.report">
+            <field name="name">Z/X Report</field>
+            <field name="model">pos.session</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">equip3_pos_general.pos_sale_report_template</field>
+            <field name="report_file">equip3_pos_general.pos_sale_report_template</field>
+            <field name="print_report_name">object._get_report_z_x_filename()</field>
+            <field name="binding_model_id" ref="point_of_sale.model_pos_session"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="equip3_pos_general.pos_paper_format_new_c"/>
+        </record>
+
+        <record id="paperformat_session_receipt_pdf" model="report.paperformat">
+            <field name="name">Session Receipt PDF</field>
+            <field name="default" eval="True" />
+            <field name="format">custom</field>
+            <field name="page_height">230</field>
+            <field name="page_width">100</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">3</field>
+            <field name="margin_bottom">18</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+            <field name="header_line" eval="False" />
+            <field name="header_spacing">25</field>
+            <field name="dpi">110</field>
+            <field name="report_ids" eval="[(6, 0, [ref('equip3_pos_general.report_pos_sales_pdf')])]"/>
+        </record>
+
+        <menuitem action="action_pos_sale_report" id="menu_action_pos_sale_report"
+                groups="equip3_pos_masterdata.group_pos_staff,equip3_pos_masterdata.group_pos_supervisor,equip3_pos_masterdata.group_pos_manager,equip3_pos_masterdata.group_pos_cashier"
+                  name="Z Report" parent="point_of_sale.menu_point_rep" sequence='21'/>
+
+    </data>
+</odoo>

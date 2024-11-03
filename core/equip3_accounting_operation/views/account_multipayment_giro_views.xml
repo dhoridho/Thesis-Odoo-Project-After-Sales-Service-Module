@@ -1,0 +1,316 @@
+<odoo>
+  <data>
+    <record id="view_account_multipayment_inherit_form" model="ir.ui.view">
+      <field name="name">account.multipayment.inherit.form</field>
+      <field name="model">account.multipayment</field>
+      <field name="inherit_id" ref="equip3_accounting_operation.view_account_multipayment_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//sheet/div[hasclass('oe_title')]/field[@name='partner_type']" position="after">
+          <field name="payment_type" nolabel="1" force_save="1" readonly='1' invisible = '1'/>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="view_account_multipayment_tree_inherit" model="ir.ui.view">
+        <field name="name">account.multipayment.tree.inherit</field>
+        <field name="model">account.multipayment</field>
+        <field name="inherit_id" ref="equip3_accounting_operation.view_account_multipayment_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='journal_id']" position="replace">
+<!--                <field name="is_vendor"/>-->
+                <field name="journal_id" invisible="context.get('is_not_customer')"/>
+                <field name="journal_id" string="Receipt Method" invisible="context.get('is_not_vendor')"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="equip3_accounting_operation.action_account_multipayment_customer" model="ir.actions.act_window">
+      <field name="name">Customer Multi Receipts</field>
+      <field name="res_model">account.multipayment</field>
+      <field name="view_mode">tree,kanban,form</field>
+      <field name="context">{'default_partner_type':'customer', 'default_payment_type':'payment'}</field>
+      <field name="domain">[('partner_type', '=','customer'),('payment_type','=','payment')]</field>
+      <field name="view_id" ref="view_account_multipayment_tree_inherit"/>
+    </record>
+
+    <record id="inherit_action_account_multipayment_customer_form" model="ir.ui.view">
+        <field name="name">inherit.action.account.multipayment.customer.form</field>
+        <field name="model">account.multipayment</field>
+        <field name="inherit_id" ref="equip3_accounting_operation.view_account_multipayment_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]/group[1]/field[@name='journal_id']" position="attributes">
+                <attribute name="attrs">{'invisible':[('partner_type', '=', 'customer')]}</attribute>
+            </xpath>
+
+            <xpath expr="//sheet/group[1]/group[1]/field[@name='journal_id']" position="after">
+                <field name="journal_id" string='Receipt Method' attrs="{'readonly': [('state', '!=', 'draft')], 'invisible':[('partner_type','=','supplier')]}" />
+            </xpath>
+
+            <!-- <xpath expr="//sheet/group[1]/group[1]/field[@name='amount']" position="attributes">
+                <attribute name="attrs">{'invisible':[('partner_type', '=', 'supplier')]}</attribute>
+            </xpath>
+
+            <xpath expr="//sheet/group[1]/group[1]/field[@name='amount']" position="after">
+                <field name="amount" string='Payment Amount' readonly="1" attrs="{'invisible':[('partner_type','=','customer')]}"  />
+            </xpath> -->
+        </field>
+    </record>
+
+    <record id="equip3_accounting_operation.action_account_multipayment_vendor" model="ir.actions.act_window">
+      <field name="name">Vendor Multi Payments</field>
+      <field name="res_model">account.multipayment</field>
+      <field name="view_mode">tree,kanban,form</field>
+      <field name="context">{'default_partner_type':'supplier', 'default_payment_type':'payment'}</field>
+      <field name="domain">[('partner_type','=','supplier'),('payment_type','=','payment')]</field>            
+      <field name="view_id" ref="view_account_multipayment_tree_inherit"/>
+    </record>
+
+    <record id="view_receipt_payment_form" model="ir.ui.view">
+            <field name="name">receipt.payment.form</field>
+            <field name="model">account.multipayment</field>
+            <field name="arch" type="xml">
+                <form string="Receipt Giro">
+                  <header>                        
+                        <button string="Confirm" states="draft" name="action_validate_giro" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('is_multi_payment_approval_matrix', '=', True)]}"/>
+                        <button string="Reset to Draft" name="action_draft"  type="object" attrs="{'invisible': [('state', '!=', 'post')]}"/>
+                        <!-- <button string="Cancel" name="action_cancel" type="object" class="oe_highlight" states="draft"/> -->
+                        <button string="Clearing" name="action_clearing" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'post')]}"/>
+                        <button string="Rejected" name="action_rejected" type="object" class="oe_highlight" states="cleared" invisible="1"/>
+                        <!-- <button string="Reset to Draft" name="action_draft" type="object" states="rejected,post"/> -->
+                        <button name="request_for_approval" string="Request For Approval" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('is_multi_payment_approval_matrix', '=', False), ('state', 'not in', 'draft')]}"/>
+
+                        <button name="action_approved_rp" string="Approved" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_multi_payment_approval_matrix', '=', False), ('is_approve_button', '=', False), ('state', '!=', 'to_approve')]}"/>
+                              
+                        <button name="rp_reject" string="Reject" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_multi_payment_approval_matrix', '=', False), ('is_approve_button', '=', False), ('state', '!=', 'to_approve')]}"/> 
+                        
+                        <field name="state" widget="statusbar" statusbar_visible="draft,post,cleared,rejected" attrs="{'invisible': [('is_multi_payment_approval_matrix', '=', True)]}"/>
+
+                        <field name="state1" widget="statusbar" statusbar_visible="draft,to_approve,post,cleared" attrs="{'invisible': ['|', ('is_multi_payment_approval_matrix', '=', False), ('state', '=', 'rejected')]}"/>
+                        
+                        <field name="state2" widget="statusbar" statusbar_visible="draft,to_approve,rejected" attrs="{'invisible': ['|', ('is_multi_payment_approval_matrix', '=', False), ('state', '!=', 'rejected')]}"/>
+
+                    </header>
+                    <sheet>
+                      <div name="button_box" class="oe_button_box">
+                            <button name="button_payment" type="object" class="oe_stat_button" icon="o-hm-smart-all-3-payments" attrs="{'invisible': [('payment_id_count','=', 0)]}">
+                                <field name="payment_id_count"/>
+                                <span>Payment</span>
+                            </button>
+                        </div>
+                      <div class="oe_title">
+                            <field name="partner_type" nolabel="1" force_save="1" readonly='1' invisible = '1'/>
+                            <field name="payment_type" nolabel="1" force_save="1" readonly='1' invisible = '1'/>
+                            <h1>
+                                <span attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('name', '!=', '/')]}">Draft</span>
+                            </h1>
+                            <h1 class="mt0" attrs="{'invisible':[('name', '=', '/')]}">
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group id="header_left_group">
+                                <field name="partner_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="amount" invisible="1"/>
+                                <field name="amount_tmp" string="Payment Amount" attrs="{'invisible':[('partner_type', '=', 'customer')]}" />
+                                <field name="amount_tmp" string="Receipt Amount" attrs="{'invisible':[('partner_type', '=', 'supplier')]}"/>
+                                <field name="different_move_id" force_save="1" invisible="1"/>
+                                <field name="journal_id" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible':[('partner_type', '=', 'customer')]}"/>
+                                <field name="journal_id" string="Receipt Method" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible':[('partner_type', '=', 'supplier')]}"/>
+                                <field name="currency_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="clearing_account_id" attrs="{'readonly': [('state', '!=', 'draft')],'required': [('payment_type', '=', 'giro')]}"/>
+                                <field name="move_id" force_save='1'/>
+                            </group>
+                            <group id="header_right_group">
+                                <field name="date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="ref" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="memo" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="due_date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="receive_date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="clearing_date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="company_id" readonly='1' attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="branch_id" attrs="{'readonly': [('state', '!=', 'draft')]}" required="1" options="{'no_create': True, 'no_create_edit': True}"/>
+                                <field name="is_multi_payment_approval_matrix" invisible="1"/>
+                                <field name="is_multi_payment_approval_matrix" invisible="1"/>
+                                <field name="multipul_payment_approval_matrix_id" attrs="{'invisible': [('is_multi_payment_approval_matrix', '=', False)], 'required': [('is_multi_payment_approval_matrix', '=', True)]}"/>
+                                <field name="is_approve_button" invisible="1"/>
+                                <field name="approval_matrix_line_id" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                          <page id="payment_information" string="Payment Information">
+                            <span attrs="{'invisible': [('partner_type', '=', 'supplier')]}">Debit</span>
+                              <field name="line_debit_ids" attrs="{'readonly': [('state', '!=', 'draft')],'invisible': [('partner_type', '=', 'supplier')]}">
+                                  <tree editable="Bottom" string="Debits Tables" create="0">
+                                      <field name="invoice_id" force_save="1" />
+                                      <field name="account_id" force_save="1" />
+                                      <field name="invoice_date" force_save="1" />
+                                      <field name="invoice_date_due" force_save="1" />
+                                      <field name="original_amount" force_save="1" />
+                                      <field name="base_amount" force_save="1" />
+                                      <field name="original_unreconcile" force_save="1" />
+                                      <field name="base_unreconcile" force_save="1" />
+                                      <field name="is_full_reconcile"/>
+                                      <field name="amount" sum="Total"/>
+                                      <field name="payment_id" invisible = '1'/>
+                                  </tree>
+                              </field>
+                              
+                              <div class="col-12">
+                                  <strong>
+                                      <span class="float-right text-right" invisible = '1'>
+                                          <label for="total_amount_credit"  invisible = '1'/>
+                                          <field name="total_amount_credit"  invisible = '1'/>
+                                      </span>
+                                  </strong>
+                              </div>
+                              <span>Credit</span>
+                              <field name="line_credit_ids" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                                  <tree editable="Bottom" string="Credit Tables" create="0">
+                                      <field name="invoice_id" string="Bill" force_save="1"/>
+                                      <field name="account_id" force_save="1"/>
+                                      <field name="invoice_date" force_save="1"/>
+                                      <field name="invoice_date_due" force_save="1"/>
+                                      <field name="original_amount" force_save="1"/>
+                                      <field name="base_amount" force_save="1"/>
+                                      <field name="original_unreconcile" force_save="1"/>
+                                      <field name="base_unreconcile" force_save="1"/>
+                                      <field name="is_full_reconcile"/>
+                                      <field name="amount" sum="Total"/>
+                                      <field name="payment_id" invisible = '1'/>
+                                  </tree>
+                              </field>
+                              
+                              <div class="col-12">
+                                  <strong>
+                                      <span class="float-right text-right" invisible = '1'>
+                                          <label for="total_amount_debit"  invisible = '1'/>
+                                          <field name="total_amount_debit"  invisible = '1'/>
+                                      </span>
+                                  </strong>
+                              </div>
+                              <br/>
+                              <span attrs="{'invisible': [('partner_type', '=', 'customer')]}">Debit</span>
+                              <field name="line_debit_ids" attrs="{'readonly': [('state', '!=', 'draft')],'invisible': [('partner_type', '=', 'customer')]}">
+                                  <tree editable="Bottom" string="Debits Tables" create="0">
+                                      <field name="invoice_id" force_save="1" />
+                                      <field name="account_id" force_save="1" />
+                                      <field name="invoice_date" force_save="1" />
+                                      <field name="invoice_date_due" force_save="1" />
+                                      <field name="original_amount" force_save="1" />
+                                      <field name="base_amount" force_save="1" />
+                                      <field name="original_unreconcile" force_save="1" />
+                                      <field name="base_unreconcile" force_save="1" />
+                                      <field name="is_full_reconcile"/>
+                                      <field name="amount" sum="Total"/>
+                                      <field name="payment_id" invisible = '1'/>
+                                  </tree>
+                              </field>
+                              
+                              <div class="col-12">
+                                  <strong>
+                                      <span class="float-right text-right" invisible = '1'>
+                                          <label for="total_amount_credit" invisible = '1' />
+                                          <field name="total_amount_credit" invisible = '1'/>
+                                      </span>
+                                  </strong>
+                              </div>
+                              <br/>
+                              <div class="float-right text-right">                                  
+                                  <group>
+                                      <group>
+                                          <field name="payment_difference_amount" invisible="1"/>
+                                      </group>
+                                      <group>
+                                          <field name="diff_amount"/>
+                                          <field name="difference_ids" attrs="{'required' : [('diff_amount', '!=', 0)],'readonly': [('state', '!=', 'draft')],'invisible': [('diff_amount', '=', 0)]}" nolabel="1" colspan="4">
+                                              <tree editable="bottom">
+                                                  <field name="account_id" options="{'no_create': True}"/>
+                                                  <field name="payment_amount" sum="Total"/>
+                                                  <field name="currency_id"/>
+                                                  <field name="name"/>
+                                                  <field name="company_id" invisible="1"/>
+                                              </tree>
+                                          </field>
+                                      </group>
+                                  </group>
+                              </div>     
+                          </page>
+                          <page id="other_information" string="Other Informatiuon">
+                            <group string="Other Information" name="mr_other_info">
+                              <field name="create_uid" string="Created By" readonly="1" can_create="true" can_write="true" modifiers="{'readonly':true}" id="create_uid"/>
+                              <field name="create_date" string="Created Date" readonly="1" modifiers="{'readonly':true}" id="create_date"/>
+                            </group>
+                          </page>
+                          <page string="Approval Matrix Line" name="approved_matrix_ids" attrs="{'invisible': ['|', ('multipul_payment_approval_matrix_id', '=', False), ('is_multi_payment_approval_matrix', '=', False)]}">
+                            <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}" force_save="1">
+                                <tree create="0" edit="0" delete="0">
+                                    <field name="sequence" />
+                                    <field name="user_ids" widget="many2many_tags"/>
+                                    <field name="minimum_approver" />
+                                    <field name="state_char" />
+                                    <field name="time_stamp" invisible="1"/>
+                                    <field name="feedback" />
+                                </tree>
+                            </field>
+                          </page>
+                        </notebook>    
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_receipt_giro" model="ir.actions.act_window">
+          <field name="name">Receipt Giro</field>
+          <field name="res_model">account.multipayment</field>
+          <field name="view_mode">tree,kanban,form</field>
+          <field name="context">{'default_partner_type':'customer', 'default_payment_type':'giro', 'is_not_vendor':0,'is_not_customer':1}</field>
+          <field name="domain">[('partner_type', '=','customer'),('payment_type','=','giro')]</field>
+          <field name="view_id" ref="view_account_multipayment_tree_inherit"/>
+        </record>
+
+        <record id="action_payment_giro" model="ir.actions.act_window">
+          <field name="name">Payment Giro</field>
+          <field name="res_model">account.multipayment</field>
+          <field name="view_mode">tree,kanban,form</field>
+          <field name="context">{'default_partner_type':'supplier', 'default_payment_type':'giro', 'is_not_vendor':1, 'is_not_customer':0}</field>
+          <field name="domain">[('partner_type','=','supplier'),('payment_type','=','giro')]</field>      
+          <field name="view_id" ref="view_account_multipayment_tree_inherit"/>
+        </record>
+
+        <record id="action_view_receipt_giro_tree" model="ir.actions.act_window.view">
+            <field name="act_window_id" ref="action_receipt_giro"/>
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_account_multipayment_tree_inherit"/>
+        </record>
+
+        <record id="action_view_receipt_giro_form" model="ir.actions.act_window.view">
+            <field name="act_window_id" ref="action_receipt_giro"/>
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_receipt_payment_form"/>
+        </record>
+
+        <record id="action_view_payment_giro_tree" model="ir.actions.act_window.view">
+            <field name="act_window_id" ref="action_payment_giro"/>
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_account_multipayment_tree_inherit"/>
+        </record>
+
+        <record id="action_view_payment_giro_form" model="ir.actions.act_window.view">
+            <field name="act_window_id" ref="action_payment_giro"/>
+            <field name="sequence" eval="2"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_receipt_payment_form"/>
+        </record>
+
+       <menuitem action="action_receipt_giro" id="menu_action_receipt_giro" groups="account.group_account_readonly" parent="equip3_accounting_operation.menu_customer_receipt" sequence="3"/>
+        <menuitem action="action_payment_giro" id="menu_action_payment_giro" groups="account.group_account_readonly" parent="equip3_accounting_operation.menu_vendor_payment" sequence="4"/>
+  </data>
+</odoo>

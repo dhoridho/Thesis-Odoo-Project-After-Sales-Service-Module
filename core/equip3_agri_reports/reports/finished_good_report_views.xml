@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_agriculture_finished_good_report_pivot" model="ir.ui.view">
+         <field name="name">agriculture.finished.good.report.pivot</field>
+         <field name="model">agriculture.finished.good.report</field>
+         <field name="arch" type="xml">
+             <pivot string="Finished Goods Report" sample="1">
+                <field name="daily_activity_id"/>
+                <field name="activity_line_id"/>
+                <field name="activity_record_id"/>
+                <field name="company_id"/>
+                <field name="branch_id"/>
+                <field name="create_date" interval="month"/>
+                <field name="create_uid"/>
+                <field name="product_id"/>
+                <field name="product_uom"/>
+                <field name="state"/>
+                <field name="availability" type="measure"/>
+                <field name="quantity_done" type="measure"/>
+                <field name="difference" type="measure"/>
+             </pivot>
+         </field>
+    </record>
+    <record id="view_agriculture_finished_good_report_search" model="ir.ui.view">
+            <field name="name">agriculture.finished.good.report.search</field>
+            <field name="model">agriculture.finished.good.report</field>
+            <field name="arch" type="xml">
+                <search string="Finished Goods Report">
+                    <field name="product_id"/>
+                    <field name="daily_activity_id" string="Plantation Plan"/>
+                    <field name="activity_line_id" string="Plantation Lines"/>
+                    <field name="activity_record_id" string="Plantation Record"/>
+
+                    <filter string="Last 30 days" name="last_30_days"
+                            domain="[('create_date','&lt;=',context_today().strftime('%Y-%m-%d')), ('create_date','&gt;',(context_today()-relativedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                    <filter string="This Month" name="current_month"
+                            domain="[('create_date','&lt;',(context_today()+relativedelta(months=1)).strftime('%%Y-%%m-01')), ('create_date','&gt;=',time.strftime('%%Y-%%m-01'))]"/>
+                    <filter string="This Year" name="current_year"
+                            domain="[('create_date','&lt;',(context_today()+relativedelta(years=1)).strftime('%%Y-01-01')), ('create_date','&gt;=',time.strftime('%%Y-01-01'))]"/>
+                    <filter string="Last Month" name="last_month"
+                            domain="[('create_date','&lt;',time.strftime('%%Y-%%m-01')), ('create_date','&gt;=',(context_today()-relativedelta(months=1)).strftime('%%Y-%%m-01'))]"/>
+                    <filter string="Last Year" name="last_year"
+                            domain="[('create_date','&lt;',time.strftime('%%Y-01-01')), ('create_date','&gt;=',(context_today()-relativedelta(years=1)).strftime('%%Y-01-01'))]"/>
+                    
+                    <group expand="0" string="Group By...">
+                        <filter string="Product" name="groupby_product_id" domain="[]" context="{'group_by': 'product_id'}"/>
+                        <filter string="Plantation Plan" name="groupby_daily_activity_id" domain="[]" context="{'group_by': 'daily_activity_id'}"/>
+                        <filter string="Plantation Lines" name="groupby_activity_line_id" domain="[]" context="{'group_by': 'activity_line_id'}"/>
+                        <filter string="Plantation Record" name="groupby_activity_record_id" domain="[]" context="{'group_by': 'activity_record_id'}"/>
+                    </group>
+
+                    <searchpanel>
+                        <field name="product_id" string="Product"/>
+                        <field name="daily_activity_id" string="Plantation Plan"/>
+                        <field name="activity_line_id" string="Plantation Lines"/>
+                        <field name="activity_record_id" string="Plantation Record"/>
+                    </searchpanel>
+                </search>
+            </field>
+    </record>
+    <record id="view_agriculture_finished_good_report_graph" model="ir.ui.view">
+        <field name="name">agriculture.finished.good.report</field>
+        <field name="model">agriculture.finished.good.report</field>
+        <field name="arch" type="xml">
+            <graph string="Finished Goods Report" sample="1">
+                <field name="product_id"/>
+                <field name="quantity_done" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_agriculture_finished_good_report" model="ir.actions.act_window">
+        <field name="name">Finished Goods Report</field>
+        <field name="res_model">agriculture.finished.good.report</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="search_view_id" ref="view_agriculture_finished_good_report_search"/>
+        <field name="context">{'search_default_current_month': 1}</field>
+        <field name="help">This report performs analysis on your Finished Good.</field>
+    </record>
+
+</odoo>

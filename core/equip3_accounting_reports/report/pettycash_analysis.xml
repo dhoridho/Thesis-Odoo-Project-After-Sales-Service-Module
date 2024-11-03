@@ -1,0 +1,99 @@
+<odoo>
+    <template id="equip3_accounting_reports.pettycash_analysis">
+        <t t-call="web.html_container">
+            <t t-set="data_report_margin_top" t-value="12"/>
+            <t t-set="data_report_header_spacing" t-value="9"/>
+            <t t-set="data_report_dpi" t-value="110"/>
+            <t t-call="web.internal_layout">
+                <div class="page" style="orientation:portrait;">
+                    <div class="oe_structure"/>
+                        <style>
+                            @page {
+                                size: A4 portrait; /* Set the page size and orientation */
+                                margin: 50px;
+                            }
+                        </style>
+                        <h3 style="text-align:centre;left:50%;font-size:80px;font-weight:bold;"><span t-esc="Filters.get('company_name')"/> </h3>
+                        <h3 style="text-align:centre;left:50%;font-size:40px;font-weight:bold;">Enterprise Pettycash Analysis </h3>
+                        <br/>
+                        <table class="table table-sm table-reports" style="padding:5px;width:50%;">
+                            <thead>
+                                <tr class="text-center">
+                                    <th style="text-align:center;vertical-align: middle;font-size:small;">Code / Account</th>
+                                    <th style="text-align:left;font-size:small;">
+                                        <t t-if="Filters.get('date_from')">
+                                            From:
+                                            <t t-esc="Filters['date_from']"/>
+                                            <br></br>
+                                            To:
+                                            <t t-esc="Filters['date_to']"/>
+                                        </t>
+                                        <t t-else="">
+                                            From:
+                                            <t t-esc="date_from"/>
+                                            <br></br>
+                                            To:
+                                            <t t-esc="date_to"/>
+                                        </t>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="account_data" t-as="account">
+                                    <tr style="font-size:small;">
+                                        <td style="text-align:left;font-weight:bold;font-size:small;">
+                                            <span t-esc="account['name']"/>
+                                        </td>
+                                        <td style="text-align:left;font-size:small;">
+                                            <p> </p>
+                                        </td>
+                                    </tr>
+                                    <tr t-foreach="account['move_lines']" t-as="line">
+                                        <td style="padding-left:30px;">
+                                            <span t-esc="line['voucher_name']" />
+                                        </td>
+                                        <td style="text-align:left;font-size:small;">
+                                            <span t-esc="line['total']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <tr style="font-size:small;">
+                                        <td style="text-align:left;font-weight:bold;font-size:small;">
+                                            Total Expenses
+                                        </td>
+                                        <td style="text-align:left;font-size:small;font-weight:bold;">
+                                            <span t-esc="account['total_expenses']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <tr style="font-size:small;">
+                                        <td style="text-align:left;font-weight:bold;font-size:small;">
+                                            Virtual Balance
+                                        </td>
+                                        <td style="text-align:left;font-size:small;font-weight:bold;">
+                                            <span t-esc="account['total_virtual']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <tr style="font-size:small;padding-bottom:20px;">
+                                        <td style="text-align:left;font-weight:bold;font-size:small;padding-bottom:20px;">
+                                            Total Balance
+                                        </td>
+                                        <td style="text-align:left;font-size:small;font-weight:bold;padding-bottom:20px;">
+                                            <span t-esc="account['total_balance']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_print_pettycash_analysis" model="ir.actions.report">
+        <field name="name">Enterprise Pettycash Analysis</field>
+        <field name="model">account.pettycash.analysis</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_accounting_reports.pettycash_analysis</field>
+        <field name="report_file">equip3_accounting_reports.pettycash_analysis</field>
+    </record>
+
+</odoo>

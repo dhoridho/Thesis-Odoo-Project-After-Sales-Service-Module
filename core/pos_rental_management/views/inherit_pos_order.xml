@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+
+
+<odoo>
+
+    <record id="pos_order_form_view_inherit" model="ir.ui.view">
+        <field name="name">pos.order.form.inherit</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='order_total']" position="replace">
+                <group class="oe_subtotal_footer oe_right" colspan="2" name="order_total">
+                    <field name="is_partially_paid" invisible="1"/>
+
+                    <field name="amount_tax" force_save="1" widget="monetary"/>
+                    <div class="oe_subtotal_footer_separator oe_inline" attrs="{'invisible': [('is_partially_paid', '!=', False)]}">
+                        <label for="amount_total" />
+                        <button name="button_dummy" states="draft" string="(update)" class="oe_edit_only oe_link"/>
+                    </div>
+
+                    <field name="amount_total" force_save="1" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('is_partially_paid', '!=', False)]}"/>
+
+                    <div class="oe_subtotal_footer_separator oe_inline" attrs="{'invisible': [('is_partially_paid', '==', False)]}">
+                        <label for="amount_total" />
+                        <button name="wk_order_amount" states="draft" string="(update)" class="oe_edit_only oe_link"/>
+                    </div>
+                    <field name="wk_order_amount" force_save="1" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('is_partially_paid', '==', False)]}"/>
+
+
+                    <field name="amount_paid" string="Total Paid (with rounding)" class="oe_subtotal_footer_separator" widget="monetary" attrs="{'invisible': [('amount_paid','=', 'amount_total')]}"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+            </xpath>
+
+            <xpath expr="//field[@name='failed_pickings']" position="before">
+                <field name="is_rental_order" invisible="1"/>
+                <widget name="web_ribbon" title="Rented" attrs="{'invisible': [('is_rental_order', '=', False)]}" style="margin-top: 18px;"/>
+            </xpath>
+            <xpath expr="//field[@name='qty']" position="after">
+                <field name="is_rental_product" string="Rented Product"/>
+                <field name="selected_tenure_string" attrs="{'invisible': [('is_rental_product', '=', False)]}"/>
+                <field name="rental_note" attrs="{'invisible': [('is_rental_product', '=', False)]}"/>
+                <field name="related_product_name"/>
+                <field name="deducted_amount"/>
+                <field name="extra_refund_amount"/>
+            </xpath>
+
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button name="action_rental_orders" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible':[('is_rental_order', '=', False)]}">
+                    <field name="rented_count" widget="statinfo" string="Rented Product Details"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

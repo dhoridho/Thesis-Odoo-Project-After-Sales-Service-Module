@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Subscription -->
+
+    <record id="acs_hms_subscription_search" model="ir.ui.view">
+        <field name="name">acs.hms.subscription.search</field>
+        <field name="model">acs.hms.subscription</field>
+        <field name="arch" type="xml">
+            <search string="Subscription">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="create_date"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <group expand="0" string="Group By">
+                    <filter string="Customer" domain="[]" name="patient_id_group" context="{'group_by':'patient_id'}"/>
+                    <filter string="Subscription Month" domain="[]" name="create_date_group" context="{'group_by':'create_date'}"/>
+                </group> 
+            </search>
+        </field>
+    </record>
+
+    <record id="acs_hms_subscription_form_view" model="ir.ui.view">
+        <field name="name">acs.hms.subscription.form</field>
+        <field name="model">acs.hms.subscription</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary" states="draft"/>
+                    <button name="action_invoice_create" class="btn-primary" string="Create Invoice" type="object" attrs="{'invisible': ['|',('invoice_count', '!=', 0),('state', 'not in', ['active'])]}"/>
+                    <button name="action_done" string="Done" type="object" class="btn-primary" states="active"/>
+                    <button name="action_cancel" string="Cancel" type="object" states="draft,active"/>
+                    <button name="action_draft" string="Set to Draft" type="object" states="active,done,cancel"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoice"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-pencil-square-o"
+                            attrs="{'invisible': [('invoice_count', '=', 0)]}"
+                            groups="account.group_account_invoice">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                        <button name="action_view_related_records"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-pencil-square-o"
+                            attrs="{'invisible': [('record_count', '=', 0)]}">
+                            <field name="record_count" widget="statinfo" string="Records"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="number" nolable="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="contract_id" domain="[('state','=','active')]"/>
+                            <field name="allowed_no_service"/>
+                            <field name="remaining_service" readonly="1"/>
+                            <field name="acs_type"/>
+                            <field name="pricelist_id" groups="product.group_product_pricelist" options="{'no_open':True,'no_create': True}" attrs="{'invisible': [('acs_type', '=', 'full')], 'required': [('acs_type', '=', 'discount')]}"/>
+                        </group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <field name="note"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="acs_hms_subscription_list_view" model="ir.ui.view">
+        <field name="name">acs.hms.subscription.list</field>
+        <field name="model">acs.hms.subscription</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <tree string="Subscriptions" decoration-bf="state=='done'" decoration-muted="state=='cancel'">
+                <field name="number"/>
+                <field name="contract_id"/>
+                <field name="patient_id"/>
+                <field name="create_date"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_subscription_pivot">
+        <field name="name">acs.hms.subscription.pivot</field>
+        <field name="model">acs.hms.subscription</field>
+        <field name="arch" type="xml">
+            <pivot string="Subscriptions">
+                <field name="start_date" type="row"/>
+                <field name="state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="acs_hms_subscription_action" model="ir.actions.act_window">
+        <field name="name">Subscriptions</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">acs.hms.subscription</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record Found
+            </p>
+            <p>
+                Click to define a new Subscriptions.
+            </p>
+        </field>
+    </record>
+
+</odoo>

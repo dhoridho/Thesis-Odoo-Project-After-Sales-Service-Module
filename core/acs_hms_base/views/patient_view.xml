@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Patient View -->
+    <record model="ir.ui.view" id="patient_kanban_view">
+        <field name="name">patient.kanban</field>
+        <field name="model">hms.patient</field>
+        <field name="type">kanban</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="id"/>
+                <field name="name"/>
+                <field name="image_128"/>
+                <field name="age"/>
+                <field name="gender"/>
+                <field name="primary_doctor"/>
+                <field name="parent_id"/>
+                <field name="function"/>
+                <field name="code"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_kanban_record_has_image_fill">
+                            <t t-set="placeholder" t-value="'/base/static/img/avatar_grey.png'"/>
+                            <div class="o_kanban_image_fill_left d-none d-md-block" t-attf-style="background-image:url('#{kanban_image('hms.patient', 'image_128', record.id.raw_value, placeholder)}')"/>
+                            <div class="oe_kanban_details">
+                                <strong class="oe_partner_heading"><field name="display_name"/></strong>
+                                <ul>
+                                    <li><b>Code:</b> <field name="code"/></li>
+                                    <li t-if="record.age.raw_value"><b>Age:</b> <field name="age"/></li>
+                                    <li t-if="record.gender.raw_value"><b>Gender:</b> <field name="gender"/></li>
+                                    <li t-if="record.primary_doctor.raw_value"><b>Primary Physician:</b> <field name="primary_doctor"/></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_patient_tree" model="ir.ui.view">
+        <field name="name">patient.tree</field>
+        <field name="model">hms.patient</field>
+        <field name="arch" type="xml">
+            <tree string="Patient">
+                <field name="code" optional="show"/>
+                <field name="name"/>
+                <field name="age" optional="show"/>
+                <field name="gender" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+                <field name="active" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_patient_form" model="ir.ui.view">
+        <field name="name">patient.form</field>
+        <field name="model">hms.patient</field>
+        <field name="arch" type="xml">
+            <form string="Patient">
+                <header>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="view_invoices" class="oe_stat_button" icon="fa-money" context="{'default_patient_id': active_id}"  groups="account.group_account_invoice">
+                            <div class="o_field_widget o_stat_info mr4">
+                                <span class="o_stat_text">Inv:</span>
+                                <span class="o_stat_text">Due:</span>
+                            </div>
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="total_invoiced" widget="monetary" options="{'currency_field': 'currency_id'}"/></span>
+                                <span class="o_stat_value"><field name="acs_amount_due" widget="monetary" options="{'currency_field': 'currency_id'}"/></span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" type="object"
+                            name="action_view_attachments" icon="fa-files-o">
+                            <field string="Documents" name="attach_count" widget="statinfo"/>
+                        </button>
+                        <button class="oe_inline oe_stat_button" type="object"
+                            name="action_attachments_preview" title="Preview Documents" icon="fa-files-o" string="Preview Documents" widget="statinfo">
+                        </button>
+                    </div>
+                    <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_128'}"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" default_focus="1" placeholder="Name" required="1"/>
+                        </h1>
+                        <div name="options" groups="base.group_user">
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" readonly="1"/>
+                            <field name="gender" required="1"/>
+                            <field name="primary_doctor"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="birthday"/>
+                            <field name="age"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="info" string="General Information">
+                            <group>
+                                <group>
+                                    <label for="street" string="Address"/>
+                                    <div class="o_address_format">
+                                        <field name="street" placeholder="Street..." class="o_address_street"
+                                       />
+                                        <field name="street2" placeholder="Street 2..." class="o_address_street"
+                                       />
+                                        <field name="city" placeholder="City" class="o_address_city"
+                                       />
+                                        <field name="state_id" class="o_address_state" placeholder="State" options='{"no_open": True}'
+                                        context="{'country_id': country_id, 'zip': zip}"/>
+                                        <field name="zip" placeholder="ZIP" class="o_address_zip"
+                                       />
+                                        <field name="country_id" placeholder="Country" class="o_address_country" options='{"no_open": True, "no_create": True}'
+                                       />
+                                    </div>
+                                </group>
+                                <group>
+                                    <field name="phone"/>
+                                    <field name="mobile"/>
+                                    <field name="email"/>
+                                    <field name="gov_code"/>
+                                </group>
+                            </group>
+                            <group> 
+                                <group name="basic_details">
+                                    <field name="occupation"/>
+                                    <field name="religion" groups="acs_hms_base.group_manage_ethnic_religion_tribe"/>
+                                    <field name="caste" groups="acs_hms_base.group_manage_ethnic_religion_tribe"/>
+                                </group>
+                                <group>
+                                    <field name="property_product_pricelist" groups="product.group_product_pricelist" options="{'no_open':True,'no_create': True}"/>
+                                    <field name="marital_status"/>
+                                </group>
+                            </group>
+                            
+                        </page>
+                        <page name="hospital_info" string="Hospital Info">
+                            <group>
+                                <group>
+                                    <field name="partner_id" groups="base.group_no_one" required="0" readonly="1"/>
+                                    <field name="company_id" groups="base.group_multi_company"  options="{'no_create': True}"/>
+                                </group>
+                                <group name="ref_doc_details">
+                                </group>
+                                <group name="basic_medical">
+                                    <field name="blood_group"/>
+                                </group>
+                                <group name="death_details">
+                                    <field name="date_of_death" force_save="True"/>
+                                </group>
+                            </group>
+                            <group> 
+                                <group name="corporate_tieup">
+                                    <field name="is_corpo_tieup"/>
+                                    <field name="corpo_company_id" attrs="{'invisible': [('is_corpo_tieup', '!=', True)], 'required': [('is_corpo_tieup', '=', True)]}" context="{'default_is_company':True}"/>
+                                    <field name="emp_code" attrs="{'invisible': [('is_corpo_tieup', '!=', True)], 'required': [('is_corpo_tieup', '=', True)]}"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+             </form>
+         </field>
+     </record>
+
+    <record id="view_patient_filter" model="ir.ui.view">
+        <field name="name">patient.filter</field>
+        <field name="model">hms.patient</field>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <search string="Patient">
+                <field name="name"/>
+                <field name="primary_doctor"/>
+                <field name="birthday"/>
+                <field name="code"/>
+                <field name="mobile"/>
+                <field name="gov_code"/>
+                <field name="active" invisible="1"/>
+                <separator/>
+                <filter string="Is Male" name="gender" domain="[('gender','=','male')]"/>
+                <filter string="Is Famale" name="gender" domain="[('gender','=','female')]"/>
+                <separator/>
+                <filter string="All" name="all" domain="['|', ('active', '=', False), ('active', '=', True)]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <newline/>
+                <group expand="0" string="Group By...">
+                    <filter string="Birthday" name="birthday_groupby" domain="[]" context="{'group_by':'birthday'}"/>
+                    <filter string="Company" name="company_group" domain="[]" context="{'group_by':'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_patient" model="ir.actions.act_window">
+        <field name="name">Patient</field>
+        <field name="res_model">hms.patient</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="view_patient_filter"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record Found
+            </p>
+            <p>
+                Click to add a Patient. />
+            </p>
+        </field>
+    </record>
+
+</odoo>

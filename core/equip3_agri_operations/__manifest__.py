@@ -1,0 +1,63 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+{
+    'name': 'Equip 3 - Agriculture Operations',
+    'author': 'Hashmicro',
+    'version': '1.1.36',
+    'category': 'Agriculture',
+    'summary': 'Equip 3 - Agriculture Operations',
+    'description': '''''',
+    'author': 'HashMicro / Rajib',
+    'website': 'www.hashmicro.com',
+    'depends': [
+        'hr',
+        'stock_account',
+        'equip3_agri_masterdata',
+        'equip3_asset_fms_masterdata',
+        'equip3_date_year',
+        'equip3_inventory_operation'
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'security/ir_rule.xml',
+        'data/ir_sequence_data.xml',
+        'data/ir_cron_data.xml',
+        'views/assets.xml',
+        'views/crop_block_views.xml',
+        'views/crop_activity_views.xml',
+        'views/daily_activity_views.xml',
+        'views/daily_activity_line_views.xml',
+        'views/daily_activity_record_views.xml',
+        'views/nursery_plan_views.xml',
+        'views/nursery_line_views.xml',
+        'views/nursery_record_views.xml',
+        'views/harvest_plan_views.xml',
+        'views/harvest_line_views.xml',
+        'views/harvest_record_views.xml',
+        'views/other_activity_plan_views.xml',
+        'views/other_activity_line_views.xml',
+        'views/other_activity_record_views.xml',
+        'views/agri_approval_matrix_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/budget_planning_views.xml',
+        'views/budget_planning_block_views.xml',
+        'views/harvest_planning_views.xml',
+        'views/old_harvest_planning_views.xml',
+        'views/agriculture_crop_views.xml',
+        'views/agri_agreement_views.xml',
+        'views/agri_cost_actualization_views.xml',
+        'views/stock_valuation_layer_views.xml',
+        'views/menuitems.xml',
+        'wizard/agri_serializer_views.xml',
+        'wizard/agri_transfer_serializer_views.xml',
+        'wizard/agri_move_serializer_views.xml',
+        'wizard/agri_agreement_create_activity_views.xml',
+        'wizard/agri_agreement_create_bill_views.xml'
+    ],
+    'qweb': [
+    ],
+    'installable': True,
+    'application': True,
+    'auto_install': False
+}

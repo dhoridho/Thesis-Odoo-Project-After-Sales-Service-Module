@@ -1,0 +1,782 @@
+<?xml version="1.0"?>
+<odoo>
+
+	<template id="picking_portal_chatter" inherit_id="website.assets_frontend" name="attachment added">
+		<xpath expr="." position="inside">
+			<script type="text/javascript" src="/bi_website_portal_picking/static/src/js/custom.js"></script>
+		</xpath>
+	</template>
+
+	<template id="portal_my_home_menu_picking" name="Portal layout : picking menu entries" inherit_id="portal.portal_breadcrumbs" priority="20">
+		<xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+			<li t-if="picking" t-attf-class="breadcrumb-item #{'active ' if not sale_order else ''}">
+				<a t-if="picking_list" t-attf-href="/my/delivery_orders">Delivery Orders</a>
+				<t t-else="">Delivery Orders</t>
+			</li>
+			<li t-if="receipt" t-attf-class="breadcrumb-item #{'active ' if not sale_order else ''}">
+				<a t-if="receipt_list" t-attf-href="/my/receipt">Receipt</a>
+				<t t-else="">Receipt</t>
+			</li>
+			<li t-if="picking_list" t-attf-class="breadcrumb-item #{'active ' if not sale_order else ''}">
+				<a t-if="picking_list" t-attf-href="/my/delivery_orders">Delivery Orders</a>
+				<t t-else="">Delivery Orders</t>
+			</li>
+			<li t-if="picking_list" class="breadcrumb-item active">
+				<span t-field="picking_list.name"/>
+			</li>
+			<li t-if="receipt_list" t-attf-class="breadcrumb-item #{'active ' if not sale_order else ''}">
+				<a t-if="receipt_list" t-attf-href="/my/receipt">Receipt</a>
+				<t t-else="">Receipt</t>
+			</li>
+			<li t-if="receipt_list" class="breadcrumb-item active">
+				<span t-field="receipt_list.name"/>
+			</li>
+		</xpath>
+	</template>
+
+	<template id="portal_my_home_picking" name="Portal My Home: Picking Details"
+		inherit_id="portal.portal_my_home" priority="40">
+		<xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+			<t t-if="delivery_order_count">
+				<a href="/my/delivery_orders" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">Delivery Orders
+				<span class="badge badge-secondary badge-pill" t-esc="delivery_order_count" /></a>
+			</t>
+			<t t-if="receipt_order_count">
+				<a href="/my/receipt" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">Receipt
+				<span class="badge badge-secondary badge-pill" t-esc="receipt_order_count" /></a>
+			</t>
+		</xpath>
+	</template>
+
+	<template id="portal_my_picking" name="Delivery Orders List">
+		<t t-call="portal.portal_layout">
+			<div class="panel panel-default">
+				<div class="col-md-12">
+				<form class="col-sm-4 col-md-4 col-xs-12 text-center" action="/my/delivery_orders" method="post" t-att-class="search_class" style="margin-bottom:16px;display;display: inline-block;">
+					<input type="hidden" name="csrf_token" class="mb32" t-att-value="request.csrf_token()" />
+					<div class="input-group" style="margin-top:10px;margin-left:200px"> 
+						<t t-call="website.website_search_box"/>
+						<t t-set="date_desc_label">Newest</t>
+						<t t-set="date_asc_label">Older</t>
+						<t t-set="name_asc_label">Name</t>
+						<t t-set="picking_sortable" t-value="[
+							(date_desc_label, 'scheduled_date desc'),
+							(date_asc_label, 'scheduled_date asc'),
+							(name_asc_label, 'name asc'),
+						]"/>
+						<t t-set="filter_all">All</t>
+						<t t-set="last_month">Last Month</t>
+						<t t-set="last_week">Last Week</t>
+						<t t-set="last_year">Last Year</t>
+						<t t-set="this_month">This Month</t>
+						<t t-set="this_quarter">This Quarter</t>
+						<t t-set="today_date">Today</t>
+						<t t-set="this_week">This Week</t>
+						<t t-set="this_year">This Year</t>
+						<t t-set="timesheet_filter" t-value="[
+							(filter_all, 'filter all'),
+							(last_month, 'last month'),
+							(last_week, 'last week'),
+							(last_year, 'last year'),
+							(this_month, 'current month'),
+							(this_quarter, 'current quarter'),
+							(today_date, 'current date'),
+							(this_week, 'current week'),
+							(this_year, 'current year')
+						]"/>
+						<t t-set="group_none">None</t>
+						<t t-set="group_type">Picking Type</t>
+						<t t-set="group_status">Status</t>
+						<t t-set="group_document">Source Document</t>
+						<t t-set="group_user">Responsible</t>
+						<t t-set="picking_group" t-value="[
+							(group_none, 'none'),
+							(group_status, 'status'),
+							(group_document, 'document'),
+							(group_user, 'responsible'),
+							
+						]"/>
+						<t t-set="website_picking_sortable_current" t-value="[sort for sort in picking_sortable if sort[1]==request.params.get('picking_ftr', '')]"/>
+
+						<t t-set="website_picking_filter_current" t-value="[filter for filter in timesheet_filter if filter[1]==request.params.get('time_ftr', '')]"/>
+
+						<t t-set="website_picking_groupby_current" t-value="[group for group in picking_group if group[1]==request.params.get('picking_group', '')]"/>
+
+						<div class="dropdown ml-2 dropdown_sorty_by">
+							<a role="button" href="#" class="dropdown-toggle btn btn-secondary" data-toggle="dropdown">
+								<t t-if='len(website_picking_sortable_current)'>
+									<span>Sorting by : <t t-raw='website_picking_sortable_current[0][0]'/></span>
+								</t>
+								<t t-else='1'>
+									<span>Sort by</span>
+								</t>
+							</a>    
+							<div class="dropdown-menu" role="menu">
+								<t t-foreach="picking_sortable" t-as="sortby">
+									<a role="menuitem" rel="noindex,nofollow" t-att-href="keep('/my/delivery_orders', picking_ftr=sortby[1])" class="dropdown-item">
+										<span t-raw="sortby[0]"/>
+									</a>
+								</t>
+							</div>                                   
+						</div>
+						<div class="dropdown ml-2 dropdown_sorty_by">
+							<a role="button" href="#" class="dropdown-toggle btn btn-secondary" data-toggle="dropdown">
+								<t t-if='len(website_picking_filter_current)'>
+									<span>Filter by : <t t-raw='website_picking_filter_current[0][0]'/></span>
+								</t>
+								<t t-else='1'>
+									<span>Filter by</span>
+								</t>
+							</a>
+							<div class="dropdown-menu" role="menu">
+								<t t-foreach="timesheet_filter" t-as="sortby">
+									<a role="menuitem" rel="noindex,nofollow" t-att-href="keep('/my/delivery_orders', time_ftr=sortby[1])" class="dropdown-item">
+										<span t-raw="sortby[0]"/>
+									</a>
+								</t>
+							</div> 
+						</div>
+						<div class="dropdown ml-2 dropdown_sorty_by">
+							<a role="button" href="#" class="dropdown-toggle btn btn-secondary" data-toggle="dropdown">
+								<t t-if='len(website_picking_groupby_current)'>
+									<span>Group by : <t t-raw='website_picking_groupby_current[0][0]'/></span>
+								</t>
+								<t t-else='1'>
+									<span>Group by</span>
+								</t>
+							</a>
+							<div class="dropdown-menu" role="menu">
+								<t t-foreach="picking_group" t-as="sortby">
+									<a role="menuitem" rel="noindex,nofollow" t-att-href="keep('/my/delivery_orders', picking_group=sortby[1])" class="dropdown-item">
+										<span t-raw="sortby[0]"/>
+									</a>
+								</t>
+							</div>
+						</div>
+					</div>
+
+				</form>
+
+				<div class="table-responsive">
+					<t t-if="grouped_picking">
+						<t t-if="khush">
+							<table class="table table-hover text-center o_my_status_table">
+                                <thead>
+                                    <tr class="active">
+                                    <tr t-attf-class="{{'thead-light' if not groupby == 'none' else ''}}">
+                                    	<th>Name</th>
+                                    	<th>Scheduled Date</th>
+										<th>Picking Type</th>
+										<th>Responsible</th>
+										<th>Source Document</th>
+										<th>Status</th>
+                                    </tr>
+                                   	</tr>
+                                </thead>
+                                
+                            </table>
+                        </t>
+                        <t t-else="">
+							<table class="table table-hover o_portal_my_doc_table">
+								<t t-foreach="grouped_picking" t-as="tasks">
+									<thead>
+										<tr class="active">
+											<tr t-attf-class="{{'thead-light' if not groupby == 'none' else ''}}">
+												<th t-if="groupby == 'type'">
+													<em class="font-weight-normal text-muted"><span/> For Picking Type:</em>
+													<span t-field="tasks[0].sudo().picking_type_id.name"/>
+												</th>
+												<th t-elif="groupby == 'status'">
+													<em class="font-weight-normal text-muted"><span/> For Status:</em>
+													<span t-field="tasks[0].sudo().state"/>
+												</th>
+												<th t-elif="groupby == 'document'">
+													<em class="font-weight-normal text-muted"><span/> For Source Document:</em>
+													<span t-field="tasks[0].sudo().origin"/>
+												</th>
+												<th t-elif="groupby == 'responsible'">
+													<em class="font-weight-normal text-muted"><span/> For Responsible User:</em>
+													<span t-field="tasks[0].sudo().user_id.name"/>
+												</th>
+								
+												<th t-else="">Name</th>
+												<th>Scheduled Date</th>
+												<th>Picking Type</th>
+												<th>Responsible</th>
+												<th>Source Document</th>
+												<th>Status</th>
+											</tr>
+										</tr>
+									</thead>
+									<t t-foreach="tasks" t-as="picking_id">
+										<tr>
+											<td>
+												<a t-attf-href="/picking/view/detail/#{picking_id.id}">
+													<t t-esc="picking_id.name" />
+												</a>
+											</td>
+											<td><span t-field="picking_id.scheduled_date"/></td>
+											<td><span t-field="picking_id.picking_type_id.name"/></td>
+											<td><span t-field="picking_id.user_id"/></td>
+											<td><span t-field="picking_id.origin"/></td>
+											<td><span t-field="picking_id.state"/></td>
+										</tr>
+									</t>
+								</t>
+							</table>
+						</t>
+					</t>
+					</div>
+				</div>
+			</div>
+		</t>
+	</template>
+
+	<template id="portal_my_receipt" name="Receipt Details List">
+		<t t-call="portal.portal_layout">
+			<div class="panel panel-default">
+				<div class="col-md-12">
+				<form class="col-sm-4 col-md-4 col-xs-12 text-center" action="/my/receipt" method="post" t-att-class="search_class" style="margin-bottom:16px;display;display: inline-block;">
+					<input type="hidden" name="csrf_token" class="mb32" t-att-value="request.csrf_token()" />
+					<div class="input-group" style="margin-top:10px;margin-left:200px"> 
+						<t t-call="website.website_search_box"/>
+						<t t-set="date_desc_label">Newest</t>
+						<t t-set="date_asc_label">Older</t>
+						<t t-set="name_asc_label">Name</t>
+						<t t-set="picking_sortable" t-value="[
+							(date_desc_label, 'scheduled_date desc'),
+							(date_asc_label, 'scheduled_date asc'),
+							(name_asc_label, 'name asc'),
+						]"/>
+						<t t-set="filter_all">All</t>
+						<t t-set="last_month">Last Month</t>
+						<t t-set="last_week">Last Week</t>
+						<t t-set="last_year">Last Year</t>
+						<t t-set="this_month">This Month</t>
+						<t t-set="this_quarter">This Quarter</t>
+						<t t-set="today_date">Today</t>
+						<t t-set="this_week">This Week</t>
+						<t t-set="this_year">This Year</t>
+						<t t-set="timesheet_filter" t-value="[
+							(filter_all, 'filter all'),
+							(last_month, 'last month'),
+							(last_week, 'last week'),
+							(last_year, 'last year'),
+							(this_month, 'current month'),
+							(this_quarter, 'current quarter'),
+							(today_date, 'current date'),
+							(this_week, 'current week'),
+							(this_year, 'current year')
+						]"/>
+						<t t-set="group_none">None</t>
+						<t t-set="group_type">Picking Type</t>
+						<t t-set="group_status">Status</t>
+						<t t-set="group_document">Source Document</t>
+						<t t-set="group_user">Responsible</t>
+						<t t-set="picking_group" t-value="[
+							(group_none, 'none'),
+							(group_status, 'status'),
+							(group_document, 'document'),
+							(group_user, 'responsible'),
+							
+						]"/>
+						<t t-set="website_picking_sortable_current" t-value="[sort for sort in picking_sortable if sort[1]==request.params.get('picking_ftr', '')]"/>
+
+						<t t-set="website_picking_filter_current" t-value="[filter for filter in timesheet_filter if filter[1]==request.params.get('time_ftr', '')]"/>
+
+						<t t-set="website_picking_groupby_current" t-value="[group for group in picking_group if group[1]==request.params.get('picking_group', '')]"/>
+
+						<div class="dropdown ml-2 dropdown_sorty_by">
+							<a role="button" href="#" class="dropdown-toggle btn btn-secondary" data-toggle="dropdown">
+								<t t-if='len(website_picking_sortable_current)'>
+									<span>Sorting by : <t t-raw='website_picking_sortable_current[0][0]'/></span>
+								</t>
+								<t t-else='1'>
+									<span>Sort by</span>
+								</t>
+							</a>    
+							<div class="dropdown-menu" role="menu">
+								<t t-foreach="picking_sortable" t-as="sortby">
+									<a role="menuitem" rel="noindex,nofollow" t-att-href="keep('/my/receipt', picking_ftr=sortby[1])" class="dropdown-item">
+										<span t-raw="sortby[0]"/>
+									</a>
+								</t>
+							</div>                                   
+						</div>
+						<div class="dropdown ml-2 dropdown_sorty_by">
+							<a role="button" href="#" class="dropdown-toggle btn btn-secondary" data-toggle="dropdown">
+								<t t-if='len(website_picking_filter_current)'>
+									<span>Filter by : <t t-raw='website_picking_filter_current[0][0]'/></span>
+								</t>
+								<t t-else='1'>
+									<span>Filter by</span>
+								</t>
+							</a>
+							<div class="dropdown-menu" role="menu">
+								<t t-foreach="timesheet_filter" t-as="sortby">
+									<a role="menuitem" rel="noindex,nofollow" t-att-href="keep('/my/receipt', time_ftr=sortby[1])" class="dropdown-item">
+										<span t-raw="sortby[0]"/>
+									</a>
+								</t>
+							</div> 
+						</div>
+						<div class="dropdown ml-2 dropdown_sorty_by">
+							<a role="button" href="#" class="dropdown-toggle btn btn-secondary" data-toggle="dropdown">
+								<t t-if='len(website_picking_groupby_current)'>
+									<span>Group by : <t t-raw='website_picking_groupby_current[0][0]'/></span>
+								</t>
+								<t t-else='1'>
+									<span>Group by</span>
+								</t>
+							</a>
+							<div class="dropdown-menu" role="menu">
+								<t t-foreach="picking_group" t-as="sortby">
+									<a role="menuitem" rel="noindex,nofollow" t-att-href="keep('/my/receipt', picking_group=sortby[1])" class="dropdown-item">
+										<span t-raw="sortby[0]"/>
+									</a>
+								</t>
+							</div>
+						</div>
+					</div>
+
+				</form>
+
+				<div class="table-responsive">
+					<t t-if="grouped_picking">
+						<t t-if="khush">
+							<table class="table table-hover text-center o_my_status_table">
+                                <thead>
+                                    <tr class="active">
+                                    <tr t-attf-class="{{'thead-light' if not groupby == 'none' else ''}}">
+                                    	<th>Name</th>
+                                    	<th>Scheduled Date</th>
+										<th>Picking Type</th>
+										<th>Responsible</th>
+										<th>Source Document</th>
+										<th>Status</th>
+                                    </tr>
+                                   	</tr>
+                                </thead>
+                                
+                            </table>
+                        </t>
+                        <t t-else="">
+							<table class="table table-hover o_portal_my_doc_table">
+								<t t-foreach="grouped_picking" t-as="tasks">
+									<thead>
+										<tr class="active">
+											<tr t-attf-class="{{'thead-light' if not groupby == 'none' else ''}}">
+												<th t-if="groupby == 'type'">
+													<em class="font-weight-normal text-muted"><span/> For Picking Type:</em>
+													<span t-field="tasks[0].sudo().picking_type_id.name"/>
+												</th>
+												<th t-elif="groupby == 'status'">
+													<em class="font-weight-normal text-muted"><span/> For Status:</em>
+													<span t-field="tasks[0].sudo().state"/>
+												</th>
+												<th t-elif="groupby == 'document'">
+													<em class="font-weight-normal text-muted"><span/> For Source Document:</em>
+													<span t-field="tasks[0].sudo().origin"/>
+												</th>
+												<th t-elif="groupby == 'responsible'">
+													<em class="font-weight-normal text-muted"><span/> For Responsible User:</em>
+													<span t-field="tasks[0].sudo().user_id.name"/>
+												</th>
+								
+												<th t-else="">Name</th>
+												<th>Scheduled Date</th>
+												<th>Picking Type</th>
+												<th>Responsible</th>
+												<th>Source Document</th>
+												<th>Status</th>
+											</tr>
+										</tr>
+									</thead>
+									<t t-foreach="tasks" t-as="picking_id">
+										<tr>
+											<td>
+												<a t-attf-href="/receipt/view/detail/#{picking_id.id}">
+													<t t-esc="picking_id.name" />
+												</a>
+											</td>
+											<td><span t-field="picking_id.scheduled_date"/></td>
+											<td><span t-field="picking_id.picking_type_id.name"/></td>
+											<td><span t-field="picking_id.user_id"/></td>
+											<td><span t-field="picking_id.origin"/></td>
+											<td><span t-field="picking_id.state"/></td>
+										</tr>
+									</t>
+								</t>
+							</table>
+						</t>
+					</t>
+					</div>
+				</div>
+			</div>
+		</t>
+	</template>
+
+	<template id="picking_portal_template" name="Delivery Orders Portal Template" inherit_id="portal.portal_sidebar" primary="True">
+    	<xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+        <t t-set="o_portal_fullwidth_alert" groups="sales_team.group_sale_salesman">
+            <t t-call="portal.portal_back_in_edit_mode">
+                <t t-set="backend_url" t-value="'/web#return_label=Website&amp;model=stock.picking&amp;id=%s&amp;view_type=form' % (picking_list.id)"/>
+                </t>
+            </t>
+
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="picking_list.get_portal_url(report_type='pdf', download=True)" title="Download"><i class="fa fa-download"/> Download</a>
+                                    </div>
+                                    <div class="btn-group flex-grow-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_print_btn o_portal_invoice_print" t-att-href="picking_list.get_portal_url(report_type='pdf')" id="print_invoice_report" title="Print" target="_blank"><i class="fa fa-print"/> Print</a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li t-if="picking_list.user_id" class="list-group-item flex-grow-1">
+                                <div class="small mb-1"><strong class="text-muted">Responsible</strong></div>
+                                <div class="row flex-nowrap">
+                                    <div class="col flex-grow-0 pr-2">
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="picking_list.user_id.sudo().image_1024" t-att-src="image_data_uri(picking_list.user_id.sudo().image_1024)" alt="Contact"/>
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="not picking_list.user_id.sudo().image_1024" src="/web/static/src/img/placeholder.png" alt="Contact"/>
+                                    </div>
+                                    <div class="col pl-0" style="min-width: 150px">
+                                        <span t-field="picking_list.user_id" t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}'/>
+                                        <a href="#discussion" class="small"><i class="fa fa-comment"></i> Send message</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </t>
+                </t>
+
+                <!-- Page content -->
+                <div id="quote_content" class="col-12 col-lg justify-content-end">
+                    
+                    <!-- main content -->
+                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="bi_website_portal_picking.picking_portal_content"/>
+                    </div>
+                                        
+                    <!-- chatter -->
+                    <div id="picking_communication" class="mt-4">
+                        <h2>History</h2>
+                        <t t-call="portal.message_thread">
+                            <t t-set="object" t-value="picking_list"/>
+                        </t>
+                    </div>
+                </div><!-- // #quote_content -->
+            </div>
+        </xpath>
+    </template>
+
+    <template id="receipt_portal_template" name="Receipt Portal Template" inherit_id="portal.portal_sidebar" primary="True">
+    	<xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+        <t t-set="o_portal_fullwidth_alert" groups="sales_team.group_sale_salesman">
+            <t t-call="portal.portal_back_in_edit_mode">
+                <t t-set="backend_url" t-value="'/web#return_label=Website&amp;model=stock.picking&amp;id=%s&amp;view_type=form' % (receipt_list.id)"/>
+                </t>
+            </t>
+
+            <div class="row mt16 o_portal_sale_sidebar">
+                <!-- Sidebar -->
+                <t t-call="portal.portal_record_sidebar">
+                    <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+
+                    <t t-set="entries">
+                        <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                            <li class="list-group-item flex-grow-1">
+                                <div class="o_download_pdf btn-toolbar flex-sm-nowrap">
+                                    <div class="btn-group flex-grow-1 mr-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_download_btn" t-att-href="receipt_list.get_portal_url(report_type='pdf', download=True)" title="Download"><i class="fa fa-download"/> Download</a>
+                                    </div>
+                                    <div class="btn-group flex-grow-1 mb-1">
+                                        <a class="btn btn-secondary btn-block o_print_btn o_portal_invoice_print" t-att-href="receipt_list.get_portal_url(report_type='pdf')" id="print_invoice_report" title="Print" target="_blank"><i class="fa fa-print"/> Print</a>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li t-if="receipt_list.user_id" class="list-group-item flex-grow-1">
+                                <div class="small mb-1"><strong class="text-muted">Responsible</strong></div>
+                                <div class="row flex-nowrap">
+                                    <div class="col flex-grow-0 pr-2">
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="receipt_list.user_id.sudo().image_1024" t-att-src="image_data_uri(receipt_list.user_id.sudo().image_1024)" alt="Contact"/>
+                                        <img class="rounded-circle mr4 float-left o_portal_contact_img" t-if="not receipt_list.user_id.image_1024" src="/web/static/src/img/placeholder.png" alt="Contact"/>
+                                    </div>
+                                    <div class="col pl-0" style="min-width: 150px">
+                                        <span t-field="receipt_list.user_id" t-options='{"widget": "contact", "fields": ["name", "phone"], "no_marker": True}'/>
+                                        <a href="#discussion" class="small"><i class="fa fa-comment"></i> Send message</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </t>
+                </t>
+
+                <!-- Page content -->
+                <div id="quote_content" class="col-12 col-lg justify-content-end">
+                    
+                    <!-- main content -->
+                    <div t-attf-class="card #{'pb-5' if report_type == 'html' else ''}">
+                        <div t-call="bi_website_portal_picking.receipt_portal_content"/>
+                    </div>
+                                        
+                    <!-- chatter -->
+                    <div id="picking_communication" class="mt-4">
+                        <h2>History</h2>
+                        <t t-call="portal.message_thread">
+                            <t t-set="object" t-value="receipt_list"/>
+                        </t>
+                    </div>
+                </div><!-- // #quote_content -->
+            </div>
+        </xpath>
+    </template>
+
+	<template id="picking_portal_content" name="Delivery Orders Portal Content">
+		<!-- Intro -->
+		<div id="introduction" t-attf-class="pb-2 pt-3 #{'card-header bg-white' if report_type == 'html' else ''}">
+			<h2 class="my-0">
+				<span t-field="picking_list.name" style="margin-left:20px"></span>
+			</h2>
+		</div>
+
+		<div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+			<!-- Informations -->
+			<div id="informations" style="margin-left:20px">
+				<div class="row">
+					<div class="col-lg-6">
+						<strong class="d-block mb-1">Delivery Address:</strong>
+						<address t-field="picking_list.partner_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+					</div>
+					<div class="col-lg-6">
+						<strong class="d-block mb-1">Scheduled Date:</strong>
+						<span t-field="picking_list.scheduled_date"></span>
+					</div>
+					<div class="col-lg-6" style="margin-top:10px">
+						<strong class="d-block mb-1">Picking Type:</strong>
+						<span t-field="picking_list.picking_type_id.sudo().name"></span>
+					</div>
+					<div class="col-lg-6" style="margin-top:10px">
+						<strong class="d-block mb-1">Responsible:</strong>
+						<span t-field="picking_list.user_id"></span>
+					</div>
+					<div class="col-lg-6" style="margin-top:10px">
+						<strong class="d-block mb-1">Source Document:</strong>
+						<span t-field="picking_list.origin"></span>
+					</div>
+					<div class="col-lg-6" style="margin-top:10px">
+						<strong class="d-block mb-1">Status:</strong>
+						<span t-field="picking_list.state"></span>
+					</div>
+					<div class="col-lg-6" style="margin-top:10px">
+						<strong class="d-block mb-1">Note:</strong>
+						<span t-field="picking_list.note"></span>
+					</div>
+				</div>				
+			</div>
+		</div>
+
+		<section id="details" style="page-break-inside: auto;" class="mt32">
+				<h3 id="details" style="margin-left:20px">Operations</h3>
+				<table class="table table-sm" id="sales_order_table" style="margin-left:20px;width:95%">
+					<thead class="bg-100">
+						<tr>
+							<!-- TODO: remove in master -->
+							<t t-set="colspan" t-value="6"/>
+							<th class="text-left">Products</th>
+							<th class="text-right">Initial Demand</th>
+							<th class="text-right">Done</th>
+							
+						</tr>
+					</thead>
+					<tbody class="sale_tbody">
+						<t t-set="current_subtotal" t-value="0"/>
+						<t t-foreach="picking_list.sudo().move_ids_without_package" t-as="line">
+							<tr>
+								<t>
+									<td id="product_name"><span t-field="line.product_id.name"/></td>
+									<td class="text-right">
+										<span t-field="line.product_uom_qty"/>
+									</td>
+									<td t-attf-class="text-right {{ 'd-none d-sm-table-cell' if report_type == 'html' else '' }}">
+										<span t-field="line.quantity_done"/>
+									</td>
+								</t>
+							</tr>
+						</t>
+					</tbody>
+				</table>
+			</section>
+
+			<section id="transfer_details" style="page-break-inside: auto;" class="mt32">
+				<h3 id="details" style="margin-left:20px">Transfer Activity Log</h3>
+				<table class="table table-sm" id="sales_order_table" style="margin-left:20px;width:95%">
+					<thead class="bg-100">
+						<tr>
+							<!-- TODO: remove in master -->
+							<t t-set="colspan" t-value="6"/>
+							<th class="text-left">Action</th>
+							<th class="text-right">Status</th>
+							<th class="text-right">Timestamp</th>
+							<th class="text-right">User</th>
+							
+						</tr>
+					</thead>
+					<tbody class="sale_tbody">
+						<t t-set="current_subtotal" t-value="0"/>
+						<t t-foreach="picking_list.sudo().transfer_log_activity_ids" t-as="line">
+							<tr>
+								<t>
+									<td id="action"><span t-field="line.action"/></td>
+									<td class="text-right">
+										<span t-field="line.state"/>
+									</td>
+									<td t-attf-class="text-right {{ 'd-none d-sm-table-cell' if report_type == 'html' else '' }}">
+										<span t-field="line.timestamp"/>
+									</td>
+									<td t-attf-class="text-right {{ 'd-none d-sm-table-cell' if report_type == 'html' else '' }}">
+										<span t-field="line.user_id"/>
+									</td>
+								</t>
+							</tr>
+						</t>
+					</tbody>
+				</table>
+			</section>
+	</template>
+
+	<template id="receipt_portal_content" name="Receipt Portal Content">
+		<!-- Intro -->
+		<div id="introduction" t-attf-class="pb-2 pt-3 #{'card-header bg-white' if report_type == 'html' else ''}">
+			<h2 class="my-0">
+				<span t-field="receipt_list.name" style="margin-left:20px"></span>
+			</h2>
+		</div>
+
+		<div t-attf-class="#{'card-body' if report_type == 'html' else ''}">
+			<!-- Informations -->
+			<div id="informations" style="margin-left:20px">
+				<div class="row">
+					<div class="col-lg-6">
+						<strong class="d-block mb-1">Receive From:</strong>
+						<address t-field="receipt_list.partner_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+					</div>
+					<div class="col-lg-6">
+						<strong class="d-block mb-1">Scheduled Date:</strong>
+						<span t-field="receipt_list.scheduled_date"></span>
+					</div>
+					<div class="col-lg-6" style="margin-top:10px">
+						<strong class="d-block mb-1">Picking Type:</strong>
+						<span t-field="receipt_list.picking_type_id.sudo().name"></span>
+					</div>
+					<div class="col-lg-6" style="margin-top:10px">
+						<strong class="d-block mb-1">Responsible:</strong>
+						<span t-field="receipt_list.user_id"></span>
+					</div>
+					<div class="col-lg-6" style="margin-top:10px">
+						<strong class="d-block mb-1">Source Document:</strong>
+						<span t-field="receipt_list.origin"></span>
+					</div>
+					<div class="col-lg-6" style="margin-top:10px">
+						<strong class="d-block mb-1">Status:</strong>
+						<span t-field="receipt_list.state"></span>
+					</div>
+					<div class="col-lg-6" style="margin-top:10px">
+						<strong class="d-block mb-1">Note:</strong>
+						<span t-field="receipt_list.note"></span>
+					</div>
+				</div>				
+			</div>
+		</div>
+
+		<section id="details" style="page-break-inside: auto;" class="mt32">
+				<h3 id="details" style="margin-left:20px">Operations</h3>
+				<table class="table table-sm" id="sales_order_table" style="margin-left:20px;width:95%">
+					<thead class="bg-100">
+						<tr>
+							<!-- TODO: remove in master -->
+							<t t-set="colspan" t-value="6"/>
+							<th class="text-left">Products</th>
+							<th class="text-right">Initial Demand</th>
+							<th class="text-right">Done</th>
+							
+						</tr>
+					</thead>
+					<tbody class="sale_tbody">
+						<t t-set="current_subtotal" t-value="0"/>
+						<t t-foreach="receipt_list.sudo().move_ids_without_package" t-as="line">
+							<tr>
+								<t>
+									<td id="product_name"><span t-field="line.product_id.name"/></td>
+									<td class="text-right">
+										<span t-field="line.product_uom_qty"/>
+									</td>
+									<td t-attf-class="text-right {{ 'd-none d-sm-table-cell' if report_type == 'html' else '' }}">
+										<span t-field="line.quantity_done"/>
+									</td>
+								</t>
+							</tr>
+						</t>
+					</tbody>
+				</table>
+			</section>
+
+			<section id="transfer_details" style="page-break-inside: auto;" class="mt32">
+				<h3 id="details" style="margin-left:20px">Transfer Activity Log</h3>
+				<table class="table table-sm" id="sales_order_table" style="margin-left:20px;width:95%">
+					<thead class="bg-100">
+						<tr>
+							<!-- TODO: remove in master -->
+							<t t-set="colspan" t-value="6"/>
+							<th class="text-left">Action</th>
+							<th class="text-right">Status</th>
+							<th class="text-right">Timestamp</th>
+							<th class="text-right">User</th>
+							
+						</tr>
+					</thead>
+					<tbody class="sale_tbody">
+						<t t-set="current_subtotal" t-value="0"/>
+						<t t-foreach="receipt_list.sudo().transfer_log_activity_ids" t-as="line">
+							<tr>
+								<t>
+									<td id="action"><span t-field="line.action"/></td>
+									<td class="text-right">
+										<span t-field="line.state"/>
+									</td>
+									<td t-attf-class="text-right {{ 'd-none d-sm-table-cell' if report_type == 'html' else '' }}">
+										<span t-field="line.timestamp"/>
+									</td>
+									<td t-attf-class="text-right {{ 'd-none d-sm-table-cell' if report_type == 'html' else '' }}">
+										<span t-field="line.user_id"/>
+									</td>
+								</t>
+							</tr>
+						</t>
+					</tbody>
+				</table>
+			</section>
+	</template>
+
+	<record id="view_stock_picking_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="user_id" invisible="1"/>     
+            </xpath>
+        </field>
+    </record>
+	
+</odoo>

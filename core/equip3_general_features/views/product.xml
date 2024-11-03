@@ -1,0 +1,105 @@
+<odoo>
+    <data>
+        <record id="view_product_template_form_inherited" model="ir.ui.view">
+            <field name="name">Product Template Form </field>
+            <field name="model">product.template</field>
+            <field name="priority">1000</field>
+            <field name="inherit_id" ref="product.product_template_only_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_update_quantity_on_hand']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <field name="branch_id" position="replace"/>
+                <xpath expr="//div[@class='oe_title']" position="after">
+                    <group string="Multi Companies" invisible="1">
+                        <field name = "multi_companies_all" widget="many2many_tags"/>
+                    </group>
+                </xpath>
+                <xpath expr="//field[@name='standard_price']" position="after">
+                    <field name="is_invisible_standard_price" invisible="1"/>
+                    <field name="is_readonly_standard_price" invisible="1"/>
+                </xpath> 
+                <xpath expr="//label[@for='standard_price']" position="attributes">
+					<attribute name="attrs">{
+                        'invisible': [('is_invisible_standard_price', '=', True)]
+                    }</attribute>
+				</xpath>
+                <xpath expr="//div[@name='standard_price_uom']" position="attributes">
+					<attribute name="attrs">{
+                        'invisible': [('is_invisible_standard_price', '=', True)]
+                    }</attribute>
+				</xpath>
+                <xpath expr="//field[@name='standard_price']" position="attributes">
+					<attribute name="attrs">{ 
+                        'readonly': [('is_readonly_standard_price', '=', True)]
+                    }</attribute>
+				</xpath>
+				<xpath expr="//field[@name='categ_id']" position="after">
+                    <field name="product_prefix" attrs="{'invisible' : [
+                        '|', 
+                        ('is_generate_product', '=', False),
+                        '&amp;', ('is_generate_product', '=', True), ('category_prefix_preference', '=', 'all_products_in_this_category_will_have_same_prefix')], 'required': [('is_generate_product', '=', True), ('category_prefix_preference', '=', 'each_product_will_have_different_prefix')]}"/>
+                    <field name="is_generate_product" invisible="1"/>
+                    <field name="category_prefix_preference" invisible="1"/>
+                    <field name="category_sequence" invisible="1"/>
+                    <field name ="product_brand_id" invisible="1"/>
+                    <!-- <field name ="product_brand_ids"/> -->
+                </xpath>
+                <field name="default_code" position="replace"/>
+                <xpath expr="//div[@name='options']" position="before">
+                    <group>
+                        <field name="default_code" force_save="1" attrs="{'readonly' : [('is_generate_product', '=', True)]}"/>
+                    </group>
+                </xpath>
+                <xpath expr="//page[@name='variants']" position="after">
+                    <page name="Alternative" string="Alternative">
+                        <group>
+                            <field name="alternative_product_ids">
+                            <tree>
+                                <field name="name"/>
+                            </tree>
+                            </field>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="product_template_search_view_inherited" model="ir.ui.view">
+        <field name="name">Product Template Search</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='categ_id']" position="after">
+                <filter string="Brand" name="product_brand_id" context="{'group_by':'product_brand_id'}"/>
+            </xpath>
+
+        </field>
+        </record>
+
+        <record id="product_pricelist_inherit_view_id" model="ir.ui.view">
+            <field name="name">product.pricelist.inherit.view.form</field>
+            <field name="model">product.pricelist</field>
+            <field name="inherit_id" ref="product.product_pricelist_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='item_ids']//field[@name='min_quantity']" position="before">
+                    <field name="minimum_price"/>
+                    <field name="maximum_price"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="product_pricelist_item_inherit_form_view_id" model="ir.ui.view">
+            <field name="name">product.pricelist.item.inherit</field>
+            <field name="model">product.pricelist.item</field>
+            <field name="inherit_id" ref="product.product_pricelist_item_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='date_end']" position="after">
+                    <field name="minimum_price"/>
+                    <field name="maximum_price"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="cogm_report_document">
+        <t t-call="web.internal_layout">
+            <div class="page">
+                <div class="oe_structure"/>
+                
+                <div class="o_cost_of_goods_manufactured">
+                
+                    <div class="o_cogm_title">
+                        <h1><t t-esc="doc_data['company_id'][1]"/>: Cost of Goods Manufactured</h1>
+                    </div>
+        
+                    <div class="o_cogm_content">
+                        <table class="o_cogm_section">
+                            <tbody>
+                                <t t-foreach="doc_data['data']" t-as="data">
+                                    <t t-if="data['level'] == 1">
+                                        <tr class="o_separator">
+                                            <td t-att-colspan="(len(data['values']) * 2) + 1"/>
+                                        </tr>
+                                    </t>
+                                    <tr t-attf-class="{{ data['class'] }} {{ 'show' if data['section'] not in doc_data['folded'] else '' }}" 
+                                        t-att-data-toggle="data['data']['toggle']" 
+                                        t-att-data-target="data['data']['target']" 
+                                        t-att-data-section="data['section']">
+                                        <td t-attf-style="padding-left: {{ 10 * (0 if data['level'] &lt;= 1 else data['level'] - 1) }}px;">
+                                            <t t-esc="data['title']"/>
+                                            <span t-attf-class="fa fa-caret-right ml-2" t-if="len(data['children']) and data['level'] > 1"/>
+                                        </td>
+                                        <t t-if="data['section'] == '0'">
+                                            <t t-foreach="data['values']" t-as="value">
+                                                <td class="o_bold" colspan="2">
+                                                    <t t-esc="value['value']"/>
+                                                </td>
+                                            </t>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-foreach="data['values']" t-as="value">
+                                                <td t-attf-class="{{ 'o_value' if data['position'] == 'left' else '' }}">
+                                                    <t t-esc="doc.format_currency(value['value'])" t-if="data['position'] == 'left' and data['show_values']"/>
+                                                </td>
+                                                <td t-attf-class="{{ 'o_value' if data['position'] == 'right' else '' }}">
+                                                    <t t-esc="doc.format_currency(value['value'])" t-if="data['position'] == 'right' and data['show_values']"/>
+                                                </td>
+                                            </t>
+                                        </t>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="oe_structure"/>
+        </t>
+    </template>
+
+    <template id="cogm_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-set="doc_data" t-value="doc._parse_data()"/>
+                <t t-call="equip3_manuf_reports.cogm_report_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="paperformat_cogm_report" model="report.paperformat">
+        <field name="name">COGM Report Paper</field>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">20</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">10</field>
+        <field name="dpi">110</field>
+    </record>
+
+    <record id="action_print_cogm_report" model="ir.actions.report">
+        <field name="name">Cost of Goods Manufactured Report</field>
+        <field name="model">cogm.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_manuf_reports.cogm_report</field>
+        <field name="report_file">equip3_manuf_reports.cogm_report</field>
+        <field name="print_report_name">'Cost of Goods Manufactured Report'</field>
+        <field name="binding_model_id" ref="model_cogm_report"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="equip3_manuf_reports.paperformat_cogm_report"/>
+    </record>
+
+</odoo>

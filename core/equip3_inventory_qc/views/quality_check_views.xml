@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="quality_check_form_view" model="ir.ui.view">
+        <field name="model">sh.quality.check</field>
+        <field name="inherit_id" ref="sh_inventory_mrp_qc.quality_check_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='control_point_id']" position="after">
+                <field name="checked_qty"/>
+                <field name="type_of_qc"/>
+            </xpath>
+            <xpath expr="//field[@name='sh_control_point']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='qc_type']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='text_message']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sh_norm']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <notebook invisible="1">
+                    <page name="quantitative_line_ids" string="Quantitative Lines">
+                        <field name="quantitative_line_ids" attrs="{'invisible':[('type_of_qc', '!=', 'quantitative')]}">
+                            <tree create="0" editable="bottom">
+                                <field name="sequence" readonly="1" force_save="1"/>
+                                <field name="dimansion_id" readonly="1" force_save="1"/>
+                                <field name="norm_qc" readonly="1" force_save="1"/>
+                                <field name="tolerance_from_qc" readonly="1" force_save="1"/>
+                                <field name="tolerance_to_qc" readonly="1" force_save="1"/>
+                                <field name="actual_value" required="1"/>
+                                <field name="text"/>
+                                <field name='status'
+                                    decoration-success="status == 'pass'" decoration-danger="status == 'fail'"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page name="qualitative_line_ids" string="Qualitative Lines">
+                        <field name="qualitative_line_ids" class="qualitative_line_ids" attrs="{'invisible':[('type_of_qc', '!=', 'qualitative')]}">
+                            <tree create="0" editable="bottom">
+                                <field name="sequence" readonly="1" force_save="1"/>
+                                <field name="item_id" readonly="1" force_save="1"/>
+                                <field name="answer" required="1"/>
+                                <field name="text"/>
+                                <field name='status'
+                                    decoration-success="status == 'pass'" decoration-danger="status == 'fail'"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="quality_check_search_view" model="ir.ui.view">
+        <field name="model">sh.quality.check</field>
+        <field name="inherit_id" ref="sh_inventory_mrp_qc.quality_check_search_view"/>
+        <field name="arch" type="xml">
+            <field name="sh_control_point" position="after">
+                <field name="control_point_id"/>
+            </field>
+            <filter name="control_point" position="attributes">
+                <attribute name="context">{'group_by':'control_point_id'}</attribute>
+            </filter>
+        </field>
+    </record>
+
+    <record id="quality_check_tree_view" model="ir.ui.view">
+        <field name="model">sh.quality.check</field>
+        <field name="inherit_id" ref="sh_inventory_mrp_qc.quality_check_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="decoration-danger">state in ('fail','repair')</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sh_control_point']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='qc_type']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='text_message']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sh_norm']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='control_point_id']" position="after">
+                <field name="checked_qty"/>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="type_of_qc"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="quality_check_line_form_view" model="ir.ui.view">
+        <field name="model">sh.quality.check</field>
+        <field name="priority" eval="100"/>
+        <field name="arch" type="xml">
+            <form string="Quality Check">
+                <div class="oe_title">
+                <h1>
+                    <field name="product_id" />
+                    <field name="type_of_qc" invisible="1"/>
+                    <field name="image_128" widget="image" class="o_field_image o_field_widget oe_avatar" style="margin-right: 4px; margin-top: 0px;"/>
+                </h1>
+                </div>
+                <field name="quantitative_line_ids" attrs="{'invisible':[('type_of_qc', 'not in', ['quantitative','both'])]}"
+                    style="margin-top: 70px;">
+                    <tree create="0" editable="bottom">
+                        <field name="sequence" readonly="1" force_save="1"/>
+                        <field name="dimansion_id" readonly="1" force_save="1"/>
+                        <field name="norm_qc" readonly="1" force_save="1"/>
+                        <field name="tolerance_from_qc" readonly="1" force_save="1"/>
+                        <field name="tolerance_to_qc" readonly="1" force_save="1"/>
+                        <field name="actual_value" required="1"/>
+                        <field name="text"/>
+                        <field name='status'
+                            decoration-success="status == 'pass'" decoration-danger="status == 'fail'"/>
+                    </tree>
+                </field>
+                <field name="qualitative_line_ids" class="qualitative_line_ids" attrs="{'invisible':[('type_of_qc', 'not in', ['qualitative','both'])]}"
+                    style="margin-top: 70px;">
+                    <tree create="0" editable="bottom">
+                        <field name="sequence" readonly="1" force_save="1"/>
+                        <field name="item_id" readonly="1" force_save="1"/>
+                        <field name="answer" required="1"/>
+                        <field name="text"/>
+                        <field name='status'
+                            decoration-success="status == 'pass'" decoration-danger="status == 'fail'"/>
+                    </tree>
+                </field>
+
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,36 @@
+{
+    'name': 'Equip3 Aftersales Operation',
+    'version': '1.1.4',
+    'author': 'Hashmicro / Diki',
+    'website': "https://www.hashmicro.com",
+    'category': 'Uncategorized',
+    'summary': """
+    """,
+    'depends': [
+        'base',
+        'sale',
+        'sale_timesheet',
+        'branch',
+        'equip3_sale_operation',
+        'equip3_sale_other_operation_cont',
+        'equip3_aftersales_masterdata',
+        'equip3_aftersales_accessright'
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/res_groups.xml',
+        'views/sale_service_view.xml',
+        'views/maintenance_service_view.xml',
+        'views/goods_receive_service.xml',
+        'views/res_config_settings.xml',
+        'views/approval_matrix.xml',
+        'views/aftersales_operation_menu.xml',        
+        'views/aftersales_menu_icons.xml',
+        'data/sequences.xml',
+        'wizard/create_purchase_order.xml',
+        'wizard/sale_service_matrix_reject.xml',
+    ],
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+}

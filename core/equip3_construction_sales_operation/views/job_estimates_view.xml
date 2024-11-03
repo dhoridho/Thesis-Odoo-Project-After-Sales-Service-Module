@@ -1,0 +1,1661 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Fields below have their attributes 'attrs' overrode in equip3_construction_operation/job_estimate_view.xml for Variation Order purpose.
+             If you're working on these fields to modify/inherit their 'attrs', you may want to check the file mentioned above.
+        1.Project_scope (all estimations table)
+        2.Section_name (all estimations table)
+        3.Group_of_product (table material_estimation_ids, labour_estimation_ids, overhead_estimations_ids, equipment_estimations_ids)
+        4.Overhead_catagory (table overhead_estimations_ids)
+        5.product_id (table material_estimation_ids, labour_estimation_ids, overhead_estimations_ids, equipment_estimations_ids)
+        6.Asset_category_id (table internal_asset_ids)
+        7.asset_id (table internal_asset_ids)
+        8.Variable (table subcon_estimation_ids)
+        9.Description (all estimations table)
+        10.uom_id (all estimations table)
+
+        List of overrode field for scope & section tab:
+        1.Project_scope
+        2.Section_name
+        3.Description
+        4.Quantity
+        5.uom_id
+
+        -->
+
+        <record id="action_quotation_new" model="ir.actions.act_window">
+            <field name="name">Quotations</field>
+            <field name="res_model">sale.order.const</field>
+            <field name="context">{'default_job_reference': self.id, 
+                                   'default_project_id': project_id.id, 
+                                   'default_partner_id': partner_id.id}</field>
+            <field name="view_mode">form</field>
+        </record>
+
+        <record id="edit_job_estimate_form_view" model="ir.ui.view">
+            <field name="name">edit.job.estimate.form.view</field>
+            <field name="model">job.estimate</field>
+            <field name="inherit_id" ref="bi_job_cost_estimate_customer.job_estimate_form_view"/>
+            <field name="arch" type="xml">
+                <!-- edit buttton -->
+                <xpath expr="//header/button[@name='job_confirm']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', True), ('state', 'not in', ['draft','sent'])]}</attribute>
+                </xpath>
+                <xpath expr="//header/button[@name='create_quotation']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|','|', ('state_new', '!=', 'confirmed'), ('department_type','=','department'),('state','=','sale')]}</attribute>
+                </xpath>
+                <xpath expr="//header/button[@name='create_quotation']" position="after">
+                    <field name="is_department" invisible="1"></field>
+                </xpath>
+                <xpath expr="//header/button[@name='reset_draft']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                    <attribute name="class"></attribute>
+                    <attribute name="attrs">{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', True), ('state', 'in', ['draft','approved','rejected','done','sale','cancel','sent'])]}</attribute>
+                </xpath>
+                <xpath expr="//header/button[@name='reject_job_estimate']" position="attributes">
+                    <attribute name="class"></attribute>
+                    <attribute name="attrs">{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', True), ('state', 'not in', ['confirmed','to_approve'])]}</attribute>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//form/header/button[@name='job_confirm']" position="after">
+                    <button name="job_confirm_2" type="object" string="Confirm" class="oe_highlight" attrs="{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', False), ('state', '!=', 'approved')]}"/>
+                    <button name="action_request_for_approving" type="object" string="Request For Approval" class="oe_highlight" attrs="{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', False), ('state', 'not in', ['draft','sent'])]}"/>
+                    <button name="action_confirm_approving_matrix" type="object" string="Approve" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_job_estimate_approval_matrix', '=', False), ('state', '!=', 'to_approve'), ('is_approver', '=', False)]}"/>
+                    <button name="action_reject_approving_matrix" type="object" string="Reject" attrs="{'invisible': ['|', '|', ('is_job_estimate_approval_matrix', '=', False), ('state', '!=', 'to_approve'), ('is_approver', '=', False)]}"/>
+                    <button name="action_job_estimate_revision" type="object" string="Create Revision" class="oe_highlight" attrs="{'invisible': ['|', ('state', 'not in', ['rejected','cancel']), ('is_revision_created', '=', True)]}" />
+                </xpath>
+
+                <xpath expr="//header/button[@name='create_quotation']" position="after">
+                    <button name="print_out" type="object" string="Print" class="oe_highlight" attrs="{'invisible': [('state_new', '!=', 'confirmed')]}"/>
+                    <button name="action_export_job_estimate" type="object" string="Export to Excel" class="oe_highlight" attrs="{'invisible': [('state_new', '=', 'to_approve')]}"/>
+                    <button name="action_set_draft" type="object" string="Reset to Draft" attrs="{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', False), ('state', '!=', 'approved')]}"/>
+                    <button name="action_cancel" type="object" string="Cancel" attrs="{'invisible': [('state_new', '!=', 'confirmed')]}"/>
+                </xpath>
+
+                <xpath expr="//form/header/button[@name='approve_job_estimate']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='partner_id']" position="after">
+                   <field name="department_type" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//header/button[@name='action_cancel']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//header/field[@name='state']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//header/field[@name='state']" position="after">
+                    <field name="approval_matrix_state" widget="statusbar" statusbar_visible="draft,approved,confirmed" attrs="{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', False), ('state', 'in', ['rejected','cancel','revised'])]}"/>
+                    <field name="approval_matrix_state_1" widget="statusbar" statusbar_visible="draft,rejected" attrs="{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', False), ('state', '!=', 'rejected')]}"/>
+                    <field name="approval_matrix_state_2" widget="statusbar" statusbar_visible="rejected,revised" attrs="{'invisible': ['|', '|', ('is_job_estimate_approval_matrix', '=', False), ('state', '!=', 'revised'), ('is_rejected', '=', False)]}"/>
+                    <field name="approval_matrix_state_3" widget="statusbar" statusbar_visible="draft,approved,confirmed,cancel" attrs="{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', False), ('state', '!=', 'cancel')]}"/>
+                    <field name="approval_matrix_state_4" widget="statusbar" statusbar_visible="cancel,revised" attrs="{'invisible': ['|', '|', ('is_job_estimate_approval_matrix', '=', False), ('state', '!=', 'revised'), ('is_cancelled', '=', False)]}"/>
+                    <field name="state_new" widget="statusbar" statusbar_visible="draft,confirmed" attrs="{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', True), ('state', 'in', ['cancel','revised'])]}"/>
+                    <field name="state_1" widget="statusbar" statusbar_visible="draft,confirmed,cancel" attrs="{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', True), ('state', '!=', 'cancel')]}"/>
+                    <field name="state_2" widget="statusbar" statusbar_visible="cancel,revised" attrs="{'invisible': ['|', ('is_job_estimate_approval_matrix', '=', True), ('state', '!=', 'revised')]}"/>
+                </xpath>
+
+                <!-- Smart Button -->
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button class="oe_inline oe_stat_button" type="object" name="open_revision_tree" icon="fa-clipboard" attrs="{'invisible': [('revision_count', '=', 0)]}">
+                        <field string="Revisions" name="revision_count" widget="statinfo" />
+                    </button>
+                </xpath>
+
+                <xpath expr="//div[@name='button_box']/button[@name='quotation_button']" position="attributes">
+                    <attribute name="icon">o-hm-smart-crm-quotations</attribute>
+                </xpath>
+
+                <!-- hide fields -->
+                <xpath expr="//field[@name='number']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='payment_term_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='analytic_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='job_type_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='date']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='project_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                    <attribute name="context">{'form_view_ref': 'equip3_construction_masterdata.edit_project', 'is_sale_project':True}</attribute>
+                </xpath>
+            
+                <xpath expr="//field[@name='currency_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <!-- show fields left section-->
+                <xpath expr="//field[@name='partner_id']" position="before">
+                    <field name="project_id" 
+                           options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                           context="{'form_view_ref': 'equip3_construction_masterdata.edit_project', 'is_sale_project':True}"/>
+                </xpath>
+
+                <xpath expr="//field[@name='partner_id']" position="attributes">
+                    <attribute name="attrs">{'invisible': [('department_type','=', 'department')], 'required': [('department_type','=', 'project')]}</attribute>
+                    <attribute name="force_save">1</attribute>
+                    <attribute name="domain">[('is_customer', '=', True)]</attribute>
+                </xpath>
+                
+                <xpath expr="//field[@name='customer_ref']" position="after">
+                    <field name="start_date" required="1"/>
+                    <field name="end_date" required="1"/>
+                    <field name="duration" readonly="1" force_save="1"/>
+                    <field name="analytic_idz" widget="many2many_tags" required="1"/>
+                </xpath>
+
+                <xpath expr="//field[@name='company_id']" position="before">
+                    <field name="warehouse_address" invisible='1'/>
+                    <field name="company_currency_id" string='Currency'/>
+                    <field name="contract_category" required="1" readonly="1" string="Category" force_save="1"/>
+                    <field name="is_over_budget_ratio" force_save="1" attrs="{'invisible': [('contract_category','=', 'var')], 'readonly': [('state_new', '!=', 'draft')]}"/>
+                    <field name="ratio_value" attrs="{'invisible': ['|', ('is_over_budget_ratio','=', False), ('contract_category','=', 'var')], 'readonly': [('state_new', '!=', 'draft')]}"/>
+                    <field name="job_contract_ref" force_save="1" readonly="1"
+                           attrs="{'invisible': ['|', ('department_type','=', 'project'), ('contract_category','!=', 'var')]}"/>
+                    <field name="main_contract_ref" force_save="1" readonly="1"
+                           attrs="{'invisible': ['|', ('department_type','=', 'department'), ('contract_category','!=', 'var')]}"/>
+                    <field name="is_job_estimate_approval_matrix" invisible="1"/>
+                    <field name="is_approval_matrix_filled" invisible="1" />
+                    <field name="is_approve_button" invisible="1" />    
+                    <field name="is_revision_created" invisible="1"/>   
+                    <field name="is_revision_je" invisible="1"/>                       
+                    <field name="approval_matrix_line_id" invisible="1" />
+                    <field name="estimation_sent" invisible="1"/>
+                    <field name="is_rejected" invisible="1"/>
+                    <field name="is_cancelled" invisible="1"/>
+                    <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                    <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                    <field name="is_approver" invisible="1"/>
+                    <field name="approved_user_text" invisible="1"/>
+                    <field name="approved_user" invisible="1" readonly="0"/>
+                    <field name="employee_id" invisible="1"/>
+                    <field name="feedback_parent" invisible="1"/>
+                    <field name="customer_exist" invisible="1"/>
+                    <field name="active" invisible="1"/>
+                    <field name="main_revision_je_id" invisible="1"/>
+                    <field name="revision_je_id" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//field[@name='company_id']" position="after">
+                    <field name="branch_id" required="1" readonly="1" force_save="1"/>
+                    <field name="create_uid" string='Created By'/>
+                    <field name="create_date" string='Creation Date'/>
+                </xpath>
+
+                <xpath expr="//group[1]" position="after">
+                    <group name="boq_template" attrs="{'invisible': [('contract_category', '=', 'var') ]}">
+                        <group class='oe_edit_only'>
+                            <label for="job_estimate_template" string='BOQ Template' attrs="{'invisible': ['|',('state_new', 'not in', ('draft','sent')),('contract_category', '=', 'var') ]}"/>
+                            <div class="card-group" attrs="{'invisible': [('state_new', 'not in', ('draft','sent'))]}">
+                                <field name='job_estimate_template' widget="many2many_tags"
+                                       options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"/>
+                            </div>
+                            <label for="save_as_template"/>
+                            <div>
+                                <field name='save_as_template'/>
+                                <field name='name_template' nolable="1" placeholder="Template Name" attrs="{'invisible': [('save_as_template', '=', False)], 'required': [('save_as_template', '=', True)]}"/>
+                                <button name="save_as_a_template" type="object" string="Save" class="oe_highlight" attrs="{'invisible': [('save_as_template', '=', False)]}" style="padding:10px"/> 
+                            </div>
+                        </group>
+                    </group>
+                </xpath>
+
+
+                <!-- logmail -->
+                <xpath expr="//form/sheet[@name='form_page']" position="after">
+                    <div class="oe_chatter" name="chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </xpath>
+
+                <!-- number BOQ -->
+                <xpath expr="//sheet/div[@name='button_box']" position="after">
+                    <div class="oe_title oe_left">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                </xpath>
+
+                <!-- Edit ID (name) -->
+                <xpath expr="//notebook/page[@name='material_page']/separator[1]" position="attributes">
+                    <attribute name="name">material_separator</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='labour_page']/separator[1]" position="attributes">
+                    <attribute name="name">labour_separator</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='overhead_page']/separator[1]" position="attributes">
+                    <attribute name="name">overhead_separator</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Project Scope Estimation Inherit View-->
+        <record id="project_scope_estimation_inherit" model="ir.ui.view">
+            <field name="name">project.scope.estimate.fields.inherit</field>
+            <field name="model">job.estimate</field>
+            <field name="inherit_id" ref="bi_job_cost_estimate_customer.job_estimate_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='customer_ref']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='material_page']" position="before">
+                    <page string="Project Scope" name="project_scope">
+                        <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                        <field name="project_scope_ids" widget="one2many_list"  
+                                attrs="{'readonly': [('state', 'in', ['approved','confirmed','done','sale','cancel'])]}">
+                            <tree string="Project Scope" editable="bottom">
+                                <control>
+                                    <create name="add_product_control" string="Add a scope"/>
+                                </control>
+                                <field name="sequence" widget="handle" />
+                                <field name="is_lock" invisible="1"/>
+                                <field name="is_new" invisible="1"/>
+                                <field name="sr_no"/>
+                                <field name="project_scope"
+                                       attrs="{'readonly': [('is_lock', '=', True), ('is_new', '=', False)]}"
+                                       options="{'no_quick_create':True}"/>
+                                <field name="description" attrs="{'readonly': ['|', ('project_scope', '=', False),'&amp;', ('is_lock', '=', True), ('is_new', '=', False)]}"/>
+                                <field name="subtotal" readonly="1" force_save="1" widget="monetary" attrs="{'readonly': [('is_lock', '=', True), ('is_new', '=', False)]}" options="{'currency_field': 'currency_id'}"/>
+<!--                                <button name="delete_scope" type="object" icon="fa-trash"/>-->
+                                <field name="scope_id" invisible="1"/>
+                                <field name="project_id" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
+                            </tree>
+                        </field>
+                        <group>
+                            <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                                <field name="total_material_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_labour_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_overhead_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_assets_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_subcon_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                    <label for="total_job_estimate"/>
+                                </div>
+                                <field name="total_job_estimate" nolabel="1" class="oe_subtotal_footer_separator"
+                                    widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                            </group>
+                            <group attrs="{'invisible': [('contract_category', '!=', 'var')]}">
+                                <field name="total_variation_order_material" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_variation_order_labour" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_variation_order_overhead" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_variation_order_subcon" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_variation_order_asset" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_variation_order_equipment" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_variation_order" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                            </group>
+                            <group name="description" string="Description of BOQ">
+                                <field name="description" nolabel="1"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Section Estimation Inherit View-->
+        <record id="section_estimation_inherit" model="ir.ui.view">
+            <field name="name">section.estimate.fields.inherit</field>
+            <field name="model">job.estimate</field>
+            <field name="inherit_id" ref="bi_job_cost_estimate_customer.job_estimate_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[@name='project_scope']" position="after">
+                    <page string="Section" name="section">
+                        <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                        <field name="section_ids" widget="one2many_list" attrs="{'readonly': [('state', 'in', ['approved','confirmed','done','sale','cancel'])]}">
+                            <tree string="Section" editable="bottom">
+                                <control>
+                                    <create name="add_product_control" string="Add a section"/>
+                                </control>
+                                <field name="sequence" widget="handle"/>
+                                <field name="is_lock" invisible="1"/>
+                                <field name="is_new" invisible="1"/>
+                                <field name="sr_no"/>
+                                <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]"
+                                       options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                                       attrs="{'readonly': [('is_lock', '=', True), ('is_new', '=', False)]}"
+                                       style="width: 150px !important;"/>
+                                <field name="section_name" context="{'default_project_id':parent.project_id, 'default_project_scope': project_scope}" 
+                                       attrs="{'readonly': ['|',('project_scope', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"
+                                       style="width: 150px !important;"
+                                       options="{'no_quick_create':True}"/>
+                                <field name="description" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                <field name="quantity" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                <field name="uom_id" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                <field name="subtotal" readonly="1" force_save="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="section_id" invisible="1"/>
+                                <field name="project_id" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
+                            </tree>
+                        </field>
+                        <group>
+                            <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                                <field name="total_material_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_labour_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_overhead_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_assets_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_subcon_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                    <label for="total_job_estimate"/>
+                                </div>
+                                <field name="total_job_estimate" nolabel="1" class="oe_subtotal_footer_separator"
+                                    widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                            </group>
+                            <group attrs="{'invisible': [('contract_category', '!=', 'var')]}">
+                                <field name="total_variation_order" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                            </group>
+                            <group name="description" string="Description of BOQ">
+                                <field name="description" nolabel="1"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+
+        <!-- Variable Estimation Inherit View-->
+        <record id="variable_estimation_inherit" model="ir.ui.view">
+            <field name="name">variable.estimate.fields.inherit</field>
+            <field name="model">job.estimate</field>
+            <field name="inherit_id" ref="bi_job_cost_estimate_customer.job_estimate_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[@name='section']" position="after">
+                    <page string="Variable" name="variable">
+                        <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                        <field name="variable_ids" widget="one2many_list" attrs="{'readonly': [('state', 'in', ['approved','confirmed','done','sale','cancel'])]}">
+                            <tree string="Variable" editable="bottom" >
+                                <control>
+                                    <create name="add_product_control" string="Add a variable"/>
+                                </control>
+                                <field name="sequence" widget="handle"/>
+                                <field name="is_lock" invisible="1"/>
+                                <field name="is_new" invisible="1"/>
+                                <field name="sr_no"/>
+                                <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" 
+                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                       attrs="{'readonly': [('is_lock', '=', True), ('is_new', '=', False)]}"/>
+                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                <field name="section_name" domain="[('id','in',project_section_computed)]" 
+                                       attrs="{'readonly': ['|',('project_scope', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"
+                                       options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="variable_name" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"
+                                       options="{'no_quick_create':True}"
+                                       context="{'default_variable_subcon':False}"
+                                       domain="[('variable_subcon', '=', False), ('company_id', '=', company_id)]" />
+                                <field name="variable_quantity" attrs="{'readonly': ['|',('variable_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                <field name="variable_uom" attrs="{'readonly': ['|',('variable_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                <field name="total_variable" invisible="1" force_save="1"/>
+                                <field name="subtotal" readonly="1" force_save="1" widget="monetary" 
+                                       options="{'currency_field': 'currency_id'}"
+                                       invisible="1" />
+                                <field name="variable_id" invisible="1"/>
+                                <field name="company_id" invisible="1"/>
+                                <field name="analytic_idz" widget="many2many_tags" invisible="1"/>
+                                <field name="project_id" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="onchange_pass" invisible="1"/>
+                            </tree>
+                        </field>
+                        <group>
+                            <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                                <field name="total_material_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_labour_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_overhead_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_assets_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <field name="total_subcon_estimate" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                    <label for="total_job_estimate"/>
+                                </div>
+                                <field name="total_job_estimate" nolabel="1" class="oe_subtotal_footer_separator"
+                                    widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                            </group>
+                            <group attrs="{'invisible': [('contract_category', '!=', 'var')]}">
+                                <field name="total_variation_order" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                            </group>
+                            <group name="description" string="Description of BOQ">
+                                <field name="description" nolabel="1"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Material Estimation Inherit View-->
+        <record id="material_estimation_inherit" model="ir.ui.view">
+            <field name="name">material.estimation.fields.inherit</field>
+            <field name="model">job.estimate</field>
+            <field name="inherit_id" ref="bi_job_cost_estimate_customer.job_estimate_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', 'in', ['approved','confirmed','done','sale','cancel'])]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']" position="before">
+                    <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='type']"
+                       position="before">
+                    <control>
+                        <create name="add_product_control" string="Add a product"/>
+                    </control>
+                    <field name="sequence" widget="handle"/>
+                    <field name="is_lock" invisible="1"/>
+                    <field name="is_new" invisible="1"/>
+                    <field name="sr_no"/>
+                    <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]"
+                           options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                           attrs="{'readonly': [('is_lock', '=', True), ('is_new', '=', False)]}"/>
+                    <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                    <field name="section_name"
+                           domain="[('id','in',project_section_computed)]"
+                           options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}" 
+                           attrs="{'readonly': ['|',('project_scope', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                    <field name="variable_ref" force_save="1" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"
+                           options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}" optional="hide"/>
+                    <field name="group_of_product" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}" />
+                    <field name="company_id" invisible="1"/>
+                    <field name="project_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='quantity']" position="before">
+                    <field name="coefficient" attrs="{'invisible': [('contract_category', '!=', 'main')]}"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='description']"
+                       position="after">
+                    <field name="analytic_idz" widget="many2many_tags" string='Analytic Group' required="1" optional="hide" attrs="{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}"/>
+                    <field name="contract_category" invisible="1"/>    
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='subtotal']"
+                       position="attributes">
+                    <attribute name="force_save">1</attribute>
+                    <attribute name="widget">monetary</attribute>
+                    <attribute name="options">{'currency_field': 'currency_id'}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='product_id']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('group_of_product', '=', False),('is_lock', '=', True)]}</attribute>
+                    <attribute name="options">{'no_create': True}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='product_id']"
+                       position="after">
+                    <field name="product_uom_category_id" invisible="1"/>       
+                    <field name="prev_uom_id" invisible="1"/>       
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='description']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='quantity']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='unit_price']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                    <attribute name="widget">monetary</attribute>
+                    <attribute name="options">{'currency_field': 'currency_id'}</attribute> 
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='uom_id']"
+                       position="attributes">
+                    <attribute name="required">1</attribute>
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                    <attribute name="domain">[('category_id', '=', product_uom_category_id)]</attribute>
+                </xpath>
+                <!-- hide fields -->
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='type']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='material_estimation_ids']/tree/field[@name='discount']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='material_page']/group[@name='total_material_estimate']/field[@name='total_labour_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='material_page']/group[@name='total_material_estimate']/field[@name='total_overhead_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='material_page']/group[@name='total_material_estimate']/field[@name='total_job_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='material_page']/group[@name='total_material_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='material_page']/field[@name='material_estimation_ids']"
+                       position="after">
+                    <group>
+                        <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                            <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                <label for="total_material_estimate" />
+                            </div>
+                            <field name="total_material_estimate" nolabel="1" class="oe_subtotal_footer_separator" 
+                                   widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                        </group>
+                        <group attrs="{'invisible': [('contract_category', '!=', 'var')]}">
+                            <field name="total_variation_order" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                        </group>
+                        <group name="description" string="Description of BOQ">
+                            <field name="description" nolabel="1"/>
+                        </group>
+                    </group>
+                </xpath>
+                
+                <xpath expr="//notebook/page[@name='material_page']/separator[@name='material_separator']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='material_page']/field[@name='description']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Labour Estimation Inherit -->
+        <record id="labour_estimation_inherit" model="ir.ui.view">
+            <field name="name">labour.estimation.fields.inherit</field>
+            <field name="model">job.estimate</field>
+            <field name="inherit_id" ref="bi_job_cost_estimate_customer.job_estimate_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', 'in', ['approved','confirmed','done','sale','cancel'])]}</attribute>
+                    <!-- <attribute name="domain">[('product_id.labour_type', '=', True)]</attribute> -->
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']" position="before">
+                    <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='type']"
+                       position="before">
+                    <control>
+                        <create name="add_product_control" string="Add a product"/>
+                    </control>
+                    <field name="sequence" widget="handle"/>
+                    <field name="is_lock" invisible="1"/>
+                    <field name="is_new" invisible="1"/>
+                    <field name="sr_no"/>
+                    <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]"
+                           options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                           required="1" attrs="{'readonly': [('is_lock', '=', True), ('is_new', '=', False)]}"/>
+                    <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                    <field name="section_name" required="1"
+                           domain="[('id','in',project_section_computed)]"
+                           options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                           attrs="{'readonly': ['|',('project_scope', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                    <field name="variable_ref" force_save="1" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"
+                           options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}" optional="hide"/>
+                    <field name="group_of_product" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="project_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="prev_uom_id" invisible="1"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='description']"
+                       position="after">
+                    <field name="analytic_idz" widget="many2many_tags" string='Analytic Group' required="1" optional="hide" attrs="{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}"/>
+                    <field name="contract_category" invisible = "1"/>   
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='quantity']"
+                       position="before">
+                    <field name="contractors" attrs="{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}"/>
+                    <field name="coefficient" attrs="{'invisible': [('contract_category', '!=', 'main')]}"/>
+                    <field name="time" attrs="{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='quantity']"
+                       position="attributes">
+                    <attribute name="readonly">1</attribute>
+                    <attribute name="force_save">1</attribute>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='subtotal']"
+                       position="attributes">
+                    <attribute name="force_save">1</attribute>
+                    <attribute name="widget">monetary</attribute>
+                    <attribute name="options">{'currency_field': 'currency_id'}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='product_id']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('group_of_product', '=', False),('is_lock', '=', True)]}</attribute>
+                    <attribute name="options">{'no_create': True}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='product_id']"
+                       position="after">
+                    <field name="product_uom_category_id" invisible="1"/>       
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='description']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='quantity']"
+                       position="attributes">
+                    <attribute name="readonly">1</attribute> 
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='unit_price']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                    <attribute name="widget">monetary</attribute>
+                    <attribute name="options">{'currency_field': 'currency_id'}</attribute> 
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='uom_id']"
+                       position="attributes">
+                    <attribute name="required">1</attribute>
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                    <attribute name="domain">[('category_id', '=', product_uom_category_id)]</attribute>
+                </xpath>
+                <!-- hide fields -->
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='type']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='discount']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='labour_estimation_ids']/tree/field[@name='hours']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='labour_page']/group[@name='total_material_estimate']/field[@name='total_material_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='labour_page']/group[@name='total_material_estimate']/field[@name='total_overhead_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='labour_page']/group[@name='total_material_estimate']/field[@name='total_job_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='labour_page']/group[@name='total_material_estimate']/field[@name='total_labour_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                
+                
+                <xpath expr="//notebook/page[@name='labour_page']/group[@name='total_material_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='labour_page']/field[@name='labour_estimation_ids']"
+                       position="after">
+                    <group>
+                        <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                            <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                <label for="total_labour_estimate" />
+                            </div>
+                            <field name="total_labour_estimate" nolabel="1" class="oe_subtotal_footer_separator" 
+                                   widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                        </group>
+                        <group attrs="{'invisible': [('contract_category', '!=', 'var')]}">
+                            <field name="total_variation_order" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                        </group>
+                        <group name="description" string="Description of BOQ">
+                            <field name="description" nolabel="1"/>
+                        </group>
+                    </group>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='labour_page']/separator[@name='labour_separator']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='labour_page']/field[@name='description']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Overhead Estimation Inherit -->
+        <record id="overhead_estimation_inherit" model="ir.ui.view">
+            <field name="name">overhead.estimation.fields.inherit</field>
+            <field name="model">job.estimate</field>
+            <field name="inherit_id" ref="bi_job_cost_estimate_customer.job_estimate_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', 'in', ['approved','confirmed','done','sale','cancel'])]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']" position="before">
+                    <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='type']"
+                       position="before">
+                    <control>
+                        <create name="add_product_control" string="Add a product"/>
+                    </control>
+                    <field name="sequence" widget="handle"/>
+                    <field name="is_lock" invisible="1"/>
+                    <field name="is_new" invisible="1"/>
+                    <field name="sr_no"/>
+                    <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]"
+                           options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                           attrs="{'readonly': [('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                    <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                    <field name="section_name" 
+                           domain="[('id','in',project_section_computed)]"
+                           options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                           attrs="{'readonly': ['|',('project_scope', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                    <field name="variable_ref" force_save="1" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"
+                           options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}" optional="hide"/>
+                    <field name="overhead_catagory" required='1' attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                    <field name="group_of_product" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="project_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="prev_uom_id" invisible="1"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='quantity']" position="before">
+                    <field name="coefficient" attrs="{'invisible': [('contract_category', '!=', 'main')]}"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='description']"
+                       position="after">
+                    <field name="analytic_idz" widget="many2many_tags" string='Analytic Group' required="1" optional="hide" attrs="{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}"/>
+                    <field name="contract_category" invisible = "1"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='product_id']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('group_of_product', '=', False),('is_lock', '=', True)]}</attribute>
+                    <attribute name="options">{'no_create': True}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='product_id']"
+                       position="after">
+                    <field name="product_uom_category_id" invisible="1"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='description']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='quantity']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='unit_price']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                    <attribute name="widget">monetary</attribute>
+                    <attribute name="options">{'currency_field': 'currency_id'}</attribute> 
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='uom_id']"
+                       position="attributes">
+                    <attribute name="required">1</attribute>
+                    <attribute name="attrs">{'readonly': ['|',('product_id', '=', False),('is_lock', '=', True)]}</attribute>
+                    <attribute name="domain">[('category_id', '=', product_uom_category_id)]</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='subtotal']"
+                       position="attributes">
+                    <attribute name="force_save">1</attribute>
+                    <attribute name="widget">monetary</attribute>
+                    <attribute name="options">{'currency_field': 'currency_id'}</attribute>
+                </xpath>
+                <!-- hide fields -->
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='type']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='overhead_estimation_ids']/tree/field[@name='discount']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='overhead_page']/group[@name='total_material_estimate']/field[@name='total_material_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='overhead_page']/group[@name='total_material_estimate']/field[@name='total_labour_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='overhead_page']/group[@name='total_material_estimate']/field[@name='total_job_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='overhead_page']/group[@name='total_material_estimate']/field[@name='total_overhead_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                
+                <xpath expr="//notebook/page[@name='overhead_page']/group[@name='total_material_estimate']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='overhead_page']/field[@name='overhead_estimation_ids']"
+                       position="after">
+                    <group>
+                        <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                            <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                <label for="total_overhead_estimate" />
+                            </div>
+                            <field name="total_overhead_estimate" nolabel="1" class="oe_subtotal_footer_separator" 
+                                   widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                        </group>
+                        <group attrs="{'invisible': [('contract_category', '!=', 'var')]}">
+                            <field name="total_variation_order" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                        </group>
+                        <group name="description" string="Description of BOQ">
+                            <field name="description" nolabel="1"/>
+                        </group>
+                    </group>
+                </xpath>
+                
+                <xpath expr="//notebook/page[@name='overhead_page']/separator[@name='overhead_separator']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='overhead_page']/field[@name='description']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Equipment and Subcon Estimation Inherit -->
+        <record id="equipment_subcon_estimation_inherit" model="ir.ui.view">
+            <field name="name">equipment.subcon.estimation.fields.inherit</field>
+            <field name="model">job.estimate</field>
+            <field name="inherit_id" ref="bi_job_cost_estimate_customer.job_estimate_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[@name='overhead_page']" position="after">
+                    <page name="asset_astimation_page" string="Asset Estimation">
+                        <notebook>
+                            <page name="internal_asset" string="Internal Asset Estimation">
+                                <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                                <field name="internal_asset_ids" widget="one2many_list"
+                                       attrs="{'readonly': [('state', 'in', ['approved','confirmed','done','sale','cancel'])]}">
+                                    <tree string="Asset" editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="is_lock" invisible="1"/>
+                                        <field name="is_new" invisible="1"/>
+                                        <field name="sr_no"/>
+                                        <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]"
+                                               options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}" required="1"
+                                               attrs="{'readonly': [('is_lock', '=', True), ('is_new', '=', False)]}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                        <field name="section_name" required="1"
+                                               domain="[('id','in',project_section_computed)]"
+                                               options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                                               attrs="{'readonly': ['|',('project_scope', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="variable_ref" force_save="1" attrs="{'readonly': [('section_name', '=', False)]}"
+                                               options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}" optional="hide"/>
+                                        <field name="asset_category_id" required="1" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="asset_id" required="1" attrs="{'readonly': ['|',('asset_category_id', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}" options="{'no_create': True}"/>
+                                        <field name="description" attrs="{'readonly': ['|',('asset_id', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="analytic_idz" widget="many2many_tags" string='Analytic Group' required="1" optional="hide"/>
+                                        <field name="type" invisible="1"/>
+                                        <field name="contract_category" invisible = "1"/>
+                                        <field name="coefficient" attrs="{'invisible': [('contract_category', '!=', 'main')]}"/>
+                                        <field name="quantity" attrs="{'readonly': ['|',('asset_id', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="uom_id" attrs="{'readonly': ['|',('asset_id', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="unit_price" attrs="{'readonly': ['|',('asset_id', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="subtotal" readonly="1" force_save="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="contract_category" invisible = "1"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="project_id" invisible="1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                        <field name="prev_uom_id" invisible="1"/>
+                                    </tree>
+                                </field>
+                                <group>
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                                        <field name="total_internal_assets_estimate" widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                        <field name="total_equipment_estimate" widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="total_assets_estimate" />
+                                        </div>
+                                        <field name="total_assets_estimate" nolabel="1" class="oe_subtotal_footer_separator"
+                                               widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                    </group>
+                                    <group attrs="{'invisible': [('contract_category', '!=', 'var')]}">
+                                        <field name="total_variation_order" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                    </group>
+                                    <group name="description" string="Description of BOQ">
+                                        <field name="description" nolabel="1"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page name="equipment_page" string="Equipment Lease Estimation">
+                                <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                                <field name="equipment_estimation_ids" widget="one2many_list"
+                                       attrs="{'readonly': [('state', 'in', ['approved','confirmed','done','sale','cancel'])]}">
+                                    <tree string="Equipment Lease Estimation" editable="bottom">
+                                        <control>
+                                            <create name="add_product_control" string="Add a product"/>
+                                        </control>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="is_lock" invisible="1"/>
+                                        <field name="is_new" invisible="1"/>
+                                        <field name="sr_no"/>
+                                        <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]"
+                                               options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}" required="1"
+                                               attrs="{'readonly': [('is_lock', '=', True), ('is_new', '=', False)]}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                        <field name="section_name" required="1"
+                                               domain="[('id','in',project_section_computed)]"
+                                               options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                                               attrs="{'readonly': ['|',('project_scope', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="variable_ref" force_save="1" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"
+                                               options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}" optional="hide"/>
+                                        <field name="group_of_product" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="type" invisible="1"/>
+                                        <field name="product_id" attrs="{'readonly': ['|',('group_of_product', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}" options="{'no_create': True}"/>
+                                        <field name="description" attrs="{'readonly': ['|',('product_id', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="analytic_idz" widget="many2many_tags" string='Analytic Group' required="1" optional="hide" attrs="{'readonly': ['|',('product_id', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="contract_category" invisible = "1"/>
+                                        <field name="product_uom_category_id" invisible="1"/>   
+                                        <field name="coefficient" attrs="{'invisible': [('contract_category', '!=', 'main')]}"/>
+                                        <field name="quantity" attrs="{'readonly': ['|',('product_id', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="uom_id" domain="[('category_id', '=', product_uom_category_id)]" required="1" attrs="{'readonly': ['|',('product_id', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                        <field name="unit_price" attrs="{'readonly': ['|',('product_id', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="discount" invisible="1"/>
+                                        <field name="subtotal" force_save="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="project_id" invisible="1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                        <field name="prev_uom_id" invisible="1"/>
+                                    </tree>
+                                </field>
+                                <group>
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                                        <field name="total_internal_assets_estimate" widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                        <field name="total_equipment_estimate" widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="total_assets_estimate" />
+                                        </div>
+                                        <field name="total_assets_estimate" nolabel="1" class="oe_subtotal_footer_separator"
+                                               widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                    </group>
+                                    <group attrs="{'invisible': [('contract_category', '!=', 'var')]}">
+                                        <field name="total_variation_order" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                    </group>
+                                    <group name="description" string="Description of BOQ">
+                                        <field name="description" nolabel="1"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </page>
+                    <page string="Subcon Estimation" name="subcon_page">
+                        <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                        <field name="subcon_estimation_ids" widget="one2many_list"
+                                attrs="{'readonly': [('state', 'in', ['approved','confirmed','done','sale','cancel'])]}">
+                            <tree string="Subcon Estimation" editable="bottom" >
+                                <control>
+                                    <create name="add_product_control" string="Add a subcon"/>
+                                </control>
+                                <field name="sequence" widget="handle"/>
+                                <field name="is_lock" invisible="1"/>
+                                <field name="is_new" invisible="1"/>
+                                <field name="sr_no"/>
+                                <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]"
+                                       options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                                       attrs="{'readonly': [('is_lock', '=', True), ('is_new', '=', False)]}"/>
+                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                <field name="section_name" 
+                                       domain="[('id','in',project_section_computed)]"
+                                       options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"
+                                       attrs="{'readonly': ['|',('project_scope', '=', False), '&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                <field name="variable_ref" force_save="1" attrs="{'readonly': [('section_name', '=', False)]}"
+                                       options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}" optional="hide"/>
+                                <field name="variable" force_save="1" attrs="{'readonly': ['|',('section_name', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"
+                                       options="{'no_quick_create':True, 'no_create': True}"
+                                       context="{'default_variable_subcon':True}"/>
+                                <field name="type" invisible="1"/>
+                                <field name="description" attrs="{'readonly': ['|', ('variable', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                <field name="analytic_idz" widget="many2many_tags" string='Analytic Group' required="1" optional="hide" attrs="{'readonly': ['|',('variable', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                <field name="contract_category" invisible = "1"/>
+                                <field name="coefficient" attrs="{'invisible': [('contract_category', '!=', 'main')]}"/>
+                                <field name="quantity" attrs="{'readonly': ['|',('variable', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                <field name="uom_id" required="1" attrs="{'readonly': ['|',('variable', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}"/>
+                                <field name="unit_price" attrs="{'readonly': ['|',('variable', '=', False),'&amp;',('is_lock', '=', True),  ('is_new', '=', False)]}" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="discount" invisible="1"/>
+                                <field name="subtotal" force_save="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="company_id" invisible="1"/>
+                                <field name="project_id" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="prev_uom_id" invisible="1"/>
+                            </tree>
+                        </field>
+                        <group>
+                            <group class="oe_subtotal_footer oe_right" colspan="2" name="total_material_estimate">
+                                <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                    <label for="total_subcon_estimate" />
+                                </div>
+                                <field name="total_subcon_estimate" nolabel="1" class="oe_subtotal_footer_separator" 
+                                    widget='monetary' options="{'currency_field': 'currency_id'}" force_save='1'/>
+                            </group>
+                            <group attrs="{'invisible': [('contract_category', '!=', 'var')]}">
+                                <field name="total_variation_order" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                            </group>
+                            <group name="description" string="Description of BOQ">
+                                <field name="description" nolabel="1"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+                <xpath expr="//notebook/page[@name='other_info']" position="before">
+                    <page name="estimation_page" string="Estimation">
+                        <notebook></notebook>
+                    </page>
+                </xpath>
+                <xpath expr="//notebook/page[@name='estimation_page']/notebook" position="inside">
+                    <xpath expr="//notebook/page[@name='material_page']" position="move"/>
+                    <xpath expr="//notebook/page[@name='labour_page']" position="move"/>
+                    <xpath expr="//notebook/page[@name='overhead_page']" position="move"/>
+                    <xpath expr="//notebook/page[@name='asset_astimation_page']" position="move"/>
+                    <xpath expr="//notebook/page[@name='subcon_page']" position="move"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="addition_info_view_inherit" model="ir.ui.view">
+            <field name="name">additional.info.fields.inherit</field>
+            <field name="model">job.estimate</field>
+            <field name="inherit_id" ref="bi_job_cost_estimate_customer.job_estimate_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[@name='other_info']/group/group/field[@name='sales_person_id']"
+                       position="before">
+                    <field name="customer_ref" invisible="1"/>
+                    <field name="external_id"/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='other_info']/group/group/field[@name='sales_person_id']"
+                       position="after">
+                    <field name="lead_id" readonly="1" force_save="1" attrs="{'invisible': [('department_type', '=', 'department')]}"/>
+                </xpath>
+                <xpath expr="//notebook/page[@name='other_info']/group/group/field[@name='sales_person_id']"
+                       position="attributes">
+                    <attribute name="widget">many2many_tags</attribute>
+                    <attribute name="attrs">{'readonly': [('state', 'in', ['confirmed','done','cancel'])]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='other_info']/group/group/field[@name='sales_team_id']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', 'in', ['confirmed','done','cancel'])], 'invisible': [('department_type', '=', 'department')]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='other_info']/group/group/field[@name='sales_person_id']"
+                       position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', 'in', ['confirmed','done','cancel'])], 'invisible': [('department_type', '=', 'department')]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='other_info']/group/group/field[@name='sale_quotation_id']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='other_info']/group/group/field[@name='sale_quotation_id']"
+                       position="after">
+                    <field name="quotation_id" widget='many2many_tags' readonly="1" force_save="1"/>
+                    <field name="contract_state" invisible="1"/>
+                </xpath>
+                <xpath expr="//page[@name='other_info']" position='after'>
+                    <page string='Additional Notes'>
+                        <group>
+                            <field name="add_note" nolabel="1"/>
+                        </group>
+                    </page>
+                    <page string="Revision History" name="je_revision" attrs="{'invisible':[('is_revision_je', '=', False)]}">
+                        <group>
+                            <field name="revision_history_id" widget="many2many_list" nolabel="1" readonly="1" />
+                        </group>
+                    </page>
+                    <page string="Approval Matrix Line" attrs="{'invisible': [('is_job_estimate_approval_matrix', '=', False)]}">
+                        <group name="approval">
+                            <group >
+                                <field name="approving_matrix_job_id" attrs="{'invisible': [('is_job_estimate_approval_matrix', '=', False)]}"/>
+                            </group>
+                        </group>
+                        <field name="job_estimate_user_ids">
+                            <tree editable="bottom" create="false" delete="false">
+                                <field name="name"/>
+                                <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                <field name="is_delegation_mail_sent" invisible="1"/>
+                                <field name="minimum_approver" readonly="1" force_save="1"/>
+                                <field name="timestamp" invisible="1" force_save="1"/>
+                                <field name="approver_state" invisible="1" force_save="1"/>
+                                <field name="approval_status" readonly="1" force_save="1"/>
+                                <field name="approved_time" readonly="1" force_save="1"/>
+                                <field name="is_approve" invisible="1"/>
+                                <field name="approved_employee_ids" invisible="1"/>
+                                <field name="feedback" readonly="1" force_save="1"/>
+                            </tree>
+                        </field>
+                        <!-- <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}" class="o_sale_approval_matrix_line" invisible="1">
+                            <tree editable="bottom">
+                                <field name="sequence" />
+                                <field name="user_name_ids" widget="many2many_tags"/>
+                                <field name="minimum_approver" />
+                                <field name="state_char" />
+                                <field name="time_stamp" />
+                                <field name="signature"/>
+                                <field name="feedback" />
+                            </tree>
+                        </field> -->
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        
+
+        <record id="edit_job_estimate_tree_view" model="ir.ui.view">
+            <field name="name">edit.job.estimate.tree.view</field>
+            <field name="model">job.estimate</field>
+            <field name="inherit_id" ref="bi_job_cost_estimate_customer.job_estimate_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree[1]" position='attributes'>
+                    <attribute name="multi_edit">1</attribute>
+                    <attribute name="sample">1</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='date']" position='attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='partner_id']" position='attributes'>
+                    <attribute name="attrs">{'invisible': [('department_type', '=', 'department')]}</attribute>
+                    <attribute name="readonly">1</attribute> 
+                </xpath>
+                
+                <xpath expr="//tree/field[@name='total_job_estimate']" position='attributes'>
+                    <attribute name="widget">monetary</attribute>
+                    <attribute name="options">{'currency_field': 'currency_id'}</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='total_overhead_estimate']" position='attributes'>
+                    <attribute name="optional">hide</attribute>
+                    <attribute name="widget">monetary</attribute>
+                    <attribute name="options">{'currency_field': 'currency_id'}</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='total_material_estimate']" position='attributes'>
+                    <attribute name="optional">hide</attribute>
+                    <attribute name="widget">monetary</attribute>
+                    <attribute name="options">{'currency_field': 'currency_id'}</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='company_id']" position='attributes'>
+                    <attribute name="optional">hide</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='total_labour_estimate']" position='attributes'>
+                    <attribute name="optional">hide</attribute>
+                    <attribute name="widget">monetary</attribute>
+                    <attribute name="options">{'currency_field': 'currency_id'}</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='total_overhead_estimate']" position='before'>
+                    <field name="total_subcon_estimate" optional="hide" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                </xpath>
+                <xpath expr="//tree/field[@name='total_overhead_estimate']" position='after'>
+                    <field name="total_equipment_estimate" optional="hide" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                </xpath>
+                <xpath expr="//tree/field[@name='number']" position="after">
+                    <field name="active" invisible="1"/>
+                    <field name="name" class="font-weight-bold"/>
+                </xpath>
+                <xpath expr="//tree/field[@name='name']" position="after">
+                    <field name="project_id"/>
+                </xpath>
+                <xpath expr="//tree/field[@name='partner_id']" position="after">
+                    <field name="contract_category" string="Contract Category" />
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="department_type" invisible="1"/>
+                </xpath>
+                <xpath expr="//tree/field[@name='number']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='state']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='sales_person_id']" position="attributes">
+                    <attribute name="widget">many2many_tags</attribute>
+                    <attribute name="attrs">{'invisible': [('department_type', '=', 'department')]}</attribute>
+                </xpath>
+                <xpath expr="//tree/field[@name='state']" position="after">
+                    <field name="state_new" 
+                           decoration-secondary="state_new == 'draft'"
+                           decoration-success="state_new == 'confirmed'"
+                           decoration-primary3="state_new == 'sent'"
+                           decoration-warning3="state_new == 'to_approve'"
+                           decoration-success2="state_new == 'approved'"
+                           decoration-danger="state_new == 'rejected'"
+                           decoration-danger3="state_new == 'cancel'"
+                           decoration-warning="state_new == 'revised'"
+                           widget="badge"/>
+                </xpath>
+            </field>
+        </record>
+
+
+        <!-- Search View -->
+        <record id="view_job_estimates_menu_filter" model="ir.ui.view">
+            <field name="name">job.estimate.select</field>
+            <field name="model">job.estimate</field>
+            <field name="arch" type="xml">
+                <search string="Search BOQ">
+                    <group name="group_by" string="Group By">
+                        <filter name="project_id" string="Project" domain="[]" context="{'group_by' : 'project_id'}"/>
+                        <filter name="partner_id" string="Customer" domain="[]" context="{'group_by' : 'partner_id'}"/>
+                        <filter name="state" string="State" context="{'group_by':'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+
+        <record id="project_scope_view" model="ir.ui.view">
+            <field name="name">project.scope.view</field>
+            <field name="model">project.scope.estimate</field>
+            <field name="arch" type="xml">
+                <form string="Project Scope">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="scope_id" string='BOQ'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="description"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+        <record id="section_view" model="ir.ui.view">
+            <field name="name">section.view</field>
+            <field name="model">section.estimate</field>
+            <field name="arch" type="xml">
+                <form string="Section">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="section_id" string='BOQ'/>
+                                <field name="project_scope"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="section_name"/>
+                                <field name="description"/>
+                                <field name="quantity"/>
+                                <field name="uom_id"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="variable_view" model="ir.ui.view">
+            <field name="name">variable.view</field>
+            <field name="model">variable.estimate</field>
+            <field name="arch" type="xml">
+                <form string="Variable">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="variable_id" string='BOQ'/>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="variable_name"/>
+                                <field name="variable_quantity"/>
+                                <field name="variable_uom"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="material_view" model="ir.ui.view">
+            <field name="name">material.view</field>
+            <field name="model">material.estimate</field>
+            <field name="arch" type="xml">
+                <form string="Material">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="material_id" string='BOQ'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                                <field name="contract_category" invisible='1'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="product_id"/>
+                                <field name="description"/>
+                                <field name="uom_id"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="labour_view" model="ir.ui.view">
+            <field name="name">labour.view</field>
+            <field name="model">labour.estimate</field>
+            <field name="arch" type="xml">
+                <form string="Labour">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="labour_id" string='BOQ'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                                <field name="contract_category" invisible='1'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="product_id"/>
+                                <field name="description"/>
+                                <field name="contractors"/>
+                                <field name="time"/>
+                                <field name="uom_id"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="subcon_view" model="ir.ui.view">
+            <field name="name">subcon.view</field>
+            <field name="model">subcon.estimate</field>
+            <field name="arch" type="xml">
+                <form string="SUbcon">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="subcon_id" string='BOQ'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                                <field name="contract_category" invisible='1'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="variable"/>
+                                <field name="description"/>
+                                <field name="uom_id"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="overhead_view" model="ir.ui.view">
+            <field name="name">overhead.view</field>
+            <field name="model">overhead.estimate</field>
+            <field name="arch" type="xml">
+                <form string="Overhead">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="overhead_id" string='BOQ'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                                <field name="contract_category" invisible='1'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="product_id"/>
+                                <field name="description"/>
+                                <field name="uom_id"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="equipment_view" model="ir.ui.view">
+            <field name="name">equipment.view</field>
+            <field name="model">equipment.estimate</field>
+            <field name="arch" type="xml">
+                <form string="Equipment">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="equipment_id" string='BOQ'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                                <field name="contract_category" invisible='1'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="product_id"/>
+                                <field name="description"/>
+                                <field name="uom_id"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="asset_view" model="ir.ui.view">
+            <field name="name">asset.view</field>
+            <field name="model">internal.assets</field>
+            <field name="arch" type="xml">
+                <form string="Asset">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="asset_job_id" string='BOQ'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="variable_ref" />
+                                <field name="contract_category" invisible='1'/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="asset_category_id"/>
+                                <field name="asset_id"/>
+                                <field name="description"/>
+                                <field name="uom_id"/>
+                                <field name="unit_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="quantity"/>
+                                <field name="subtotal" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Pivot View 
+        <record id="view_job_estimate_menu_pivot" model="ir.ui.view">
+            <field name="name">job.estimate.pivot.view</field>
+            <field name="model">job.estimate</field>
+            <field name="arch" type="xml">
+                <pivot string="Job Estimates Analysis" disable_linking="True">
+                    <field name="project_id" type="row"/>
+                    <field name="state" type="col"/>
+                    <field name="total_job_estimate" type="measure"/>
+                </pivot>
+            </field>
+        </record> 
+
+         Graph View 
+        <record id="view_job_estimate_menu_graph" model="ir.ui.view">
+            <field name="name">job.estimate.graph.view</field>
+            <field name="model">job.estimate</field>
+            <field name="arch" type="xml">
+                <graph string="Job Estimates Analysis" type="bar">
+                    <field name="project_id" type="row"/>
+                    <field name="partner_id" type="col"/>
+                    <field name="total_job_estimate" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        ACTION
+        <record id="action_job_estimate_new" model="ir.actions.act_window">
+            <field name="name">Job Estimates</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">job.estimate</field>
+            <field name="view_mode">tree,form,pivot,graph</field>
+            <field name="view_id" ref="bi_job_cost_estimate_customer.job_estimate_tree_view" />
+        </record> -->
+
+        <record id="job_estimate_search" model="ir.ui.view">
+            <field name="name">job.estimate.search</field>
+            <field name="model">job.estimate</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="project_id"/>
+                    <field name="partner_id"/>
+                </search>
+            </field>
+        </record>
+        
+        <record id="bi_job_cost_estimate_customer.action_job_estimate" model="ir.actions.act_window">
+            <field name="name">BOQ</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">job.estimate</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('department_type', '=', 'project')]</field>
+            <field name="context">{'default_department_type': 'project'}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No BOQ found. Let's create one!
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo> 
+    
+ 

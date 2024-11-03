@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="daily_production_form" model="ir.ui.view">
+        <field name="name">daily.production.form</field>
+        <field name="model">daily.production</field>
+        <field name="arch" type="xml">
+            <form string='Daily Production'>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,progress,done" attrs="{'invisible': [('state', '=', 'rejected')]}"/>
+                    <field name="state_reject" widget="statusbar" statusbar_visible="draft,rejected,progress,done" attrs="{'invisible': [('state', '!=', 'rejected')]}"/>
+                    <button name="action_approval" string="Request Approval" type="object" class="oe_highlight"
+                            attrs="{'invisible':['|',('is_matrix_on','=', False),('state', '!=', 'draft')]}"/>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" attrs="{'invisible': ['|',('state', '!=', 'draft'),('is_matrix_on','!=', False)]}"/>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=','approved')]}"/> <!-- attrs="{'invisible': [('state', 'not in', ['approved','draft']),'&amp;',('is_matrix_on','!=', False)]}" -->
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'to_be_approved')]}"/>
+                    <button name="action_reject" string="Reject" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'to_be_approved')]}"/>
+                    <button name="action_cancel" string="Cancel" type="object" class="oe_highlight" attrs="{'invisible': [('state', 'not in', ['draft','to_be_approved','approved','confirm','rejected','progress']),'&amp;',('is_matrix_on','!=', False)]}"/>
+                </header>
+                 <sheet>
+                      <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                <group>
+                    <group>
+                        <field name="mining_site_id" required="1" options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="mining_project_id" required="1" options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="operation_id"  required="1" />
+                        <field name="operation_name" invisible="1"/>
+                        <field name="operation_tab_id" invisible="1"/>
+                        <field name="approval_matrix_id" readonly="1"
+                               attrs="{'invisible': [('is_matrix_on', '=', False)],'required': [('is_matrix_on', '!=', False)]}"/>
+                        <field name="ppic" required="1"/>
+                    </group>
+                    <group>
+                        <field name="responsible"/>
+                        <field name="analytic_group_ids" widget="many2many_tags" required="1"/>
+                        <field name="company_id" readonly="1"/>
+                        <field name="branch_id" attrs="{'readonly': [('state','!=','draft')]}"/>
+                        <field name="create_date" readonly="1"/>
+                        <field name="create_uid" readonly="1"/>
+                        <field name="allowed_operation_ids" invisible="1"/>
+                        <field name="is_matrix_on" invisible="1"/>
+                        <field name="operation_name" invisible="1"/>
+                        <field name="product_shelter_id" force_save="1" invisible="1"/>
+                    </group>
+                </group>
+                     <notebook>
+                         <page string="Hauling"
+                               attrs="{'invisible': [('operation_tab_id', '=', False)]}">
+                             <group>
+                             <group>
+                                 <label for="assets"/>
+                                    <div class="oe_inline">
+                                    <field class="col-md-5 p-0 mx-1 oe_inline" name="assets" attrs="{'required': [('operation_name', '=', 'Hauling')]}"/>
+                                    <label class="oe_inline ml8" for="hauling_capacity"/>
+                                    <field class="col-md-4 oe_inline" name="hauling_capacity" readonly="1" attrs="{'required': [('operation_name', '=', 'Hauling')]}"/>
+                                    </div>
+                                 <field name="product_id" force_save="1" options="{'no_create': True, 'no_create_edit':True}" domain="[('id', 'in', product_shelter_id)]" attrs="{'required': [('operation_name', '=', 'Hauling')]}"/>
+                                 <field name="production_date" attrs="{'required': [('operation_tab_id', '!=', False)]}"/>
+                             </group>
+                                 <group>
+                                     <field name="source_location"
+                                            attrs="{'required': [('operation_tab_id', '!=', False)]}"/>
+                                     <field name="destination_location"
+                                            attrs="{'required': [('operation_tab_id', '!=', False)]}"/>
+                                     <label for="weight"/>
+                                     <div class="o_row">
+                                          <field name="weight" attrs="{'required': [('operation_tab_id', '!=', False)]}"/>
+                                         <span>
+                                            <field name="uom" nolabel="1" attrs="{'required': [('operation_tab_id', '!=', False)]}"/>
+                                         </span>
+                                     </div>
+                                 </group>
+                             </group>
+
+                         </page>
+                        <!-- Page for "Coal Getting" -->
+                        <page string="Coal Getting" attrs="{'invisible': [('operation_name', '!=', 'Coal Getting')]}">
+                            <group>
+                                <group>
+                                    <label for="cg_assets"/>
+                                    <div class="oe_inline">
+                                    <field class="col-md-5 p-0 mx-1 oe_inline" name="cg_assets" attrs="{'required': [('operation_name', '=', 'Coal Getting')]}"/>
+                                    <label class="oe_inline ml8" for="cg_capacity"/>
+                                    <field class="col-md-4 oe_inline" name="cg_capacity" attrs="{'required': [('operation_name', '=', 'Coal Getting')]}"/>
+                                    </div>
+                                    <field name="cg_operator" attrs="{'required': [('operation_name', '=', 'Coal Getting')]}"/>
+                                    <label for="operating_hr_from"/>
+                                    <div class="oe_inline">
+                                    <field class="col-md-5 p-0 mx-1 oe_inline" name="operating_hr_from" attrs="{'required': [('operation_name', '=', 'Coal Getting')]}"/><span class="oe_inline">To</span><field class="col-md-6 p-0 mx-1 oe_inline" name="operating_hr_to" attrs="{'required': [('operation_name', '=', 'Coal Getting')]}"/>
+                                    </div>
+                                    <field name="product_id" force_save="1" options="{'no_create': True, 'no_create_edit':True}" domain="[('id', 'in', product_shelter_id)]" attrs="{'required': [('operation_name', '=', 'Coal Getting')]}"/>
+                                </group>
+                                <group>
+                                    <label for="weight"/>
+                                    <div class="o_row">
+                                        <field name="cg_weight" attrs="{'required': [('operation_name', '=', 'Coal Getting')]}"/>
+                                        <span>
+                                            <field name="cg_uom" nolabel="1" attrs="{'required': [('operation_tab_id', '!=', False)]}"/>
+                                        </span>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+                         <!-- Over Burden operation -->
+                         <page string="Overburden" attrs="{'invisible': [('operation_name', '!=', 'Overburden')]}">
+                             <group>
+                                 <group>
+                                        <label for="overburden_assets"/>
+                                        <div class="oe_inline">
+                                            <field class="col-md-5 p-0 mx-1 oe_inline" name="overburden_assets" attrs="{'required': [('operation_name', '=', 'Overburden')]}"/>
+                                            <label class="oe_inline ml8" for="overburden_capacity"/>
+                                            <field class="col-md-4 oe_inline" name="overburden_capacity" attrs="{'required': [('operation_name', '=', 'Overburden')]}"/>
+                                        </div>
+                                        <field name="overburden_operator" attrs="{'required': [('operation_name', '=', 'Overburden')]}"/>
+                                        <field name="product_id" force_save="1" options="{'no_create': True, 'no_create_edit':True}" domain="[('id', 'in', product_shelter_id)]" attrs="{'required': [('operation_name', '=', 'Overburden')]}"/>
+                                        <label for="overburden_hr_from"/>
+                                        <div class="oe_inline">
+                                            <field class="col-md-5 p-0 mx-1 oe_inline" name="overburden_hr_from" attrs="{'required': [('operation_name', '=', 'Overburden')]}"/><span class="oe_inline">To</span><field class="col-md-6 p-0 mx-1 oe_inline" name="overburden_hr_to" attrs="{'required': [('operation_name', '=', 'Overburden')]}"/>
+                                            <span>
+                                                <field name="overburden_uom" nolabel="1"/>
+                                            </span>
+                                        </div>
+                                        <field name="overburden_notes"/>
+                                 </group>
+                                 <group>
+                                    <field name="overburden_location" readonly="1" force_save="1"/>
+                                    <label for="overburden_weight"/>
+                                    <div class="o_row">
+                                        <field name="overburden_weight" attrs="{'required': [('operation_name', '=', 'Overburden')]}"/>
+                                        <span>
+                                            <field name="overburden_uom" nolabel="1"/>
+                                        </span>
+                                    </div>
+                                 </group>
+                             </group>
+                         </page>
+                         <!-- Crushing operation -->
+                         <page string="Crushing" attrs="{'invisible': [('operation_name', '!=', 'Crushing')]}">
+                             <group>
+                                 <group>
+                                        <field name="crushing_assets" attrs="{'required': [('operation_name', '=', 'Crushing')]}"/>
+                                        <label for="crushing_capacity"/>
+                                        <div class="oe_inline">
+                                            <field class="col-md-4 oe_inline" name="crushing_capacity" attrs="{'required': [('operation_name', '=', 'Crushing')]}"/>
+                                        </div>
+                                        <field name="crushing_input_product_id" options="{'no_create': True, 'no_create_edit':True}" attrs="{'required': [('operation_name', '=', 'Crushing')]}"/>
+                                        <label for="crushing_input_weight"/>
+                                        <div class="o_row">
+                                            <field name="crushing_input_weight" attrs="{'required': [('operation_name', '=', 'Crushing')]}"/>
+                                            <span>
+                                                <field name="crushing_uom" nolabel="1"/>
+                                            </span>
+                                        </div>
+                                        <label for="crushing_hr_from"/>
+                                        <div class="oe_inline">
+                                            <field class="col-md-5 p-0 mx-1 oe_inline" name="crushing_hr_from" attrs="{'required': [('operation_name', '=', 'Crushing')]}"/><span class="oe_inline">To</span><field class="col-md-6 p-0 mx-1 oe_inline" name="crushing_hr_to" attrs="{'required': [('operation_name', '=', 'Crushing')]}"/>
+                                            <span>
+                                                <field name="crushing_uom" nolabel="1"/>
+                                            </span>
+                                        </div>
+                                 </group>
+                                 <group>
+                                    <field name="crushing_output_product_id" options="{'no_create': True, 'no_create_edit':True}" attrs="{'required': [('operation_name', '=', 'Crushing')]}"/>
+                                    <label for="crushing_output_weight"/>
+                                    <div class="o_row">
+                                        <field name="crushing_output_weight" attrs="{'required': [('operation_name', '=', 'Crushing')]}"/>
+                                        <span>
+                                            <field name="crushing_uom" nolabel="1"/>
+                                        </span>
+                                    </div>
+                                    <label for="crushing_waste"/>
+                                    <div class="o_row">
+                                        <field name="crushing_waste" attrs="{'required': [('operation_name', '=', 'Crushing')]}"/>
+                                        <span>
+                                            <field name="crushing_uom" nolabel="1"/>
+                                        </span>
+                                    </div>
+                                 </group>
+                             </group>
+                         </page>
+                         <!-- Barging operation -->
+                         <page string="Barging" attrs="{'invisible': [('operation_name', '!=', 'Barging')]}">
+                             <group>
+                                 <group>
+                                        <field name="barging_assets" attrs="{'required': [('operation_name', '=', 'Barging')]}"/>
+                                        <label for="barging_capacity"/>
+                                        <div class="oe_inline">
+                                            <field class="col-md-4 oe_inline" name="barging_capacity" attrs="{'required': [('operation_name', '=', 'Barging')]}"/>
+                                            <span>
+                                                <field name="barging_capacity_uom" nolabel="1"/>
+                                            </span>
+                                        </div>
+                                        <field name="product_id" force_save="1" options="{'no_create': True, 'no_create_edit':True}" domain="[('id', 'in', product_shelter_id)]" attrs="{'required': [('operation_name', '=', 'Overburden')]}"/>
+                                        <field name="barging_leave_date" attrts="{'required': [('operation_name', '=', 'Barging')]}"/>
+                                        <field name="barging_eta" attrts="{'required': [('operation_name', '=', 'Barging')]}"/>
+                                        <field name="barging_arrive_date" attrts="{'required': [('operation_name', '=', 'Barging')]}"/>
+                                 </group>
+                                 <group>
+                                     <field name="barging_route" attrts="{'required': [('operation_name', '=', 'Barging')]}"/>
+                                     <label for="barging_gross_weight"/>
+                                     <div class="o_row">
+                                        <field name="barging_gross_weight"/>
+                                        <span>
+                                            <field name="barging_gross_weight_uom" nolabel="1"/>
+                                        </span>
+                                     </div>
+                                     <label for="barging_tare_weight"/>
+                                     <div class="o_row">
+                                        <field name="barging_tare_weight"/>
+                                        <span>
+                                            <field name="barging_tare_weight_uom" nolabel="1"/>
+                                        </span>
+                                     </div>
+                                     <label for="barging_net_weight"/>
+                                     <div class="o_row">
+                                        <field name="barging_net_weight" attrs="{'required': [('operation_name', '=', 'Barging')]}"/>
+                                        <span>
+                                            <field name="barging_net_weight_uom" nolabel="1"/>
+                                        </span>
+                                     </div>
+                                 </group>
+                             </group>
+                         </page>
+                         <page name="approval_matrix_lines" string="Approval Matrix Lines" attrs="{'invisible': [('is_matrix_on', '!=', True)]}">
+                            <field name="approval_matrix_line_ids" context="{
+                                'tree_view_ref': 'equip3_mining_accessright_settings.view_mining_approval_matrix_entry_tree',
+                                'form_view_ref': 'equip3_mining_accessright_settings.view_mining_approval_matrix_entry_form',
+                            }"/>
+                        </page>
+                     </notebook>
+                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="daily_production_tree" model="ir.ui.view">
+        <field name="name">daily.production.tree</field>
+        <field name="model">daily.production</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" string="Daily Production"/>
+                <field name="mining_project_id"/>
+                <field name="ppic"/>
+                <field name="create_date"/>
+                <field name="state" readonly="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_daily_production_pivot" model="ir.ui.view">
+        <field name="name">daily.production.pivot</field>
+        <field name="model">daily.production</field>
+        <field name="arch" type="xml">
+            <pivot string="Daily Production" sample="1">
+            </pivot>
+        </field>
+    </record>
+
+    <!-- daily.production search view -->
+    <record id="daily_production_search" model="ir.ui.view">
+        <field name="name">daily.production.view.search</field>
+        <field name="model">daily.production</field>
+        <field name="arch" type="xml">
+            <search string="Daily Production">
+                <searchpanel>
+                    <field name="mining_site_id"/>
+                    <field name="state"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="daily_production_actions" model="ir.actions.act_window">
+        <field name="name">Daily Production</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">daily.production</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your Daily Production !
+            </p>
+        </field>
+    </record>
+
+     <record id="action_mining_configuration" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module' : 'equip3_mining_operations'}</field>
+    </record>
+
+</odoo>

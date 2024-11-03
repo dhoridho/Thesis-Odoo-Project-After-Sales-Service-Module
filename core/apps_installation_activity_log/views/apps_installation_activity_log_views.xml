@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- <data noupdate="1">
+        <delete id="base.action_module_immediate_install" model="ir.values"/>
+    </data> -->
+    <record id="base_module_form_inherit_apps_tracking" model="ir.ui.view">
+        <field name="name">ir.module.module.form</field>
+        <field name="model">ir.module.module</field>
+        <field name="inherit_id" ref="base.module_form"/>
+        <field name="arch" type="xml">
+            <field name="installed_version" position="after">
+                <field name="latest_version"/>
+            </field>
+            <xpath expr="//field[@name='dependencies_id']/tree/field[@name='state']" position="after">
+                <field name="installed_version" string ="Latest Version"/>
+                <field name="latest_version" string="Installed Version"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="base_module_tree_inherit_apps_tracking" model="ir.ui.view">
+        <field name="name">ir.module.module.form</field>
+        <field name="model">ir.module.module</field>
+        <field name="inherit_id" ref="base.module_tree"/>
+        <field name="arch" type="xml">
+            <field name="installed_version" position="after">
+                <field name="latest_version"/>
+            </field>
+            <field name="state" position="after">
+                <field name="version_status"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="base.open_module_tree" model="ir.actions.act_window">
+        <field name="context">{}</field>
+    </record>
+
+    <record id="view_module_filter_apps_installation_activity_log_modifier" model="ir.ui.view">
+        <field name="name">ir.module.module.form</field>
+        <field name="model">ir.module.module</field>
+        <field name="inherit_id" ref="base.view_module_filter"/>
+        <field name="arch" type="xml">
+            <field name="category_id" position="before">
+                <separator/>
+                <filter name="updated" string="Updated" domain="[('version_status', '=', 'updated')]"/>
+                <filter name="not_updated" string="Not Updated" domain="[('version_status', '=', 'not_updated')]"/>
+            </field>
+            <xpath expr="//group" position="inside">
+                <filter string="Version Status" name="version_status" context="{'group_by':'version_status'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_base_module_upgrade_inherit_activity" model="ir.ui.view">
+        <field name="name">base.module.upgrade.form</field>
+        <field name="model">base.module.upgrade</field>
+        <field name="inherit_id" ref="base.view_base_module_upgrade"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="class">apps_activity_uninstall</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="apps_installation_activity_log_form" model="ir.ui.view">
+        <field name="name">apps.installation.activity.log.form</field>
+        <field name="model">apps.installation.activity.log</field>
+        <field name="arch" type="xml">
+            <form create="0" delete='0' edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="activity_date"/>
+                            <field name="module_name"/>
+                            <field name="technical_name"/>
+                        </group>
+                        <group>
+                            <field name="latest_version"/>
+                            <field name="user_id"/>
+                            <field name="activity"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="apps_installation_activity_log_tree" model="ir.ui.view">
+        <field name="name">apps.installation.activity.log.tree</field>
+        <field name="model">apps.installation.activity.log</field>
+        <field name="arch" type="xml">
+            <tree default_order="activity_date desc" create="0" delete='0' edit="0">
+                <field name="activity_date"/>
+                <field name="module_name"/>
+                <field name="technical_name"/>
+                <field name="latest_version"/>
+                <field name="user_id"/>
+                <field name="activity"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="apps_installation_activity_log_action" model="ir.actions.act_window">
+        <field name="name">Apps Activity Log</field>
+        <field name="res_model">apps.installation.activity.log</field>
+        <field name="view_mode">tree,form</field>
+        <field name="target">current</field>
+    </record>
+
+
+    <menuitem id="app_activity_log_menu" name="Apps Activity Log" parent="base.menu_management" sequence="51"
+        action="apps_installation_activity_log_action"/>
+
+    <record id="base_module_form_inherit" model="ir.ui.view">
+        <field name="name">base.module.update.popup</field>
+        <field name="model">base.module.update</field>
+        <field name="inherit_id" ref="base.view_base_module_update"/>
+        <field name="arch" type="xml">
+            <xpath expr="//footer/div[@states='init']/button[@class='btn-secondary']" position="replace">
+                <button name="cancel_update_module" type="object" string="Cancel" class="btn-default"/>
+            </xpath>
+        </field>
+    </record>
+
+
+
+<!-- search view apps-->
+    <record id="base_module_form_inherit_apps" model="ir.ui.view">
+        <field name="name">ir.module.module.search</field>
+        <field name="model">ir.module.module</field>
+        <field name="inherit_id" ref="base.view_module_filter"/>
+        <field name="arch" type="xml">
+            <field name="name" position="replace">
+                <field name="name" filter_domain="[('name','ilike', self)]" string="Technical Name"/>
+            </field>
+            <field name="name" position="after">
+                <field name="name" filter_domain="['|', '|', ('summary', 'ilike',self), ('shortdesc','ilike', self), ('name','ilike', self)]" string="Module"/>
+            </field>
+        </field>
+    </record>
+</odoo>

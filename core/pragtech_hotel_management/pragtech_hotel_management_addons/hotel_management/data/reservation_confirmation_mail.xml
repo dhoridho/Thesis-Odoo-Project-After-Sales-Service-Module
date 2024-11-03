@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="reservation_confirmed_mail_template" model="mail.template">
+        <field name="name">Reservation Order: Confirmation Email</field>
+        <field name="model_id" ref="hotel_management.model_hotel_reservation"/>
+        <!-- <field name="subject">${object.company_id.name}</field> -->
+        <field name="partner_to">${object.partner_id.id}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 12px;">
+        Hello,
+                    <br/>
+                    <br/>
+        Your reservation order
+                    <strong>${object.reservation_no}</strong> amounting in
+                    <strong>${format_amount(object.total_cost1, object.currency_id)}</strong>
+            has been confirmed.
+                    <br/>
+            Thank you for your trust!
+                    <br/>
+                    <br/>
+        Do not hesitate to contact us if you have any questions.
+                    <br/>
+                    <br/>
+                </p>
+                <div style="margin: 0px; padding: 0px;">
+                    <table width="100%" style="color: #454748; font-size: 12px; border-collapse: collapse;">
+                        <tr style="border-bottom: 2px solid #dee2e6;">
+                            <td style="width: 150px;">
+                                <strong>Room</strong>
+                            </td>
+                            <td width="15%" align="center">
+                                <strong>No. of days</strong>
+                            </td>
+                            <td width="20%" align="right">
+                                <strong>
+                                Price
+                </strong>
+                            </td>
+                        </tr>
+                    </table>
+                    <br/>
+        % for line in object.reservation_line:
+                    <table width="100%" style="color: #454748; font-size: 12px; border-collapse: collapse;">
+                        <tr style="${loop.cycle('background-color: #f2f2f2', 'background-color: #ffffff')}">
+                            <td align="left">${line.room_number.name}</td>
+                            <td width="15%" align="center">${line.number_of_days}</td>
+                            <td width="20%" align="right">
+                                <strong>
+                                    ${format_amount(line.sub_total1, object.currency_id)}
+                                </strong>
+                            </td>
+                        </tr>
+                    </table>
+        % endfor
+                </div>
+                <br/>
+                <br/>
+                <div style="margin: 0px; padding: 0px;">
+                    <table width="100%" style="color: #454748; font-size: 12px; border-collapse: collapse;">
+                        <tr style="border-bottom: 2px solid #dee2e6;">
+                            <td style="width: 150px;">
+                                <strong>Product</strong>
+                            </td>
+                            <td width="15%" align="center">
+                                <strong>Quantity</strong>
+                            </td>
+                            <td width="20%" align="right">
+                                <strong>
+                                Price
+                </strong>
+                            </td>
+                        </tr>
+                    </table>
+                    <br/>
+        % for line in object.other_items_ids:
+                    <table width="100%" style="color: #454748; font-size: 12px; border-collapse: collapse;">
+                        <tr style="${loop.cycle('background-color: #f2f2f2', 'background-color: #ffffff')}">
+                            <td align="left">${line.product_id.name}</td>
+                            <td width="15%" align="center">${line.product_uom_qty}</td>
+                            <td width="20%" align="right">
+                                <strong>
+                                    ${format_amount(line.price_subtotal, object.currency_id)}
+                                </strong>
+                            </td>
+                        </tr>
+                    </table>
+        % endfor
+                </div>
+                <br/>
+                <div style="margin: 0px; padding: 0px;">
+                    <table width="100%" style="color: #454748; font-size: 12px; border-spacing: 0px 4px;" align="right">
+                        <tr>
+                            <td style="width: 60%"/>
+                            <td style="width: 30%; border-top: 1px solid #dee2e6;" align="right">
+                                <strong>Subtotal:</strong>
+                            </td>
+                            <td style="width: 10%; border-top: 1px solid #dee2e6;" align="right">${format_amount(object.untaxed_amt, object.currency_id)}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 60%"/>
+                            <td style="width: 30%;" align="right">
+                                <strong>Tax:</strong>
+                            </td>
+                            <td style="width: 10%;" align="right">${format_amount(object.total_tax, object.currency_id)}</td>
+                        </tr>
+                        <tr>
+                            <td style="width: 60%"/>
+                            <td style="width: 30%;" align="right">
+                                <strong>Total:</strong>
+                            </td>
+                            <td style="width: 10%;" align="right">${format_amount(object.total_cost1, object.currency_id)}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </field>
+        <!-- <field name="report_template" ref="action_report_saleorder"/> -->
+        <!-- <field name="report_name">${(object.name or '').replace('/','_')}</field> -->
+        <field name="lang">${object.partner_id.lang}</field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

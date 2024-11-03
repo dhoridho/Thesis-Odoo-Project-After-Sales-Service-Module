@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="purchase.purchase_report" model="ir.ui.menu" >
+        <field name="active" eval="True"/>
+    </record>
+
+    <menuitem
+            id="purchase_reporting_menu"
+            name="Purchase Analysis"
+            parent="purchase.purchase_report"
+            sequence="1"/>
+
+    <menuitem
+            id="purchase_bill_menu"
+            name="Purchase Bill Analysis"
+            parent="purchase.purchase_report"
+            sequence="2"/>
+
+    <menuitem
+            id="purchase_req_menu"
+            name="Purchase Request Analysis"
+            parent="purchase.purchase_report"
+            sequence="3"/>
+
+    <menuitem
+            id="purchase_ven_menu"
+            name="Vendor Analysis"
+            parent="purchase.purchase_report"
+            sequence="4"/>
+
+    <menuitem
+            id="purchase_prod_menu"
+            name="Product Analysis"
+            parent="purchase.purchase_report"
+            sequence="5"/>
+
+    <record id="reporting_product_tree_view_analysis" model="ir.ui.view">
+        <field name="name">product.product.tree</field>
+        <field name="model">product.product</field>
+        <field eval="7" name="priority"/>
+        <field name="arch" type="xml">
+            <tree string="Product Variants" create="0">
+                <field name="name"/>
+                <field name="default_code"/>
+                <field name="pr_count"/>
+                <field name="purchase_price" />
+                <field name="po_count" />
+                <field name="purchase_price_totals" />
+                <field name="branch_id"/>
+                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_reporting_product_tree_view_analysis" model="ir.actions.act_window">
+        <field name="name">Product by Report Analysis</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="equip3_purchase_report.reporting_product_tree_view_analysis"/>
+    </record>
+
+    <menuitem
+            id="menu_product_analysis_reports"
+            name="Product by Report Analysis"
+            parent="purchase_prod_menu"
+            action="action_reporting_product_tree_view_analysis"
+            sequence="1"
+    />
+
+    <menuitem name="Purchase Pivot Analysis"
+        id="menu_purchase_type_a"
+        parent="purchase_reporting_menu"
+        action="purchase.action_purchase_order_report_all"
+        sequence="1"/>
+
+    <menuitem name="Purchase Request Pivot Analysis"
+        id="menu_purchase_type"
+        parent="purchase_req_menu"
+        action="action_purchase_request_report_2"
+        sequence="1"/>
+
+    <record id="purchase_cost_saving_analysis_view_pivot" model="ir.ui.view">
+        <field name="name">purchase.cost.saving.analysis.view.pivot</field>
+        <field name="model">purchase.order.line</field>
+        <field name="priority">60</field>
+        <field name="arch" type="xml">
+            <pivot string="Cost Saving Analysis" sample="1">
+                <field name="product_id" type="row"/>
+                <field name="reference_purchase_price" type="measure"/>
+                <field name="price_subtotal" type="measure"/>
+                <field name="purchase_line_cost_saving" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_menu_purchase_cost_saving_analysis" model="ir.actions.act_window">
+        <field name="name">Cost Saving Analysis</field>
+        <field name="res_model">purchase.order.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('state','=','purchase')]</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'pivot', 'view_id': ref('equip3_purchase_report.purchase_cost_saving_analysis_view_pivot')})]"/>
+    </record>
+
+    <menuitem name="Cost Saving Analysis"
+              id="new_menu_cost_saving_analysis"
+              parent="purchase_reporting_menu"
+              action="action_menu_purchase_cost_saving_analysis"
+              sequence="5"/>
+
+    <record id="sh_purchase_reports.sh_purchase_details_report_menuitem" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_reporting_menu"/>
+        <field name="sequence">2</field>
+    </record>
+
+    <record id="sh_purchase_reports.purchase_order_day_wise_report" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_reporting_menu"/>
+        <field name="sequence">3</field>
+    </record>
+
+    <record id="sh_purchase_reports.sh_purchase_report_representative_menuitem" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_reporting_menu"/>
+        <field name="sequence">4</field>
+    </record>
+
+    <record id="sh_purchase_reports.sh_po_bill_summary_report" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_bill_menu"/>
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="sh_purchase_reports.sh_purchase_vendor_purchase_analysis_report" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_ven_menu"/>
+        <field name="sequence">2</field>
+    </record>
+
+    <record id="sh_purchase_reports.sh_tv_top_vendor_wizard_menuitem" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_ven_menu"/>
+        <field name="sequence">3</field>
+    </record>
+
+    <record id="sh_purchase_reports.sh_tsp_top_purchasing_products_main" model="ir.ui.menu">
+        <field name="active">False</field>
+    </record>
+
+    <record id="sh_purchase_reports.sh_tsp_view_top_purchasing_products" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_prod_menu"/>
+        <field name="sequence">2</field>
+    </record>
+
+    <record id="sh_purchase_reports.sh_tsp_update_top_purchasing_products" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_prod_menu"/>
+        <field name="sequence">3</field>
+    </record>
+
+    <record id="sh_purchase_reports.sh_po_product_profit_report" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_prod_menu"/>
+        <field name="sequence">4</field>
+    </record>
+
+    <record id="sh_purchase_reports.sh_po_by_category_report" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_prod_menu"/>
+        <field name="sequence">5</field>
+    </record>
+
+    <record id="sh_purchase_reports.sh_purchase_product_indent_report" model="ir.ui.menu">
+        <field name="parent_id" ref="purchase_prod_menu"/>
+        <field name="sequence">6</field>
+    </record>
+
+    <record id="xf_purchase_dashboard.xf_purchase_dashboard_menu" model="ir.ui.menu">
+        <field name="name">Purchase Summary</field>
+        <field name="sequence">2</field>
+    </record>
+
+    <record id="xf_purchase_dashboard.xf_purchase_dashboard_action" model="ir.actions.client">
+        <field name="name">Purchase Summary</field>
+    </record>
+
+    <record model="ir.ui.menu" id="purchase.menu_procurement_management">
+        <field name="sequence">3</field>
+    </record>
+        
+</odoo>

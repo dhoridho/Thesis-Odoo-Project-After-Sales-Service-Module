@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_stock_quant_tree_inherit_inventory_reports" model="ir.ui.view">
+        <field name="name">stock.quant.tree.inherit.inventory.reports</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']" position="after">
+                <field name="warehouse_id" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_quant_tree_inherit" model="ir.ui.view">
+        <field name="name">stock.quant.tree</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_editable" />
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="create">0</attribute>
+                <attribute name="edit">0</attribute>
+            </xpath>
+            <!-- <xpath expr="//field[@name='company_id']" position="after">
+                <field name="is_update_value" invisible="1" />
+            </xpath> -->
+            <!-- <xpath expr="//field[@name='product_uom_id']" position="after">
+                <field name="purchase_value_in_lot" />
+            </xpath> -->
+            <xpath expr="//field[@name='value']" position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+            <!-- <xpath expr="//field[@name='purchase_value_in_lot']" position="attributes">
+                <attribute name="optional">hide</attribute>
+            </xpath> -->
+        </field>
+    </record>
+
+    <!-- <record id="stock_account_view_stock_quant_tree_inherit" model="ir.ui.view">
+        <field name="name">stock.quant.inherit.view.tree</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock_account.view_stock_quant_tree_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='value']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='value']" position="after">
+                <field name="purchase_value_in_lot"/>
+            </xpath>
+        </field>
+    </record> -->
+
+
+    <record id="view_stock_quant_pivot_inherit" model="ir.ui.view">
+        <field name="name">stock.quant.pivot.inherit</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_pivot" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']" position="attributes">
+                <attribute name="type">row</attribute>
+            </xpath>
+            <xpath expr="//field[@name='location_id']" position="after">
+                <field name="cluster_area_id" />
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.actions.server" id="stock.action_view_quants">
+        <field name="name">Inventory</field>
+        <field name="model_id" ref="stock.model_stock_quant" />
+        <field name="state">code</field>
+        <field name="groups_id" eval="[(4, ref('stock.group_stock_user'))]" />
+        <field name="code">
+            action = model.with_context(
+            search_default_internal_loc=1,
+            search_default_productgroup=0,
+            search_default_locationgroup=0,
+            ).action_view_quants()
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="stock.dashboard_open_quants">
+        <field name="name">Stock On Hand</field>
+        <!-- <field name="context">{'search_default_internal_loc': 1,
+        'search_default_productgroup':1, 'search_default_locationgroup':1}</field> -->
+        <field name="context">{'search_default_internal_loc': 1, 'search_default_productgroup':1,
+            'search_default_locationgroup':0}</field>
+        <field name="res_model">stock.quant</field>
+    </record>
+
+
+    <record id="view_form_stock_quant" model="ir.ui.view">
+        <field name="name">stock.quant.form.inherit</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='owner_id']" position="after">
+                <field name="weight" />
+            </xpath>
+        </field>
+    </record>
+
+    <!-- <record id="stock_quant_inventory_operation_form_inherit" model="ir.ui.view">
+        <field name="name">stock.quant.inventory.operation.inherit.view.form</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_form_editable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="purchase_value_in_lot"/>
+            </xpath>
+        </field>
+    </record> -->
+
+    <record id="quant_search_view" model="ir.ui.view">
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.quant_search_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='on_hand']" position="after">
+                <filter name="is_low_stock" string="Low Stock Limit"
+                    domain="[('is_low_stock', '=', True)]" />
+            </xpath>
+            <xpath expr="//filter[@name='company']" position="after">
+                <filter name="warehouse_id" string="Warehouse"
+                    context="{'group_by': 'warehouse_id'}" />
+                <filter name="cluster_area_id" string="Cluster Area"
+                    context="{'group_by': 'cluster_area_id'}" />
+            </xpath>
+        </field>
+    </record>
+
+    <!-- expiring_and_expired_stocks_view -->
+    <record id="view_tree_expiring_stocks" model="ir.ui.view">
+        <field name="name">expiring.and.expired.stock.tree.view</field>
+        <field name="model">stock.quant</field>
+        <field name="arch" type="xml">
+            <tree string="Expiring &amp; Expired Stocks" create="false" edit="false" delete="false">
+                <field name="product_id" />
+                <field name="lot_id" />
+                <field name="location_id" />
+                <field name="warehouse_id" />
+                <field name="expire_date" string="Expiry Date" />
+                <field name="expire_days" decoration-danger="expire_days_count &lt; 0"
+                    decoration-success="expire_days_count &gt; 0"
+                    decoration-warning="expire_days_count == 0" class="expire_days" />
+                <field name="expire_days_count" invisible="1" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_expiring_stocks" model="ir.actions.act_window">
+        <field name="name">Expiring &amp; Expired Stocks</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">stock.quant</field>
+        <field name="view_mode">tree</field>
+        <field name="domain">[('lot_id', '!=', False), ('expire_date', '!=', False),
+            ('location_id.usage', '=', 'internal')]</field>
+        <field name="search_view_id" ref="stock.quant_search_view" />
+        <field name="context">{'search_default_productgroup':1, 'search_default_locationgroup':1}</field>
+        <field name="help" type="html">
+            <p class="oe_views_nocontent_create">
+                Click to add a new test object.
+            </p>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window.view" id="stocks_expired_action_tree">
+        <field name="sequence" eval="1" />
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_tree_expiring_stocks" />
+        <field name="act_window_id" ref="equip3_inventory_reports.action_expiring_stocks" />
+    </record>
+
+</odoo>

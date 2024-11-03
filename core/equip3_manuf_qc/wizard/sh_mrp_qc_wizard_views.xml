@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_sh_mrp_qc_wizard_form" model="ir.ui.view">
+        <field name="name">view.sh.mrp.qc.wizard.form</field>
+        <field name="model">sh.mrp.qc.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="product_image" widget="image" class="oe_avatar" style="display: block !important;"/>
+                    <div class="oe_title">
+                        <h1><field name="product_id"/></h1>
+                    </div>
+                    <group invisible="1">
+                        <group>
+                            <field name="res_model"/>
+                            <field name="res_id"/>
+                            <field name="move_id"/>
+                            <field name="point_id"/>
+                        </group>
+                        <group>
+                            <field name="type_of_qc"/>
+                            <field name="move_point_id"/>
+                            <field name="remaining_check"/>
+                            <field name="state"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="quantitative" string="Quantitatives" attrs="{'invisible': [('type_of_qc', '=', 'qualitative')]}">
+                            <field name="quantitative_ids">
+                                <tree string="Quantitatives" editable="bottom" create="0" delete="0">
+                                    <field name="wizard_id" invisible="1"/>
+                                    <field name="quantitative_id" invisible="1"/>
+                                    <field name="sequence"/>
+                                    <field name="dimansion_id"/>
+                                    <field name="norm_qc"/>
+                                    <field name="tolerance_from_qc"/>
+                                    <field name="tolerance_to_qc"/>
+                                    <field name="actual_value" required="1"/>
+                                    <field name="text"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="qualitative" string="Qualitatives" attrs="{'invisible': [('type_of_qc', '=', 'quantitative')]}">
+                            <field name="qualitative_ids">
+                                <tree string="Qualitatives" editable="bottom" create="0" delete="0">
+                                    <field name="wizard_id" invisible="1"/>
+                                    <field name="qualitative_id" invisible="1"/>
+                                    <field name="sequence"/>
+                                    <field name="item_id"/>
+                                    <field name="answer" required="1"/>
+                                    <field name="text"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirm" class="oe_highlight" />
+                    <button string="Close" class="oe_link" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sh_mrp_qc_wizard_form_confirmed" model="ir.ui.view">
+        <field name="name">view.sh.mrp.qc.wizard.form.confirmed</field>
+        <field name="model">sh.mrp.qc.wizard</field>
+        <field name="inherit_id" ref="equip3_manuf_qc.view_sh_mrp_qc_wizard_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='quantitative_ids']/tree" position="inside">
+                <field name="status" widget="badge" decoration-success="status == 'pass'" decoration-danger="status == 'fail'"/>
+            </xpath>
+            <xpath expr="//field[@name='quantitative_ids']//field[@name='actual_value']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='quantitative_ids']//field[@name='text']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='qualitative_ids']/tree" position="inside">
+                <field name="status" widget="badge" decoration-success="status == 'pass'" decoration-danger="status == 'fail'"/>
+            </xpath>
+            <xpath expr="//field[@name='qualitative_ids']//field[@name='answer']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='qualitative_ids']//field[@name='text']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+
+            <xpath expr="//footer" position="replace">
+                <footer>
+                    <button name="action_recheck" type="object" string="Recheck" class="oe_highlight" attrs="{'invisible': ['|', ('remaining_check', '&lt;=', 0), ('state', '!=', 'fail')]}"/>
+                    <button name="action_scrap" type="object" string="Scrap" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'fail')]}"/>
+                    <button name="action_repair" type="object" string="Repair" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'fail')]}"/>
+                    <button name="action_transfer" type="object" string="Internal Transfer" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'fail')]}"/>
+                    <button name="action_next_check" type="object" string="Next" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'pass')]}"/>
+                </footer>
+            </xpath>
+        </field>
+    </record>
+</odoo>

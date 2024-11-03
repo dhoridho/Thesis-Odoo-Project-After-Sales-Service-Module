@@ -1,0 +1,118 @@
+<odoo>
+    <data>
+        <template id="contract_letter_template">
+            <t t-call="web.html_container">
+                <t t-call="web.external_layout">
+                    <t t-foreach="docs" t-as="doc">
+                        <div class="page">
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <div t-raw="doc.print_on_page()"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    
+        <record id="equip3_hr_contract_letter" model="ir.actions.report">
+            <field name="name">Contract Letter</field>
+            <field name="model">hr.contract</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">equip3_hr_contract_extend.contract_letter_template</field>
+            <field name="report_file">equip3_hr_contract_extend.contract_letter_template</field>
+            <field name="attachment_use">1</field>
+            <field name="binding_type">report</field>
+            <field name="binding_model_id" ref="hr_contract.model_hr_contract"/>
+            <field name="paperformat_id" ref="base.paperformat_euro"/>
+            <field name="print_report_name">'Contract - %s' % (object.employee_id.name)</field>
+            <field name='groups_id' eval="[(4, ref('equip3_hr_employee_access_right_setting.group_hr_officer'))]"/>
+        </record>
+    
+        <template id="contract_certificate_report_external_layout_standard">
+            <div t-attf-class="header o_company_#{company.id}_layout" t-att-style="report_header_style"
+                 style="font-family: 'Garamond' !important;">
+                <div class="row">
+                    <div class="col-6 mb4">
+                        <img src="/equip3_hr_contract_extend/static/src/img/hashmicro_logo.png" style="width:8.60cm"
+                             alt="Logo"/>
+                    </div>
+                </div>
+                <div class="row" style="padding-top:4pt;">
+                    <div class="col-6" name="company_address" style="font-size:11px; line-height: 1.5;">
+                        <div>PT. Hashmicro Solusi Indonesia</div>
+                        <div>Neo Soho Podomoro City, Unit 3710,</div>
+                        <div>Jl. Letjen S Parman, Kav. 28, Kota Jakarta Barat, DKI Jakarta 11470</div>
+                    </div>
+                </div>
+            </div>
+    
+            <div t-attf-class="article o_report_layout_standard o_company_#{company.id}_layout"
+                 t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id"
+                 t-att-data-oe-lang="o and o.env.context.get('lang')">
+                <div class="pt-5">
+                    <!-- This div ensures that the address is not cropped by the header. -->
+                    <t t-call="web.address_layout"/>
+                </div>
+                <t t-raw="0"/>
+            </div>
+        </template>
+    
+        <!-- Public api: layout to t-call from reports -->
+    
+        <template id="contract_certificate_report_external_layout">
+            <t t-if="not o" t-set="o" t-value="doc"/>
+    
+            <t t-if="not company">
+                <!-- Multicompany -->
+                <t t-if="company_id">
+                    <t t-set="company" t-value="company_id"/>
+                </t>
+                <t t-elif="o and 'company_id' in o and o.company_id.sudo()">
+                    <t t-set="company" t-value="o.company_id.sudo()"/>
+                </t>
+                <t t-else="else">
+                    <t t-set="company" t-value="res_company"/>
+                </t>
+            </t>
+            <t t-call="equip3_hr_contract_extend.contract_certificate_report_external_layout_standard">
+                <t t-raw="0"/>
+            </t>
+        </template>
+    
+        <template id="equip3_hr_contract_letter_mail_doc">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-call="equip3_hr_contract_extend.contract_certificate_report_external_layout">
+                        <div class="page">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div t-raw="doc.get_certificate_template()"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    
+        <record id="equip3_hr_contract_letter_mail" model="ir.actions.report">
+            <field name="name">Contract Letter Mail</field>
+            <field name="model">hr.contract</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">equip3_hr_contract_extend.equip3_hr_contract_letter_mail_doc</field>
+            <field name="report_file">equip3_hr_contract_extend.equip3_hr_contract_letter_mail_doc</field>
+            <field name="attachment_use">1</field>
+            <field name="binding_type">report</field>
+            <field name="binding_model_id" eval="False"/>
+            <field name="paperformat_id" ref="base.paperformat_euro"/>
+            <field name="print_report_name">'Contract - %s' % (object.employee_id.name)</field>
+            <field name='groups_id' eval="[(4, ref('equip3_hr_employee_access_right_setting.group_hr_officer'))]"/>
+        </record>
+        
+    </data>
+   
+
+
+</odoo>

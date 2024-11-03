@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+        <record id="fleet_vehicle_operation_form_id" model="ir.ui.view">
+            <field name="name">Operation Type</field>
+            <field name="model">fleet.vehicle.operation</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <label class="oe_edit_only" for="name" string="Operation Type Name"/>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="move_type"/>
+                                <field name="station_id"/>
+                            </group>
+                            <group>
+                                <field name="source_location"/>
+                                <field name="destination_location"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="fleet_vehicle_type_kanban" model="ir.ui.view">
+            <field name="name">fleet.vehicle.operation.kanban</field>
+            <field name="model">fleet.vehicle.operation</field>
+            <field name="arch" type="xml">
+                <kanban class="oe_background_grey o_kanban_dashboard o_emphasize_colors o_stock_kanban"
+                        create="0">
+                    <field name="color"/>
+                    <field name="move_type"/>
+                    <field name="state"/>
+                    <field name="count_operation_ready"/>
+                    <field name="count_operation_on_rent"/>
+                    <field name="count_operation_service"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="#{kanban_color(record.color.raw_value)}">
+                                <div>
+                                    <div t-attf-class="o_kanban_card_header">
+                                        <div class="o_kanban_card_header_title">
+                                            <div class="o_primary">
+                                                <field name="name"/>
+                                            </div>
+                                            <div class="o_secondary">
+                                                <field class="o_secondary" name="station_id"/>
+                                            </div>
+                                        </div>
+                                        <div class="o_kanban_manage_button_section">
+                                            <a class="o_kanban_manage_toggle_button" href="#">
+                                                <i class="fa fa-ellipsis-v" role="img" aria-label="Manage"
+                                                   title="Manage"/>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="container o_kanban_card_content">
+                                        <div class="row">
+                                            <div class="col-xs-6 o_kanban_primary_left" style="margin-left: 16px;">
+                                                <button class="btn btn-primary" name="get_action_operation"
+                                                        type="object">
+                                                    <span t-if="record.move_type.raw_value =='outgoing'">
+                                                        <t t-esc="record.count_operation_ready.value"/>
+                                                        Deliveries of Car
+                                                    </span>
+                                                    <span t-if="record.move_type.raw_value =='incoming'">
+                                                        <t t-esc="record.count_operation_on_rent.value"/>
+                                                        Incoming Cars
+                                                    </span>
+                                                    <span t-if="record.move_type.raw_value =='internal'">
+                                                        <t t-esc="record.count_operation_service.value"/>
+                                                        Internal Moves
+                                                    </span>
+                                                </button>
+                                            </div>
+
+                                            <div class="col-6 o_kanban_primary_right">
+                                                <div class="o_kanban_card_manage_title"
+                                                     style="margin-left: 70px;margin-top: 7px;">
+                                                    <span>View</span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="container o_kanban_card_manage_pane dropdown-menu" role="menu">
+                                        <div t-if="widget.editable" class="o_kanban_card_manage_settings row">
+                                            <div class="col-xs-8">
+                                                <ul class="oe_kanban_colorpicker" data-field="color"/>
+                                            </div>
+                                            <div class="col-xs-4 text-right">
+                                                <a type="edit">Settings</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+
+        <record id="fleet_vehicle_operation_tree_id" model="ir.ui.view">
+            <field name="name">Operation type</field>
+            <field name="model">fleet.vehicle.operation</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="station_id"/>
+                    <field name="move_type"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_picking_type_list" model="ir.actions.act_window">
+            <field name="name">Operation Type</field>
+            <field name="res_model">fleet.vehicle.operation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">Click to define a new transfer.</p>
+            </field>
+        </record>
+
+        <record id="action_fleet_operation_type" model="ir.actions.act_window">
+            <field name="name">Operation Type</field>
+            <field name="res_model">fleet.vehicle.operation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_mode">kanban,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">Click to create a new operation type.</p>
+            </field>
+        </record>
+
+        <menuitem id="fleet_vehicle_operation_dashboard" action="action_fleet_operation_type"
+                  parent="fleet_vehicle_main_menu" sequence="0" name="Dashboard"/>
+
+        <menuitem id="menu_operation_type" name="Operations Types" parent="fleet_vehicle_station_menu"
+                  action="action_picking_type_list" sequence="4"/>
+
+    </data>
+</odoo>

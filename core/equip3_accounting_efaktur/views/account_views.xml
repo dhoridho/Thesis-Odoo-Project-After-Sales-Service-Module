@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <menuitem id="l10n_id_efaktur.menu_efaktur_action" active="False"/>
+
+        <record id="view_account_invoice_filter_inherit" model="ir.ui.view">
+            <field name="name">account.move.select.efaktur.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <group>
+                        <filter string="Has e-Faktur" name="print_efaktur" domain="[('is_upload_djp', '!=', False)]" />
+                    </group>
+                </field>
+            </field>
+        </record>
+
+        <record id="l10n_id_efaktur.account_move_efaktur_form_view" model="ir.ui.view">
+            <field name="name">account.move.efaktur.form.view</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field name="l10n_id_need_kode_transaksi" invisible="1"/>
+                    <field name="l10n_id_attachment_id" invisible="1"/>
+                    <field name="l10n_id_kode_transaksi" attrs="{'invisible': ['|', ('country_code', '!=', 'ID'), ('l10n_id_need_kode_transaksi', '=', False)], 'required': [('l10n_id_need_kode_transaksi', '=', True)]}"/>
+                    <field name="l10n_id_replace_invoice_id" attrs="{'invisible': [('country_code', '!=', 'ID')], 'readonly': [('state', '!=','draft')]}" options="{'m2o_dialog': False, 'no_create': True}"/>
+                </field>
+                <button name="button_draft" position="after">
+                    <button name="reset_efaktur" string="Reset E-Faktur" type="object" attrs="{'invisible':['|', ('country_code', '!=', 'ID'), '|', '|', ('l10n_id_tax_number','=',False), ('state','!=','cancel'), ('l10n_id_attachment_id','!=',False)]}"/>
+                </button>
+                <xpath expr=".//group[@id='other_tab_group']" position="inside">
+                    <group string="Electronic Tax" invisible="1">
+                        <field name="l10n_id_tax_number" attrs="{'invisible': [('move_type', '=', 'entry')], 'readonly': [('move_type', 'in', ('out_invoice', 'out_refund', 'out_receipt'))]}"/>
+                        <field name="l10n_id_csv_created" attrs="{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund'))]}"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="account_move_efaktur_form_view" model="ir.ui.view">
+            <field name="name">account.move.efaktur.form.view</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="l10n_id_efaktur.account_move_efaktur_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group/field[@name='l10n_id_tax_number']" position="replace">
+                </xpath>
+                <!-- <xpath expr="//group/field[@name='l10n_id_kode_transaksi']" position="attributes">
+                    <attribute name="attrs">{'invisible': [('check', '=', True)]}</attribute>
+                </xpath>  -->
+                <xpath expr="//group/field[@name='l10n_id_replace_invoice_id']" position="replace">
+                </xpath>
+
+                <field name="l10n_id_kode_transaksi" position="after">
+                    <field name="code" invisible='1'/>
+                    <field name="check" invisible='1'/>
+                    <field name="check_invisible" invisible='1'/>
+                    <field name="check_invisible_ebupot" invisible='1'/>
+                    <!-- <field name="status_code" attrs="{'invisible': [('check', '=', True)]}"/>
+                    <field name="nomor_seri" attrs="{'invisible': [('check_invisible', '=', True)]}"/> -->
+                </field>
+
+                <notebook position="inside">
+                    <page name="e_faktur_page" string="E-Faktur">
+                        <group name="e_faktur_page_group">
+                            <!-- <group>
+                                <field name="l10n_id_replace_invoice_id" attrs="{'invisible': ['|',('country_code', '!=', 'ID'),('check', '=', True)], 'readonly': [('state', '!=','draft')]}" options="{'m2o_dialog': False, 'no_create': True}"/>
+                                <field name="l10n_id_kode_transaksi" attrs="{'invisible': [('check', '=', True)], 'readonly': [('discount_type', '=', False)]}" />
+                                <field name="keterangan_tambahan" attrs="{'invisible': ['|',('check', '=', True),('l10n_id_kode_transaksi','not in',('07','08'))]}" domain="[('jenis_transaksi','=',l10n_id_kode_transaksi)]" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True}"/>
+                                <field name="nomor_dokumen_pendukung" attrs="{'invisible': ['|',('check', '=', True),('l10n_id_kode_transaksi','not in',('07','08'))]}"/>
+                                <field name="status_code" attrs="{'invisible': [('check', '=', True)]}" />
+                                <field name="nomor_seri" attrs="{'invisible': [('check_invisible', '=', True)]}" />
+                                <field name="l10n_id_tax_number" string='Nomor Seri Faktur Pajak' force_save='1' attrs="{'invisible': [('code', '!=', 'ID')], 'readonly': [('move_type','!=', 'in_invoice')]}"/>
+                            </group> -->
+
+                            <!-- <group>
+                                <field name="tipe_pembayaran" attrs="{'invisible': [('check', '=', True)]}"/>
+                                <field name="uang_muka" attrs="{'invisible': [('check', '=', True)]}"/>
+                                <field name="uang_muka_ppn" attrs="{'invisible': [('check', '=', True)]}" string="Uang Muka PPN"/>
+                                <field name="uang_muka_ppnbm" attrs="{'invisible': [('check', '=', True)]}" string="Uang Muka PPNBM"/>
+                            </group> -->
+
+                            <group>
+                                <field name="l10n_id_replace_invoice_id" attrs="{'invisible': [('move_type','=','in_invoice')], 'readonly': [('state', '!=','draft')]}" options="{'m2o_dialog': False, 'no_create': True}" domain="[('state', '=', 'posted'),('move_type', '=', 'out_invoice'),('company_id','=',company_id)]"/>
+                                <field name="l10n_id_kode_transaksi" attrs="{'readonly': [('discount_type', '=', False)], 'invisible': [('move_type','=','in_invoice')]}"/>
+                                <field name="keterangan_tambahan" attrs="{'invisible': [('l10n_id_kode_transaksi','not in',('07','08'))]}" domain="[('jenis_transaksi','=',l10n_id_kode_transaksi)]" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True}"/>
+                                <field name="nomor_dokumen_pendukung" attrs="{'invisible': [('l10n_id_kode_transaksi','not in',('07','08'))]}"/>
+                                <field name="status_code" attrs="{'invisible': [('move_type','=','in_invoice')]}"/>
+                                <field name="nomor_seri" domain="nomor_seri_domain" attrs="{'invisible': [('move_type','=','in_invoice')]}"/>
+                                <field name="nomor_seri_domain" invisible="1"/>
+                                <field name="l10n_id_tax_number" string='Nomor Seri Faktur Pajak' force_save='1' attrs="{'readonly': [('move_type','!=', 'in_invoice')]}"/>
+                            </group>
+
+                            <group>
+                                <field name="tipe_pembayaran" attrs="{'invisible': [('move_type','=','in_invoice')]}"/>
+                                <field name="uang_muka" attrs="{'invisible': [('move_type','=','in_invoice')]}"/>
+                                <field name="uang_muka_ppn" string="Uang Muka PPN" attrs="{'invisible': [('move_type','=','in_invoice')]}"/>
+                                <field name="uang_muka_ppnbm" string="Uang Muka PPNBM" attrs="{'invisible': [('move_type','=','in_invoice')]}"/>
+                            </group>
+                        </group>
+                    </page>
+                    <page name="e_bupotunifikasi_page" string="E-Bupotunifikasi">
+                        <group name="e_bupotunifikasi_page_group">
+                            <group>
+                                <field name="tax_number_bupot" attrs="{'invisible': [('code', '!=', 'ID')]}" />
+                                <field name="kode_dokumen" attrs="{'invisible': [('check_invisible_ebupot', '=', True)]}"/>
+                                <field name="kode_seri"  widget="mask" data-inputmask="'mask': '99'" attrs="{'invisible': [('check_invisible_ebupot', '=', True)]}"/>
+                                <field name="nomor_seri_bupot" attrs="{'invisible': [('check_invisible_ebupot', '=', True)]}"/>
+                                <field name="kode_objek_pajak_id" widget="many2many_tags" attrs="{'invisible': [('move_type','!=', 'in_invoice')]}"/>
+                            </group>
+                            
+                        </group>
+                    </page>
+                    
+                </notebook>
+
+            </field>
+        </record>   
+
+        <record id="view_tax_form" model="ir.ui.view">
+            <field name="name">account.tax.form</field>
+            <field name="model">account.tax</field>
+            <field name="inherit_id" ref="account.view_tax_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='include_base_amount']" position="before">
+                    <field name="is_ppn"/>
+                </xpath>
+                <xpath expr="//page[@name='advanced_options']/group/group/field[@name='analytic']" position="after">
+                    <field name="is_pph"/>
+                    <field name="pph_type" attrs="{'invisible': [('is_pph', '=', False)], 'required': [('is_pph', '=', True)]}"/>
+                </xpath>
+            </field>
+        </record>
+
+
+        <record id="view_invoice_tree" model="ir.ui.view">
+            <field name="name">account.invoice.tree</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_invoice_tree"/>
+            <field name="arch" type="xml">
+                <!-- <xpath expr="//header/button[@name='action_register_payment']" position="after">
+                    <button name="download_efaktur" type="object" string="Export Download E-Faktur"
+                            groups="account.group_account_user"
+                            invisible="context.get('default_move_type') not in ('out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund','in_receipt')"/>
+
+                    <button name="download_ebupot" type="object" string="export download e-Bupot"
+                            groups="account.group_account_user"
+                            invisible="context.get('default_move_type') not in ('out_invoice','in_invoice')"/>
+                </xpath> -->
+                <xpath expr="//field[@name='l10n_id_tax_number']" position="after">
+                  <!-- <field name="nomor_seri_010" />  -->
+                  <field name="nomor_seri" optional="1" />
+                </xpath>
+            </field>
+        </record>
+
+        <!-- <record id="export_dowload_efaktur_action" model="ir.actions.server">
+            <field name="name">Export Download E-Faktur</field>
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="binding_model_id" ref="account.model_account_move"/>
+            <field name="state">code</field>
+            <field name="code">action = records.download_efaktur_csv()</field>
+            #<field name="domain">[('move_type', 'in', ('out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund','in_receipt'))]</field>
+        </record> -->
+
+
+        <record id="export_dowload_ebupot_action" model="ir.actions.server">
+            <field name="name">Download E-Bupot</field>
+            <field name="model_id" ref="account.model_account_move"/>
+            <field name="binding_model_id" ref="account.model_account_move"/>
+            <field name="state">code</field>
+            <field name="code">action = records.download_ebupot()</field>
+            <!-- <field name="domain">[('move_type', 'in', ('out_invoice','in_invoice'))]</field> -->
+        </record>
+
+        <record id="account.action_move_journal_line" model="ir.actions.act_window">
+            <field name="name">Journal Entries</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="account.view_move_tree"/>
+            <field name="search_view_id" ref="account.view_account_move_filter"/>
+            <field name="context">{'default_move_type': 'entry', 'view_no_maturity': True, 'is_ppn_invisible': True, 'def_invisible': False}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Create a journal entry
+              </p><p>
+                A journal entry consists of several journal items, each of
+                which is either a debit or a credit transaction.
+              </p>
+            </field>
+        </record>
+
+        <record id="account.action_move_out_invoice_type" model="ir.actions.act_window">
+            <field name="name">Invoices</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="account.view_out_invoice_tree"/>
+            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="domain">[('move_type', '=', 'out_invoice')]</field>
+            <field name="context">{'default_move_type': 'out_invoice', 'is_ppn_invisible': True, 'def_invisible': False}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Create a customer invoice
+              </p><p>
+                Create invoices, register payments and keep track of the discussions with your customers.
+              </p>
+            </field>
+        </record>
+
+        <record id="account.action_move_out_refund_type" model="ir.actions.act_window">
+            <field name="name">Credit Notes</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="account.view_invoice_tree"/>
+            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="domain">[('move_type', '=', 'out_refund')]</field>
+            <field name="context">{'default_move_type': 'out_refund', 'is_ppn_invisible': True, 'def_invisible': False}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Create a credit note
+              </p><p>
+                Note that the easiest way to create a credit note is to do it directly
+                from the customer invoice.
+              </p>
+            </field>
+        </record>
+
+        <record id="account.action_move_in_invoice_type" model="ir.actions.act_window">
+            <field name="name">Bills</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="account.view_in_invoice_tree"/>
+            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="domain">[('move_type', '=', 'in_invoice')]</field>
+            <field name="context">{'default_move_type': 'in_invoice', 'is_ppn_invisible': True, 'def_invisible': False}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Create a vendor bill
+              </p><p>
+                Create invoices, register payments and keep track of the discussions with your vendors.
+              </p>
+            </field>
+        </record>
+
+        <record id="account.action_move_in_refund_type" model="ir.actions.act_window">
+            <field name="name">Debit Notes</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="account.view_in_invoice_tree"/>
+            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="domain">[('move_type', '=', 'in_refund')]</field>
+            <field name="context">{'default_move_type': 'in_refund', 'is_ppn_invisible': True, 'def_invisible': False}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Create a vendor credit note
+              </p><p>
+                Note that the easiest way to create a vendor credit note it to do it directly from the vendor bill.
+              </p>
+            </field>
+        </record>
+
+        <record id="account.action_move_out_receipt_type" model="ir.actions.act_window">
+            <field name="name">Receipts</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="account.view_invoice_tree"/>
+            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="domain">[('move_type', '=', 'out_receipt')]</field>
+            <field name="context">{'default_move_type': 'out_receipt', 'is_ppn_invisible': True, 'def_invisible': False}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Create a new sales receipt
+              </p><p>
+                When the sale receipt is confirmed, you can record the customer
+                payment related to this sales receipt.
+              </p>
+            </field>
+        </record>
+
+        <record id="account.action_move_in_receipt_type" model="ir.actions.act_window">
+            <field name="name">Receipts</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_id" ref="account.view_in_invoice_tree"/>
+            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="domain">[('move_type', '=', 'in_receipt')]</field>
+            <field name="context">{'default_move_type': 'in_receipt', 'is_ppn_invisible': True, 'def_invisible': False}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Register a new purchase receipt
+              </p><p>
+                When the purchase receipt is confirmed, you can record the
+                vendor payment related to this purchase receipt.
+              </p>
+            </field>
+        </record>
+
+        <record id="view_move_form" model="ir.ui.view">
+            <field name="name">account.move.form</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr=".//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='tax_ids']" position="after">
+                    <!-- <field name="tax_ids_ppn" widget="many2many_tags" invisible="context.get('is_ppn_invisible', True)"/> -->
+                    <!-- <field name="taxes_ppn" invisible="context.get('is_ppn_invisible', True)"/> -->
+                    <field name="amount_ppn" invisible="context.get('is_ppn_invisible', True)"/>
+                    <field name="price_total_ppn" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//button[@name='button_cancel']" position="after">
+                  <button name="button_upload_djp" string="Upload to PJAP" type="object" attrs="{'invisible': ['|',('hide_button_upload','=',True),('move_type','!=','out_invoice')]}"/>
+                  <button name="button_upload_djp_cn" string="Upload to PJAP" type="object" attrs="{'invisible': ['|',('hide_button_upload_cn','=',True),('move_type','!=','out_refund')]}"/>
+                  <button name="button_upload_pajak_masukkan" string="Upload to PJAP" type="object" attrs="{'invisible': ['|',('hide_button_upload_pajak_masukan','=',True),('move_type','!=','in_invoice')]}"/>
+                  <button name="button_upload_pajak_masukkan_retur" string="Upload to PJAP" type="object" attrs="{'invisible': ['|',('hide_button_upload_pajak_masukan_retur','=',True),('move_type','!=','in_refund')]}"/>
+                </xpath>
+                <!-- <xpath expr="//button[@name='action_reserve']" position="after">
+                </xpath>
+                 -->
+                <!-- <xpath expr="//field[@name='partner_id']" position="after">
+                  <label for="pajak_express_id" string="E-Faktur" attrs="{'invisible':[('is_upload_djp','!=',True)]}"/>
+                  <div >
+                          <field name="pajak_express_id" nolabel="1"  class="oe_inline" invisible="1"  />   
+                          <button icon="fa-print" string="Print PK" help="Cetak PK" name="open_pk" type="object" class="oe_link" style="text-align: center;" attrs="{'invisible':[('is_upload_djp','!=',True)]}" />
+                        
+                  </div>
+
+
+                  <label for="approval_url" string="Approval Url"  attrs="{'invisible':[('is_upload_djp','!=',True)]}"/>
+                  <div >
+                          <field name="approval_url" nolabel="1"  class="oe_inline" invisible="1"  />   
+                          <button icon="fa-qrcode" string="Open" help="Open Approval" name="open_approval" type="object" class="oe_link" style="text-align: center;" attrs="{'invisible':[('is_upload_djp','!=',True)]}" />
+                        
+                  </div>
+                </xpath> -->
+
+                <xpath expr="//div[@name='button_box']" position="after">
+                  <field name="hide_button_upload_pajak_masukan" invisible="1"/>
+                  <field name="is_upload_djp" invisible="1"/>
+                  <field name="hide_button_upload_pajak_masukan_retur" invisible="1"/>
+                  <field name="is_upload_djp_cn" invisible="1"/>
+                  <field name="hide_button_upload" invisible="1"/>
+                  <field name="hide_button_upload_cn" invisible="1"/>
+                  <!-- <widget name="web_ribbon" title="Uploaded DJP" attrs="{'invisible': [('is_upload_djp','!=',True)]}"/> -->
+                
+                </xpath>
+
+                <!-- <xpath expr=".//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='tax_ids']" position="attributes">
+                     <attribute name="invisible">context.get('def_invisible', True)</attribute>
+                </xpath>
+                <xpath expr=".//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='price_tax']" position="attributes">
+                     <attribute name="invisible">context.get('def_invisible', True)</attribute>
+                </xpath>
+                <xpath expr=".//notebook/page[@id='invoice_tab']/field[@name='invoice_line_ids']/tree/field[@name='price_subtotal']" position="attributes">
+                     <attribute name="invisible">context.get('def_invisible', True)</attribute>
+                </xpath> -->
+
+                
+                <!-- <xpath expr=".//notebook/page[@id='invoice_tab']/group[hasclass('oe_subtotal_footer')]/field[@name='amount_untaxed']" position="after">
+                    <field name="total_inv_ppn" invisible="context.get('is_ppn_invisible', True)"/>
+                </xpath>
+
+                <xpath expr=".//notebook/page[@id='invoice_tab']/group[hasclass('oe_subtotal_footer')]/field[@name='amount_by_group']" position="after">
+                    <field name="total_tax_ppn" invisible="context.get('is_ppn_invisible', True)"/>
+                </xpath>
+
+                 <xpath expr=".//notebook/page[@id='invoice_tab']/group[hasclass('oe_subtotal_footer')]/field[@name='amount_total']" position="after">
+                    <field name="subtotal_inv_ppn" class="oe_subtotal_footer_separator" invisible="context.get('is_ppn_invisible', True)"/>
+                </xpath>
+
+                <xpath expr=".//notebook/page[@id='invoice_tab']/group[hasclass('oe_subtotal_footer')]/field[@name='amount_untaxed']" position="attributes">
+                    <attribute name="invisible">context.get('def_invisible', True)</attribute>
+                </xpath>
+
+                <xpath expr=".//notebook/page[@id='invoice_tab']/group[hasclass('oe_subtotal_footer')]/field[@name='amount_by_group']" position="attributes">
+                    <attribute name="invisible">context.get('def_invisible', True)</attribute>
+                </xpath>
+
+                 <xpath expr=".//notebook/page[@id='invoice_tab']/group[hasclass('oe_subtotal_footer')]/field[@name='amount_total']" position="attributes">
+                    <attribute name="invisible">context.get('def_invisible', True)</attribute>
+                </xpath>
+
+                 <xpath expr=".//notebook/page[@id='invoice_tab']/group[hasclass('oe_subtotal_footer')]/field[@name='amount_total'][2]" position="attributes">
+                    <attribute name="invisible">context.get('def_invisible', True)</attribute>
+                </xpath> -->
+
+            </field>
+        </record>
+
+        <record id="view_inherit_account_move_form_signature" model="ir.ui.view">
+            <field name="name">account.move.form</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="aos_base_account.view_inherit_account_move_form"/>
+            <field name="arch" type="xml">					
+                <field name="signature" position="after">
+                    <label for="signature_country_id" string="Signature Address"/>
+                    <div>
+                        <field name="signature_country_id" class="oe_inline" placeholder="Country" options="{'no_create': True, 'no_open': True}"/><field name="signature_city_id" class="oe_inline" placeholder="City" options="{'no_create': True, 'no_open': True}"/>
+                    </div>
+                </field>
+            </field>
+        </record>
+
+        <record id="view_move_form_efaktur" model="ir.ui.view">
+          <field name="name">account.move.efaktur.form</field>
+          <field name="model">account.move</field>
+          <field name="inherit_id" ref="account.view_move_form"/>
+          <field name="arch" type="xml">
+              <div name="button_box" position="inside">
+                <button icon="fa-print" help="Cetak PK" name="open_pk" type="object" class="oe_stat_button"  attrs="{'invisible':[('is_upload_djp','!=',True)]}" >
+                      <div class="o_field_widget o_stat_info">
+                          <span class="o_stat_text">Print</span>
+                          <span class="o_stat_text">E-Faktur</span></div>
+                  </button>
+
+              
+              </div>
+          </field>
+      </record>
+
+
+
+        <record id="account_keterangan_tambahan_tree" model="ir.ui.view">
+            <field name="name">account.keterangan.tambahan.tree</field>
+            <field name="model">account.keterangan.tambahan</field>
+            <field name="arch" type="xml">
+                <tree >
+                    <field name="angka" string="No"/>                            
+                    <field name="name"  />
+                   
+                </tree>
+            </field>
+        </record>
+</odoo>

@@ -1,0 +1,165 @@
+<?xml version="1.0" ?>
+<odoo>
+
+    <!-- Teacher Security Rule -->
+    <record model="ir.rule" id="rule_academic_tracking">
+        <field name="name">Teacher Academic Tracking Rule</field>
+        <field name="model_id" ref="equip3_school_operation.model_academic_tracking"/>
+        <field name="domain_force">user._get_academic_tracking_rule_for_teacher()</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+    </record>
+
+    <record model="ir.rule" id="rule_school_standard">
+        <field name="name">Teacher Intake Rule</field>
+        <field name="model_id" ref="school.model_school_standard"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+    </record>
+
+    <record model="ir.rule" id="rule_daily_attendance">
+        <field name="name">Teacher Daily Attendance Rule</field>
+        <field name="model_id" ref="school_attendance.model_daily_attendance"/>
+        <field name="domain_force">[('teacher_id.user_id.id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+    </record>
+
+    <record model="ir.rule" id="rule_daily_attendance_line">
+        <field name="name">Teacher Daily Attendance Line Rule</field>
+        <field name="model_id" ref="equip3_school_operation.model_daily_attendance_line"/>
+        <field name="domain_force">[('teacher_id.user_id.id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+    </record>
+
+    <record model="ir.rule" id="rule_studentleave_request">
+        <field name="name">Teacher Student Leave Request Rule</field>
+        <field name="model_id" ref="school_attendance.model_studentleave_request"/>
+        <field name="domain_force">['|', ('pic_class.user_id', '=', user.id), ('pic_intake.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record model="ir.rule" id="rule_teacher_attendance">
+        <field name="name">Teacher Attendance Rule</field>
+        <field name="model_id" ref="equip3_school_operation.model_teacher_attendance"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record model="ir.rule" id="rule_school_teacher_assignment">
+        <field name="name">Teacher School Teacher Assignment Rule</field>
+        <field name="model_id" ref="assignment.model_school_teacher_assignment"/>
+        <field name="domain_force">[('teacher_id.user_id.id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+    </record>
+
+    <record model="ir.rule" id="rule_model_school_student_assignment">
+        <field name="name">Teacher School Student Assignment Rule</field>
+        <field name="model_id" ref="assignment.model_school_student_assignment"/>
+        <field name="domain_force">[('teacher_id.user_id.id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+    </record>
+
+    <record model="ir.rule" id="rule_subject_weightage_teacher">
+        <field name="name">Teacher Subject Weightage Rule</field>
+        <field name="model_id" ref="equip3_school_operation.model_subject_weightage"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+    </record>
+
+    <record model="ir.rule" id="rule_subject_score_teacher">
+        <field name="name">Teacher Subject Score Rule</field>
+        <field name="model_id" ref="equip3_school_operation.model_subject_score"/>
+        <field name="domain_force">[('teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+    </record>
+
+    <record model="ir.rule" id="rule_ems_classes">
+        <field name="name">Teacher EMS Classes Rule</field>
+        <field name="model_id" ref="equip3_school_operation.model_ems_classes"/>
+        <field name="domain_force">[('teacher_id.company_id', '=', company_id), ('teacher_id.user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+    </record>
+
+    <record model="ir.rule" id="rule_ems_classes_company">
+        <field name="name">EMS Classes Company Rule</field>
+        <field name="model_id" ref="equip3_school_operation.model_ems_classes"/>
+        <field name="domain_force">[('teacher_id.company_id', '=', company_id)]</field>
+        <field name="active" eval="False" />
+    </record>
+
+    <!-- Teacher only can read his own data -->
+    <function name="write" model="ir.model.data">
+        <function name="search" model="ir.model.data">
+            <value eval="[('module', '=', 'school'), ('name',  '=', 'rule_personal_school_teacher')]"/>
+        </function>
+        <value eval ="{'noupdate': False}"/>
+    </function>
+
+    <record model="ir.rule" id="school.rule_personal_school_teacher">
+        <field name="name">Rule Personal Teacher Record</field>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <function name="write" model="ir.model.data">
+        <function name="search" model="ir.model.data">
+            <value eval="[('module', '=', 'school'), ('name',  '=', 'rule_personal_school_teacher')]"/>
+        </function>
+        <value eval ="{'noupdate': True}"/>
+    </function>
+
+    <!-- Teacher only can read students under his program -->
+    <record model="ir.rule" id="teacher_rule_student_student">
+        <field name="name">Student Profile Rule for Teacher</field>
+        <field name="model_id" ref="school.model_student_student"/>
+        <field name="domain_force">user._get_student_profile_rule_for_teacher()</field>
+        <field name="groups" eval="[(4, ref('school.group_school_teacher'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>  
+
+    <!-- Student Security Rule -->
+    <record model="ir.rule" id="rule_daily_attendance_student">
+        <field name="name">Student Daily Attendance Rule</field>
+        <field name="model_id" ref="school_attendance.model_daily_attendance"/>
+        <field name="domain_force">[('state', '=', 'validate')]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_student'))]"/>
+    </record>
+
+    <record model="ir.rule" id="rule_daily_attendance_line_student">
+        <field name="name">Student Daily Attendance Line Rule</field>
+        <field name="model_id" ref="equip3_school_operation.model_daily_attendance_line"/>
+        <field name="domain_force">[('student_id', '=', user.name)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_student'))]"/>
+    </record>
+
+   <record model="ir.rule" id="rule_academic_tracking_student">
+        <field name="name">Student Academic Tracking Rule</field>
+        <field name="model_id" ref="equip3_school_operation.model_academic_tracking"/>
+        <field name="domain_force">[('student_id', '=', user.name)]</field>
+        <field name="groups" eval="[(4, ref('school.group_school_student'))]"/>
+    </record>
+
+    <record model="ir.model.access" id="access_survey_user_input_user_student">
+        <field name="name">access_survey_user_input_user_student</field>
+        <field name="model_id" ref="survey.model_survey_user_input"/>
+        <field name="group_id" ref="school.group_school_student"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record> 
+
+</odoo>

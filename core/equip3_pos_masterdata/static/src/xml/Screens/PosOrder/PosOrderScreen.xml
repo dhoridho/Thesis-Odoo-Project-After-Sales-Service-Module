@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="PosOrderScreen" owl="1">
+        <div class="ticket-screen screen" t-on-activate-edit-mode="activateEditMode">
+            <div class="screen-content" style="background-color: #fff;">
+                <div class="controls">
+                    <div class="buttons" style="margin-left:15px;">
+                        <button class="highlight discard back" t-on-click="back" t-if="state.detailIsShown">
+                            <i class="fa fa-chevron-left"></i>
+                            <t t-if="!env.isMobile"> Back</t>
+                        </button>
+                        <t t-if="props.close_screen_button">
+                            <button class="highlight close-screen-button back" t-on-click="closeScreen" t-if="!state.detailIsShown" style="background: unset !important; border: unset !important; box-shadow: unset !important; font-size: 20px;margin-left: unset; padding-left: unset;">
+                                <i class="fa fa-chevron-left"></i>
+                                <t t-if="!env.isMobile">Back</t>
+                            </button> 
+                        </t>
+                        <t t-else="">
+                            <button class="highlight back" t-on-click="back" t-if="!state.detailIsShown">
+                                <i class="fa fa-chevron-left"></i>
+                                <t t-if="!env.isMobile">Back</t>
+                            </button>
+                        </t>
+                        <h1 t-if="!env.isMobile" class="alert_line" style="margin-bottom: unset;margin-top:unset;margin-right: 20px; font-weight: 900;color:black;">
+                            <t t-if="props.selectedClient">
+                                Orders of Customer :<t t-esc="props.selectedClient.display_name"/>
+                            </t>
+                            <t t-elif="props.outstanding_receivable">
+                                OUTSTANDING RECEIVABLE
+                            </t>
+                            <t t-else="">
+                                All Orders
+                            </t>
+                        </h1>
+                    </div>
+                    
+                </div>
+                <div class="controls" style="margin-left:14px;margin-bottom:20px;">
+                    <SearchBar automaticSearchOrder="true" t-if="!state.detailIsShown" config="searchBarConfig" placeholder="'Search Orders...'"/>
+                    <button class="button-right" t-on-click="clearSearch">
+                        <i class="fa fa-refresh "></i>
+                        <t t-if="!env.isMobile"> Show All</t>
+                    </button>
+                </div>
+                <div t-if="state.detailIsShown" class="client-details-contents subwindow-container-fix">
+                    <PosOrderDetail order="state.editModeProps.order" t-props="state.editModeProps"/>
+                    <!-- TODO: when props change, SaleOrderDetail will change, It reason we call t-props
+                    -->
+                </div>
+                <table class="summary-table" t-if="getOrders and getOrders.length != 0">
+                    <colgroup>
+                        <col width='3%'/>
+                        <col width='17%'/>
+                        <col width='10%'/>
+                        <col width='10%'/>
+                        <col width='10%'/>
+                        <col width='10%'/>
+                        <col width='10%'/>
+                        <col width='10%'/>
+                        <col width='10%'/>
+                        <col width='10%'/>
+                    </colgroup>
+                    <tr class="receipt-line header">
+                        <td style="text-align: center">
+                            No
+                        </td>
+                        <td style="text-align: center">
+                            Ref
+                        </td>
+                        <td style="text-align: center">
+                            Name
+                        </td>
+                        <td style="text-align: center">
+                            Date Order
+                        </td>
+                        <td style="text-align: center">
+                            Customer
+                        </td>
+                        <td style="text-align: center">
+                            Total
+                        </td>
+                        <td style="text-align: center">
+                            Paid
+                        </td>
+                        <td style="text-align: center">
+                            Tax
+                        </td>
+                        <td style="text-align: center">
+                            Remaining
+                        </td>
+                        <td style="text-align: center">
+                            State
+                        </td>
+                    </tr>
+                    <t t-set="number" t-value="1"/>
+                    <t t-foreach="getOrders" t-as="order"
+                       t-key="order.id">
+                        <PosOrderRow order="order"
+                                     number="number"
+                                     selectedOrder="state.selectedOrder"
+                                     detailIsShown="state.detailIsShown"
+                                     t-on-click-order="clickOrder" /> <!-- matching to (1) of PosOrderRow-->
+                        <t t-set="number" t-value="number +1"/>
+                    </t>
+                </table>
+                <t t-if="getOrders.length == 0 and !state.detailIsShown">
+                    <h1 class="loading-orders" t-if="!state.detailIsShown" >... COULD NOT FOUND ANY ORDER ...</h1>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

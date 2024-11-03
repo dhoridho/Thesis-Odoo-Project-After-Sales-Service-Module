@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="route-map-customer-view" name="Route">
+            <t t-call="website.layout">
+                <div class="container" width="auto" style="border-style: solid; padding: 8px; border-radius: 8px;">
+                    <h5 class="background">
+                        <h2><center>Your order details</center></h2>
+                    </h5>
+                    <div class="progress vertical" style="height: 25px; font-size: 0.95625rem; font-color: #000000;">
+                        <t t-foreach="order_stages" t-as="orders_stage_id">
+                            <t t-foreach="orders" t-as="orders_id">
+                                <t t-foreach="picking_orders" t-as="picking_orders_id">
+                                    <t t-if="picking_orders_id.stage_id.sequence != orders_stage_id.sequence and picking_orders_id.stage_id!=''">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"
+                                             style="width: 60%; height:120%; background-color: #A9A9A9; color: #000000; align-bottom: center;">
+                                            <t t-esc="orders_stage_id.name"/>
+                                        </div>
+                                    </t>
+                                    <t t-if="picking_orders_id.stage_id.sequence == orders_stage_id.sequence and picking_orders_id.stage_id!=''">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"
+                                             style="width: 60%; height:120%; background-color: #808080; color: #000000; align-bottom: center;">
+                                            <t t-esc="orders_stage_id.name"/>
+                                        </div>
+                                    </t>
+
+<!--                                    <t t-if="orders_id.stage_id.sequence &gt; picking_orders_id.stage_id.sequence">-->
+<!--                                        <div class="progress-bar" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"-->
+<!--                                             style="width: 60%; height:120%; background-color: #A9A9A9; color: #000000; align-bottom: center;">-->
+<!--                                            <t t-esc="orders_stage_id.name"/>-->
+<!--                                        </div>-->
+<!--                                    </t>-->
+<!--                                    <t t-if="orders_id.stage_id.sequence &gt; picking_orders_id.stage_id.sequence">-->
+<!--                                        <div class="progress-bar" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"-->
+<!--                                             style="width: 60%; height:120%; background-color: #808080; color: #000000; align-bottom: center;">-->
+<!--                                            <t t-esc="orders_stage_id.name"/>-->
+<!--                                        </div>-->
+<!--                                    </t>-->
+
+                                </t>
+                                <t t-if="orders_id.stage_id.sequence != orders_stage_id.sequence and not picking_orders">
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"
+                                         style="width: 60%; height:120%; background-color: #A9A9A9; color: #000000; align-bottom: center;">
+                                        <t t-esc="orders_stage_id.name"/>
+                                    </div>
+                                </t>
+                                <t t-if="orders_id.stage_id.sequence == orders_stage_id.sequence and not picking_orders">
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"
+                                         style="width: 60%; height:120%; background-color: #808080; color: #000000; align-bottom: center;">
+                                        <t t-esc="orders_stage_id.name"/>
+                                    </div>
+                                </t>
+                            </t>
+                        </t>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2">
+                            <b style="font-size: medium;">Order Number: </b>
+                            <br></br>
+                            <b style="font-size: medium;">Order Date: </b>
+                            <br></br>
+                            <b style="font-size: medium;">Delivery address: </b>
+                            <br></br>
+                        </div>
+                        <div class="col-md-3">
+                            <t t-esc="orders.name"/><br></br>
+                            <t t-esc="orders.create_date"/>
+                            <br></br>
+                            <t t-if="orders.partner_id.street"><t t-esc="orders.partner_id.street"/><span>,</span></t>
+                            <t t-if="orders.partner_id.street2"><t t-esc="orders.partner_id.street2"/><span>,</span></t>
+                            <t t-if="orders.partner_id.city"><t t-esc="orders.partner_id.city"/><span> </span></t>
+                            <t t-if="orders.partner_id.state_id"><t t-esc="orders.partner_id.state_id.name"/><span> </span></t>
+                            <t t-if="orders.partner_id.zip"><t t-esc="orders.partner_id.zip"/><span> </span></t>
+                            <t t-if="orders.partner_id.country_id"><t t-esc="orders.partner_id.country_id.name"/></t>
+                        </div>
+                        <input type="hidden" id="order_id" t-att-value="orders.id"/>
+                        <table width="1150px" height="118px" id="material" align="center" style="width: 1135px;">
+                            <thead style="background-color:#5f5e97">
+                                <tr style="background-color: #7C7BAD">
+                                    <th>Product</th>
+                                    <th>Description</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Taxes</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <t t-foreach="order_line" t-as="order_line_id">
+                                <tbody>
+                                    <td>
+                                        <span t-field="order_line_id.product_id.name"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="order_line_id.name"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="order_line_id.product_uom_qty"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="order_line_id.price_unit"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="order_line_id.tax_id"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="order_line_id.price_subtotal"/>
+                                    </td>
+                                </tbody>
+                            </t>
+                        </table>
+                        <div class="col-md-8"></div>
+                        <div class="col-md-2">
+                            <b style="font-size: medium;">Untaxed Amount: </b><br></br>
+                            <b style="font-size: medium;">Taxes: </b><br></br>
+                            <b style="font-size: medium;">Total: </b><br></br>
+                        </div>
+                        <div class="col-md-2">
+                            <span t-field="orders.amount_untaxed"/><br></br>
+                            <span t-field="orders.amount_tax"/><br></br>
+                            <span t-field="orders.amount_total"/><br></br>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>

@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+
+		<template id="progressive_claim_templates_company_details">
+			<span style="text-transform:capitalize; padding:0px; margin:0; color: #51565b;">
+				<t t-if="o.company_id and o.company_id.is_company_bold">
+					<strong>
+						<span t-field="o.company_id.partner_id"/>
+					</strong>
+				</t>
+				<t t-if="not o.company_id.is_company_bold">
+					<span t-field="o.company_id.partner_id"/>
+				</t>
+			</span>
+			<div style="color: #51565b;">
+				<span t-esc="o._get_street(o.company_id.partner_id)"/>
+				<br/>
+				<span t-esc="o._get_address_details(o.company_id.partner_id)"/>
+				<br/>
+			</div>
+			<div style="color: #51565b;">
+				<t t-if="o.company_id.partner_id.mobile">
+					<strong>Mobile:</strong>
+					<span t-field="o.company_id.partner_id.mobile"/>
+					<br/>
+				</t>
+				<t t-if="o.company_id.partner_id.email">
+					<strong>Email:</strong>
+					<span t-field="o.company_id.partner_id.email"/>
+					<br/>
+				</t>
+			</div>
+		</template>
+
+		<template id="progressive_claim_template_footer">
+			<div class="footer" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'" t-if="o.company_id.report_footer_selection == 'standard'">
+				<div class="text-center" style="border-top: 1px solid black;">
+					<ul class="list-inline mb4">
+						<li t-if="company.phone">Phone: 
+							<span t-field="company.phone"/></li>
+						<li t-if="company.email">Email: 
+							<span t-field="company.email"/></li>
+						<li t-if="company.website">Web: 
+							<span t-field="company.website"/></li>
+						<li t-if="company.vat">
+							<t t-esc="company.country_id.vat_label or 'TIN'"/>: 
+							<span t-field="company.vat"/></li>
+					</ul>
+					<div name="financial_infos">
+						<span t-field="company.report_footer"/>
+					</div>
+					<div class="text-muted">Page: 
+						<span class="page"/>
+						/ 
+						<span class="topage"/></div>
+				</div>
+			</div>
+			<div class="footer" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'" t-if="o.company_id.report_footer_selection == 'multi_columns'">
+				<div class="row">
+					<div class="col-md-4 text-center" style="width:33%; display:inline-block; vertical-align: top;margin-top: 25px;height: 128px;">
+						<span t-field="o.company_id.name"/>
+						<br/>
+						<span t-esc="o._get_street(o.company_id.partner_id)"/>
+						<br/>
+						<span t-esc="o._get_address_details(o.company_id.partner_id)"/>
+					</div>
+					<div class="col-md-4 text-center" style="width:33%; display:inline-block; vertical-align: top;margin-top: 40px;height: 128px;">
+						<span t-field="o.company_id.phone"/>
+						<br/>
+						<span t-field="o.company_id.website"/>
+						<br/>
+						<span t-field="o.company_id.email"/>
+						<br/>
+						<!-- Put social in one line
+						<icon>Website name + <icon>twitter + <icon>googleplus
+						-->
+					</div>
+					<div class="col-md-4 text-center" style="width:33%; margin-bottom:20px; display: inline-block; vertical-align: top;">
+						<img style='max-height: 110px;max-width:100%;' t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo_footer)"/>
+					</div>
+				</div>
+			</div>
+		</template>
+
+		<template id="progressive_claim_templates_customer_details">
+			<t t-if="o.progressive_bill == False">
+				<t t-set="partner" t-value="o.partner_id"/>
+			</t>
+			<t t-elif="o.progressive_bill == True">
+				<t t-set="partner" t-value="o.vendor"/>
+			</t>
+			<t t-if="partner">
+				<span t-attf-style="text-transform:capitalize; padding:0px; margin:0; color: #51565b;">
+					<t t-if="o.company_id and o.company_id.is_customer_bold">
+						<strong>
+							<span t-esc="partner.name"/>
+						</strong>
+					</t>
+					<t t-if="not o.company_id.is_customer_bold">
+						<span t-esc="partner.name"/>
+					</t>
+				</span>
+				<p t-attf-style="color: #51565b;">
+					<span t-esc="o._get_street(partner)"/>
+					<br/>
+					<span t-esc="o._get_address_details(partner)"/>
+					<br/>
+					<t t-if="partner.mobile">
+						<strong>Mobile: </strong>
+						<span t-esc="partner.mobile"/>
+						<br/>
+					</t>
+					<t t-if="partner.email">
+						<strong>Email: </strong>
+						<span t-esc="partner.email"/>
+						<br/>
+					</t>
+					<t t-if="partner.vat">
+						<strong>Vat: </strong>
+						<span t-esc="partner.vat"/>
+					</t>
+				</p>
+			</t>
+		</template>
+
+
+		<template id="progressive_claim_print_out_doc_report_external_layout">
+			<!-- Multicompany -->
+			<t t-if="o and 'company_id' in o">
+				<t t-set="company" t-value="o.company_id"/>
+			</t>
+			<t t-if="not o or not 'company_id' in o">
+				<t t-set="company" t-value="res_company"/>
+			</t>
+			<t t-call="equip3_construction_accounting_operation.progressive_claim_doc_report_header"/>
+			<div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+                <t t-raw="0"/>
+			</div>
+			<t t-call="equip3_construction_accounting_operation.progressive_claim_template_footer"/>
+		</template>
+
+		<template id="progressive_claim_doc_report_header">
+			<div class="header" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+				<table border="0" cellpadding="0" cellspacing="0" width="100%">
+					<tbody>
+						<tr>
+							<td>
+								<center>
+									<table border="0" cellpadding="0" cellspacing="0" style="padding:0px 20px 0px 20px; margin:0; background:#fff;" width="100%">
+										<tr>
+											<td align="left" colspan="2" t-attf-style="color:#{text_color or '#ffffff'}; padding:0 0px;" valign="top">
+												<table border="0" cellpadding="0" cellspacing="0" style="line-height: 15px;" width="100%">
+													<tr>
+														<td align="left" style="color:#4D4D4F; padding:0px 15px; border-right: 1px solid #D4D1D1; width:10%;" valign="top">
+															<img style="max-height:50px; vertical-align: top; float:none;" t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo)"/>
+														</td>
+														<td style="padding:15px 0px 0px 15px; width:30%" valign="top">
+															<p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Company</p>
+															<t t-call="equip3_construction_accounting_operation.progressive_claim_templates_company_details"/>
+														</td>
+														<td align="left" style="width:30%; padding:15px 0px 0px 15px;" valign="top">
+															<t t-if="o.progressive_bill == False">
+																<p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Customer</p>
+															</t>
+															<t t-elif="o.progressive_bill == True">
+																<p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Vendor</p>
+															</t>
+															<t t-call="equip3_construction_accounting_operation.progressive_claim_templates_customer_details"/>
+														</td>
+													</tr>
+												</table>
+											</td>
+										</tr>
+									</table>
+								</center>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</template>
+
+        <template id="progressive_claim_report" >
+            <xpath expr="//t[@t-call='web.html_container']" position="replace">
+                <t t-call="web.html_container">
+                    
+                    <t t-foreach="docs" t-as="o">
+                        <t t-call="equip3_construction_accounting_operation.progressive_claim_print_out_doc_report_external_layout">
+                            <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+                            <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+                            <t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+                            <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+                            <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+                            <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+                            <t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+
+                            <div class="page" style="margin-top: 500px">
+                                <div class="oe_structure"  style="margin-top: 500px" />
+                                <div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'"  style="margin-top: 500px" >
+                                    <table t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:12px; position: static; margin-left: 30px'" >
+                                        <style>
+                                            tr {height: 25px;font-weight: normal;}
+                                        </style>
+										<tr>
+											<t t-if="o.progressive_bill == False">
+												<td style="min-width: 50px; font-weight:bold;">Progressive Claim Customer</td>
+											</t>
+											<t t-elif="o.progressive_bill == True">
+												<td style="min-width: 50px; font-weight:bold;">Progressive Claim Subcon</td>
+											</t>
+										</tr>
+                                        <tr>
+                                            <td style="min-width: 50px;">Project</td>
+                                            <td style="width: 50px; text-align: center;">:</td>
+                                            <td style="width: 350px;">
+                                                <span t-field="o.project_id.name" />
+                                            </td>
+
+											<td style="width: 10px; text-align: center;"> </td>
+											<td style="min-width: 50px;">Actual Progress</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.actual_progress" />
+												<span>%</span>
+											</td>
+										</tr>
+										<tr>
+                                            <td style="min-width: 50px;">Contract</td>
+                                            <td style="width: 50px; text-align: center;">:</td>
+                                            <td style="width: 350px; text-align: left; margin-left:0px;">
+												<t t-if="o.progressive_bill == False">
+													<!-- <t t-if="len(o.related_contract_so_ids)==0">
+														<span t-field="o.contract_parent.name"/>
+													</t> -->
+													<t t-if="len(o.related_contract_so_ids)>0">
+														<ul style="list-style: none; margin: 0; padding: 0;">
+															<li><span t-field="o.contract_parent.name"/></li>
+															<t t-foreach="o.related_contract_so_ids" t-as="contract">
+																<t t-if="contract.name != o.contract_parent.name">
+																	<li><span t-field="contract.name"/></li>
+																</t>
+															</t>
+														</ul>
+													</t>
+												</t>
+												<t t-if="o.progressive_bill == True">
+													<!-- <t t-if="len(o.related_contract_so_ids)==0">
+														<span t-field="o.contract_parent.name"/>
+													</t> -->
+													<t t-if="len(o.related_contract_po_ids)>0">
+														<ul style="list-style: none; margin: 0; padding: 0;">
+															<li><span t-field="o.contract_parent_po.name"/></li>
+															<t t-foreach="o.related_contract_po_ids" t-as="contract">
+																<t t-if="contract.name != o.contract_parent_po.name">
+																	<li><span t-field="contract.name"/></li>
+																</t>
+															</t>
+														</ul>
+													</t>
+												</t>
+                                            </td>
+
+											<td style="width: 10px; text-align: center;"> </td>
+											<td style="min-width: 50px;">Approved Progress</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.approved_progress" />
+												<span>%</span>
+											</td>
+                                        </tr>
+										<tr style="height: 10px"></tr>
+                                        <tr>
+                                            <td style="min-width: 50px;">Contract Amount</td>
+                                            <td style="width: 50px; text-align: center;">:</td>
+                                            <td style="width: 350px;">
+												<span t-field="o.currency_id.symbol" />
+                                                <span t-esc="'{:,.2f}'.format(o.contract_amount)" />
+                                            </td>
+
+											<td style="width: 10px; text-align: center;"> </td>
+											<td style="min-width: 50px;">Invoiced Progress</td>
+											<td style="width: 50px; text-align: center;">:</td>
+											<td>
+												<span t-field="o.invoiced_progress" />
+												<span>%</span>
+											</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="min-width: 50px;">Total Amount Invoiced</td>
+                                            <td style="width: 50px; text-align: center;">:</td>
+                                            <td style="width: 350px;">
+												<span t-field="o.currency_id.symbol" />
+                                                <span t-field="o.total_invoice" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="min-width: 50px;">Total Amount Claimed</td>
+                                            <td style="width: 50px; text-align: center;">:</td>
+                                            <td style="width: 350px;">
+												<span t-field="o.currency_id.symbol" />
+                                                <span t-esc="'{:,.2f}'.format(o.total_claim)" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="min-width: 50px;">Remaining Amount</td>
+                                            <td style="width: 50px; text-align: center;">:</td>
+                                            <td style="width: 350px;">
+											<span t-field="o.currency_id.symbol" />
+                                                <span t-field="o.remaining_amount" />
+                                            </td>
+                                        </tr>
+                                        
+                                    </table>
+                                    <div class="oe_structure"/>
+                                    <hr t-attf-style="border: 1px solid #{theme_color or '#000000'} !important;"></hr>
+
+                                    <table border="0" cellpadding="0" cellspacing="0" t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};" width="100%">
+                                        <tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+                                            <td t-attf-style="padding:9px 15px; font-weight:bold;">
+                                                <t>
+                                                    <span>Claim No # </span>
+                                                </t>
+                                                <br/>
+                                                <span t-field="o.name"/>
+                                            </td>
+                                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                                <strong>Creation Date:</strong>
+                                                <br/>
+                                                <span t-field="o.create_date"/>
+                                            </td>
+                                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                                <span class="text-left">Taxes:</span>
+                                                <br/>
+												<t t-foreach="o.taxes_ids" t-as="tax">
+													<span t-field="tax.tax_id.name"/>
+												</t>
+                                            </td>
+                                            <td t-attf-style="padding:5px 15px; font-weight:bold;">
+                                                <span class="text-left">Created By:</span>
+                                                <br/>
+                                                <p t-field="o.create_uid"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <div border="0" cellpadding="0" cellspacing="0" t-attf-style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px; border-top:1px solid #{theme_color or '#000000'};" width="100%"></div>
+                                    <div class="oe_structure"/>
+                                </div>
+
+                                    <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered table-striped" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+                                        <thead>
+                                            <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" >No.</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Claim ID</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Claim Date</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Gross Amount</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" >DP Deduction</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Retention Deduction</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Amount After Deduction</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Paid Invoice</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Amount Untaxed</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Tax Amount</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:1px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Amount Invoice</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:1px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Invoice Status</th>
+                                                <th align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:1px solid #{theme_color or '#000000'} !important; font-weight:bold;" >Payment Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="components_tbody">
+											<t t-set="sorted_claim_ids" t-value="sorted(o.claim_ids, key=lambda r: r.id)"/>
+											<t t-set="no" t-value="0"/>
+											<t t-foreach="sorted_claim_ids" t-as="claim">
+												<t t-set="no" t-value="no+1"/>
+												<tr>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:normal;" width="5%">
+														<span t-esc="no" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:normal;">
+														<span t-field="claim.claim_name" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.date" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.gross_amount" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.dp_deduction" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.retention_deduction" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.amount_deduction" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.paid_invoice" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.amount_untaxed" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.tax_amount" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:1px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.amount_invoice" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:1px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.invoice_status" />
+													</td>
+													<td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:1px solid #{theme_color or '#000000'} !important; font-weight:normal;" >
+														<span t-field="claim.payment_status" />
+													</td>
+												</tr>
+											</t>
+                                            
+                                        </tbody>
+                                    </table>
+
+                                <hr style="border: 1px solid black"></hr>
+                            </div>
+                        </t>
+                    </t>
+                </t>
+            </xpath>
+        </template>
+
+    </data>
+</odoo>
+

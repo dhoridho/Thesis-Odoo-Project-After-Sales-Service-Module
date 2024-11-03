@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="quotation_incredible_external_layout">
+        <!-- Multicompany -->
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id"/>
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company"/>
+        </t>
+        <t t-call="general_template.quotation_incredible_header"/>
+        <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+            <t t-raw="0"/>
+        </div>
+        <t t-call="general_template.templates_footer"/>
+    </template>
+    <template id="quotation_incredible_header">
+        <div class="header" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;border-bottom:5px solid #000; min-height:150px;'">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <center>
+                                <table border="0" cellpadding="0" cellspacing="0" style="padding:0;" width="100%">
+                                    <tbody>
+                                        <tr>
+                                            <td valign="top">
+                                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                    <tr>
+                                                        <td align="left" style="color:#4D4D4F; padding: 0; margin:0 " valign="middle">
+                                                            <img style="max-height: 80px;" t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.invoice_logo) or to_text(o.company_id.logo)" t-if="o.company_id.logo"/>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            <td style="text-align:right;padding: 0;" valign="top">
+                                                <h1 t-attf-style="text-transform:capitalize; color: #{theme_color or '#000000'}; font-weight:bold; margin:0; text-transform:uppercase; margin-bottom:5px;line-height: 45px;letter-spacing: 2px;">
+                                                    <span>Request for Quotation</span>
+                                                </h1>
+                                                <b t-attf-style="color: #{text_color};">
+                                                    <span>Request for Quotation:</span>
+                                                    <span t-field="o.name"/>
+                                                </b>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </center>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </template>
+    <template id="report_quotation_incredible_main">
+        <t t-call="general_template.quotation_incredible_external_layout">
+            <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+            <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+            <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+            <t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+            <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+            <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+            <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+            <t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+            <div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+                <div class="oe_structure"/>
+                <t t-call="general_template.templates_watermark"/>
+                <div  width="100%">
+                    <div style="padding:0px 0 20px; margin:0;" width="100%">
+                        <div>
+                            <div align="left" style="float:left;padding:10px 0 15px; line-height:20px;" valign="top">
+                                <div style="padding: 0 0 20px;">
+                                    <t t-call="general_template.templates_company_details"/>
+                                </div>
+                                <t t-call="general_template.templates_warehouse_details"/>
+                                <t t-call="general_template.templates_customer_details"/>
+                            </div>
+                            <div align="right" style="float:right;padding: 0px 0px 15px 15px; width:50%; ">
+                                <table border="0" cellpadding="0" cellspacing="0" t-attf-style="color: #{text_color}; text-transform:capitalize; border-collapse: collapse; width: 100%;" wdith="100%">
+                                    <tr>
+                                        <td style="padding:10px 0; border-bottom:1px solid #999; white-space: nowrap;">
+                                            <strong t-if="o.state not in ['draft']">Date Ordered:</strong>
+                                            <strong t-if="o.state in ['draft']">Quotation Date:</strong>
+                                        </td>
+                                        <td style="padding:10px 0 10px 10px; border-bottom:1px solid #999;">
+                                            <span t-field="o.date_order"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:10px 0; border-bottom:1px solid #999;">
+                                            <b>Your Order Reference:</b>
+                                        </td>
+                                        <td style="padding:10px 0 10px 10px; border-bottom:1px solid #999;">
+                                            <span t-field="o.partner_ref"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div>
+                            <t t-call="general_template.quotation_template_order_lines"/>
+                        </div>
+                        <div t-attf-style="border-top:1px solid #{'#959595'};color: #{text_color or '#000000'}; padding-top:5px; width:100%;" t-if="o.notes and o.company_id.is_show_notes == True">
+                            <p t-field="o.notes"/>
+                        </div>
+                        <div align="right" t-attf-style="color: #{text_color or '#000000'};">
+                            <t t-call="general_template.report_signature"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="oe_structure"/>
+            </div>
+            <t t-call="general_template.report_barcode"/>
+        </t>
+    </template>
+    <template id="report_quotation_custom_incredible">
+        <t t-call="web.html_container">
+            <t t-as="o" t-foreach="docs">
+                <t t-call="general_template.report_quotation_incredible_main" t-lang="o.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+</odoo>

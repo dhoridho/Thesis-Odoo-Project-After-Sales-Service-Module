@@ -1,0 +1,92 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="report_project_view_form" model="ir.ui.view">
+        <field name="name">report.project.view.form</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="equip3_construction_operation.edit_fields_costing"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='right_section_main']" position="inside">
+                <field name="project_total_claim_from_invoice" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Pivot View [Cost In Progress] -->
+    <record id="view_cost_progress_analysis_menu_pivot" model="ir.ui.view">
+        <field name="name">Cost Progress Analysis Pivot View</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml">
+            <pivot string="Cost In Progress">
+                <field name="name" type="row"/>
+                <field name="total_estimation_cost" type="measure" widget='monetary'/>
+<!--                <field name="total_estimation_profit" type="measure" widget='monetary'/>-->
+                <field name="project_total_claim_from_invoice" type="measure" widget='monetary'/>
+                <field name="total_estimation_revenue" type="measure" widget='monetary'/>
+<!--                <field name="total_actual_revenue" type="measure" widget='monetary'/>-->
+                <field name="purchased_amount" type="measure" widget='monetary'/>
+                <field name="transferred_amount" type="measure" widget='monetary'/>
+                <field name="used_amount" type="measure" widget='monetary'/>
+                <field name="total_actual_cost" type="measure" widget='monetary' invisible="1"/>
+                <field name="total_actual_profit" type="measure" widget='monetary'/>
+                <field name="progress" type="measure" />
+                <field name="cost_to_complete" type="measure" widget='monetary'/>
+            </pivot>
+        </field>
+    </record>
+
+    <!--ACTION [Cost In Progress]-->
+    <record id="action_cost_progress_analysis" model="ir.actions.act_window">
+        <field name="name">Cost Progress Analysis</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">pivot,tree</field>
+        <field name="domain">[('department_type', '=', 'project')]</field>
+        <field name="context">{'default_department_type': 'project','is_cost_analysis':True}</field>
+    </record>
+
+
+        <record id="action_cost_progress_analysis_management_custom" model="ir.actions.server">
+            <field name="name">Cost Progress Analysis</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="model_project_project"/>
+            <field name="code">action = model.custom_menu_cost_progress_management()</field>
+        </record>
+
+
+    <!--MENU [Cost In Progress]-->
+    <menuitem id="menu_cost_progress_analysis"
+        name = "Cost Progress Analysis"
+        parent = "menu_cons_reporting"
+        action = "action_cost_progress_analysis_management_custom"
+        groups="abs_construction_management.group_construction_manager"
+        sequence="1"/>
+
+    <!--ACTION [Cost In Progress]-->
+    <record id="action_cost_progress_analysis_internal" model="ir.actions.act_window">
+        <field name="name">Cost Progress Analysis</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">pivot,tree</field>
+        <field name="domain">[('department_type', '=', 'department')]</field>
+        <field name="context">{'default_department_type': 'department','is_cost_analysis':True}</field>
+    </record>
+
+
+        <record id="action_cost_progress_analysis_internal_custom" model="ir.actions.server">
+            <field name="name">Cost Progress Analysis</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="model_project_project"/>
+            <field name="code">action = model.custom_menu_cost_progress()</field>
+        </record>
+
+
+
+
+    <!--MENU [Cost In Progress (internal)]-->
+    <menuitem id="menu_cost_progress_analysis_internal"
+        name = "Cost Progress Analysis"
+        parent = "menu_cons_reporting_internal"
+        action = "action_cost_progress_analysis_internal_custom"
+        groups="abs_construction_management.group_construction_manager"
+        sequence="1"/>
+</odoo>

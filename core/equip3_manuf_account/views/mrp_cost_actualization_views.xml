@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="view_mrp_cost_actualization_tree" model="ir.ui.view">
+		<field name="name">view.mrp.cost.actualization.tree</field>
+		<field name="model">mrp.cost.actualization</field>
+		<field name="arch" type="xml">
+			<tree string="Production Cost Actualization">
+				<field name="name"/>
+				<field name="company_id" invisible="1"/>
+				<field name="currency_id" invisible="1"/>
+				<field name="branch_id"/>
+				<field name="date_from"/>
+				<field name="date_to"/>
+				<field name="production_ids" invisible="1"/>
+				<field name="total_cost"/>
+				<field name="state" widget="badge" decoration-success="state == 'post'" decoration-info="state == 'draft'"/>
+			</tree>
+		</field>
+	</record>
+
+	<record id="view_mrp_cost_actualization_line_form" model="ir.ui.view">
+		<field name="name">view.mrp.cost.actualization.line.form</field>
+		<field name="model">mrp.cost.actualization.line</field>
+		<field name="arch" type="xml">
+			<form string="Production Cost Actualization Line">
+				<sheet>
+					<group>
+						<group>
+							<field name="mrp_cost_actualization_id" string="Cost Actualization"/>
+							<field name="currency_id"/>
+							<field name="allowed_account_type_ids" widget="many2many_tags"/>
+							<field name="account_id"/>
+							<field name="split_method"/>
+							<field name="operation_id"/>
+							<field name="actualization_on"/>
+						</group>
+						<group>
+							<field name="company_id"/>
+							<field name="product_id"/>
+							<field name="description"/>
+							<field name="cost"/>
+							<field name="cost_category"/>
+						</group>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<record id="view_mrp_cost_actualization_valuation_form" model="ir.ui.view">
+		<field name="name">view.mrp.cost.actualization.valuation.form</field>
+		<field name="model">mrp.cost.actualization.valuation</field>
+		<field name="arch" type="xml">
+			<form string="Production Cost Actualization Valuation">
+				<sheet>
+					<group>
+						<group>
+							<field name="mrp_cost_actualization_id" string="Cost Actualization"/>
+							<field name="currency_id"/>
+							<field name="product_id"/>
+							<field name="quantity"/>
+							<field name="allowed_account_type_ids" widget="many2many_tags"/>
+							<field name="account_id"/>
+							<field name="operation_id"/>
+							<field name="category"/>
+						</group>
+						<group>
+							<field name="company_id"/>
+							<field name="production_id"/>
+							<field name="service_product_id"/>
+							<field name="add_cost"/>
+						</group>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<record id="view_mrp_cost_actualization_production_form" model="ir.ui.view">
+		<field name="name">view.mrp.cost.actualization.production.form</field>
+		<field name="model">mrp.cost.actualization.production</field>
+		<field name="arch" type="xml">
+			<form string="Production Cost Actualization Production">
+				<sheet>
+					<group>
+						<group>
+							<field name="mrp_cost_actualization_id" string="Cost Actualization"/>
+							<field name="currency_id"/>
+							<field name="product_id"/>
+							<field name="quantity"/>
+							<field name="total_material"/>
+							<field name="total_overhead"/>
+							<field name="total"/>
+						</group>
+						<group>
+							<field name="company_id"/>
+							<field name="production_id"/>
+							<field name="product_uom_id" string="UoM"/>
+							<field name="total_labor"/>
+							<field name="former_cost"/>
+							<field name="new_cost"/>
+						</group>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<record id="view_mrp_cost_actualization_form" model="ir.ui.view">
+		<field name="name">view.mrp.cost.actualization.form</field>
+		<field name="model">mrp.cost.actualization</field>
+		<field name="arch" type="xml">
+			<form string="Production Cost Actualization">
+				<header>
+					<button name="action_validate" type="object" string="Validate" class="btn btn-primary" attrs="{'invisible': [('state', 'in', ('post', 'cancel'))]}"/>
+					<button name="action_cancel" type="object" string="Cancel" attrs="{'invisible': [('state', 'in', ('post', 'cancel'))]}"/>
+
+					<field name="state" widget="statusbar" statusbar_visible="draft,post,cancel" attrs="{'invisible': [('state', '!=', 'cancel')]}"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,post" attrs="{'invisible': [('state', '=', 'cancel')]}"/>
+				</header>
+				<sheet>
+					<div class="oe_title">
+						<h1>
+                            <field name="name"/>
+                        </h1>
+					</div>
+					<div name="button_box" class="oe_button_box">
+                        <button name="action_view_created_bill"
+							class="oe_stat_button"
+							icon="o-hm-smart-all-purchased"
+							type="object"
+							attrs="{'invisible': ['|', ('bill_type', '!=', 'create'), ('bill_ids', '=', [])]}"
+							string="Vendor Bill">
+                        </button>
+                    </div>
+					<group>
+						<group>
+							<label for="date_from" string="Period"/>
+							<div class="o_row">
+                                <field name="date_from" class="oe_inline mr-2" required="1" attrs="{'readonly': [('state', '=', 'post')]}"/>
+                                To
+								<field name="date_to" class="oe_inline ml-2" required="1" attrs="{'readonly': [('state', '=', 'post')]}"/>
+							</div>
+							<field name="production_ids" widget="many2many_tags" options="{'no_create': True}" required="1"/>
+							<field name="operation_ids" widget="many2many_tags" invisible="1"/>
+							<field name="bill_type" widget="radio" string="Vendor Bill"/>
+							<field name="bill_ids" widget="many2many_tags" options="{'no_create': True}" attrs="{'invisible': [('bill_type', '!=', 'choose')], 'required': [('bill_type', '=', 'choose')]}"/>
+							<field name="actualization_on" widget="radio"/>
+							<field name="create_date" string="Created Date"/>
+						</group>
+						<group>
+							<field name="account_move_id" force_save="1"/>
+							<field name="company_id"/>
+							<field name="currency_id" invisible="1"/>
+							<field name="branch_id"/>
+							<field name="create_uid" string="Created By"/>
+						</group>
+					</group>
+
+					<notebook>
+						<page string="Cost Lines">
+							<field name="line_ids"
+								nolabel="1"
+								options="{
+									'create': [('state', '=', 'draft')],
+									'delete': [('state', '=', 'draft')],
+									'edit': [('state', '=', 'draft')]
+								}"
+								attrs="{
+									'readonly': [('state', '!=', 'draft')]
+								}"
+								context="{
+									'default_company_id': company_id,
+									'form_view_ref': 'equip3_manuf_account.view_mrp_cost_actualization_line_form'
+								}">
+								<tree string="Cost Lines" editable="bottom">
+									<field name="company_id" invisible="1"/>
+									<field name="currency_id" invisible="1"/>
+									<field name="product_id"/>
+									<field name="allowed_account_type_ids" widget="many2many_tags" invisible="1"/>
+									<field name="account_id"/>
+									<field name="cost_category" required="1"/>
+									<field name="operation_id" attrs="{
+										'column_invisible': [('parent.actualization_on', '!=', 'specific')],
+										'invisible': [('cost_category', 'not in', ('overhead', 'labor'))],
+									}" domain="[('id', 'in', parent.operation_ids)]"/>
+									<field name="actualization_on" invisible="1"/>
+									<field name="description"/>
+									<field name="split_method"/>
+									<field name="cost" sum="Total Cost"/>
+								</tree>
+							</field>
+						</page>
+						<page string="Valuation Adjustment">
+							<field name="valuation_line_ids" force_save="1" options='{"no_open": True}' context="{'form_view_ref': 'equip3_manuf_account.view_mrp_cost_actualization_valuation_form'}">
+								<tree string="Valuation Adjustment">
+									<field name="company_id" invisible="1"/>
+									<field name="currency_id" invisible="1"/>
+									<field name="production_id"/>
+									<field name="service_product_id"/>
+									<field name="quantity"/>
+									<field name="category"/>
+									<field name="allowed_account_type_ids" widget="many2many_tags" invisible="1"/>
+									<field name="account_id"/>
+									<field name="operation_id" invisible="1"/>
+									<field name="add_cost" sum="Total Cost"/>
+								</tree>
+							</field>
+						</page>
+						<page string="Production Cost Lines">
+							<field name="production_line_ids" force_save="1" options='{"no_open": True}' context="{'form_view_ref': 'equip3_manuf_account.view_mrp_cost_actualization_production_form'}">
+								<tree string="Production Cost Lines">
+									<field name="company_id" invisible="1"/>
+									<field name="currency_id" invisible="1"/>
+									<field name="production_id"/>
+									<field name="product_id"/>
+									<field name="quantity"/>
+									<field name="product_uom_id" string="UoM"/>
+									<field name="former_cost" sum="Total Former Cost"/>
+									<field name="total_material" sum="Total Material"/>
+									<field name="total_overhead" sum="Total Overhead"/>
+									<field name="total_labor" sum="Total Labor"/>
+									<field name="total" sum="Total Cost"/>
+									<field name="new_cost" sum="Total New Cost"/>
+								</tree>
+							</field>
+						</page>
+					</notebook>
+				</sheet>
+				<div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+			</form>
+		</field>
+	</record>
+
+	<record id="action_view_mrp_cost_actualization" model="ir.actions.act_window">
+        <field name="name">Production Cost Actualization</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.cost.actualization</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+           Create a new Production Cost Actualization
+          </p>
+        </field>
+    </record>
+	
+</odoo>

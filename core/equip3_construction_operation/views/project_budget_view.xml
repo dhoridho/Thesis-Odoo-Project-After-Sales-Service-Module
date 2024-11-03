@@ -1,0 +1,2084 @@
+<odoo>
+    <data>
+        <record id="project_budget_tree_view" model="ir.ui.view">
+            <field name="name">project.budget.tree</field>
+            <field name="model">project.budget</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="active" invisible="1"/>
+                    <field name="create_uid"/>
+                    <field name="company_id"/>
+                    <field name="project_id"/>
+                    <field name="cost_sheet"/>
+                    <field name="analytic_group_id" widget="many2many_tags"/>
+                    <field name="period" />
+                    <field name="month"/>
+                    <field name="budget_amount_total"/>
+                    <field name="state" widget="badge"
+                        decoration-primary="state == 'draft'"
+                        decoration-warning="state == 'to_approve'"
+                        decoration-success="state == 'approved'"
+                        decoration-primary2="state == 'in_progress'"
+                        decoration-success2="state == 'complete'"
+                        decoration-danger="state == 'rejected'"
+                        decoration-warning2="state == 'freeze'"
+                        decoration-danger2="state == 'cancelled'"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="project_budget_form_view" model="ir.ui.view">
+            <field name="name">project.budget.form</field>
+            <field name="model">project.budget</field>
+            <field name="arch" type="xml">
+                <form string="Periodical Budget">
+                     <header>
+                        <!-- <button name="btn_confirm_project" string="Confirm" type="object"
+                                class="oe_highlight"
+                                attrs="{'invisible': ['|','|',('state', '!=', 'draft'), ('project_budget_approval_matrix','=',True),('ba_freeze_project_budget','=',True)]}"/> -->
+                        <button name="btn_confirm" string="Confirm" type="object" class="oe_highlight"
+                                attrs="{'invisible': ['|', '|','|', ('state', '!=', 'draft'), ('project_budget_approval_matrix','=',True),('ba_freeze_project_budget','=',True),('is_must_refresh','=',True),]}"/>
+                        <button string="Request for Approval" name="request_approval" type="object" class="btn-primary"
+                                attrs="{'invisible': ['|','|','|', ('state', '!=', 'draft'), ('project_budget_approval_matrix','=',False),('ba_freeze_project_budget','=',True),('is_must_refresh','=',True),]}"/>
+                         <button string="Refresh Line" name="button_refresh_line" type="object" icon="fa-refresh" class="btn-primary" confirm="This will update your budget quantity and amount based on the latest unallocated quantity data from the cost sheet. Are you sure you want to continue?"
+                                attrs="{'invisible': ['|','|', ('state', '!=', 'draft'), ('is_must_refresh','=',False),('ba_freeze_project_budget','=',True)]}"/>
+                        <button name="btn_approve" string="Approve" type="object" class="oe_highlight"
+                                attrs="{'invisible': ['|','|','|',('state', '!=', 'to_approve'), ('project_budget_approval_matrix','=',False), ('is_approver', '=', False), ('ba_freeze_project_budget','=',True)]}"/>
+                        <button string="Reject" name="action_reject" type="object"
+                                attrs="{'invisible': ['|','|','|',('state', '!=', 'to_approve'), ('project_budget_approval_matrix','=',False), ('is_approver', '=', False), ('ba_freeze_project_budget','=',True)]}"/>
+                        <button string="Budget Carry Over" name="create_budget_carry_over" type="object"
+                                class="btn-primary" attrs="{'invisible': [('state', '!=', 'in_progress')]}"/>
+                        <button string="Create Budget Change Request" name="create_budget_bud_change_request"
+                                type="object" class="btn-secondary"
+                                attrs="{'invisible': [('state', 'not in', ('in_progress', 'freeze'))]}"/>
+                        <button string="Create Change Allocation Budget" name="create_change_allocation_request"
+                                type="object" class="btn-secondary"
+                                attrs="{'invisible': [('state', 'not in', ('in_progress', 'freeze'))]}"/>
+                        <button string="Create Budget Transfer" name="create_budget_transfer" type="object"
+                                class="btn-secondary" invisible='1'/>
+                        <button string="Freeze" name="ba_proj_budget_freeze" type="object" class="btn-secondary"
+                                attrs="{'invisible': [('state', 'not in', ('in_progress'))]}"/>
+                        <button string="Unfreeze" name="ba_proj_budget_unfreeze" type="object" class="btn-secondary"
+                                attrs="{'invisible': [('state', 'not in', 'freeze')]}"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,complete" attrs="{'invisible': ['|', ('project_budget_approval_matrix', '=', True), ('state', 'in', ['rejected','cancelled','freeze'])]}"/>
+                        <field name="state1" widget="statusbar" statusbar_visible="draft,approved,in_progress,complete" attrs="{'invisible': ['|', ('project_budget_approval_matrix', '=', False), ('state', 'in', ['rejected','cancelled','freeze'])]}"/>
+                        <field name="state2" widget="statusbar" statusbar_visible="draft,rejected" attrs="{'invisible': ['|', ('project_budget_approval_matrix', '=', False), ('state', '!=', 'rejected')]}"/>
+                        <field name="state3" widget="statusbar" statusbar_visible="draft,in_progress,freeze" attrs="{'invisible': [('state', '!=', 'freeze')]}"/>
+                        <field name="state4" widget="statusbar" statusbar_visible="draft,in_progress,cancelled" attrs="{'invisible': [('state', '!=', 'cancelled')]}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object" name="budget_carry_over_records" class="oe_stat_button"
+                                    icon="fa-file-text">
+                                <field name="budget_carry_over_records_count" widget="statinfo"
+                                       string="Budget Carry Over"/>
+                            </button>
+                            <button name="action_material_request"
+                                    type="object"
+                                    class="oe_stat_button"
+                                    icon="o-hm-smart-construction-material-request"
+                                    attrs="{'invisible': [('total_material_request', '=', 0)]}">
+                                <field name="total_material_request" widget="statinfo"/>
+                            </button>
+                            <button name="action_purchase_agreement"
+                                    type="object"
+                                    class="oe_stat_button"
+                                    icon="o-hm-smart-construction-purchase-agreement"
+                                    attrs="{'invisible': [('total_purchase_agreement', '=', 0)]}">
+                                <field name="total_purchase_agreement" widget="statinfo"/>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" nolabel="1" readonly = "True"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="active" invisible="1"/>
+                                <field name="ba_freeze_project_budget" invisible="1"/>
+                                <field name="project_id" 
+                                       attrs="{'readonly': [('state', 'in', ('in_progress'))]}" 
+                                       options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"/>
+                                <field name="char_name" invisible="1"/>
+                                <field name="cost_sheet" force_save="1" domain="[('project_id', '=', project_id)]" attrs="{'readonly': True}"/>
+                                <field name="budgeting_method" widget="radio" readonly="1"/>
+                                <field name="budgeting_period" widget="radio" invisible="1"/>
+                                <field name="analytic_group_id" widget="many2many_tags" attrs="{'readonly': [('state', 'in', ('in_progress'))]}"/>
+                                <field name="bd_start_date" attrs="{'invisible': [('budgeting_period', '!=', 'custom')], 'required': [('budgeting_period', '=', 'custom')]}"/>
+                                <field name="bd_end_date" attrs="{'invisible': [('budgeting_period', '!=', 'custom')], 'required': [('budgeting_period', '=', 'custom')]}"/>
+                                <field name="period" domain="[('project', '=', project_id)]" attrs="{'invisible': [('budgeting_period', '!=', 'monthly')], 'required': [('budgeting_period', '=', 'monthly')], 'readonly': [('state', 'in', ('in_progress'))]}"/>
+                                <field name="month" domain="[('budget_period_line_id', '=', period)]" attrs="{'invisible': [('budgeting_period', '!=', 'monthly')], 'required': [('budgeting_period', '=', 'monthly')], 'readonly': [('state', 'in', ('in_progress'))]}"/>
+                                <field name="budget_amount_total"/>
+                                <field name="actual_amount_total" invisible="1" force_save="1"/>
+                                <field name="initial_budget_amount" required="0" invisible="1" attrs="{'readonly': [('state', '!=', ('draft'))]}"/>
+                                <field name="amount_free" invisible="1"/>
+                            </group>
+                            <group name="project_budget_view_form_group2">
+                                <field name="warehouse_id"/>
+                                <field name="company_id"/>
+                                <field name="branch_id" readonly="1"/>
+                                <field name="create_uid" string='Created By'/>
+                                <field name="create_date" string='Creation Date'/>
+                                <field name="project_budget_approval_matrix" invisible="1"/>
+                                <field name="user_is_approver" invisible="1"/>  
+                                <field name="department_type" invisible="1"/>
+                                <field name="is_approval_matrix_filled" invisible="1"/>
+                                <field name="approval_matrix_line_id" invisible="1"/>
+                                <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                                <field name="is_approver" invisible="1"/>
+                                <field name="approved_user_text" invisible="1"/>
+                                <field name="approved_user" invisible="1" readonly="0"/>
+                                <field name="employee_id" invisible="1"/>
+                                <field name="feedback_parent" invisible="1"/>
+                                <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                                <field name="project_scope_ids" class="oe_edit_only" widget="many2many_tags" domain = "[('id','in',project_scope_computed)]" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('state', '!=', 'draft')]}"/>
+                                <field name="section_ids" class="oe_edit_only" widget="many2many_tags" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('state', '!=', 'draft')]}"/>
+                                <field name="is_recompute_budget" invisible='1'/>
+                                <button string="Recompute Budget" name="button_recompute_line" type="object" class="btn-secondary oe_edit_only"
+                                        attrs="{'invisible': [('is_recompute_budget', '=', False),]}"/>
+                                <field name="is_must_refresh" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Information">
+                                <group name="total">
+                                    <group name="total_cost" string='Cost'>
+                                        <field name="amount_material" widget='monetary' string='Material'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                        <field name="amount_labour" widget='monetary' string='Labour'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                        <field name="amount_overhead" widget='monetary' string='Overhead'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                        <field name="amount_total_budget" widget='monetary' string='Internal Asset'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                        <field name="amount_equipment" widget='monetary' string='Equipment'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                        <field name="amount_subcon" widget='monetary' string='Subcon'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="budget_amount_total"/>
+                                        </div>
+                                        <field name="budget_amount_total" nolabel="1" class="oe_subtotal_footer_separator"
+                                            widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    </group>
+                                    <group name="actualizaton" string='Budget Actualization'>
+                                       <field name="budget_res" widget='monetary' string="Reserved Budget Amount"
+                                            options="{'currency_field': 'currency_id'}" force_save="1"/>
+                                        <field name="budget_pur" widget='monetary' string="Paid Budget Amount"
+                                                options="{'currency_field': 'currency_id'}" force_save="1"/>
+                                        <field name="budget_tra" widget='monetary' string="Transferred Budget Amount"
+                                                options="{'currency_field': 'currency_id'}" force_save="1"/>
+                                        <field name="budget_unused" widget='monetary' string="Budget Unused Amount"
+                                            options="{'currency_field': 'currency_id'}"/>
+                                        <field name="budget_used" widget='monetary' string="Budget Used Amount"
+                                                options="{'currency_field': 'currency_id'}"/>
+                                        <field name="budget_left" widget='monetary' string="Budget Amount Left"
+                                                options="{'currency_field': 'currency_id'}"/>
+                                    </group>
+                                </group>
+                                
+                            </page>
+                            <page string="Material Estimation (GOP)" name="budget_material_estimation" attrs="{'invisible': [('budgeting_method', '!=', 'gop_budget')]}">
+                                <field name="budget_material_gop_ids" class="o_project_budget_line" readonly='1' force_save="1">
+                                    <tree editable="bottom">
+                                        <field name="sr_no"/>
+                                        <field name="cs_material_gop_id" readonly='1' force_save="1" optional='hide'/>
+                                        <field name="date"/>
+                                        <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                        <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="variable_ref" invisible='1'
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="amount_total" force_save="1"/>
+                                        <field name="unallocated_amount" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="budget_amount" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="carried_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="amt_left" readonly="1" force_save="1"/>
+                                        <field name="amt_res" readonly="1" force_save="1"/>
+                                        <field name="billed_amt" readonly="1"  force_save="1"/>
+                                        <field name="purchased_amt" readonly="1" force_save="1" string='Paid Amount'/>
+                                        <field name="transferred_amt" readonly="1"  force_save="1" invisible="1"/>
+                                        <field name="unused_amt" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="dif_amt_used" force_save="1" optional="hide"/>
+                                        <field name="amt_used" force_save="1" readonly="1"/>
+                                        <field name="amount_return" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="status" readonly="1" attrs="{'invisible': [('status', '=', False)]}"/>
+                                        <field name="carried_to" force_save="1" readonly="1" invisible="1"/>
+                                        <field name="carried_from" force_save="1" readonly="1" invisible="1"/>
+                                    </tree>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right" colspan="2">
+                                    <field name="amount_reserved_material" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_purchased_material" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_transferred_material" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_left_material" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                        <label for="amount_material"/>
+                                    </div>
+                                    <field name="amount_material" nolabel="1" class="oe_subtotal_footer_separator"
+                                           widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_used_material" widget='monetary'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_unused_material" widget='monetary'
+                                           options="{'currency_field': 'currency_id'}"/>
+                                </group>
+                            </page>
+                            <page string="Material Estimation" attrs="{'invisible': [('state', '!=', 'draft'), ('budgeting_method', '=', 'gop_budget')]}" >
+                                <field name="budget_material_ids" class="o_project_budget_line" attrs="{'readonly': [('state', '!=', 'draft')]}" force_save="1">
+                                    <tree editable="bottom">
+                                        <field name="sr_no"/>
+                                        <field name="cs_material_id" readonly='1' force_save="1" optional='hide'/>
+                                        <field name="material_gop_id" readonly='1' force_save="1" optional='hide'/>
+                                        <field name="date"/>
+                                        <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                        <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="variable" invisible='1'
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="group_of_product" required="1"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="product_id"/>
+                                        <field name="description"/>
+                                        <field name="quantity"/>
+                                        <field name="unallocated_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                        <field name="on_hand_qty" invisible="1"/>
+                                        <field name="on_hand_qty_converted"/>
+                                        <field name="uom_id"/>
+                                        <field name="amount" readonly="1" force_save="1"/>
+                                        <field name="amount_total" readonly="1" force_save="1"/>
+                                        <field name="unallocated_amount" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                        <field name="budget_quantity" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="budget_amount" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="carried_qty" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carried_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_qty" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="qty_left" readonly="1" force_save="1"/>
+                                        <field name="amt_left" readonly="1" force_save="1"/>
+                                        <field name="qty_res" readonly="1" force_save="1"/>
+                                        <field name="amt_res" readonly="1" force_save="1"/>
+                                        <field name="billed_qty" readonly="1"  force_save="1"/>
+                                        <field name="billed_amt" readonly="1"  force_save="1"/>
+                                        <field name="purchased_qty" readonly="1" force_save="1" string='Paid Quantity'/>
+                                        <field name="purchased_amt" readonly="1" force_save="1" string='Paid Amount'/>
+                                        <field name="transferred_qty" readonly="1"  force_save="1"/>
+                                        <field name="transferred_amt" readonly="1"  force_save="1" invisible="1"/>
+                                        <field name="qty_received" readonly="1"  force_save="1"/>
+                                        <field name="unused_qty" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="unused_amt" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="dif_qty_used" force_save="1" optional="hide"/>
+                                        <field name="dif_amt_used" force_save="1" optional="hide"/>
+                                        <field name="qty_used" force_save="1" readonly="1"/>
+                                        <field name="amt_used" force_save="1" readonly="1"/>
+                                        <field name="status" readonly="1"/>
+                                        <field name="carried_to" force_save="1" readonly="1" invisible="1"/>
+                                        <field name="carried_from" force_save="1" readonly="1" invisible="1"/>
+                                        <field name="po_reserved_qty" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="amount_return" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="over_amount" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="reserved_return_amount" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="reserved_over_amount" force_save="1" readonly="1" optional="hide"/>
+                                    </tree>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right" colspan="2">
+                                    <field name="amount_reserved_material" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_purchased_material" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_transferred_material" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_left_material" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                        <label for="amount_material"/>
+                                    </div>
+                                    <field name="amount_material" nolabel="1" class="oe_subtotal_footer_separator"
+                                           widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_used_material" widget='monetary'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_unused_material" widget='monetary'
+                                           options="{'currency_field': 'currency_id'}"/>
+                                </group>
+                            </page>
+                            <field name="custom_project_progress" invisible="1"/>
+                            <page string="Labour Estimation (GOP)" attrs="{'invisible': [('budgeting_method', '!=', 'gop_budget')]}">
+                                <field name="budget_labour_gop_ids" class="o_project_budget_line" readonly='1' force_save="1">
+                                    <tree editable="bottom">
+                                        <field name="sr_no"/>
+                                        <field name="cs_labour_gop_id" readonly="1" force_save="1" optional='hide'/>
+                                        <field name="date"/>
+                                        <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                        <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="variable_ref" invisible='1'
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="amount_total" force_save="1"/>
+                                        <field name="unallocated_amount" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="budget_amount" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="carried_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="amt_left" readonly="1" force_save="1"/>
+                                        <field name="amt_res" readonly="1" force_save="1"/>
+                                        <field name="billed_amt" readonly="1"  force_save="1"  attrs="{'column_invisible': [('parent.custom_project_progress', '=', 'manual_estimation')]}"/>
+                                        <field name="purchased_amt" readonly="1" force_save="1" string='Paid Amount' attrs="{'column_invisible': [('parent.custom_project_progress', '=', 'manual_estimation')]}"/>
+                                        <field name="transferred_amt" readonly="1"  force_save="1" invisible="1"/>
+                                        <field name="unused_amt" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="dif_amt_used" force_save="1" optional="hide"/>
+                                        <field name="amt_used" force_save="1" readonly="1"/>
+                                        <field name="amount_return" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="status" readonly="1"/>
+                                        <field name="carried_to" force_save="1" readonly="1" invisible="1"/>
+                                        <field name="carried_from" force_save="1" readonly="1" invisible="1"/>
+                                    </tree>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right" colspan="2">
+                                    <field name="amount_reserved_labour" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_purchased_labour" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_transferred_labour" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_left_labour" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                        <label for="amount_labour"/>
+                                    </div>
+                                    <field name="amount_labour" nolabel="1" class="oe_subtotal_footer_separator"
+                                           widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_used_labour" widget='monetary'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_unused_labour" widget='monetary'
+                                           options="{'currency_field': 'currency_id'}"/>
+                                </group>
+                            </page>
+                            <page string="Labour Estimation" attrs="{'invisible': [('state', '!=', 'draft'), ('budgeting_method', '=', 'gop_budget')]}" >
+                                <field name="budget_labour_ids" class="o_project_budget_line" attrs="{'readonly': [('state', '!=', 'draft')]}" force_save="1">
+                                    <tree editable="bottom">
+                                        <field name="sr_no"/>
+                                        <field name="cs_labour_id" readonly="1" force_save="1" optional='hide'/>
+                                        <field name="labour_gop_id" readonly="1" force_save="1" optional='hide'/>
+                                        <field name="date"/>
+                                        <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                        <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="variable" invisible='1'
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="group_of_product" required="1"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="product_id"/>
+                                        <field name="description"/>
+                                        <field name="contractors" />
+                                        <field name="quantity" invisible="1"/>
+                                        <field name="time" />
+                                        <field name="unallocated_quantity" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="unallocated_contractors" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                        <field name="unallocated_time" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                        <field name="on_hand_qty" invisible="1"/>
+                                        <field name="on_hand_qty_converted" invisible="1"/>
+                                        <field name="uom_id"/>
+                                        <field name="amount" readonly="1" force_save="1"/>
+                                        <field name="amount_total" readonly="1" force_save="1"/>
+                                        <field name="unallocated_amount" readonly="1" force_save="1"  attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                        <field name="budget_quantity" readonly="1" force_save="1" optional="hide" invisible="1"/>
+                                        <field name="budget_amount" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="carried_qty" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carried_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_qty" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="qty_left" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="contractors_left"/>
+                                        <field name="time_left" />
+                                        <field name="amt_left" readonly="1" force_save="1"/>
+                                        <field name="qty_res" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="reserved_contractors"/>
+                                        <field name="reserved_time"/>
+                                        <field name="amt_res" readonly="1" force_save="1"/>
+                                        <field name="billed_qty" readonly="1"  force_save="1" invisible="1"/>
+                                        <field name="billed_amt" readonly="1"  force_save="1"/>
+                                        <field name="purchased_qty" readonly="1" force_save="1" string='Paid Quantity' invisible="1"/>
+                                        <field name="purchased_amt" readonly="1" force_save="1" string='Paid Amount'/>
+                                        <field name="transferred_qty" readonly="1"  force_save="1" invisible="1"/>
+                                        <field name="transferred_amt" readonly="1"  force_save="1" invisible="1"/>
+                                        <field name="qty_received" readonly="1"  force_save="1"/>
+                                        <field name="unused_qty" readonly="1" force_save="1" invisible="1" optional="hide"/>
+                                        <field name="unused_time" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="unused_amt" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="dif_qty_used" force_save="1" optional="hide"/>
+                                        <field name="dif_amt_used" force_save="1" optional="hide"/>
+                                        <field name="qty_used"  force_save="1" readonly="1" invisible="1"/>
+                                        <field name="time_used"  force_save="1" readonly="1"/>
+                                        <field name="amt_used"  force_save="1" readonly="1"/>
+                                        <field name="status" readonly="1"/>
+                                        <field name="carried_to" force_save="1" readonly="1" invisible="1"/>
+                                        <field name="carried_from" force_save="1" readonly="1" invisible="1"/>
+                                        <field name="amount_return" force_save="1" readonly="1" optional="hide"/>
+                                    </tree>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right" colspan="2">
+                                    <field name="amount_reserved_labour" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_purchased_labour" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_transferred_labour" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_left_labour" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                        <label for="amount_labour"/>
+                                    </div>
+                                    <field name="amount_labour" nolabel="1" class="oe_subtotal_footer_separator"
+                                           widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_used_labour" widget='monetary'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_unused_labour" widget='monetary'
+                                           options="{'currency_field': 'currency_id'}"/>
+                                </group>
+                            </page>
+                            <page string="Overhead Estimation (GOP)" attrs="{'invisible': [('budgeting_method', '!=', 'gop_budget')]}">
+                                <field name="budget_overhead_gop_ids" class="o_project_budget_line" readonly='1' force_save="1">
+                                    <tree editable="bottom">
+                                        <field name="sr_no"/>
+                                        <field name="cs_overhead_gop_id" readonly="1" force_save="1" optional='hide'/>
+                                        <field name="date"/>
+                                        <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                        <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>               
+                                        <field name="variable_ref" invisible='1'
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="amount_total" force_save="1"/>
+                                        <field name="unallocated_amount" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="budget_amount" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="carried_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="amt_left" readonly="1" force_save="1"/>
+                                        <field name="amt_res" readonly="1" force_save="1"/>
+                                        <field name="billed_amt" readonly="1"  force_save="1"/>
+                                        <field name="purchased_amt" readonly="1" force_save="1" string='Paid Amount'/>
+                                        <field name="transferred_amt" readonly="1"  force_save="1" invisible="1"/>
+                                        <field name="unused_amt" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="dif_amt_used" force_save="1" optional="hide"/>
+                                        <field name="amt_used" force_save="1" readonly="1"/>
+                                        <field name="amount_return" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="status" readonly="1"/>
+                                        <field name="carried_to" force_save="1" readonly="1" invisible="1"/>
+                                        <field name="carried_from" force_save="1" invisible="1" />
+                                    </tree>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right" colspan="2">
+                                    <field name="amount_reserved_overhead" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_purchased_overhead" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_transferred_overhead" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_left_overhead" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                        <label for="amount_overhead"/>
+                                    </div>
+                                    <field name="amount_overhead" nolabel="1" class="oe_subtotal_footer_separator"
+                                           widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_used_overhead" widget='monetary'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_unused_overhead" widget='monetary'
+                                           options="{'currency_field': 'currency_id'}"/>
+                                </group>
+                            </page>
+                            <page string="Overhead Estimation" attrs="{'invisible': [('state', '!=', 'draft'), ('budgeting_method', '=', 'gop_budget')]}" >
+                                <field name="budget_overhead_ids" class="o_project_budget_line" attrs="{'readonly': [('state', '!=', 'draft')]}" force_save="1">
+                                    <tree editable="bottom">
+                                        <field name="sr_no"/>
+                                        <field name="cs_overhead_id" readonly="1" force_save="1" optional='hide'/>
+                                        <field name="overhead_gop_id" readonly="1" force_save="1" optional='hide'/>
+                                        <field name="date"/>
+                                        <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                        <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="variable" invisible='1'
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="overhead_catagory" required="1"/>
+                                        <field name="group_of_product" required="1"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="product_id"/>
+                                        <field name="description"/>
+                                        <field name="quantity"/>
+                                        <field name="unallocated_quantity" readonly="1" force_save="1"  attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                        <field name="on_hand_qty" invisible="1"/>
+                                        <field name="on_hand_qty_converted"/>
+                                        <field name="uom_id"/>
+                                        <field name="amount" readonly="1" force_save="1"/>
+                                        <field name="amount_total" readonly="1" force_save="1"/>
+                                        <field name="unallocated_amount" readonly="1" force_save="1"  attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                        <field name="budget_quantity" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="budget_amount" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="carried_qty" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carried_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_qty" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="qty_left" readonly="1" force_save="1"/>
+                                        <field name="amt_left" readonly="1" force_save="1"/>
+                                        <field name="qty_res" readonly="1" force_save="1"/>
+                                        <field name="amt_res" readonly="1" force_save="1"/>
+                                        <field name="billed_qty" readonly="1"  force_save="1"/>
+                                        <field name="billed_amt" readonly="1"  force_save="1"/>
+                                        <field name="purchased_qty" readonly="1" force_save="1" string='Paid Quantity'/>
+                                        <field name="purchased_amt" readonly="1" force_save="1" string='Paid Amount'/>
+                                        <field name="transferred_qty" readonly="1"  force_save="1"/>
+                                        <field name="transferred_amt" readonly="1"  force_save="1" invisible="1"/>
+                                        <field name="qty_received" readonly="1"  force_save="1"/>
+                                        <field name="unused_qty" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="unused_amt" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="dif_qty_used" force_save="1" optional="hide"/>
+                                        <field name="dif_amt_used" force_save="1" optional="hide"/>
+                                        <field name="qty_used" force_save="1" readonly="1"/>
+                                        <field name="amt_used" force_save="1" readonly="1"/>
+                                        <field name="status" readonly="1"/>
+                                        <field name="carried_to" force_save="1" readonly="1" invisible="1"/>
+                                        <field name="carried_from" force_save="1" invisible="1" />
+                                        <field name="po_reserved_qty" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="amount_return" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="over_amount" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="reserved_return_amount" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="reserved_over_amount" force_save="1" readonly="1" optional="hide"/>
+                                    </tree>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right" colspan="2">
+                                    <field name="amount_reserved_overhead" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_purchased_overhead" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_transferred_overhead" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_left_overhead" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                        <label for="amount_overhead"/>
+                                    </div>
+                                    <field name="amount_overhead" nolabel="1" class="oe_subtotal_footer_separator"
+                                           widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_used_overhead" widget='monetary'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_unused_overhead" widget='monetary'
+                                           options="{'currency_field': 'currency_id'}"/>
+                                </group>
+                            </page>
+                            <!-- recent added tab -->
+                            <page name="asset_estimation" string="Asset Estimation">
+                                <notebook>
+                                    <page name="internal_asset" string="Internal Asset Estimation">
+                                        <field name="budget_internal_asset_ids" class="o_project_budget_line" attrs="{'readonly': [('state', '!=', 'draft')]}" force_save="1">
+                                            <tree editable="bottom">
+                                                <field name="sequence" widget="handle"/>
+                                                <field name="sr_no"/>
+                                                <field name="cs_internal_asset_id" readonly="1" force_save="1" optional='hide'/>
+                                                <field name="date"/>
+                                                <field name="project_scope_line_id" domain="[('id','in',parent.project_scope_computed)]" required="1"
+                                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"
+                                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="variable_id" invisible='1'
+                                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="asset_category_id" required="1"/>
+                                                <field name="asset_id"/>
+                                                <field name="budgeted_qty"/>
+                                                <field name="unallocated_budget_qty" attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                                <field name="uom_id"/>
+                                                <field name="price_unit"/>
+                                                <field name="budgeted_amt"/>
+                                                <field name="unallocated_budget_amt" attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                                <field name="carried_qty" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="carried_amt" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="carry_qty" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="carry_amt" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="budgeted_qty_left"/>
+                                                <field name="budgeted_amt_left"/>
+                                                <field name="actual_used_qty"/>
+                                                <field name="actual_used_amt"/>
+                                                <field name="dif_qty_used" force_save="1" optional="hide"/>
+                                                <field name="dif_amt_used" force_save="1" optional="hide"/>
+                                                <field name="status" readonly="1"/>
+                                                <field name="carried_to" force_save="1" readonly="1" invisible="1"/>
+                                                <field name="carried_from" force_save="1" readonly="1" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                        <group class="oe_subtotal_footer oe_right" colspan="2">
+                                            <field name="amount_left_budget" widget='monetary'
+                                                   options="{'currency_field': 'currency_id'}"/>
+                                            <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                                <label for="amount_total_budget"/>
+                                            </div>
+                                            <field name="amount_total_budget" nolabel="1"
+                                                   class="oe_subtotal_footer_separator"
+                                                   widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_used_budget" widget='monetary'
+                                                   options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_unused_budget" widget='monetary'
+                                                   options="{'currency_field': 'currency_id'}"/>
+                                        </group>
+                                    </page>
+                                    <page string="Equipment Estimation (GOP)"  attrs="{'invisible': [('budgeting_method', '!=', 'gop_budget')]}">
+                                        <field name="budget_equipment_gop_ids" class="o_project_budget_line" readonly='1' force_save="1">
+                                            <tree editable="bottom">
+                                                <field name="sr_no"/>
+                                                <field name="cs_equipment_gop_id" readonly="1" force_save="1" optional='hide'/>
+                                                <field name="date"/>
+                                                <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"
+                                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/> 
+                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+<!--                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>-->
+                                                <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"
+                                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="variable_ref" invisible='1'
+                                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="amount_total" force_save="1"/>
+                                                <field name="unallocated_amount" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="budget_amount" readonly="1" force_save="1" optional="hide"/>
+                                                <field name="carried_amt" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="carry_amt" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="amt_left" readonly="1" force_save="1"/>
+                                                <field name="amt_res" readonly="1" force_save="1"/>
+                                                <field name="billed_amt" readonly="1"  force_save="1"/>
+                                                <field name="purchased_amt" readonly="1" force_save="1" string='Paid Amount'/>
+                                                <field name="transferred_amt" readonly="1"  force_save="1" invisible="1"/>
+                                                <field name="unused_amt" readonly="1" force_save="1" optional="hide"/>
+                                                <field name="dif_amt_used" force_save="1" optional="hide"/>
+                                                <field name="amt_used" force_save="1" readonly="1"/>
+                                                <field name="amount_return" force_save="1" readonly="1" optional="hide"/>
+                                                <field name="status" readonly="1"/>
+                                                <field name="carried_to" force_save="1" readonly="1" invisible="1"/>
+                                                <field name="carried_from" force_save="1" readonly="1" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                        <group class="oe_subtotal_footer oe_right" colspan="2">
+                                            <field name="amount_reserved_equipment" widget='monetary'
+                                                options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_purchased_equipment" widget='monetary'
+                                                options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_left_equipment" widget='monetary'
+                                                options="{'currency_field': 'currency_id'}"/>
+                                            <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                                <label for="amount_equipment"/>
+                                            </div>
+                                            <field name="amount_equipment" nolabel="1"
+                                                   class="oe_subtotal_footer_separator"
+                                                   widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_used_equipment" widget='monetary'
+                                                    options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_unused_equipment" widget='monetary'
+                                                   options="{'currency_field': 'currency_id'}"/>
+                                        </group>
+                                    </page>
+                                    <page name="equipment_estimation" string="Equipment Estimation" attrs="{'invisible': [('state', '!=', 'draft'), ('budgeting_method', '=', 'gop_budget')]}" >
+                                        <field name="budget_equipment_ids" class="o_project_budget_line" attrs="{'readonly': [('state', '!=', 'draft')]}" force_save="1">
+                                            <tree editable="bottom">
+                                                <field name="sr_no"/>
+                                                <field name="cs_equipment_id" readonly="1" force_save="1" optional='hide'/>
+                                                <field name="equipment_gop_id" readonly="1" force_save="1" optional='hide'/>
+                                                <field name="date"/>
+                                                <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"
+                                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"
+                                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="variable" invisible='1'
+                                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="group_of_product" required="1"/>
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="product_id"/>
+                                                <field name="description"/>
+                                                <field name="quantity"/>
+                                                <field name="unallocated_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                                <field name="uom_id"/>
+                                                <field name="amount" readonly="1" force_save="1"/>
+                                                <field name="amount_total" readonly="1" force_save="1"/>
+                                                <field name="unallocated_amount" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                                <field name="budget_quantity" readonly="1" force_save="1" optional="hide"/>
+                                                <field name="budget_amount" readonly="1" force_save="1" optional="hide"/>
+                                                <field name="carried_qty" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="carried_amt" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="carry_qty" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="carry_amt" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="qty_left" readonly="1" force_save="1"/>
+                                                <field name="amt_left" readonly="1" force_save="1"/>
+                                                <field name="qty_res" readonly="1" force_save="1"/>
+                                                <field name="amt_res" readonly="1" force_save="1"/>
+                                                <field name="billed_qty" readonly="1"  force_save="1"/>
+                                                <field name="billed_amt" readonly="1"  force_save="1"/>
+                                                <field name="purchased_qty" readonly="1" force_save="1" string='Paid Quantity'/>
+                                                <field name="purchased_amt" readonly="1" force_save="1" string='Paid Amount'/>
+                                                <field name="qty_received" readonly="1"  force_save="1"/>
+                                                <field name="qty_returned" readonly="1"  force_save="1"/>
+                                                <field name="unused_qty" readonly="1" force_save="1" optional="hide"/>
+                                                <field name="unused_amt" readonly="1" force_save="1" optional="hide"/>
+                                                <field name="dif_qty_used" force_save="1" optional="hide"/>
+                                                <field name="dif_amt_used" force_save="1" optional="hide"/>
+                                                <field name="qty_used" force_save="1" readonly="1"/>
+                                                <field name="amt_used" force_save="1" readonly="1"/>
+                                                <field name="status" readonly="1"/>
+                                                <field name="carried_to" force_save="1" readonly="1" invisible="1"/>
+                                                <field name="carried_from" force_save="1" readonly="1" invisible="1"/>
+                                                <field name="po_reserved_qty" force_save="1" readonly="1" optional="hide"/>
+                                                <field name="amount_return" force_save="1" readonly="1" optional="hide"/>
+                                                <field name="over_amount" force_save="1" readonly="1" optional="hide"/>
+                                                <field name="reserved_return_amount" force_save="1" readonly="1" optional="hide"/>
+                                                <field name="reserved_over_amount" force_save="1" readonly="1" optional="hide"/>
+                                            </tree>
+                                        </field>
+                                        <group class="oe_subtotal_footer oe_right" colspan="2">
+                                            <field name="amount_reserved_equipment" widget='monetary'
+                                                options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_purchased_equipment" widget='monetary'
+                                                options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_left_equipment" widget='monetary'
+                                                options="{'currency_field': 'currency_id'}"/>
+                                            <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                                <label for="amount_equipment"/>
+                                            </div>
+                                            <field name="amount_equipment" nolabel="1"
+                                                   class="oe_subtotal_footer_separator"
+                                                   widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_used_equipment" widget='monetary'
+                                                    options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_unused_equipment" widget='monetary'
+                                                   options="{'currency_field': 'currency_id'}"/>
+                                        </group>
+                                    </page>
+                                </notebook>
+                            </page>
+                            <!--  -->
+                             <page string="Subcon Estimation">
+                                <field name="budget_subcon_ids" class="o_project_budget_line" attrs="{'readonly': [('state', '!=', 'draft')]}" force_save="1">
+                                    <tree editable="bottom">
+                                        <field name="sr_no"/>
+                                        <field name="cs_subcon_id" readonly="1" force_save="1" optional='hide'/>
+                                        <field name="date"/>
+                                        <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                        <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="variable_ref" invisible='1'
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="subcon_id"/>
+                                        <field name="description"/>
+                                        <field name="quantity"/>
+                                        <field name="unallocated_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                        <field name="uom_id"/>
+                                        <field name="amount" readonly="1" force_save="1"/>
+                                        <field name="amount_total" readonly="1" force_save="1"/>
+                                        <field name="unallocated_amount" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.state', 'not in', ['draft', 'to_approve', 'approved'])]}"/>
+                                        <field name="budget_quantity" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="budget_amount" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="carried_qty" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carried_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_qty" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="carry_amt" readonly="1" force_save="1" invisible="1"/>
+                                        <field name="qty_left" readonly="1" force_save="1"/>
+                                        <field name="amt_left" readonly="1" force_save="1"/>
+                                        <field name="qty_res" readonly="1" force_save="1"/>
+                                        <field name="amt_res" readonly="1" force_save="1"/>
+                                        <field name="billed_qty" readonly="1"  force_save="1"/>
+                                        <field name="billed_amt" readonly="1"  force_save="1"/>
+                                        <field name="purchased_qty" readonly="1" force_save="1" string='Paid Quantity'/>
+                                        <field name="purchased_amt" readonly="1" force_save="1" string='Paid Amount'/>
+                                        <field name="unused_qty" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="unused_amt" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="dif_qty_used" force_save="1" optional="hide"/>
+                                        <field name="dif_amt_used" force_save="1" optional="hide"/>
+                                        <field name="qty_used" force_save="1" readonly="1"/>
+                                        <field name="amt_used" force_save="1" readonly="1"/>
+                                        <field name="status" readonly="1"/>
+                                        <field name="carried_to" force_save="1" readonly="1" invisible="1"/>
+                                        <field name="carried_from" force_save="1" readonly="1" invisible="1"/>
+                                        <field name="po_reserved_qty" readonly="1" force_save="1" optional="hide"/>
+                                        <field name="amount_return" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="over_amount" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="reserved_return_amount" force_save="1" readonly="1" optional="hide"/>
+                                        <field name="reserved_over_amount" force_save="1" readonly="1" optional="hide"/>
+                                    </tree>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right" colspan="2">
+                                    <field name="amount_reserved_subcon" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_purchased_subcon" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_left_subcon" widget='monetary'
+                                        options="{'currency_field': 'currency_id'}"/>
+                                    <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                        <label for="amount_subcon"/>
+                                    </div>
+                                    <field name="amount_subcon" nolabel="1" class="oe_subtotal_footer_separator"
+                                           widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_used_subcon" widget='monetary'
+                                            options="{'currency_field': 'currency_id'}"/>
+                                    <field name="amount_unused_subcon" widget='monetary'
+                                           options="{'currency_field': 'currency_id'}"/>
+                                </group>
+                            </page>
+
+                            <page string="Budget Carry Over">
+                                <notebook>
+                                    <page name="material_budget_carry_over_history" string="Material">
+                                        <field name="material_budget_carry_over_history_ids" class="o_material_budget_carry_over_history" readonly="1" force_save="1">
+                                            <tree>
+                                                <field name="bd_material_id" readonly="1" force_save="1" optional="hide"/>
+                                                <field name="sr_no" readonly="1" force_save="1"/>
+                                                <field name="date" readonly="1" force_save="1"/>
+                                                <field name="project_scope_id" readonly="1" force_save="1"/>
+                                                <field name="section_id" readonly="1" force_save="1"/>
+                                                <field name="group_of_product_id" readonly="1" force_save="1"/>
+                                                <field name="product_id" readonly="1" force_save="1"/>
+                                                <field name="carry_send_qty" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                <field name="carry_send_amt" readonly="1" force_save="1"/>
+                                                <field name="carry_from_qty" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                <field name="carry_from_amt" readonly="1" force_save="1"/>
+                                                <field name="uom_id" readonly="1" force_save="1"/>
+                                                <field name="carried_to_id" readonly="1" force_save="1"/>
+                                                <field name="carried_from_id" readonly="1" force_save="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="labour_budget_carry_over_history" string="Labour">
+                                        <field name="labour_budget_carry_over_history_ids" class="o_labour_budget_carry_over_history" readonly="1" force_save="1">
+                                            <tree>
+                                                <field name="bd_labour_id" readonly="1" force_save="1" optional="hide"/>
+                                                <field name="sr_no" readonly="1" force_save="1"/>
+                                                <field name="date" readonly="1" force_save="1"/>
+                                                <field name="project_scope_id" readonly="1" force_save="1"/>
+                                                <field name="section_id" readonly="1" force_save="1"/>
+                                                <field name="group_of_product_id" readonly="1" force_save="1"/>
+                                                <field name="product_id" readonly="1" force_save="1"/>
+                                                <field name="carry_send_amt" readonly="1" force_save="1"/>
+                                                <field name="carry_send_contractors" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                <field name="carry_send_time" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                <field name="carry_from_amt" readonly="1" force_save="1"/>
+                                                <field name="carry_from_contractors" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                <field name="carry_from_time" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                <field name="uom_id" readonly="1" force_save="1"/>
+                                                <field name="carried_to_id" readonly="1" force_save="1"/>
+                                                <field name="carried_from_id" readonly="1" force_save="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="overhead_budget_carry_over_history" string="Overhead">
+                                        <field name="overhead_budget_carry_over_history_ids" class="o_overhead_budget_carry_over_history" readonly="1" force_save="1">
+                                            <tree>
+                                                <field name="bd_overhead_id" readonly="1" force_save="1" optional="hide"/>
+                                                <field name="sr_no" readonly="1" force_save="1"/>
+                                                <field name="date" readonly="1" force_save="1"/>
+                                                <field name="project_scope_id" readonly="1" force_save="1"/>
+                                                <field name="section_id" readonly="1" force_save="1"/>
+                                                <field name="group_of_product_id" readonly="1" force_save="1"/>
+                                                <field name="overhead_category" readonly="1" force_save="1"/>
+                                                <field name="product_id" readonly="1" force_save="1"/>
+                                                <field name="carry_send_qty" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                <field name="carry_send_amt" readonly="1" force_save="1"/>
+                                                <field name="carry_from_qty" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                <field name="carry_from_amt" readonly="1" force_save="1"/>
+                                                <field name="uom_id" readonly="1" force_save="1"/>
+                                                <field name="carried_to_id" readonly="1" force_save="1"/>
+                                                <field name="carried_from_id" readonly="1" force_save="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="asset_budget_carry_over_history" string="Asset">
+                                        <notebook>
+                                            <page name="internal_asset_budget_carry_over_history" string="Internal Asset">
+                                                <field name="internal_asset_budget_carry_over_history_ids" class="o_internal_asset_budget_carry_over_history" readonly="1" force_save="1">
+                                                    <tree>
+                                                        <field name="bd_internal_asset_id" readonly="1" force_save="1" optional="hide"/>
+                                                        <field name="sr_no" readonly="1" force_save="1"/>
+                                                        <field name="date" readonly="1" force_save="1"/>
+                                                        <field name="project_scope_id" readonly="1" force_save="1"/>
+                                                        <field name="section_id" readonly="1" force_save="1"/>
+                                                        <field name="asset_category_id" readonly="1" force_save="1"/>
+                                                        <field name="asset_id" readonly="1" force_save="1"/>
+                                                        <field name="carry_send_qty" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                        <field name="carry_send_amt" readonly="1" force_save="1"/>
+                                                        <field name="carry_from_qty" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                        <field name="carry_from_amt" readonly="1" force_save="1"/>
+                                                        <field name="uom_id" readonly="1" force_save="1"/>
+                                                        <field name="carried_to_id" readonly="1" force_save="1"/>
+                                                        <field name="carried_from_id" readonly="1" force_save="1"/>
+                                                    </tree>
+                                                </field>
+                                            </page>
+                                            <page name="equipment_budget_carry_over_history" string="Equipment">
+                                                <field name="equipment_budget_carry_over_history_ids" class="o_equipment_budget_carry_over_history" readonly="1" force_save="1">
+                                                    <tree>
+                                                        <field name="bd_equipment_id" readonly="1" force_save="1" optional="hide"/>
+                                                        <field name="sr_no" readonly="1" force_save="1"/>
+                                                        <field name="date" readonly="1" force_save="1"/>
+                                                        <field name="project_scope_id" readonly="1" force_save="1"/>
+                                                        <field name="section_id" readonly="1" force_save="1"/>
+                                                        <field name="group_of_product_id" readonly="1" force_save="1"/>
+                                                        <field name="product_id" readonly="1" force_save="1"/>
+                                                        <field name="carry_send_qty" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                        <field name="carry_send_amt" readonly="1" force_save="1"/>
+                                                        <field name="carry_from_qty" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                        <field name="carry_from_amt" readonly="1" force_save="1"/>
+                                                        <field name="uom_id" readonly="1" force_save="1"/>
+                                                        <field name="carried_to_id" readonly="1" force_save="1"/>
+                                                        <field name="carried_from_id" readonly="1" force_save="1"/>
+                                                    </tree>
+                                                </field>
+                                            </page>
+                                        </notebook>
+                                    </page>
+                                    <page name="subcon_budget_carry_over_history" string="Subcon">
+                                        <field name="subcon_budget_carry_over_history_ids" class="o_subcon_budget_carry_over_history" readonly="1" force_save="1">
+                                            <tree>
+                                                <field name="bd_subcon_id" readonly="1" force_save="1" optional="hide"/>
+                                                <field name="sr_no" readonly="1" force_save="1"/>
+                                                <field name="date" readonly="1" force_save="1"/>
+                                                <field name="project_scope_id" readonly="1" force_save="1"/>
+                                                <field name="section_id" readonly="1" force_save="1"/>
+                                                <field name="subcon_id" readonly="1" force_save="1"/>
+                                                <field name="carry_send_qty" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                <field name="carry_send_amt" readonly="1" force_save="1"/>
+                                                <field name="carry_from_qty" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.budgeting_method', '=', 'gop_budget')]}"/>
+                                                <field name="carry_from_amt" readonly="1" force_save="1"/>
+                                                <field name="uom_id" readonly="1" force_save="1"/>
+                                                <field name="carried_to_id" readonly="1" force_save="1"/>
+                                                <field name="carried_from_id" readonly="1" force_save="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </page>
+
+                            <page name="bud_internal_transfer_budget_group" string="Budget Change Request" attrs="{'invisible': [('budgeting_method', '=', 'total_budget')]}">
+                                <notebook>
+                                    <page name="bud_internal_transfer_budget_line" string="Budget Change Request">
+                                        <field name="itb_line_bud_ids" readonly="1" force_save="1">
+                                            <tree>
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sr_no"/>
+                                                <field name="type"/>
+                                                <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"/>
+                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"/>
+                                                <field name="variable_ref" invisible='1'/>
+                                                <field name="overhead_category"/>
+                                                <field name="asset_category_id"/>
+                                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="asset_id"/>
+                                                <field name="product_id"/>
+                                                <field name="variable"/>
+                                                <field name="cur_contractors"/>
+                                                <field name="adj_contractors"/>
+                                                <field name="cur_time"/>
+                                                <field name="adj_time"/>
+                                                <field name="cur_qty"/>
+                                                <field name="adj_qty"/>
+                                                <field name="cur_unit_price"/>
+                                                <field name="adj_unit_price"/>
+                                                <field name="uom_id"/>
+                                                <field name="cur_amt"/>
+                                                <field name="adj_amt"/>
+                                                <field name="is_newly_added_product" invisible="1"/>
+                                                <field name="is_not_from_cost_sheet" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                        <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                            <field name="amount_from_adjusted" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_from_project" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_send_project" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        </group>
+                                    </page>
+                                    <page name="bud_internal_transfer_budget_history" string="Budget Change Request History">
+                                        <field name="history_itb_bud_ids" readonly="1" force_save="1">
+                                            <tree>
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sr_no"/>
+                                                <field name="date"/>
+                                                <field name="itb_id"/>
+                                                <field name="free_amt" sum="Total"/>
+                                                <field name="state"/>
+                                            </tree>
+                                        </field>
+                                        <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                            <field name="amount_from_adjusted" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_from_project" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_send_project" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        </group>
+                                    </page>
+                                </notebook>
+                            </page>
+                            <page name="budget_change_allocation_group" string="Change Allocation Budget">
+                                <notebook>
+                                    <page name="budget_change_allocation_line" string="Change Allocation">
+                                        <field name="budget_change_allocation_line_ids" readonly="1" force_save="1">
+                                            <tree>
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sr_no"/>
+                                                <field name="type"/>
+                                                <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"/>
+                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"/>
+                                                <field name="variable_ref" invisible='1'/>
+                                                <field name="overhead_category"/>
+                                                <field name="asset_category_id"/>
+                                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="asset_id"/>
+                                                <field name="product_id"/>
+                                                <field name="variable"/>
+                                                <field name="cur_qty"/>
+                                                <field name="cur_contractors"/>
+                                                <field name="cur_time"/>
+                                                <field name="adj_contractors"/>
+                                                <field name="adj_time"/>
+                                                <field name="adj_qty"/>
+                                                <field name="uom_id"/>
+                                                <field name="cur_amt"/>
+                                                <field name="adj_amt"/>
+
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="budget_change_allocation_history" string="Change Allocation Budget History">
+                                        <field name="budget_change_allocation_history_ids" readonly="1" force_save="1">
+                                            <tree>
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sr_no"/>
+                                                <field name="date"/>
+                                                <field name="itb_id"/>
+                                                <field name="adjusted_amt" sum="Total"/>
+                                                <field name="state"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </page>
+
+                            <page name="budget_claim_history_page" string="Claimed Budget Left History">
+                                <notebook>
+                                    <page name="material_budget_claim_history" string="Material">
+                                        <field name="material_budget_claim_history_ids" readonly="1" force_save="1" domain="[('type','=','material')]">
+                                            <tree>
+                                                <field name="sr_no" invisible="1"/>
+                                                <field name="purchase_order_id"/>
+                                                <field name="type"/>
+                                                <field name="project_scope_id"/>
+                                                <field name="section_id"/>
+                                                <field name="variable_id" invisible="1"/>
+                                                <field name="group_of_product_id"/>
+                                                <field name="product_id"/>
+                                                <field name="subcon_id"/>
+                                                <field name="uom_id"/>
+                                                <field name="budget_amount"/>
+                                                <field name="budget_claim_amount"/>
+                                                <field name="project_budget_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="labour_budget_claim_history" string="Labour">
+                                        <field name="labour_budget_claim_history_ids" readonly="1" force_save="1" domain="[('type','=','labour')]">
+                                            <tree>
+                                                <field name="sr_no" invisible="1"/>
+                                                <field name="purchase_order_id"/>
+                                                <field name="type"/>
+                                                <field name="project_scope_id"/>
+                                                <field name="section_id"/>
+                                                <field name="variable_id" invisible="1"/>
+                                                <field name="group_of_product_id"/>
+                                                <field name="product_id"/>
+                                                <field name="subcon_id"/>
+                                                <field name="uom_id"/>
+                                                <field name="budget_amount"/>
+                                                <field name="budget_claim_amount"/>
+                                                <field name="project_budget_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="overhead_budget_claim_history" string="Overhead">
+                                        <field name="overhead_budget_claim_history_ids" readonly="1" force_save="1" domain="[('type','=','overhead')]">
+                                            <tree>
+                                                <field name="sr_no" invisible="1"/>
+                                                <field name="purchase_order_id"/>
+                                                <field name="type"/>
+                                                <field name="project_scope_id"/>
+                                                <field name="section_id"/>
+                                                <field name="variable_id" invisible="1"/>
+                                                <field name="group_of_product_id"/>
+                                                <field name="product_id"/>
+                                                <field name="subcon_id"/>
+                                                <field name="uom_id"/>
+                                                <field name="budget_amount"/>
+                                                <field name="budget_claim_amount"/>
+                                                <field name="project_budget_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="asset_budget_claim_history" string="Asset">
+                                        <notebook>
+                                            <page name="equipment_budget_claim_history" string="Equipment">
+                                                <field name="equipment_budget_claim_history_ids" readonly="1" force_save="1" domain="[('type','=','equipment')]">
+                                                    <tree>
+                                                        <field name="sr_no" invisible="1"/>
+                                                        <field name="purchase_order_id"/>
+                                                        <field name="type"/>
+                                                        <field name="project_scope_id"/>
+                                                        <field name="section_id"/>
+                                                        <field name="variable_id" invisible="1"/>
+                                                        <field name="group_of_product_id"/>
+                                                        <field name="product_id"/>
+                                                        <field name="subcon_id"/>
+                                                        <field name="uom_id"/>
+                                                        <field name="budget_amount"/>
+                                                        <field name="budget_claim_amount"/>
+                                                        <field name="project_budget_id" invisible="1"/>
+                                                    </tree>
+                                                </field>
+                                            </page>
+                                        </notebook>
+
+                                    </page>
+                                    <page name="subcon_budget_claim_history" string="Subcon">
+                                        <field name="subcon_budget_claim_history_ids" readonly="1" force_save="1" domain="[('type','=','subcon')]">
+                                            <tree>
+                                                <field name="sr_no" invisible="1"/>
+                                                <field name="purchase_order_id"/>
+                                                <field name="type"/>
+                                                <field name="project_scope_id"/>
+                                                <field name="section_id"/>
+                                                <field name="variable_id" invisible="1"/>
+                                                <field name="group_of_product_id"/>
+                                                <field name="product_id"/>
+                                                <field name="subcon_id"/>
+                                                <field name="uom_id"/>
+                                                <field name="budget_amount"/>
+                                                <field name="budget_claim_amount"/>
+                                                <field name="project_budget_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                </notebook>
+
+                            </page>
+
+                            <page name="budget_transfer_group" string="Budget Transfer" invisible='1'>
+                                <notebook>
+                                    <page name="budget_transfer_line" string="Budget Transfer"  attrs="{'invisible': [('budgeting_method', '=', 'total_budget')]}">
+                                        <field name="budget_transfer_line_ids" readonly="1" force_save="1">
+                                            <tree>
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sr_no"/>
+                                                <field name="type"/>
+                                                <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]" required="1"/>
+                                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>
+                                                <field name="section_name" domain="[('id','in',project_section_computed)]" required="1"/>
+                                                <field name="variable_ref" invisible='1'/>
+                                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                                <field name="product_id"/>
+                                                <field name="cur_qty"/>
+                                                <field name="adj_qty"/>
+                                                <field name="uom_id"/>
+                                                <field name="cur_amt"/>
+                                                <field name="adj_amt"/>
+                                            </tree>
+                                        </field>
+                                        <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                            <field name="amount_from_adjusted" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_from_project" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_send_project" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        </group>
+                                    </page>
+                                    <page name="budget_transfer_history" string="Budget Transfer History">
+                                        <field name="history_bt_ids" readonly="1" force_save="1">
+                                            <tree>
+                                                <control>
+                                                    <create name="add_product_control" string="Add a product"/>
+                                                </control>
+                                                <field name="sr_no"/>
+                                                <field name="date"/>
+                                                <field name="pbt_id"/>
+                                                <field name="project_id" invisible="1" force_save="1"/>
+                                                <field name="project_budget"/>
+                                                <field name="dest_project_budget"/>
+                                                <field name="send_amount" sum="Total"/>
+                                                <field name="allocation_amount" sum="Total"/>
+                                                <field name="state"/>
+                                            </tree>
+                                        </field>
+                                        <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                            <field name="amount_from_adjusted" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_from_project" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                            <field name="amount_send_project" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        </group>
+                                    </page>
+                                </notebook>
+                            </page>
+
+                            <!-- tab for 'Approval Matrix'  -->
+                             <page name="approval_matrix" string="Approval Matrix Line" attrs="{'invisible':[('project_budget_approval_matrix','!=',True)]}">
+                                <group>
+                                    <group>
+                                        <field name="approving_matrix_project_budget_id" readonly="1"/>
+                                    </group>
+                                </group>
+                                <field name="project_budget_user_ids">
+                                    <tree editable="bottom" create="false" delete="false">
+                                        <field name="name"/>
+                                        <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                        <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                        <field name="is_delegation_mail_sent" invisible="1"/>
+                                        <field name="minimum_approver" readonly="1" force_save="1"/>
+                                        <field name="timestamp" invisible="1" force_save="1"/>
+                                        <field name="approver_state" invisible="1" force_save="1"/>
+                                        <field name="approval_status" readonly="1" force_save="1"/>
+                                        <field name="approved_time" readonly="1" force_save="1"/>
+                                        <field name="is_approve" invisible="1"/>
+                                        <field name="approved_employee_ids" invisible="1"/>
+                                        <field name="feedback" readonly="1" force_save="1"/>
+                                    </tree>
+                                </field>
+                                <!-- <field name="approval_matrix_project_budget_line_ids" context="{'approval_matrix_project_budget_line_ids': approval_matrix_project_budget_line_ids}" class="o_sale_approval_matrix_line">
+                                    <tree editable="bottom">
+                                        <field name="sequence" />
+                                        <field name="user_name_ids" widget="many2many_tags"/>
+                                        <field name="minimum_approver" />
+                                        <field name="state_char" />
+                                        <field name="time_stamp" />
+                                        <field name="signature"/>
+                                        <field name="feedback" />
+                                    </tree>
+                                </field> -->
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+
+<!-- View Material -->
+        <record id="budget_material_view_form" model="ir.ui.view">
+            <field name="name">budget.material.view.form</field>
+            <field name="model">budget.material</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="product_id"/>
+                            </h1>
+                        </div>
+                        <group name="group_1">
+                            <group name="group_1_1">
+                                <field name="company_id" invisible="1"/>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="description"/>
+                                <field name="quantity" string="Budgeted Quantity"/>
+                                <field name="on_hand_qty" invisible="1"/>
+                                <field name="on_hand_qty_converted"/>
+                                <field name="uom_id"/>
+                            </group>
+                            <group name="group_1_2">
+                                <field name="amount"/>
+                                <field name="amount_total" string="Budgeted Amount"/>
+                                <field name="qty_left" />
+                                <field name="amt_left" />
+                            </group>
+                        </group>
+                        <group name="group_2">
+                            <group name="group_2_1" string='Reserved'>
+                                <field name="qty_res"/>
+                                <field name="amt_res"/>
+                            </group>
+                            <group name="group_2_2" string='Billed and Paid'>
+                                <group name="group_2_2_1">
+                                    <field name="billed_qty"/>
+                                    <field name="billed_amt" />
+                                </group>
+                                <group name="group_2_2_1">
+                                    <field name="purchased_qty" string='Paid Quantity'/>
+                                    <field name="purchased_amt" string='Paid Amount' />
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_3">
+                            <group name="group_3_1" string='Transferred'>
+                                <field name="transferred_qty"/>
+                                <field name="transferred_amt"/>
+                            </group>
+                            <group name="group_3_2" string='Received'>
+                                <field name="qty_received"/>
+                            </group>
+                        </group>
+                        <group name="group_4">
+                            <group name="group_3_2" string='Used'>
+                                <group name="group_3_2_1">
+                                     <field name="unused_qty"/>
+                                     <field name="unused_amt"/>
+                                </group>
+                                <group name="group_3_2_2">
+                                    <field name="qty_used"/>
+                                    <field name="amt_used"/>
+                                </group>
+                            </group>
+                            <group name="group_4_1" string='Allocated'>
+                                <group name="group_4_1_1">
+                                    <field name="unallocated_quantity"/>
+                                    <field name="unallocated_amount"/>
+                                </group>
+                                <group name="group_4_1_2">
+                                    <field name="qty_used"/>
+                                    <field name="amt_used" />
+                                </group>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- View Labour -->
+        <record id="budget_labour_view_form" model="ir.ui.view">
+            <field name="name">budget.labour.view.form</field>
+            <field name="model">budget.labour</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="product_id"/>
+                            </h1>
+                        </div>
+                        <group name="group_1">
+                            <group name="group_1_1">
+                                <field name="company_id" invisible="1"/>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="description"/>
+                                <field name="quantity" string="Budgeted Quantity"/>
+                                <field name="on_hand_qty" invisible="1"/>
+                                <field name="on_hand_qty_converted"/>
+                                <field name="uom_id"/>
+                            </group>
+                            <group name="group_1_2">
+                                <field name="amount"/>
+                                <field name="amount_total" string="Budgeted Amount"/>
+                                <field name="qty_left" />
+                                <field name="amt_left" />
+                            </group>
+                        </group>
+                        <group name="group_2">
+                            <group name="group_2_1" string='Reserved'>
+                                <field name="qty_res"/>
+                                <field name="amt_res"/>
+                            </group>
+                            <group name="group_2_2" string='Billed and Paid'>
+                                <group name="group_2_2_1">
+                                    <field name="billed_qty"/>
+                                    <field name="billed_amt" />
+                                </group>
+                                <group name="group_2_2_1">
+                                    <field name="purchased_qty" string='Paid Quantity'/>
+                                    <field name="purchased_amt" string='Paid Amount' />
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_3">
+                            <group name="group_3_1" string='Transferred'>
+                                <field name="transferred_qty"/>
+                                <field name="transferred_amt"/>
+                            </group>
+                            <group name="group_3_2" string='Received'>
+                                <field name="qty_received"/>
+                            </group>
+                        </group>
+                        <group name="group_4">
+                            <group name="group_3_2" string='Used'>
+                                <group name="group_3_2_1">
+                                     <field name="unused_qty"/>
+                                     <field name="unused_amt"/>
+                                </group>
+                                <group name="group_3_2_2">
+                                    <field name="qty_used"/>
+                                    <field name="amt_used"/>
+                                </group>
+                            </group>
+                            <group name="group_4_1" string='Allocated'>
+                                <group name="group_4_1_1">
+                                    <field name="unallocated_quantity"/>
+                                    <field name="unallocated_amount"/>
+                                </group>
+                                <group name="group_4_1_2">
+                                    <field name="qty_used"/>
+                                    <field name="amt_used" />
+                                </group>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- View overhead -->
+        <record id="budget_overhead_view_form" model="ir.ui.view">
+            <field name="name">budget.overhead.view.form</field>
+            <field name="model">budget.overhead</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="product_id"/>
+                            </h1>
+                        </div>
+                        <group name="group_1">
+                            <group name="group_1_1">
+                                <field name="company_id" invisible="1"/>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="description"/>
+                                <field name="quantity" string="Budgeted Quantity"/>
+                                <field name="on_hand_qty" invisible="1"/>
+                                <field name="on_hand_qty_converted"/>
+                                <field name="uom_id"/>
+                            </group>
+                            <group name="group_1_2">
+                                <field name="amount"/>
+                                <field name="amount_total" string="Budgeted Amount"/>
+                                <field name="qty_left" />
+                                <field name="amt_left" />
+                            </group>
+                        </group>
+                        <group name="group_2">
+                            <group name="group_2_1" string='Reserved'>
+                                <field name="qty_res"/>
+                                <field name="amt_res"/>
+                            </group>
+                            <group name="group_2_2" string='Billed and Paid'>
+                                <group name="group_2_2_1">
+                                    <field name="billed_qty"/>
+                                    <field name="billed_amt" />
+                                </group>
+                                <group name="group_2_2_1">
+                                    <field name="purchased_qty" string='Paid Quantity'/>
+                                    <field name="purchased_amt" string='Paid Amount' />
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_3">
+                            <group name="group_3_1" string='Transferred'>
+                                <field name="transferred_qty"/>
+                                <field name="transferred_amt"/>
+                            </group>
+                            <group name="group_3_2" string='Received'>
+                                <field name="qty_received"/>
+                            </group>
+                        </group>
+                        <group name="group_4">
+                            <group name="group_3_2" string='Used'>
+                                <group name="group_3_2_1">
+                                     <field name="unused_qty"/>
+                                     <field name="unused_amt"/>
+                                </group>
+                                <group name="group_3_2_2">
+                                    <field name="qty_used"/>
+                                    <field name="amt_used"/>
+                                </group>
+                            </group>
+                            <group name="group_4_1" string='Allocated'>
+                                <group name="group_4_1_1">
+                                    <field name="unallocated_quantity"/>
+                                    <field name="unallocated_amount"/>
+                                </group>
+                                <group name="group_4_1_2">
+                                    <field name="qty_used"/>
+                                    <field name="amt_used" />
+                                </group>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+        <!-- View equipment -->
+        <record id="budget_equipment_view_form" model="ir.ui.view">
+            <field name="name">budget.equipment.view.form</field>
+            <field name="model">budget.equipment</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="product_id"/>
+                            </h1>
+                        </div>
+                        <group name="group_1">
+                            <group name="group_1_1">
+                                <field name="company_id" invisible="1"/>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="description"/>
+                                <field name="quantity" string="Budgeted Quantity"/>
+<!--                                <field name="on_hand_qty"/>-->
+                                <field name="uom_id"/>
+                            </group>
+                            <group name="group_1_2">
+                                <field name="amount"/>
+                                <field name="amount_total" string="Budgeted Amount"/>
+                                <field name="qty_left" />
+                                <field name="amt_left" />
+                            </group>
+                        </group>
+                        <group name="group_2">
+                            <group name="group_2_1" string='Reserved'>
+                                <field name="qty_res"/>
+                                <field name="amt_res"/>
+                            </group>
+                            <group name="group_2_2" string='Billed and Paid'>
+                                <group name="group_2_2_1">
+                                    <field name="billed_qty"/>
+                                    <field name="billed_amt" />
+                                </group>
+                                <group name="group_2_2_1">
+                                    <field name="purchased_qty" string='Paid Quantity'/>
+                                    <field name="purchased_amt" string='Paid Amount' />
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_3">
+                            <group name="group_3_1" string='Received'>
+                                <field name="qty_received"/>
+                            </group>
+                        </group>
+                        <group name="group_4">
+                            <group name="group_3_2" string='Used'>
+                                <group name="group_3_2_1">
+                                     <field name="unused_qty"/>
+                                     <field name="unused_amt"/>
+                                </group>
+                                <group name="group_3_2_2">
+                                    <field name="qty_used"/>
+                                    <field name="amt_used"/>
+                                </group>
+                            </group>
+                            <group name="group_4_1" string='Allocated'>
+                                <group name="group_4_1_1">
+                                    <field name="unallocated_quantity"/>
+                                    <field name="unallocated_amount"/>
+                                </group>
+                                <group name="group_4_1_2">
+                                    <field name="qty_used"/>
+                                    <field name="amt_used" />
+                                </group>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- View asset -->
+        <record id="budget_internal_asset_view_form" model="ir.ui.view">
+            <field name="name">budget.internal.asset.view.form</field>
+            <field name="model">budget.internal.asset</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="asset_id"/>
+                            </h1>
+                        </div>
+                        <group name="group_1">
+                            <group name="group_1_1">
+<!--                                <field name="company_id" invisible="1"/>-->
+                                <field name="project_scope_line_id"/>
+                                <field name="section_name"/>
+                                <field name="asset_category_id"/>
+<!--                                <field name="description"/>-->
+                                <field name="budgeted_qty" string="Budgeted Quantity"/>
+<!--                                <field name="on_hand_qty"/>-->
+                                <field name="uom_id"/>
+                            </group>
+                            <group name="group_1_2">
+                                <field name="price_unit"/>
+                                <field name="budgeted_amt" string="Budgeted Amount"/>
+                                <field name="budgeted_qty_left" />
+                                <field name="budgeted_amt_left" />
+                            </group>
+                        </group>
+                        <group name="group_2" string='Carried'>
+                            <group name="group_2_1">
+                                <field name="carried_qty"/>
+                                <field name="carried_amt"/>
+                            </group>
+                            <group name="group_2_2">
+                                <group name="group_2_2_1">
+                                    <field name="carry_qty"/>
+                                    <field name="carry_amt" />
+                                </group>
+                                <group name="group_2_2_1">
+                                    <field name="carried_to"/>
+                                    <field name="carried_from"/>
+                                </group>
+                            </group>
+                        </group>
+<!--                        <group name="group_3">-->
+<!--                            <group name="group_3_1" string='Transferred'>-->
+<!--                                <field name="transferred_qty"/>-->
+<!--                                <field name="transferred_amt"/>-->
+<!--                            </group>-->
+<!--                            <group name="group_3_2" string='Received'>-->
+<!--                                <field name="qty_received"/>-->
+<!--                            </group>-->
+<!--                        </group>-->
+                        <group name="group_4">
+                            <group name="group_3_2" string='Used'>
+                                <group name="group_3_2_1">
+                                     <field name="actual_used_qty"/>
+                                     <field name="actual_used_amt"/>
+                                </group>
+                                <group name="group_3_2_2">
+                                    <field name="dif_qty_used"/>
+                                    <field name="dif_amt_used"/>
+                                </group>
+                            </group>
+                            <group name="group_4_1" string='Status'>
+                                <group name="group_4_1_1">
+                                    <field name="status"/>
+<!--                                    <field name="unallocated_amount"/>-->
+                                </group>
+<!--                                <group name="group_4_1_2">-->
+<!--                                    <field name="qty_used"/>-->
+<!--                                    <field name="amt_used" />-->
+<!--                                </group>-->
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+<!-- View SUbcon -->
+        <record id="budget_subcon_view_form" model="ir.ui.view">
+            <field name="name">budget.subcon.view.form</field>
+            <field name="model">budget.subcon</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="subcon_id"/>
+                            </h1>
+                        </div>
+                        <group name="group_1">
+                            <group name="group_1_1">
+                                <field name="company_id" invisible="1"/>
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+<!--                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>-->
+                                <field name="description"/>
+                                <field name="quantity" string="Budgeted Quantity"/>
+<!--                                <field name="on_hand_qty"/>-->
+                                <field name="uom_id"/>
+                            </group>
+                            <group name="group_1_2">
+                                <field name="amount"/>
+                                <field name="amount_total" string="Budgeted Amount"/>
+                                <field name="qty_left" />
+                                <field name="amt_left" />
+                            </group>
+                        </group>
+                        <group name="group_2">
+                            <group name="group_2_1" string='Reserved'>
+                                <field name="qty_res"/>
+                                <field name="amt_res"/>
+                            </group>
+                            <group name="group_2_2" string='Billed and Paid'>
+                                <group name="group_2_2_1">
+                                    <field name="billed_qty"/>
+                                    <field name="billed_amt" />
+                                </group>
+                                <group name="group_2_2_1">
+                                    <field name="purchased_qty" string='Paid Quantity'/>
+                                    <field name="purchased_amt" string='Paid Amount' />
+                                </group>
+                            </group>
+                        </group>
+<!--                        <group name="group_3">-->
+<!--                            <group name="group_3_1" string='Transferred'>-->
+<!--                                <field name="transferred_qty"/>-->
+<!--                                <field name="transferred_amt"/>-->
+<!--                            </group>-->
+<!--                            <group name="group_3_2" string='Received'>-->
+<!--                                <field name="qty_received"/>-->
+<!--                            </group>-->
+<!--                        </group>-->
+                        <group name="group_4">
+                            <group name="group_3_2" string='Used'>
+                                <group name="group_3_2_1">
+                                     <field name="unused_qty"/>
+                                     <field name="unused_amt"/>
+                                </group>
+                                <group name="group_3_2_2">
+                                    <field name="qty_used"/>
+                                    <field name="amt_used"/>
+                                </group>
+                            </group>
+                            <group name="group_4_1" string='Allocated'>
+                                <group name="group_4_1_1">
+                                    <field name="unallocated_quantity"/>
+                                    <field name="unallocated_amount"/>
+                                </group>
+                                <group name="group_4_1_2">
+                                    <field name="qty_used"/>
+                                    <field name="amt_used" />
+                                </group>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- View GOP Material -->
+        <record id="budget_gop_material_view_form" model="ir.ui.view">
+            <field name="name">budget.gop.material.view.form</field>
+            <field name="model">budget.gop.material</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                            </h1>
+                        </div>
+                        <group name="group_1">
+                            <group name="group_1_1">
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                            </group>
+                            <group name="group_1_2">
+                                <field name="amount_total"/>
+                                <field name="amt_left"/>
+                            </group>
+                        </group>
+                        <group name="group_2">
+                            <group name="group_2_1" string='Reserved'>
+                                <field name="amt_res"/>
+                            </group>
+                            <group name="group_2_2" string='Billed and Paid'>
+                                <group name="group_2_2_1">
+                                    <field name="billed_amt"/>
+                                </group>
+                                <group name="group_2_2_1">
+                                    <field name="purchased_amt" string='Paid Amount'/>
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_3">
+                            <group name="group_3_1" string='Transferred'>
+                                <field name="transferred_amt"/>
+                            </group>
+                            <group name="group_3_2" string='Used'>
+                                <group name="group_3_2_1">
+                                    <field name="unused_amt"/>
+                                </group>
+                                <group name="group_3_2_2">
+                                    <field name="amt_used"/>
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_4">
+                            <group name="group_4_1" string='Allocated'>
+                                <group name="group_4_1_1">
+                                    <field name="unallocated_amount"/>
+                                </group>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+        <!-- View GOP Labour -->
+        <record id="budget_gop_labour_view_form" model="ir.ui.view">
+            <field name="name">budget.gop.labour.view.form</field>
+            <field name="model">budget.gop.labour</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                            </h1>
+                        </div>
+                        <group name="group_1">
+                            <group name="group_1_1">
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                            </group>
+                            <group name="group_1_2">
+                                <field name="amount_total"/>
+                                <field name="amt_left"/>
+                            </group>
+                        </group>
+                        <group name="group_2">
+                            <group name="group_2_1" string='Reserved'>
+                                <field name="amt_res"/>
+                            </group>
+                            <group name="group_2_2" string='Billed and Paid'>
+                                <group name="group_2_2_1">
+                                    <field name="billed_amt"/>
+                                </group>
+                                <group name="group_2_2_1">
+                                    <field name="purchased_amt" string='Paid Amount'/>
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_3">
+                            <group name="group_3_1" string='Transferred'>
+                                <field name="transferred_amt"/>
+                            </group>
+                            <group name="group_3_2" string='Used'>
+                                <group name="group_3_2_1">
+                                    <field name="unused_amt"/>
+                                </group>
+                                <group name="group_3_2_2">
+                                    <field name="amt_used"/>
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_4">
+                            <group name="group_4_1" string='Allocated'>
+                                <group name="group_4_1_1">
+                                    <field name="unallocated_amount"/>
+                                </group>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+        <!-- View GOP Overhead -->
+        <record id="budget_gop_overhead_view_form" model="ir.ui.view">
+            <field name="name">budget.gop.overhead.view.form</field>
+            <field name="model">budget.gop.overhead</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                            </h1>
+                        </div>
+                        <group name="group_1">
+                            <group name="group_1_1">
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                            </group>
+                            <group name="group_1_2">
+                                <field name="amount_total"/>
+                                <field name="amt_left"/>
+                            </group>
+                        </group>
+                        <group name="group_2">
+                            <group name="group_2_1" string='Reserved'>
+                                <field name="amt_res"/>
+                            </group>
+                            <group name="group_2_2" string='Billed and Paid'>
+                                <group name="group_2_2_1">
+                                    <field name="billed_amt"/>
+                                </group>
+                                <group name="group_2_2_1">
+                                    <field name="purchased_amt" string='Paid Amount'/>
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_3">
+                            <group name="group_3_1" string='Transferred'>
+                                <field name="transferred_amt"/>
+                            </group>
+                            <group name="group_3_2" string='Used'>
+                                <group name="group_3_2_1">
+                                    <field name="unused_amt"/>
+                                </group>
+                                <group name="group_3_2_2">
+                                    <field name="amt_used"/>
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_4">
+                            <group name="group_4_1" string='Allocated'>
+                                <group name="group_4_1_1">
+                                    <field name="unallocated_amount"/>
+                                </group>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+        <!-- View GOP Equipment -->
+        <record id="budget_gop_equipment_view_form" model="ir.ui.view">
+            <field name="name">budget.gop.equipment.view.form</field>
+            <field name="model">budget.gop.equipment</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                            </h1>
+                        </div>
+                        <group name="group_1">
+                            <group name="group_1_1">
+                                <field name="project_scope"/>
+                                <field name="section_name"/>
+                                <field name="group_of_product" options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                            </group>
+                            <group name="group_1_2">
+                                <field name="amount_total"/>
+                                <field name="amt_left"/>
+                            </group>
+                        </group>
+                        <group name="group_2">
+                            <group name="group_2_1" string='Reserved'>
+                                <field name="amt_res"/>
+                            </group>
+                            <group name="group_2_2" string='Billed and Paid'>
+                                <group name="group_2_2_1">
+                                    <field name="billed_amt"/>
+                                </group>
+                                <group name="group_2_2_1">
+                                    <field name="purchased_amt" string='Paid Amount'/>
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_3">
+                            <group name="group_3_1" string='Transferred'>
+                                <field name="transferred_amt"/>
+                            </group>
+                            <group name="group_3_2" string='Used'>
+                                <group name="group_3_2_1">
+                                    <field name="unused_amt"/>
+                                </group>
+                                <group name="group_3_2_2">
+                                    <field name="amt_used"/>
+                                </group>
+                            </group>
+                        </group>
+                        <group name="group_4">
+                            <group name="group_4_1" string='Allocated'>
+                                <group name="group_4_1_1">
+                                    <field name="unallocated_amount"/>
+                                </group>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+        <!-- Project Budget Search View -->
+        <record id="view_project_budget_filter" model="ir.ui.view">
+            <field name="name">project.budget.filter.projectid</field>
+            <field name="model">project.budget</field>
+            <field name="arch" type="xml">
+                <search string="Search Periodical Budget">
+                   <field name="project_id"/>
+                   <field name="cost_sheet"/>
+                   <field name="period"/>
+                   <field name="month"/>
+                   <field name="state"/>
+                   <field name="create_uid"/>
+<!--                   <group name="group_by" string="Group By">-->
+<!--                       <filter name="project_id" string="Project" context="{'group_by' : 'project_id'}" />-->
+<!--                   </group>-->
+               </search>
+            </field>
+        </record>
+
+        <record id="project_budget_action" model="ir.actions.act_window">
+            <field name="name">Periodical Budget</field>
+            <field name="res_model">project.budget</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="project_budget_tree_view"/>
+            <field name="search_view_id" ref="view_project_budget_filter"/>
+            <field name="domain">[('department_type', '=', 'project')]</field>
+            <field name="context">{'group_by': 'project_id',
+                                   'default_department_type': 'project'}</field>
+            <field name="target">main</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No budget found. Let's create one!
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="menu_sub_project_budget"
+                  name="Periodical Budget"
+                  parent="abs_construction_management.construction_management"
+                  action="project_budget_action"
+                  groups="equip3_construction_accessright_setting.group_construction_engineer"
+                  sequence="1"/>
+
+    </data>
+</odoo>
+    

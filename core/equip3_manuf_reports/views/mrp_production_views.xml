@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="mrp_production_mps_form_view" model="ir.ui.view" >
+		<field name="name">mrp.production.mps.form.view</field>
+		<field name="model">mrp.production</field>
+		<field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+		<field name="arch" type="xml">
+			<xpath expr="//group/group" position="inside">
+				<field name="deviation" invisible="1"/>
+			</xpath>
+		</field>
+	</record>
+
+	<record id="view_pivot_duration_deviation_analysis" model="ir.ui.view">
+		<field name="name">view.duration.deviation.analysis.pivot</field>
+		<field name="model">mrp.production</field>
+		<field name="priority">200</field>
+		<field name="arch" type="xml">
+			<pivot string="Duration Deviation Analysis">
+				<field name="name" type="row"/>
+				<field name="duration_expected" type="measure"/>
+				<field name="duration" type="measure"/>
+				<field name="deviation" type="measure"/>
+			</pivot>
+		</field>
+	</record>
+
+	<record id="view_duration_deviation_analysis_graph" model="ir.ui.view">
+        <field name="name">duration.deviation.analysis.graph</field>
+        <field name="model">mrp.production</field>
+		<field name="priority">200</field>
+        <field name="arch" type="xml">
+            <graph string="Duration Deviation Analysis">
+				<field name="name" type="row"/>
+                <field name="duration_expected" type="measure"/>
+				<field name="duration" type="measure"/>
+				<field name="deviation" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+	<record id="view_duration_deviation_analysis_search" model="ir.ui.view">
+        <field name="name">view.duration.deviation.analysis.search</field>
+        <field name="model">mrp.production</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <search>
+				<field name="create_date"/>
+                <filter string="This Month" name="current_month" domain="[('create_date','&lt;',(context_today()+relativedelta(months=1)).strftime('%%Y-%%m-01')), ('create_date','&gt;=',time.strftime('%%Y-%%m-01'))]"/>
+            </search>
+        </field>
+    </record>
+
+	<record id="duration_deviation_analysis_action" model="ir.actions.act_window">
+		<field name="name">Duration Deviation Analysis</field>
+		<field name="res_model">mrp.production</field>
+		<field name="view_mode">graph,pivot</field>
+		<field name="context">{'search_default_current_month': 1, 'pivot_column_groupby': ['create_date:month', 'create_date:day']}</field>
+		<field name="domain">[('state', '=', 'done')]</field>
+		<field name="search_view_id" ref="view_duration_deviation_analysis_search"/>
+		<field name="view_ids" eval="[(5, 0, 0),
+                    					(0, 0, {'view_mode': 'graph', 'view_id': ref('view_duration_deviation_analysis_graph')}),
+                          				(0, 0, {'view_mode': 'pivot', 'view_id': ref('view_pivot_duration_deviation_analysis')})]"/>
+		<field name="help" type="html">
+			<p class="o_view_nocontent_smiling_face">
+				No data yet!
+			</p>
+		</field>
+	</record>
+
+	<menuitem id="mrp_production_duration_deviation_analysis"
+              name="Duration Deviation Analysis"
+              parent="mrp.menu_mrp_reporting"
+              action="duration_deviation_analysis_action"
+              sequence="10"/>
+
+</odoo>

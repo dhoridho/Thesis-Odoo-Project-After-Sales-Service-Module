@@ -1,0 +1,310 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+    <!-- mining.production.actualization pivot view -->
+    <record id="mining_production_actualization_view_pivot" model="ir.ui.view">
+        <field name="name">mining.production.actualization.view.pivot</field>
+        <field name="model">mining.production.actualization</field>
+        <field name="arch" type="xml">
+            <pivot string="Actualization">
+                <!-- Add your fields here -->
+                
+            </pivot>
+        </field>
+    </record>
+
+    <!-- mining.production.actualization form view -->
+    <record id="mining_production_actualization_view_form" model="ir.ui.view">
+        <field name="name">mining.production.actualization.view.form</field>
+        <field name="model">mining.production.actualization</field>
+        <field name="arch" type="xml">
+            <form string="Actualization" create="0" delete="1">
+                <header>
+                    <field name="user_is_approver" invisible="1"/>
+                    <button name="action_approval" string="Request Approval" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('is_matrix_on', '!=', True), ('state', '!=', 'draft')]}"/>
+                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"  attrs="{'invisible': ['|', '|', ('is_matrix_on', '!=', True), ('state', '!=', 'to_be_approved'), ('user_is_approver', '=', False)]}"/>
+                    <button name="action_reject" string="Reject" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_matrix_on', '!=', True), ('state', '!=', 'to_be_approved'), ('user_is_approver', '=', False)]}"/>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('all_picking_done', '=', False), '|', '&amp;', ('is_matrix_on', '=', True), ('state', '!=', 'approved'), '&amp;', ('is_matrix_on', '=', False), ('state', 'not in', ('draft', 'approved'))]}"/>
+                
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm" attrs="{'invisible': [('state', '=', 'rejected')]}"/>
+                    <field name="state_1" widget="statusbar" statusbar_visible="draft,rejected" attrs="{'invisible': ['|', ('is_matrix_on', '=', False), ('state', '!=', 'rejected')]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="priority" widget="priority" class="mr-3"/>
+                            <field name="name" nolabel="1"/>
+                        </h1>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" name="action_view_moves" type="object" icon="o-hm-smart-all-product-move" attrs="{'invisible': [('moves_count', '=', 0)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text"><field name="moves_count"/> Product<br/>Moves</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" name="action_view_fuel_logs" type="object" icon="fa-history" attrs="{'invisible': [('logs_count', '=', 0)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text"><field name="logs_count"/> Fuel<br/>Logs</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" name="action_view_pickings" type="object" icon="fa-truck" attrs="{'invisible': [('picking_count', '=', 0)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text"><field name="picking_count"/> Delivery<br/>Orders</span>
+                            </div>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="mining_prod_plan_id"/>
+                            <field name="mining_prod_line_id"/>
+
+                            <field name="mining_site_id"/>
+                            <field name="mining_project_id" string="Mining Pit"/>
+                            <label for="period_from"/>
+                            <div class="o_row" name="period">
+                                <field name="period_from" attrs="{'readonly': [('state', 'in', ('confirm', 'approved', 'rejected'))]}"/>
+                                <span>To</span>
+                                <field name="period_to" attrs="{'readonly': [('state', 'in', ('confirm', 'approved', 'rejected'))]}"/>
+                            </div>
+                            <field name="operation_id"/>
+                            <field name="operation_type" invisible="1"/>
+                            <field name="approval_matrix_id" attrs="{'invisible': [('is_matrix_on', '=', False)],'required': [('is_matrix_on', '!=', False), ('state', '=', 'draft')]}" force_save="1"/>
+                            <field name="ppic_id"/>
+                            <field name="all_picking_done" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="is_matrix_on" invisible="1"/>
+
+                            <field name="analytic_group_ids" widget="many2many_tags"/>
+                            <field name="company_id"/>
+                            <field name="branch_id"/>
+                            <field name="create_date" string="Created On"/>
+                            <field name="create_uid" string="Created By"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Assets" name="assets">
+                            <field name="assets_ids" 
+                                   attrs="{
+                                        'readonly': [('state', '!=', 'draft')]
+                                    }" 
+                                   context="{
+                                        'default_worker_ids': worker_ids,
+                                        'default_mining_prod_plan_id': mining_prod_plan_id, 
+                                        'default_mining_prod_line_id': mining_prod_line_id
+                                    }">
+                                <tree editable="bottom">
+                                    <field name="mining_prod_plan_id" invisible="1"/>
+                                    <field name="mining_prod_line_id" invisible="1"/>
+                                    <field name="mining_prod_act_id" invisible="1"/>
+                                    <field name="operation_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="assets_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="operation_id"/>
+                                    <field name="assets_id"/>
+                                    <field name="duration"/>
+                                    <field name="worker_ids" widget="many2many_tags"/>
+                                    <field name="original_move" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Input" name="input" attrs="{'invisible': [('operation_type', '!=', 'production')]}">
+                            <field name="input_ids" 
+                                   attrs="{
+                                        'readonly': [('state', '!=', 'draft')]
+                                    }"
+                                    context="{
+                                        'default_mining_prod_plan_id': mining_prod_plan_id, 
+                                        'default_mining_prod_line_id': mining_prod_line_id,
+                                        'default_operation_id': operation_id
+                                    }">
+                                <tree editable="bottom">
+                                    <field name="mining_prod_plan_id" invisible="1"/>
+                                    <field name="mining_prod_line_id" invisible="1"/>
+                                    <field name="mining_prod_act_id" invisible="1"/>
+                                    <field name="operation_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="asset_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="product_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="operation_id" invisible="1"/>
+                                    <field name="asset_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="product_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="qty" string="To Consume" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="qty_done" string="Consumed"/>
+                                    <field name="uom_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="original_move" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Output" name="output">
+                            <field name="output_ids" 
+                                   attrs="{
+                                        'readonly': [('state', '!=', 'draft')]
+                                    }"
+                                    context="{
+                                        'default_mining_prod_plan_id': mining_prod_plan_id, 
+                                        'default_mining_prod_line_id': mining_prod_line_id,
+                                        'default_operation_id': operation_id
+                                    }">
+                                <tree editable="bottom">
+                                    <field name="mining_prod_plan_id" invisible="1"/>
+                                    <field name="mining_prod_line_id" invisible="1"/>
+                                    <field name="mining_prod_act_id" invisible="1"/>
+                                    <field name="operation_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="asset_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="product_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="operation_id" invisible="1"/>
+                                    <field name="asset_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="product_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="qty" string="To Produce" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="qty_done" string="Produced"/>
+                                    <field name="uom_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="original_move" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Fuel" name="fuel">
+                            <field name="fuel_ids"
+                                   attrs="{
+                                        'readonly': [('state', '!=', 'draft')]
+                                    }" 
+                                    context="{
+                                        'default_mining_prod_plan_id': mining_prod_plan_id, 
+                                        'default_mining_prod_line_id': mining_prod_line_id,
+                                        'default_operation_id': operation_id
+                                    }">
+                                <tree string="Fuel" editable="bottom">
+                                    <field name="mining_prod_plan_id" invisible="1"/>
+                                    <field name="mining_prod_line_id" invisible="1"/>
+                                    <field name="mining_prod_act_id" invisible="1"/>
+                                    <field name="operation_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="asset_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="product_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="operation_id" invisible="1"/>
+                                    <field name="asset_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="product_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="qty" string="To Consume" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="qty_done" string="Consumed"/>
+                                    <field name="uom_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="original_move" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Delivery" name="delivery" attrs="{'invisible': [('operation_type', '!=', 'shipment')]}">
+                            <field name="delivery_ids"
+                                   attrs="{
+                                        'readonly': [('state', '!=', 'draft')]
+                                    }" 
+                                    context="{
+                                        'default_mining_prod_plan_id': mining_prod_plan_id, 
+                                        'default_mining_prod_line_id': mining_prod_line_id,
+                                        'default_operation_id': operation_id,
+                                        'default_site_id': mining_site_id
+                                    }">
+                                <tree string="Delivery" editable="bottom">
+                                    <field name="mining_prod_plan_id" invisible="1"/>
+                                    <field name="mining_prod_line_id" invisible="1"/>
+                                    <field name="mining_prod_act_id" invisible="1"/>
+                                    <field name="operation_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="asset_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="product_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="operation_id" invisible="1"/>
+                                    <field name="site_id" invisible="1"/>
+                                    <field name="asset_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="location_src_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="location_dest_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="product_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+                                    <field name="amount" attrs="{'readonly': [('original_move', '=', True)]}" string="Target Amount"/>
+                                    <field name="total_amount" string="Total Amount"/>
+                                    <field name="uom_id" attrs="{'readonly': [('original_move', '=', True)]}"/>
+
+                                    <field name="original_move" optional="hide"/>
+                                    <field name="mpa_state" invisible="1"/>
+
+                                    <field name="history_ids" invisible="1"/>
+
+                                    <button name="action_iteration" type="object" string="Iteration" attrs="{'invisible': [('mpa_state', '=', 'confirm')]}" class="oe_highlight mr-2"/>
+                                    <button name="action_history" type="object" string="History" class="oe_highlight"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Worker" name="worker">
+                            <group>
+                                <group>
+                                    <field name="worker_type" widget="radio" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    <field name="worker_group_id" attrs="{'invisible': [('worker_type','=','without_group')], 'readonly': [('state', '!=', 'draft')]}" string="Worker"/>
+                                    <field name="worker_ids" widget="many2many_tags" attrs="{'invisible': [('worker_type','=','with_group')], 'readonly': [('state', '!=', 'draft')]}"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page name="approval_matrix_lines" string="Approval Matrix Lines" attrs="{'invisible': [('is_matrix_on', '!=', True)]}">
+                            <field name="approval_matrix_line_ids" context="{
+                                'tree_view_ref': 'equip3_mining_accessright_settings.view_mining_approval_matrix_entry_tree',
+                                'form_view_ref': 'equip3_mining_accessright_settings.view_mining_approval_matrix_entry_form',
+                            }"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- mining.production.actualization tree view -->
+    <record id="mining_production_actualization_view_tree" model="ir.ui.view">
+        <field name="name">mining.production.actualization.view.tree</field>
+        <field name="model">mining.production.actualization</field>
+        <field name="arch" type="xml">
+            <tree string="Actualization" create="0" delete="1" edit="0" default_order="priority desc, name desc">
+                <field name="priority" widget="priority" nolabel="1"/>
+                <field name="name"/>
+                <field name="mining_prod_plan_id"/>
+                <field name="mining_prod_line_id"/>
+                <field name="operation_id"/>
+                <field name="ppic_id"/>
+                <field name="create_date" string="Created On"/>
+                <field name="state" widget="badge" decoration-primary2="state == 'confirm'" decoration-warning="state == 'progress'" decoration-success2="state == 'done'" decoration-danger="state =='rejected'" decoration-muted="state =='draft'" decoration-secondary="state =='cancel'" decoration-primary3="state =='to_be_approved'" decoration-primary="state =='approved'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- mining.production.actualization search view -->
+    <record id="mining_production_actualization_view_search" model="ir.ui.view">
+        <field name="name">mining.production.actualiztion.view.search</field>
+        <field name="model">mining.production.actualization</field>
+        <field name="arch" type="xml">
+            <search string="Actualization">
+                <field name="name"/>
+                <field name="mining_prod_plan_id"/>
+                <field name="mining_prod_line_id"/>
+                <field name="operation_id"/>
+                <field name="mining_site_id"/>
+                <field name="mining_project_id" string="Mining Pit"/>
+                <field name="ppic_id"/>
+
+                <searchpanel>
+                    <field name="operation_id"/>
+                    <field name="mining_site_id"/>
+                    <field name="mining_project_id" string="Mining Pit"/>
+                    <field name="ppic_id"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <!-- mining.production.actualization action window -->
+    <record id="mining_production_act_action" model="ir.actions.act_window">
+        <field name="name">Actualization</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.production.actualization</field>
+        <field name="view_mode">tree,form,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Actualiztion record yet!
+            </p>
+        </field>
+    </record>
+
+</odoo>

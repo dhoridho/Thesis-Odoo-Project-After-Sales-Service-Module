@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <!-- Invoice -->
+    <record id="invoice_form" model="ir.ui.view">
+        <field name="name">account.move.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="acs_hms.view_move_form"/>
+        <field name="arch" type="xml">
+            <group name="general" position="inside">
+                <group name="hospitalization" string="Hospitalization Details" groups="acs_hms_hospitalization.group_acs_hms_hospitalization_user">
+                    <field name="hospitalization_id"/>
+                </group>
+            </group>
+        </field>
+    </record>
+ 
+    <!-- Prescription Views -->
+    <record id="acs_outpatient_prescription_view_form" model="ir.ui.view">
+        <field name="name">acs.outpatient.prescription.view.form</field>
+        <field name="model">prescription.order</field>
+        <field name="priority" eval="8" />
+        <field name="inherit_id" ref="acs_hms.view_hms_prescription_order_form" />
+        <field name="arch" type="xml">
+            <field name="appointment_id" position="after">
+                <field name="hospitalization_id" groups="acs_hms_hospitalization.group_acs_hms_hospitalization_user"/>
+                <field name="ward_id" attrs="{'invisible': [('hospitalization_id', '=', False)]}" groups="acs_hms_hospitalization.group_acs_hms_hospitalization_user"/>
+                <field name="bed_id" attrs="{'invisible': [('hospitalization_id', '=', False)]}" groups="acs_hms_hospitalization.group_acs_hms_hospitalization_user"/>
+                <field name="print_in_discharge" attrs="{'invisible': [('hospitalization_id', '=', False)]}" groups="acs_hms_hospitalization.group_acs_hms_hospitalization_user"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_hms_prescription_order_search" model="ir.ui.view">
+        <field name="name">acs.inpatient.prescription.view.search</field>
+        <field name="model">prescription.order</field>
+        <field name="inherit_id" ref="acs_hms.view_hms_prescription_order_search" />
+        <field name="arch" type="xml">
+            <field name="prescription_date" position="before">
+                <field name="hospitalization_id"/>
+            </field>
+            <filter name="today" position="before">
+                <filter name="group_by_hospitalization" string="Hospitalization" domain="[]" context="{'group_by':'hospitalization_id'}" />
+            </filter>
+        </field>
+    </record>
+
+    <!-- Appointment View -->
+    <record id="view_hms_appointment_hospital" model="ir.ui.view">
+        <field name="name">hms.appointment.form</field>
+        <field name="model">hms.appointment</field>
+        <field name="inherit_id" ref='acs_hms.view_hms_appointment_form'/>
+        <field name="arch" type="xml">
+            <button name="view_invoice" position="before">
+                <button name="action_hospitalization" string="Hospitalization" type="object" class="oe_stat_button" icon="fa-bed" title="Hospitalization" attrs="{'invisible': [('state','=','done'),('hospitalization_ids', '=', [])]}" groups="acs_hms_hospitalization.group_acs_hms_hospitalization_user"/>
+                <field name="hospitalization_ids" invisible="1"/>
+            </button>
+        </field>
+    </record>
+
+    <!-- Include the Surgery page into the Patient History -->
+    <record model="ir.ui.view" id="hms_patient_view">
+        <field name="name">Patient</field>
+        <field name="model">hms.patient</field>
+        <field name="inherit_id" ref="acs_hms.view_patient_form" />
+        <field name="arch" type="xml">
+            <field name="date_of_death" position="before">
+                <field name="death_register_id"/>
+            </field>
+            <div name="button_box" position="inside">
+                <button name="action_hospitalization" type="object" class="oe_stat_button" icon="fa-bed" title="Hospitalization" groups="acs_hms_hospitalization.group_acs_hms_hospitalization_user">
+                    <field string="Hospitalization" name="hospitalization_count" widget="statinfo"/>
+                </button>
+            </div>
+        </field>
+    </record>
+
+    <!-- surgery View -->
+    <record model="ir.ui.view" id="hms_surgery_view">
+        <field name="name">Surgery</field>
+        <field name="model">hms.surgery</field>
+        <field name="inherit_id" ref="acs_hms_surgery.hms_surgery_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//label[@for='start_date']" position="before">
+                <field name="hospitalization_id" groups="acs_hms_hospitalization.group_acs_hms_hospitalization_user"/>
+            </xpath>
+            <field name="scrub_nurse" position="after">
+                <field name="hospital_ot"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_acs_patient_evaluation_form" model="ir.ui.view">
+        <field name="name">acs.patient.evaluation.view.form</field>
+        <field name="model">acs.patient.evaluation</field>
+        <field name="inherit_id" ref="acs_hms.view_acs_patient_evaluation_form" />
+        <field name="arch" type="xml">
+            <field name="appointment_id" position="after">
+                <field name="hospitalization_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_physician_form" model="ir.ui.view">
+        <field name="name">physician.form</field>
+        <field name="model">hms.physician</field>
+        <field name="inherit_id" ref="acs_hms_base.view_physician_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_hospitalization" groups="acs_hms.group_hms_jr_doctor" type="object" class="oe_stat_button" icon="fa-bed">
+                    <field string="Hospitalization" name="hospitalization_count" widget="statinfo"/>
+                </button>
+            </div>
+        </field>
+    </record>
+
+</odoo>

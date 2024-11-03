@@ -1,0 +1,954 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="student_portal_admission_list_template" name="Student Admission List">
+        <t t-call="website.layout">
+            <div id="wrap">
+                <div class="oe_structure">
+                    <section class="mt-4 mb-4">
+                        <div class="container-fluid d-flex">
+                            <div class="school_portal_sidebar other_form">
+                                <t t-call="equip3_school_portal.sidebar_portal_template"/>
+                            </div>
+                            <div style="width: 100%;" class="ml-3">
+                                <nav class="navbar navbar-light navbar-expand-lg border py-0 mb-2 o_portal_navbar  mt-3 rounded">
+                                    <ol class="o_portal_submenu breadcrumb mb-0 py-2 flex-grow-1 row" style="background-color: #FFFFFF">
+                                        <li class="ml-1" data-oe-id="2699" data-oe-xpath="/data/xpath/li" data-oe-model="ir.ui.view" data-oe-field="arch"></li>
+                                        <li class="breadcrumb-item active" style="margin-left: -15px;">Admission Register</li>
+                                    </ol>
+                                    <div t-if="search_sorting" class="form-inline">
+                                        <span class="small mr-1 navbar-text">Sort By:</span>
+                                        <div class="btn-group">
+                                            <button id="admission_register_searchbar_sortby" data-toggle="dropdown" class="btn btn-secondary btn-sm dropdown-toggle">
+                                                <t t-esc="search_sorting[sortby].get('label', 'Newest')"/>
+                                            </button>
+                                            <div class="dropdown-menu" aria-labelledby="admission_register_searchbar_sortby">
+                                                <t t-foreach="search_sorting" t-as="option">
+                                                    <a t-att-href="request.httprequest.path + '?' + keep_query('*', sortby=option)"
+                                                       t-attf-class="dropdown-item#{sortby == option and ' active' or ''}">
+                                                        <span t-esc="search_sorting[option].get('label')"/>
+                                                    </a>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-inline ml-lg-2">
+                                        <span class="small mr-1 navbar-text">Filter By:</span>
+                                        <div class="btn-group">
+                                            <button id="admission_searchbar_filters" data-toggle="dropdown" class="btn btn-secondary btn-sm dropdown-toggle">
+                                                <t t-esc="search_filter.get(filterby,search_filter.get('all')).get('label', 'All')"/>
+                                            </button>
+                                            <div class="dropdown-menu" aria-labelledby="admission_searchbar_filters">
+                                                <t t-foreach="search_filter" t-as="option">
+                                                    <a t-att-href="default_url + '?' + keep_query('*', filterby=option)"
+                                                       t-attf-class="dropdown-item#{filterby == option and ' active' or ''}">
+                                                        <span t-esc="search_filter[option].get('label')"/>
+                                                    </a>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-inline ml-lg-2">
+                                        <span class="small mr-1 navbar-text">Group By:</span>
+                                        <div class="btn-group">
+                                            <button id="admission_searchbar_groupby" data-toggle="dropdown" class="btn btn-secondary btn-sm dropdown-toggle">
+                                                <t t-esc="search_group[groupby].get('label', 'None')"/>
+                                            </button>
+                                            <div class="dropdown-menu" aria-labelledby="admission_searchbar_groupby">
+                                                <t t-foreach="search_group" t-as="option">
+                                                    <a t-att-href="default_url + '?' + keep_query('*', groupby=option)"
+                                                       t-attf-class="dropdown-item#{groupby == option and ' active' or ''}">
+                                                        <span t-esc="search_group[option].get('label')"/>
+                                                    </a>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <form t-if="searchbar_inputs" class="form-inline o_portal_search_panel ml-lg-4 col-xl-4 col-md-5">
+                                        <div class="input-group input-group-sm w-100">
+                                            <div class="input-group-prepend">
+                                                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"/>
+                                                <div class="dropdown-menu" role="menu">
+                                                    <t t-foreach='searchbar_inputs' t-as='input'>
+                                                        <a t-att-href="'#' + searchbar_inputs[input]['input']"
+                                                            t-attf-class="dropdown-item#{search_in == searchbar_inputs[input]['input'] and ' active' or ''}">
+                                                            <span t-raw="searchbar_inputs[input]['label']"/>
+                                                        </a>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                            <input type="text" class="form-control form-control-sm" placeholder="Search" t-att-value='search' name="search"/>
+                                            <span class="input-group-append">
+                                                <button class="btn btn-secondary search-submit" type="button">
+                                                    <span class="fa fa-search"/>
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </form>
+                                </nav>
+                                <a t-attf-href="/student/admission/create/" class="btn btn-primary mb-3">Create New Admission</a>
+                                <t t-if="not grouped_tasks">
+                                    <div class="table-responsive border rounded border-top-0">
+                                        <t t-if="admission_ids" t-call="portal.portal_table">
+                                            <thead>
+                                                <tr class="active">
+                                                    <th scope="col">Student ID</th>
+                                                    <th scope="col">Name</th>
+                                                    <th scope="col">School</th>
+                                                    <th scope="col">Academic Year</th>
+                                                    <th scope="col">Program</th>
+                                                    <th scope="col">Intake</th>
+                                                    <th scope="col">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody style="cursor: pointer;">
+                                                <t t-foreach="admission_ids" t-as="admission">
+                                                    <tr t-att-data-id="admission.id" class="admission-row">
+                                                        <td><span t-field="admission.pid"/></td>
+                                                        <td><span t-field="admission.name"/></td>
+                                                        <td><span t-field="admission.school_id"/></td>
+                                                        <td><span t-field="admission.year"/></td>
+                                                        <td><span t-field="admission.program_id"/></td>
+                                                        <td><span t-field="admission.standard_id"/></td>
+                                                        <td><span t-field="admission.state"/></td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-if="grouped_tasks">
+                                    <div class="table-responsive border rounded border-top-0">
+                                        <t t-if="admission_ids">
+                                            <t t-foreach="grouped_tasks" t-as="grouped_task">
+                                                <table class="table table-hover table-striped" style="background-color: #FFFFFF">
+                                                    <thead>
+                                                        <tr t-attf-class="{{'thead-light' if not groupby == 'none' else ''}}" class="active">
+                                                            <th t-if="groupby == 'none'">Student ID</th>
+                                                            <th t-if="groupby == 'School'">
+                                                                <em class="font-weight-normal text-muted">School:</em>
+                                                                <span t-field="grouped_task[0].school_id.name" />
+                                                            </th>
+                                                            <th t-if="groupby == 'Program'">
+                                                                <em class="font-weight-normal text-muted">Program:</em>
+                                                                <span t-field="grouped_task[0].program_id.name" />
+                                                            </th>
+                                                            <th t-if="groupby == 'Intake'">
+                                                                <em class="font-weight-normal text-muted">Intake:</em>
+                                                                <span t-esc="grouped_task[0].standard_id.name" />
+                                                            </th>
+                                                            <th scope="col">Name</th>
+                                                            <th scope="col">School</th>
+                                                            <th scope="col">Academic Year</th>
+                                                            <th scope="col">Program</th>
+                                                            <th scope="col">Intake</th>
+                                                            <th scope="col">Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody style="cursor: pointer;">
+                                                        <t t-foreach="grouped_task" t-as="admission">
+                                                            <tr t-att-data-id="admission.id" class="admission-row">
+                                                                <td>
+                                                                    <t t-esc="admission.pid" />
+                                                                </td>
+                                                                <td><span t-field="admission.name"/></td>
+                                                                <td><span t-field="admission.school_id"/></td>
+                                                                <td><span t-field="admission.year"/></td>
+                                                                <td><span t-field="admission.program_id"/></td>
+                                                                <td><span t-field="admission.standard_id"/></td>
+                                                                <td><span t-field="admission.state"/></td>
+                                                            </tr>
+                                                        </t>
+                                                    </tbody>
+                                                </table>
+                                            </t>
+                                        </t>
+                                    </div>
+                                </t>
+                                <div t-if="pager" class="o_portal_pager text-center" style="margin-top: 1%; margin-left: 18%;margin-bottom:1%;">
+                                    <t t-call="portal.pager"/>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="student_portal_admission_template" name="Student Admission Register">
+        <t t-call="website.layout">
+            <div class="o_portal container mt-3">
+                <div class="row align-items-center bg-white no-gutters border rounded">
+                    <div class="col-10">
+                        <ol class="o_portal_submenu breadcrumb mb-0 py-2 flex-grow-1 row">
+                            <li t-attf-class="breadcrumb-item #{'active ' if not student_edit_id else ''}" style="padding-left: 20px;">
+                                <a t-if="student_edit_id" t-attf-href="/student/admission?{{ keep_query() }}">Admission Register</a>
+                                <t t-else="">Admission Register</t>
+                            </li>
+                            <li t-if="student_edit_id" class="breadcrumb-item active">
+                                <t t-esc="student_edit_id.name"/>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div id="wrap">
+                <div class="oe_structure">
+                    <section id='student_sign_up_form_section' class="mt-4 mb-4">
+                        <div class="container-fluid d-flex">
+                            <div class="school_portal_sidebar other_form">
+                                <t t-call="equip3_school_portal.sidebar_portal_template"/>
+                            </div>
+                            <div style="width: 100%;box-shadow: 0px 0px 7px 4px #dbdbdb;border-radius: 15px !important;margin-left:2.5rem;">
+                                <form action="/student/admission/create" method="post" enctype="multipart/form-data" t-attf-class="checkout_autoformat school_admission_register {{'input-readonly' if is_edit_mode else 'hidden-button'}}">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                    <div class='d-flex mt-2 ml-5'>
+                                        <div style="width:50%;">
+                                            <h5><b>Admission Register</b></h5>
+                                        </div>
+                                        <div style="width:50%;text-align:right;">
+                                            <button t-if="is_edit_mode" id="admission-form-enable-edit" class="btn btn-primary position-absolute mr-3 text-white" style="margin-left: -61px;">Edit</button>
+<!--                                            <button type="submit" id="form_submit" class='btn btn-primary d-none'>Submit</button>-->
+                                            <button type="button" id="modal_form_save_as_draft" t-attf-class="btn btn-light border-dark {{'d-none' if is_edit_mode else ''}}" t-if="request.env.user.has_group('base.group_user') or request.env.user.has_group('base.group_portal')">Save as Draft</button>
+                                            <input type="checkbox" name="save_as_draft" class="d-none"/>
+                                            <button type="button" id="modal_form_submit" t-attf-class="btn btn-primary {{'d-none' if is_edit_mode else ''}}">Submit</button>
+                                        </div>
+                                    </div>
+                                    <div class='d-flex mt-2 student_type ml-5'>
+                                        <div class='student_img mr-5'>
+                                        <img src="/equip3_school_portal/static/src/img/default_user.png" id="admission_preview" class="img-thumbnail"/>
+                                        <i class='fa fa-link student-pic-fa-link'></i>
+                                        </div>
+                                        <input type="file" name="student_image" class="file d-none" accept="image/*"/>
+                                        <div class="input-group my-3 d-none">
+                                        <div class="input-group-prepend">
+                                            <button type="button" class="student_pic_browse btn btn-primary">Browse...</button>
+                                        </div>
+                                        <input type="text" class="form-control" placeholder="Upload File" id="file"/>
+                                        </div>
+                                        <div class='table' style="width:75%;">
+                                            <div class='col-lg-6'>
+                                                <t t-if="request.env.user.id != request.env.ref('base.public_user').id">
+                                                    <div class="form-group">
+                                                        <label for="student_type"><b>Student Type</b></label>
+                                                        <t t-if="request.env.user.has_group('school.group_school_student') and is_edit_mode">
+                                                            <select class="form-control student_type" disabled="disabled" required="required" name="student_type" style="margin-left: 132px;
+                                                            margin-top: -40px;width:75%;">
+                                                                <option value="existing_student" selected="selected">Existing Student</option>
+                                                            </select>
+                                                        </t>
+                                                        <t t-elif="request.env.user.has_group('school.group_school_student')">
+                                                            <select class="form-control student_type" disabled="disabled" required="required" name="student_type" style="margin-left: 132px;
+                                                            margin-top: -40px;width:75%;">
+                                                                <option value="existing_student" selected="selected">Existing Student</option>
+                                                            </select>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <select class="form-control student_type" required="required" name="student_type" style="margin-left: 132px;
+                                                            margin-top: -40px;width:75%;">
+                                                                <option value="new_student" selected="selected">New Student</option>
+                                                                <option value="existing_student">Existing Student</option>
+                                                            </select>
+                                                        </t>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                            <t t-if="is_edit_mode">
+                                                <input type="hidden" name="form_mode" id="form_mode" value="edit_mode" class="form-control"/>
+                                                <div class='col-lg-6 existing_student_name d-none'>
+                                                    <div class="form-group">
+                                                        <label for="existing_student_name"><b>Student Name</b></label>
+                                                        <select class="form-control existing_student_name" name="student_name" id="existing_student_name">
+                                                            <option t-att-value="student_edit_id.id" selected="selected">
+                                                                <t t-esc="student_edit_id.name"/>
+                                                            </option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </t>
+                                            <t t-elif="to_create_existing">
+                                                <input type="hidden" name="form_mode" id="form_mode" value="create_existing" class="form-control"/>
+                                                <div class='col-lg-6 existing_student_name d-none'>
+                                                    <div class="form-group">
+                                                        <label for="existing_student_name"><b>Student Name</b></label>
+                                                        <select class="form-control existing_student_name" name="student_name" id="existing_student_name">
+                                                            <option t-att-value="student_name.id" selected="selected">
+                                                                <t t-esc="student_name.name"/>
+                                                            </option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </t>
+                                            <t t-else="">
+                                                <div class='col-lg-6 existing_student_name d-none' t-if="request.env.user.has_group('base.group_system')">
+                                                    <div class="form-group">
+                                                    <label for="existing_student_name"><b>Student Name</b></label>
+                                                    <select class="form-control existing_student_name" name="student_name" id="existing_student_name" style="margin-left: 132px;margin-top: -40px;width:75%;">
+                                                        <option value="">Student Name</option>
+                                                        <t t-foreach="student_name" t-as="sn">
+                                                            <option t-att-value="sn.id" t-att-selected="sn.id == (student and student.id or -1)">
+                                                                <t t-esc="sn.name"/>
+                                                            </option>
+                                                        </t>
+                                                    </select>
+                                                    </div>
+                                                </div>
+                                            </t>
+                                            <div class='col-lg-6'>
+                                                <div class="form-group">
+                                                    <label class="o_required" for="type"><b>Type</b></label>
+                                                    <select class="form-control type" name="type" id="type" style="margin-left: 132px;margin-top: -40px;width:75%;">
+                                                        <option value="local_student">Local Student</option>
+                                                        <option value="international_student">International Student</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class='col-lg-6'>
+                                                <div class="form-group">
+                                                    <label class="o_required" for="student_first_name"><b>First Name</b></label>
+                                                    <input type="text" class="form-control" id="student_first_name" name="student_first_name" required="required" style="margin-left: 132px;
+                                                    margin-top: -40px;width:75%;"/>
+                                                </div>
+                                            </div>
+                                            <div class='col-lg-6'>
+                                                <div class="form-group">
+                                                    <label for="student_middle_name"><b>Middle Name</b></label>
+                                                    <input type="text" class="form-control" id="student_middle_name" name="student_middle_name" style="margin-left: 132px;
+                                                    margin-top: -40px;width:75%;"/>
+                                                </div>
+                                            </div>
+                                            <div class='col-lg-6'>
+                                                <div class="form-group">
+                                                    <label for="student_last_name"><b>Last Name</b></label>
+                                                    <input type="text" class="form-control" id="student_last_name" name="student_last_name" style="margin-left: 132px;
+                                                    margin-top: -40px;width:75%;"/>
+                                                </div>
+                                            </div>                                
+                                        </div>
+                                    </div>
+                                    <div class="m-md-4">
+                                        <ul class="nav nav-tabs mb-3" id="admission" role="tablist">
+                                            <li class="nav-item" role="presentation">
+                                                <a class="nav-link" data-toggle="tab" href="#generaladmission">GENERAL</a>
+                                            </li>
+                                            <li class="nav-item passtracker" role="presentation">
+                                                <a class="nav-link" data-toggle="tab" href="#passtracker">PASS TRACKER</a>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <a class="nav-link" data-toggle="tab" href="#schoolinformationadmission">SCHOOL INFORMATION</a>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <a class="nav-link" data-toggle="tab" href="#parentadmission">PARENT</a>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <a class="nav-link" data-toggle="tab" href="#referenceadmission">REFERENCE</a>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <a class="nav-link" data-toggle="tab" href="#familydetailsadmission">FAMILY DETAILS</a>
+                                            </li>
+                                        </ul>
+                                        <div class="tab-content" id="admission-content">
+                                            <div id="generaladmission" class="tab-pane fade show active">
+                                                <div class="o_group" style="display: inline-block;width: 100%;margin: 10px 0;">
+                                                    <table class="o_group o_inner_group o_group_col_6" style="width: 47%;margin: 10px 10px;display: inline-table;vertical-align: top;">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td colspan="2" style="width: 100%;">
+                                                                    <h5><b>General Information</b></h5>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="name_persented_on_certificate"><b>Name Persented on Certificate</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="text" class="form-control mt-3" id="name_persented_on_certificate" required="required"  name="name_persented_on_certificate"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="nric"><b>Identification No.</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="text" class="form-control mt-3" id="nric" name="nric" required="required" placeholder="Identification number"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="student_phone"><b>Phone</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="text" class="form-control mt-3" id="student_phone" required="required" name="student_phone" placeholder="e.g 088xxxxxxxxx"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="student_email"><b>Email</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <t t-if="student_email">
+                                                                        <input type="email" class="form-control mt-3" id="student_email" readonly="readonly" required="required" name="student_email" t-att-value="student_email" pattern="^[a-z0-9\._%+\-]+@[a-z0-9\.\-]+\.[a-z]{2,4}$"/>
+                                                                    </t>
+                                                                    <t t-else="">
+                                                                        <input type="email" class="form-control mt-3" id="student_email" readonly="readonly" required="required" name="student_email" placeholder="e.g yourname@domain.xyz" pattern="^[a-z0-9\._%+\-]+@[a-z0-9\.\-]+\.[a-z]{2,4}$"/>
+                                                                    </t>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="student_gender"><b>Gender</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <select class="form-control mt-3" name="student_gender" id="student_gender" required="required">
+                                                                        <option value="" selected="selected">Gender</option>
+                                                                        <option value="male">Male</option>
+                                                                        <option value="female">Female</option>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                             <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="date_of_birth"><b>Date of Birth</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="date" class="form-control mt-3 autosave" id="date_of_birth" required="required" name="date_of_birth" t-att-value="student_edit_id and student_edit_id.date_of_birth"/>
+                                                                </td>
+                                                            </tr>
+                            
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="age"><b>Age</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="text" class="form-control mt-3" id="age" required="required" name="age" t-att-value="student_edit_id and student_edit_id.age" readonly="readonly"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label clas="mt-3 o_required" for="student_marital_status"><b>Marital Status</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <select class="form-control mt-3" name="student_marital_status" id="student_marital_status">
+                                                                        <option value="" selected="selected">Marital Status</option>
+                                                                        <option value="married">Married</option>
+                                                                        <option value="unmarried">Unmarried</option>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <table class="o_group o_inner_group o_group_col_6" style="width: 47%;margin: 10px 10px;display: inline-table;vertical-align: top;">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td colspan="2" style="width: 100%;">
+                                                                    <h5><b>Address Information</b></h5>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="student_street"><b>Street</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                     <input type="text" class="form-control mt-3" id="student_street" required="required" name="student_street" placeholder="street"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="country_id"><b>Country</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <select id="country_id" name="country_id" required="required" class="form-control mt-3">
+                                                                    <option value="">Country...</option>
+                                                                    <t t-foreach="countries" t-as="c">
+                                                                        <option t-att-value="c.id" t-att-selected="c.id == (country and country.id or -1)">
+                                                                            <t t-esc="c.name" />
+                                                                        </option>
+                                                                    </t>
+                                                                </select>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3" for="city_name"><b>City</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="text" class="form-control mt-3" id="city_name" name="city_name" placeholder="City"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="col-form-label mt-3" for="state_id"><b>State</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <select name="state_id" class="form-control mt-3" id="state_id" data-init="1">
+                                                                        <option value="">State</option>
+                                                                        <t t-foreach="country_states" t-as="s">
+                                                                            <option t-att-value="s.id" t-att-selected="s.id == ('state_id' in checkout and country and checkout['state_id'] != '' and int(checkout['state_id']))">
+                                                                                <t t-esc="s.name" />
+                                                                            </option>
+                                                                        </t>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label for="student_zip_code" class="mt-3"><b>Zip</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="text" class="form-control mt-3"  id="student_zip_code" name="student_zip_code" placeholder="Zip"/>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <div id="passtracker" class="tab-pane fade">
+                                                <div class="o_group" style="display: inline-block;width: 100%;margin: 10px 0;">
+                                                    <table class="o_group o_inner_group o_group_col_6" style="width: 47%;margin: 10px 10px;display: inline-table;vertical-align: top;">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3" for="personal_document"><b>Personal Document</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="file" class="form-control mt-3" id="personal_document" name="personal_document"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3" for="transfer_student"><b>Transfer Student</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <select class="form-control mt-3" name="transfer_student" id="transfer_student">
+                                                                        <option value="">Transfer Student</option>
+                                                                        <option value="yes">Yes</option>
+                                                                        <option value="no">No</option>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3" for="student_pass_registry"><b>Student Pass Registry (SOLAR Application Number)</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="text" class="form-control mt-3" id="student_pass_registry" name="student_pass_registry" />
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3" for="student_pass_status"><b>Student Pass Status</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="text" class="form-control mt-3" id="student_pass_status" name="student_pass_status"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3" for="student_pass_digital"><b>Student Pass Digital</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="file" class="form-control mt-3" id="student_pass_digital" name="student_pass_digital"/>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <table class="o_group o_inner_group o_group_col_6" style="width: 47%;margin: 10px 10px;display: inline-table;vertical-align: top;">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3" for="appeal_form"><b>Appeal Form (If Needed)</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="file" class="form-control mt-3" id="appeal_form" name="appeal_form"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3" for="medical_check_up_form"><b>Medical Check Up Form</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="file" class="form-control mt-3" id="medical_check_up_form" name="medical_check_up_form"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3" for="medical_check_up_result"><b>Medical Check Up Result</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="file" class="form-control mt-3" id="medical_check_up_result" name="medical_check_up_result"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3" for="medical_check_up_date"><b>Medical Check Up Date</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <input type="date" class="form-control mt-3 autosave" id="medical_check_up_date" name="medical_check_up_date" t-att-value="student_edit_id and student_edit_id.date_of_birth"/>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <div id="schoolinformationadmission" class="tab-pane fade">
+                                                <div class="o_group" style="display: inline-block;width: 100%;margin: 10px 0;">
+                                                    <table class="o_group o_inner_group o_group_col_6" style="width: 47%;margin: 10px 10px;display: inline-table;vertical-align: top;">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="school"><b>School</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <select class="form-control mt-3 medium_school" required="required" name="school_id" id="school">
+                                                                    <option value="">School Name</option>
+                                                                    <t t-foreach="school_id" t-as="si">
+                                                                        <option t-att-value="si.id" t-att-selected="si.id == (school and school.id or -1)">
+                                                                            <t t-esc="si.name" />
+                                                                        </option>
+                                                                    </t>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="student_medium"><b>Program</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <select class="form-control mt-3 medium_school" required="required" name="program_id" id="program_id">
+                                                                            <option value="">Program</option>
+                                                                            <option t-if="student_edit_id and student_edit_id.program_id" t-att-value="student_edit_id.program_id.id" selected="selected">
+                                                                                <t t-esc="student_edit_id.program_id.name"/>
+                                                                            </option>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <table class="o_group o_inner_group o_group_col_6" style="width: 47%;margin: 10px 10px;display: inline-table;vertical-align: top;">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="academic_year"><b>Academic Year</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <select class="form-control mt-3 academic_year medium_school" required="required" name="academic_year" id="academic_year">
+                                                                    <option value="">Academic Year</option>
+                                                                    <t t-foreach="academic_year" t-as="sm">
+                                                                        <option t-att-value="sm.id">
+                                                                            <t t-esc="sm.name" />
+                                                                        </option>
+                                                                    </t>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="o_td_label" style="width:35%;">
+                                                                    <label class="mt-3 o_required" for="student_intake"><b>Intake</b></label>
+                                                                </td>
+                                                                <td style="width: 65%;">
+                                                                    <select class="form-control mt-3 standard_id medium_school" required="required" name="standard_id" id="standard_id">
+                                                                        <option value="">Intake</option>
+                                                                        <option t-if="student_edit_id and student_edit_id.standard_id" t-att-value="student_edit_id.standard_id.id" selected="selected">
+                                                                            <t t-esc="student_edit_id.standard_id.name"/>
+                                                                        </option>
+                                                                    </select>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <div id="parentadmission" class="tab-pane fade">
+                                                <div>
+                                                    <div class="table-responsive" style="width: 100%;">
+                                                        <table class="table table-bordered parent_profile_o2m">
+                                                            <thead>
+                                                            <tr>
+                                                                <th class="text-center align-middle">Name</th>
+                                                                <th class="text-center align-middle">Relation with Child</th>
+                                                                <th class="text-center align-middle">Phone</th>
+                                                                <th class="text-center align-middle">Email</th>
+                                                                <th class="text-center align-middle">City</th>
+                                                                <th class="text-center align-middle">Country</th>
+                                                                <th style="border:1px solid white;width: 4%;"></th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr class="extra_parent_row d-none">
+                                                                    <td><input type="text" data-required="True" data-name="name" class="form-control"></input></td>
+                                                                    <td>
+                                                                        <select class="form-control" data-name="parent_relation">
+                                                                            <option value="">Relation with Child</option>
+                                                                            <t t-foreach="relations" t-as="r">
+                                                                                <option t-att-value="r.id" t-att-selected="r.id == (relation_id and relation_id.id or -1)">
+                                                                                    <t t-esc="r.name" id="parent_relation_id" name="parent_relation_id"/>
+                                                                                </option>
+                                                                            </t>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td><input type="text" data-name="phone" class="form-control"></input></td>
+                                                                    <td><input type="text" data-required="True" data-name="email" class="form-control"></input></td>
+                                                                    <td><input type="text" data-name="city" class="form-control"></input></td>
+                                                                    <td class="js_cls_student_signup_country_state_wrapper"><select data-name="country_id" class="form-control parent_country_id">
+                                                                        <option value="">Country...</option>
+                                                                        <t t-foreach="countries" t-as="c">
+                                                                            <option t-att-value="c.id" t-att-selected="c.id == (country and country.id or -1)">
+                                                                                <t t-esc="c.name" />
+                                                                            </option>
+                                                                        </t>
+                                                                    </select></td>
+                                                                    <td style="border: transparent;"><button class="btn fa fa-trash-o remove_line" style="margin-left: -2px;margin-right: 7px;font-size: 20px;padding: 0;color: red;" name="delete" aria-label="Delete row 1"></button></td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <textarea class="d-none" name="parent_data">
+                                                    </textarea>
+                                                    <button class="btn btn-md btn-primary" 
+                                                        id="addmore" type="button">
+                                                    Add new Row
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div id="referenceadmission" class="tab-pane fade">
+                                                <div>
+                                                    <div class="table-responsive" style="width: 100%;">
+                                                        <table class="table table-bordered parent_references_o2m">
+                                                            <thead>
+                                                            <tr>
+                                                                <th class="text-center">First Name</th>
+                                                                <th class="text-center">Middle Name</th>
+                                                                <th class="text-center">Surname</th>
+                                                                <th class="text-center">Designation</th>
+                                                                <th class="text-center">Email</th>
+                                                                <th class="text-center">Phone </th>
+                                                                <th class="text-center">Gender</th>
+                                                                <th style="border:1px solid white;wi;width: 4%;"></th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr class="extra_ref_row d-none">
+                                                                    <td><input type="text" data-required="True" id="reference_name" name="reference_name" data-name="first_name" class="form-control"></input></td>
+                                                                    <td><input type="text" data-required="False" id="refrence_middle" name="refrence_middle" data-name="middle_name" class="form-control"></input></td>
+                                                                    <td><input type="text" data-required="False" id="reference_last" name="reference_last" data-name="surname" class="form-control"></input></td>
+                                                                    <td><input type="text" data-required="True" id="reference_destgnation" name="reference_destgnation" data-name="designation" class="form-control"></input></td>
+                                                                    <td>
+                                                                        <input type="text" id="reference_email" name="reference_email" data-name="email" class="form-control"></input>
+                                                                    </td>
+                                                                    <td><input type="text" id="reference_phone" name="reference_phone" data-required="True" data-name="phone" class="form-control"></input></td>
+                                                                    <td> 
+                                                                        <select class="form-control" data-name="ref_gender">
+                                                                            <option value="" selected="selected">Gender</option>
+                                                                            <option value="male">Male</option>
+                                                                            <option value="female">Female</option>
+                                                                        </select>  
+                                                                    </td>
+                                                                    <td style="border: transparent;"><button class="btn fa fa-trash-o remove_line" style="margin-left: -1px;margin-right: 7px;font-size: 20px;padding: 0;color: red;" name="delete" aria-label="Delete row 1"></button></td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <textarea class="d-none" name="references_data">
+                                                    </textarea>
+                                                    <button class="btn btn-md btn-primary" 
+                                                        id="addref" type="button">
+                                                    Add new Row
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div id="familydetailsadmission" class="tab-pane fade">
+                                                <div>
+                                                    <div class="table-responsive" style="width: 100%;">
+                                                        <table class="table table-bordered family_details_o2m">
+                                                            <thead>
+                                                            <tr>
+                                                                <th class="text-center">Related Student</th>
+                                                                <th class="text-center">Relative Name</th>
+                                                                <th class="text-center">Existing Student</th>
+                                                                <th class="text-center">Relation</th>
+                                                                <th class="text-center">Email</th>
+                                                                <th class="text-center">Phone</th>
+                                                                <th style="border:1px solid white;wi;width: 4%;"></th>
+                                                            </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr class="extra_family_row d-none">
+                                                                    <td><select class="form-control related_student" data-required="True" data-name="related_student">
+                                                                        <option value="" selected="selected">Related Student</option>
+                                                                        <option value="exist">Link to Existing Student</option>
+                                                                        <option value="new">Create New Relative Name</option>
+                                                                    </select></td>
+                                                                    <td><input type="text" data-name="r_name" class="form-control" disabled="disabled"></input></td>
+                                                                    <td>
+                                                                        <select class="form-control" data-name="existing_student" name="student_id" disabled="disabled">
+                                                                        <option value="">Select..</option>
+                                                                        <t t-foreach="existing_student" t-as="es">
+                                                                            <option t-att-value="es.id" t-att-selected="es.id == (stu_name and stu_name.id or -1)">
+                                                                                <t t-esc="es.name" />
+                                                                            </option>
+                                                                        </t>
+                                                                    </select>
+                                                                </td>
+                                                                    <td><select class="form-control" data-required="True" data-name="family_relation">
+                                                                        <option value="">Select..</option>
+                                                                        <t t-foreach="family_relation" t-as="fr">
+                                                                            <option t-att-value="fr.id" t-att-selected="fr.id == (relation and relation.id or -1)">
+                                                                                <t t-esc="fr.name" />
+                                                                            </option>
+                                                                        </t>
+                                                                    </select></td>
+                                                                    <td><input type="text" data-name="email" class="form-control"></input></td>
+                                                                    <td><input type="text" data-required="True" data-name="phone" class="form-control"></input></td>
+                                                                    <td style="border: transparent;"><button class="btn fa fa-trash-o remove_line" style="margin-right: 7px;font-size: 20px;padding: 0;color: red;" name="delete" aria-label="Delete row 1"></button></td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <textarea class="d-none" name="family_data">
+                                                    </textarea>
+                                                    <button class="btn btn-md btn-primary" 
+                                                        id="addfamily" type="button">
+                                                    Add new Row
+                                                    </button>
+                                                </div>
+                                            </div>  
+
+                                        </div>
+                                    </div>
+                                    <div class="m-4">
+                                        <div id="save_draft_modal" class="modal" tabindex="-1">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="col-lg-auto modal-content mt256">
+                                                    <div class="modal-body">
+                                                        <h2>Saved as Draft !</h2>
+                                                        <h5>You can update the record before submit it.</h5>
+                                                        <h5>Thank You</h5>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    <button type="submit" class="btn btn-primary draft_modal">Ok</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="m-4">
+                                        <div id="ok_modal" class="modal" tabindex="-1" style="z-index: 9999;">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="col-lg-auto modal-content mt256">
+                                                    <div class="modal-body text-center">
+                                                        <h2>Privacy Policy</h2>
+                                                        <h3 class="text-secondary"><small>Please read the PDPA Consent and tick it before you submit the admission</small></h3>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    <button type="submit" class="btn btn-primary" data-dismiss="modal">Ok</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="m-4">
+                                        <div id="age_model" class="modal" tabindex="-1">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="col-lg-auto modal-content mt256">
+                                                    <div class="modal-body text-center">
+                                                        <h2>Validation Error</h2>
+                                                        <h3 class="text-secondary"><small></small></h3>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    <button type="submit" class="btn btn-primary" data-dismiss="modal">Ok</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="m-4">
+                                        <div id="submit_modal" class="modal fade" tabindex="-1">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="mt-2 text-center">
+                                                        <img src="/equip3_school_portal/static/src/img/pngwing.com.png" class="img-thumbnail" style="border-radius: 63px; height: 97px; width: 100px;"/>
+                                                    </div>
+                                                    <div class="modal-body text-center">
+                                                        <h2><strong>Confirmation Admission!</strong></h2>
+                                                        <h3 class="text-secondary"><small>Are you sure to submit registration?</small></h3>
+                                                        <div class="row">
+                                                            <div>
+                                                                <div class="form-group mt-3" style="margin-left: 147px;">
+                                                                    <input class="ml-md-2" type="checkbox" name="pdpa_consent" onclick="checkPdpaConsent()" id="pdpa_consent" /> I have read and agreed to the 
+                                                                        <a t-if="attachment_id" t-attf-href="/web/content/ir.attachment/#{attachment_id}/datas?access_token=#{access_token}"
+                                                                        t-att-checked="is_pdpa_constent" t-att-download="download">PDPA Consent.</a>
+                                                                        <span t-if="not attachment_id"><strong>PDPA Consent.</strong></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer text-center">
+                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                        <div class='col-lg-12'>
+                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                            <button type="button" id="modal_submit" class="btn btn-primary" disabled="disabled">Submit</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="m-4">
+                                        <div id="thank_submission_modal" class="modal fade" tabindex="-1">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="mt-2 text-center">
+                                                        <img src="/equip3_school_portal/static/src/img/clipart150472.png" class="img-thumbnail" style="border-radius: 63px; height: 97px; width: 100px;"/>
+                                                    </div>
+                                                    <div class="modal-body text-center">
+                                                        <h1><strong>Admission Successful</strong></h1>
+                                                        <h3><small>Thank you for your registration. The registration data has been successfully saved. We will process the admission, will contact you soon.</small></h3><br/>
+                                                    </div>
+                                                    <div class="modal-footer text-center">
+                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                        <div class='col-lg-12'>
+                                                            <button type="submit" id="form_submit" onclick="updateButtonOnClick()" class='btn btn-primary'>Close</button>
+                                                            <span id="sending_message" class="d-none">Please wait, sending...</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="m-4">
+                                        <div id="empty_warning_modal" class="modal" tabindex="-1">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="col-lg-auto modal-content mt200">
+                                                    <div class="mt-2 text-center">
+                                                        <i class="fa fa-times-circle-o fa-5x" style="color: #ff0000;"></i>
+                                                    </div>
+                                                    <div class="modal-body text-center">
+                                                        <h3 class="m-0"><small>Oops, there seems to be and error.</small></h3>
+                                                        <h3 class="m-0"><small>Please complete all required fields before proceeding.</small></h3>
+                                                        <h3 class="m-0"><small>Thank you.</small></h3>
+                                                    </div>
+                                                    <div class="modal-footer text-center">
+                                                        <div class='col-lg-12'>
+                                                            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </t>
+    </template>
+	
+</odoo>

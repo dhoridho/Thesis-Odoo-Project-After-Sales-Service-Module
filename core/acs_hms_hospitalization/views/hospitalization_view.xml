@@ -1,0 +1,261 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="view_acs_hospitalization_form" model="ir.ui.view">
+        <field name="name">acs.hospitalization.form</field>
+        <field name="model">acs.hospitalization</field>
+        <field name="arch" type="xml">
+            <form string="Inpatient Registration Information">
+                <header>
+                    <button name="action_confirm" string="Confirm" class="oe_highlight" type="object" states="draft" groups="acs_hms.group_hms_receptionist"/>
+                    <button name="action_hospitalize" string="Hospitalize" class="oe_highlight" type="object" states="reserved" groups="acs_hms.group_hms_receptionist"/>
+                    <button name="action_reserve" type="object" string="Reserve" class="oe_highlight" states="confirm" groups="acs_hms.group_hms_receptionist"/>
+                    <button name="action_discharge" type="object" string="Discharge" class="oe_highlight" states="hosp" groups="acs_hms.group_hms_receptionist"/>
+                    <button name="action_cancel" string="Cancel" states="reserved,confirm" type="object" class="oe_highlight" groups="acs_hms.group_hms_receptionist"/>
+                    <button name="action_create_invoice" string="Create Invoice" class="oe_highlight" type="object" attrs="{'invisible': ['|', ('state', '!=', 'discharged'),('no_invoice', '=', True)]}" groups="account.group_account_invoice"/>
+                    <button name="%(transfer_accommodation_action)d" string="Transfer" class="oe_highlight" type='action' states="reserved,hosp" groups="acs_hms.group_hms_receptionist"/>
+                    <button name="button_indoor_medication" string="IP Medicine Request" type="object" states="hosp" class="oe_highlight" groups="acs_hms.group_hms_jr_doctor"/>
+                    <button name="action_done" string="Done" states="discharged" type="object" class="oe_highlight" groups="acs_hms.group_hms_receptionist,acs_hms.group_hms_medical_officer"/>
+                    <button name="action_draft" string="Draft" states="cancel" type="object" class="oe_highlight" groups="acs_hms.group_hms_receptionist"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm,hosp,discharged,done" statusbar_colors='{"cancel":"red"}'/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" class="oe_stat_button" icon="fa-pencil-square-o" name="view_invoice" attrs="{'invisible': [('state', 'not in', ['hosp','discharged','done'])]}" groups="account.group_account_invoice">
+                            <field string="Invoices" name="invoice_count" widget="statinfo"/>
+                        </button>
+                        <button type="object" class="oe_stat_button" icon="fa-bed" name="action_view_surgery">
+                            <field string="Surgery" name="surgery_count" widget="statinfo"/>
+                        </button>
+                        <button name="action_prescription" class="oe_stat_button" icon="fa-wpforms" type="object" states="confirm,hosp,discharged,done">
+                            <field string="IPM Requests" name="prescription_count" widget="statinfo"/>
+                        </button>
+                        <button type="object" class="oe_stat_button" icon="fa-bed" name="action_accommodation_history" groups="acs_hms.group_hms_receptionist">
+                            <field string="Bed Allocation" name="accommodation_count" widget="statinfo"/>
+                        </button>
+                        <button type="object" class="oe_stat_button" icon="fa-stethoscope" name="action_view_evaluation" groups="acs_hms.group_hms_receptionist">
+                            <field string="Evaluations" name="evaluation_count" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <h1>
+                        <label for="name" string="Hospitalization #" attrs="{'invisible': [('state','not in',['draft'])]}"/>
+                        <field name="name" readonly="1" class="oe_inline" attrs="{'invisible': [('state','in',['draft'])]}"/>
+                    </h1>
+
+                    <group>
+                        <group>
+                            <field name="patient_id" required="1"/>
+                            <field name="physician_id" required="1"/>
+                            <field name="attending_physician_ids" widget="many2many_tags"/>
+                            <field name="diseas_id"/>
+                        </group>
+                        <group>
+                            <field name="hospitalization_date" required="1"/>
+                            <field name="discharge_date"/>
+                            <field name="department_id" groups="acs_hms.group_allow_multi_department"/>
+                        </group>
+                    </group>
+
+                    <notebook name="main">
+                        <page name="general" string="General Information">
+                            <group>
+                                <group>
+                                    <field name="relative_id"/>
+                                    <field name="relative_number"/>
+                                    <field name="appointment_id" invisible="1"/>
+                                    <field name="ref_physician_id"/>
+                                    <field name="no_invoice" groups="acs_hms_base.group_acs_invoice_exemption"/>
+                                </group>
+                                <group>
+                                    <field name="ward_id" widget="selection" attrs="{'required': [('state','in',('confirm'))]}"/>
+                                    <field name="bed_id"  domain="[('ward_id', '=', ward_id), ('state', '=', 'free')]"  attrs="{'required': [('state','in',('confirm'))]}"/>
+                                    <field name="admission_type" required="1"/>
+                                    <field name="company_id" required="1" groups="base.group_multi_company" options="{'no_create': True}"/>
+                                </group>
+                            </group>
+                            
+                        </page>
+                        <page name="administrative" string="Admission Checklist" groups="acs_hms.group_hms_receptionist">
+                            <div class="oe_right mt16" name="check_progress">
+                                <field name="checklist_done" widget="percentpie" string="Checked"/>
+                            </div>
+                            <field name="checklist_ids" groups="acs_hms.group_hms_receptionist,acs_hms.group_hms_medical_officer,acs_hms.group_hms_nurse">
+                                <tree editable="top">
+                                    <field name="name"/>
+                                    <field name="is_done"/>
+                                    <field name="remark"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="pre_ward_checklist" string="Pre Ward Checklist" groups="acs_hms.group_hms_medical_officer,acs_hms.group_hms_nurse">
+                            <div class="oe_right mt16" name="pre_operative_check_progress">
+                                <field name="pre_ward_checklist_done" widget="percentpie" string="Checked"/>
+                            </div>
+                            <field name="pre_ward_checklist_ids">
+                                <tree editable="top">
+                                    <field name="name"/>
+                                    <field name="is_done"/>
+                                    <field name="remark"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <!-- Start Basic Care Plan -->
+                        <page name="basic_careplan" string="Care Plan" groups="acs_hms.group_hms_medical_officer,acs_hms.group_hms_nurse" attrs="{'invisible': [('state', 'not in', ['hosp','discharged','done'])]}">
+                            <group>
+                                <group>
+                                    <field name="nurse_id"/>
+                                </group>
+                            </group>
+                            <label for="nursing_plan"/>
+                            <field name="nursing_plan" colspan="4"/>
+                            <group string="Physician Ward Rounds" name="physician_ward_rounds">
+                                <field name="ward_rounds" nolabel="1" colspan="4">
+                                    <tree string="Line" editable="top">
+                                        <field name="date"/>
+                                        <field name="instruction" required="1"/>
+                                        <field name="physician_id" required="1"/>
+                                        <field name="remarks" required="1"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Discharge Summary" groups="acs_hms.group_hms_jr_doctor,acs_hms.group_hms_medical_officer" name="discharged" attrs="{'invisible': [('state', 'not in', ['hosp','discharged','done'])]}">
+                            <group>
+                                <group>
+                                    <field name="death_register_id"/>
+                                </group>
+                            </group>
+                            <separator string="Discharge Diagnosis"/>
+                            <field name="discharge_diagnosis"/>
+                            <separator string="Pre Operative Note"/>
+                            <field name="op_note"/>
+                            <separator string="Post Operative Course"/>
+                            <field name="post_operative"/>
+                            <separator string="Discharge Plan"/>
+                            <field name="discharge_plan"/>
+                            <separator string="Instructions"/>
+                            <field name="instructions"/>
+                        </page>
+                        <page name="consumable_lines" string="Consumed Products/Services" attrs="{'invisible': [('state', 'not in', ['hosp','discharged','done'])]}">
+                            <field name="consumable_line_ids" nolabel="1" colspan="4">
+                                <tree string="Line" editable="top">
+                                    <field name="product_id" expand="1" required="1" domain="[('tracking','=','none')]"/>
+                                    <field name="product_uom" required="1"/>
+                                    <field name="qty" required="1"/>
+                                    <field name="date" required="1"/>
+                                    <field name="move_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="legal_data" string="Legal Details" groups="acs_hms.group_hms_medical_officer">
+                            <group>
+                                <field name="legal_case"/>
+                            </group>
+                            <group>
+                                <field name="reported_to_police" widget="radio"/>
+                                <field name="fir_no" attrs="{'invisible': [('reported_to_police', '!=', 'yes')]}"/>
+                                <field name="fir_reason" attrs="{'invisible': [('reported_to_police', '!=', 'no')]}"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"
+                        groups="base.group_user"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="acs_hospitalization_tree">
+        <field name="name">acs.hospitalization.tree</field>
+        <field name="model">acs.hospitalization</field>
+        <field name="arch" type="xml">
+            <tree string="Inpatient Registration Info">
+                <field name="name"></field>
+                <field name="patient_id"></field>
+                <field name="hospitalization_date"></field>
+                <field name="discharge_date"></field>
+                <field name="ward_id"/>
+                <field name="bed_id"></field>
+                <field name="state"></field>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_acs_hospitalization_filter" model="ir.ui.view">
+        <field name="name">acs.hospitalization.select</field>
+        <field name="model">acs.hospitalization</field>
+        <field name="type">search</field>
+        <field name="arch" type="xml">
+            <search string="Search Hospitalizations">
+                <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>
+                <filter name="reserved" string="Reserved" domain="[('state','=','reserved')]"/>
+                <filter name="hosp" string="Hospitalized" domain="[('state','=','hosp')]"/>
+                <filter name="discharged" string="Discharged" domain="[('state','=','discharged')]"/>
+                <filter name="done" string="Done" domain="[('state','=','done')]"/>
+                <filter name="routine" string="Routine" domain="[('admission_type','=','routine')]"/>
+                <filter name="elective" string="Elective" domain="[('admission_type','=','elective')]"/>
+                <filter name="urgent" string="Urgent" domain="[('admission_type','=','urgent')]"/>
+                <filter name="emergency" string="Emergency" domain="[('admission_type','=','emergency')]"/>
+                <field name="patient_id"/>
+                <field name="attending_physician_ids"/>
+                <field name="name"/>
+                <field name="ref_physician_id"/>
+                <field name="relative_id"/>
+                <field name="ward_id"/>
+                <field name="bed_id"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_patient" string="Patient" context="{'group_by':'patient_id'}"/>
+                    <filter name="group_by_date" string="Date" context="{'group_by':'hospitalization_date'}"/>
+                    <filter name="group_by_ward" string="Ward/Room" context="{'group_by':'ward_id'}"/>
+                    <filter name="group_by_state" string="Status" context="{'group_by':'state'}"/>
+                    <filter name="group_by_comp" string="Company" context="{'group_by':'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_acs_inpatient_calendar" model="ir.ui.view">
+        <field name="name">acs.inpatient.calendar</field>
+        <field name="model">acs.hospitalization</field>
+        <field name="type">calendar</field>
+        <field name="arch" type="xml">
+            <calendar string="Hospitalizations" color="patient_id" date_start="hospitalization_date" date_stop="discharge_date">
+                <field name="bed_id"/>
+                <field name="patient_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_hospitalization_pivot" model="ir.ui.view">
+        <field name="name">acs.hospitalization.pivot</field>
+        <field name="model">acs.hospitalization</field>
+        <field name="arch" type="xml">
+            <pivot string="hospitalizations">
+                <field name="hospitalization_date" type="row"/>
+                <field name="department_id" type="row" groups="acs_hms.group_allow_multi_department"/>
+                <field name="patient_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="acs_action_form_inpatient">
+        <field name="name">Hospitalization</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">acs.hospitalization</field>
+        <field name="view_mode">tree,form,calendar,pivot</field>
+        <field name="view_id" ref="acs_hospitalization_tree"/>
+        <field name="search_view_id" ref="view_acs_hospitalization_filter"/>
+        <field name="context">{'search_default_hospitalize': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add a new Patient Hospitalization.
+            </p>
+        </field>
+    </record>
+
+</odoo>

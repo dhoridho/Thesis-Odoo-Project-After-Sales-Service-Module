@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- procurement.planning.model tree view -->
+        <record id="procurement_planning_model_view_tree" model="ir.ui.view">
+            <field name="name">procurement.planning.model.view.tree</field>
+            <field name="model">procurement.planning.model</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name" />
+                    <field name="warehouse_id" />
+                    <field name="branch_id" />
+                    <field name="analytic_group_ids" widget="many2many_tags" />
+                    <field name="start_date" />
+                    <field name="end_date" />
+                    <field name="lead_time" />
+                    <field name="suggest_stock_period" />
+                    <field name="state" widget="badge" decoration-info="state == 'draft'"
+                        decoration-success2="state == 'ready'" decoration-success="state == 'done'" />
+                    <field name="company_id" />
+                </tree>
+            </field>
+        </record>
+
+        <!-- procurement.planning.model form view -->
+        <record id="procurement_planning_model_view_form" model="ir.ui.view">
+            <field name="name">procurement.planning.model.view.form</field>
+            <field name="model">procurement.planning.model</field>
+            <field name="arch" type="xml">
+                <form string="Procurement Planning">
+                    <header>
+                        <button name="action_simulate" string="Simulate" type="object"
+                            class="oe_highlight"
+                            attrs="{'invisible':['|', ('state', 'not in', ('draft', 'ready')), ('id', '=', False)]}" />
+                        <button name="action_confirm" string="Confirm" type="object"
+                            class="oe_highlight"
+                            states="ready" />
+                        <button name="action_done" string="Done" type="object" class="oe_highlight"
+                            states="confirm,in_progress" />
+                        <button name="create_purchase_request" string="Create Purchase Request"
+                            type="object" class="oe_highlight"
+                            states="confirm,in_progress" />
+                        <button name="create_rfq" string="Create RFQ" type="object"
+                            class="oe_highlight"
+                            states="confirm,in_progress" />
+                        <field name="state" widget="statusbar" />
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_rfq" type="object" class="oe_stat_button"
+                                icon="o-hm-smart-all-operations">
+                                <field name="rfq_count" string="RFQ" widget="statinfo" />
+                            </button>
+                            <button name="action_view_pr" type="object" class="oe_stat_button"
+                                icon="o-hm-smart-all-on-time">
+                                <field name="pr_count" string="Purchase Request" widget="statinfo" />
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1" />
+                            </h1>
+                        </div>
+                        <group name="parent_group" col="3">
+                            <group name="group_1">
+                                <field name="warehouse_id" required="1"
+                                    attrs="{'readonly': [('state', 'not in', ('draft', 'ready'))]}" />
+                                <field name="analytic_group_ids" widget="many2many_tags"
+                                    attrs="{'readonly': [('state', 'not in', ('draft', 'ready'))]}" />
+                                <field name="product_category_ids" widget="many2many_tags"
+                                    attrs="{'readonly': [('state', 'not in', ('draft', 'ready'))]}" />
+                                <field name="product_ids" widget="many2many_tags"
+                                    attrs="{'readonly': [('state', 'not in', ('draft', 'ready'))]}" />
+                            </group>
+                            <group name="group_2">
+                                <label class="o_form_label" style="font-weight: bold;" for="start_date" string="Run Rate Period"/>
+                                <div name="run_rate_div" class="o_row">
+                                    <field name="start_date" required="1"
+                                        attrs="{'readonly': [('state', 'not in', ('draft', 'ready'))]}" />
+                                    <span style="color: #50402F;font-size: 16px;">
+                                        <b>
+                                            to
+                                        </b>
+                                    </span>
+                                    <field name="end_date" required="1"
+                                        attrs="{'readonly': [('state', 'not in', ('draft', 'ready'))]}" />
+                                </div>
+                                <field name="is_multi_leadtime" attrs="{'readonly': [('state', 'not in', ('draft', 'ready'))]}"/>
+                                <field name="lead_time"
+                                    attrs="{'readonly': [('state', 'not in', ('draft', 'ready'))], 'invisible':[('is_multi_leadtime', '=', True)]}" />
+                                <label for="suggest_stock_period" />
+                                <div name="suggest_stock_period_div" class="o_row">
+                                    <field name="suggest_stock_period"
+                                        attrs="{'readonly': [('state', 'not in', ('draft', 'ready'))]}" />
+                                    <span>
+                                        Days
+                                    </span>
+                                </div>
+                            </group>
+                            <group name="group_3">
+                                <field name="company_id" readonly="1" />
+                                <field name="branch_id"
+                                    attrs="{'readonly': [('state', 'not in', ('draft', 'ready'))]}" />
+                                <field name="create_date" />
+                                <field name="create_uid" />
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Information">
+                                <field name="procurement_line"
+                                    attrs="{'readonly': [('state', '=', 'confirm')]}">
+                                    <tree editable="bottom" create="false" edit="false">
+                                        <field name="product_id" required="1" readonly="1" />
+                                        <field name="quantity" readonly="1" />
+                                        <field name="sold_quantity" readonly="1" />
+                                        <field name="run_rate" readonly="1" />
+                                        <field name="stock_days" readonly="1" />
+                                        <field name="combined_field" readonly="1" invisible="1" />
+                                        <field name="period" readonly="1" />
+                                        <field name="lead_time" attrs="{'column_invisible':[('parent.is_multi_leadtime', '=', False)]}"/>
+                                        <field name="next_order" readonly="1" force_save="1"/>
+                                        <field name="stock_order" readonly="1" />
+                                        <field name="request_to_order"
+                                            attrs="{'readonly': [('parent.state', 'not in', ('draft', 'ready'))]}" />
+                                        <field name="quantity_ordered" readonly="1" />
+                                        <field name="quantity_received" readonly="1" />
+                                        <field name="fulfillment" />
+                                        <field name="uom_id" readonly="1" />
+                                        <field name="has_reordering_rules" invisible="1"
+                                            readonly="1" />
+                                        <field name="stock_data" invisible="1" readonly="1" />
+                                    </tree>
+                                    <form>
+                                        <group>
+                                            <group>
+                                                <field name="product_id" />
+                                                <field name="quantity" />
+                                                <field name="sold_quantity" />
+                                                <field name="run_rate" />
+                                                <field name="stock_days" />
+                                            </group>
+                                            <group>
+                                                <field name="combined_field" invisible="1" />
+                                                <field name="period" />
+                                                <field name="next_order" />
+                                                <field name="stock_order" />
+                                                <field name="has_reordering_rules" invisible="1" />
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"
+                            groups="base.group_user" />
+                        <field name="activity_ids" widget="mail_activity" />
+                        <field name="message_ids" widget="mail_thread" />
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- procurement.planning.model action window -->
+        <record id="procurement_planning_model_action" model="ir.actions.act_window">
+            <field name="name">Procurement Planning</field>
+            <field name="res_model">procurement.planning.model</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem
+            id="procurement_planning_model_menu"
+            name="Procurement Planning"
+            parent="equip3_inventory_control.menu_root_control"
+            action="procurement_planning_model_action"
+            sequence="2"
+        />
+
+    </data>
+</odoo>

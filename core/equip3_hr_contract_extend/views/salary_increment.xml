@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="hr_salary_increment_form_view" model="ir.ui.view">
+            <field name="name">hr.salary.increment.form</field>
+            <field name="model">hr.salary.increment</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="submit" string="Submit" attrs="{'invisible':[('state','not in',['draft'])]}" type="object" class="oe_highlight"/>
+                        <button name="approve" string="Approve" attrs="{'invisible':['|',('state','not in',['to_approve']),('is_approver', '=', False)]}" type="object" class="oe_highlight"/>
+                        <button name="reject" string="Reject" attrs="{'invisible':['|',('state','not in',['to_approve']),('is_approver', '=', False)]}" type="object" class="oe_highlight"/>
+                        <button name="generate" string="Generate" attrs="{'invisible':[('state','not in',['approved'])]}" type="object" class="oe_highlight"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved,generated"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="employee_id" invisible="1"/>
+                                <field name="is_readonly" invisible="1"/>
+                                <field name="apply_to" attrs="{'readonly':['|',('state','!=','draft'),('is_readonly','=',True)]}" required="1"/>
+                                <field name="employee_ids" widget="many2many_tags" options="{'no_create': True}" attrs="{'invisible':[('apply_to','!=','by_employee')],'required':[('apply_to','=','by_employee')],'readonly':['|',('state','!=','draft'),('is_readonly','=',True)]}"/>
+                                <field name="job_ids" widget="many2many_tags" options="{'no_create': True}" attrs="{'invisible':[('apply_to','!=','by_job')],'required':[('apply_to','=','by_job')],'readonly':[('state','!=','draft')]}"/>
+                                <field name="department_ids" widget="many2many_tags" options="{'no_create': True}" attrs="{'invisible':[('apply_to','!=','by_department')],'required':[('apply_to','=','by_department')],'readonly':[('state','!=','draft')]}"/>
+                                <field name="company_ids" widget="many2many_tags" options="{'no_create': True}" attrs="{'invisible':[('apply_to','!=','by_company')],'required':[('apply_to','=','by_company')],'readonly':[('state','!=','draft')]}"/>
+                                <field name="based_on" attrs="{'readonly':[('state','!=','draft')]}" required="1"/>
+                                <field name="amount" attrs="{'invisible':[('based_on','!=','fix_amount')],'required':[('based_on','=','fix_amount')],'readonly':[('state','!=','draft')]}"/>
+                                <field name="percentage" widget="percentage" attrs="{'invisible':[('based_on','!=','percentage')],'required':[('based_on','=','percentage')],'readonly':[('state','!=','draft')]}"/>
+                            </group>
+                            <group>
+                                <field name="effective_date" attrs="{'readonly':[('state','!=','draft')]}" required="1"/>
+                                <field name="create_date" string="Created Date"/>
+                                <field name="create_uid" string="Created By"/>
+                                <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="approved_user_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="is_approver" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Salary Increment Details">
+                                <field name="line_ids" readonly="1" force_save="1">
+                                    <tree editable="bottom"  create="0" delete="0">
+                                        <field name="sequence"/>
+                                        <field name="employee_id"/>
+                                        <field name="job_id"/>
+                                        <field name="last_salary"/>
+                                        <field name="new_salary"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string=" Approval Matrix Lines">
+                                <field name="approver_user_ids">
+                                    <tree editable="bottom" create="0" delete="0">
+                                        <field name="sequence" readonly="1" force_save="1"/>
+                                        <field name="approver_id" widget="many2many_tags"  readonly="1" force_save="1"/>
+                                        <field name="minimum_approver" readonly="1" force_save="1"/>
+                                        <field name="approver_state" invisible="1" force_save="1"/>
+                                        <field name="approval_status" readonly="1" force_save="1"/>
+                                        <field name="timestamp" readonly="1" force_save="1"/>
+                                        <field name="feedback" readonly="1" force_save="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="hr_salary_increment_tree_view" model="ir.ui.view">
+            <field name="name">hr.salary.increment.form</field>
+            <field name="model">hr.salary.increment</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="apply_to"/>
+                    <field name="based_on"/>
+                    <field name="effective_date"/>
+                    <field name="state" decoration-primary="state == 'draft'"
+                            decoration-warning="state == 'to_approve'"
+                            decoration-success2="state == 'generated'" 
+                            decoration-success="state == 'approved'" 
+                            decoration-danger="state == 'rejected'" 
+                            widget='badge'/>
+                </tree>
+            </field>
+        </record>
+<!-- 
+        <record id="hr_salary_increment_act_window" model="ir.actions.act_window">
+            <field name="name">Salary Increment</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.salary.increment</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{}</field>
+        </record> -->
+
+
+        <record model="ir.actions.server" id="hr_salary_increment_act_window">
+            <field name="name">Salary Increment</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="model_hr_salary_increment"/>
+            <field name="code">action = model.get_menu()</field>
+        </record>
+
+        <menuitem name="Salary Increment" id="hr_salary_increment_menu" parent="hr.menu_human_resources_configuration" action="hr_salary_increment_act_window" />
+
+    </data>
+</odoo>

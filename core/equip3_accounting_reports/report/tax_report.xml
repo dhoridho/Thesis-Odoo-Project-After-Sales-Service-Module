@@ -1,0 +1,268 @@
+<odoo>
+    <template id="equip3_accounting_reports.tax_report">
+        <t t-call="web.html_container">
+            <t t-set="data_report_margin_top" t-value="12"/>
+            <t t-set="data_report_header_spacing" t-value="9"/>
+            <t t-set="data_report_dpi" t-value="110"/>
+            <t t-call="web.internal_layout">
+                <div class="page">
+                    <div class="oe_structure"/>
+                    <h3 style="text-align:centre;left:50%;"><span t-esc="Filters.get('company_name')"/>: Tax Report
+                    </h3>
+
+                    <span t-if="Filters.get('date_from')">
+                    <strong> From:</strong>
+                    <t t-esc="Filters['date_from']"/>
+                    </span>
+                    <br></br>
+                    <span t-if="Filters.get('date_to')">
+                    <strong> To:</strong>
+                    <t t-esc="Filters['date_to']"/>
+                    </span>
+                    <div>
+                        <div style="text-align:centre;left:50%;" class="row">
+                            <div class="col-3">
+                                <strong>Target move:</strong>
+                                    <li>
+                                        <t t-esc="Filters['target_move']"/>
+                                    </li>
+                            </div>                                
+                            <div class="col-3" style="">
+                                <strong>Accounts :</strong>
+                                 <t t-foreach="Filters['accounts']" t-as="ac">
+                                    <li>
+                                        <t t-esc="ac"/>
+                                    </li>
+                                </t>
+                            </div>
+                        </div>
+                        <br></br>
+                        <t t-foreach="report_lines" t-as="record">
+                            <h3 class="mt-4 ml-3" t-if="record['type'] == 'sale'">Sales</h3>
+                            <h3 class="mt-4 ml-3" t-if="record['type'] == 'purchase'">Purchase</h3>
+                            <h3 class="mt-4 ml-3" t-if="record['type'] == 'summary'">Tax Summary</h3>
+                            <h3 class="mt-4 ml-3" t-if="record['type'] == 'none'">Others</h3>
+                            <table class="table table-sm table-reports">
+                                <thead>
+                                    <tr class="text-center">
+                                        <th></th>
+                                        <t t-if="record['type'] == 'summary'">
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                        </t>
+                                        <t t-else="">
+                                            <th>Date</th>
+                                            <th>Account</th>
+                                            <th>Ref No</th>
+                                            <th>Partner</th>
+                                        </t>
+                                        <th>Untaxed Amount</th>
+                                        <th>Tax Amount</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="record['record_lines']" t-as="tax_line">
+                                        <t t-set="common_id" t-value="0"/>
+                                        <tr class="tr-line">
+                                            <td width="20%">                                                
+                                                <span>
+                                                    <t t-esc="tax_line['tax_name']"/>
+                                                </span>
+                                            </td>
+                                            <td width="10%"></td>
+                                            <td width="10%"></td>
+                                            <td width="10%"></td>
+                                            <td width="10%"></td>
+
+                                            <t t-if="tax_line['currency_position']== 'before'">
+                                                <td  width="10%" style="text-align:right;">
+                                                    <t t-esc="tax_line['currency_symbol']"/>
+                                                    <t t-raw="tax_line['untaxed_amount_total']"/>
+                                                </td>
+                                                <td  width="10%" style="text-align:right;">
+                                                    <t t-esc="tax_line['currency_symbol']"/>
+                                                    <t t-raw="tax_line['gst_total']"/>
+                                                </td>
+                                                <td  width="10%" style="text-align:right;">
+                                                    <t t-esc="tax_line['currency_symbol']"/>
+                                                    <t t-raw="tax_line['amount_total']"/>
+                                                </td>
+                                            </t>
+                                            <t t-else="">
+                                                <td  width="10%" style="text-align:right;">
+                                                    <t t-raw="tax_line['untaxed_amount_total']"/>
+                                                    <t t-esc="tax_line['currency_symbol']"/>
+                                                </td>
+                                                <td  width="10%" style="text-align:right;">
+                                                    <t t-raw="tax_line['gst_total']"/>
+                                                    <t t-esc="tax_line['currency_symbol']"/>
+                                                </td>
+                                                <td  width="10%" style="text-align:right;">
+                                                    <t t-raw="tax_line['amount_total']"/>
+                                                    <t t-esc="tax_line['currency_symbol']"/>
+                                                </td>
+
+                                            </t>
+                                        </tr>
+                                        <t t-foreach="tax_line['tax_lines']" t-as="line">
+                                            <tr>
+                                                <td width="10%" class="text-right">
+                                                    <span t-esc="line['reference']" />
+                                                </td>
+                                                <td width="10%" class="text-right">
+                                                    <span t-esc="line['date']" />
+                                                </td>
+                                                <td width="10%" class="text-right">
+                                                    <span t-esc="line['account']" />
+                                                </td>
+                                                <td width="10%" class="text-right">
+                                                    <span t-esc="line['ref_no']" />
+                                                </td>
+                                                <td width="10%" class="text-right">
+                                                    <span t-esc="line['partner']" />
+                                                </td>
+                                                <td width="10%" class="text-right">
+                                                    <t t-if="tax_line['currency_position'] == 'before'">
+                                                        <span><t t-esc="tax_line['currency_symbol']"/></span>
+                                                        <span t-esc="line['untaxed_amount']"></span>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span t-esc="line['untaxed_amount']"></span>
+                                                        <span><t t-esc="tax_line['currency_symbol']"/></span>
+                                                    </t>
+                                                </td>
+                                                <td width="10%" class="text-right">
+                                                    <t t-if="tax_line['currency_position'] == 'before'">
+                                                        <span><t t-esc="tax_line['currency_symbol']"/></span>
+                                                        <span t-esc="line['tax_amount']"></span>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span t-esc="line['tax_amount']"></span>
+                                                        <span><t t-esc="tax_line['currency_symbol']"/></span>
+                                                    </t>
+                                                </td>
+                                                <td width="10%" class="text-right">
+                                                    <t t-if="tax_line['currency_position'] == 'before'">
+                                                        <span><t t-esc="tax_line['currency_symbol']"/></span>
+                                                        <span t-esc="line['amount_total']"></span>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span t-esc="line['amount_total']"></span>
+                                                        <span><t t-esc="tax_line['currency_symbol']"/></span>
+                                                    </t>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <tr width="100%">
+                                            <td width="20%">
+                                                <span class="ml-4"><strong><t t-esc="tax_line['total_line']['name']"/></strong></span>
+                                            </td>
+                                            <td width="10%" class="text-right">
+                                            </td>
+                                            <td width="10%" class="text-right">
+                                            </td>
+                                            <td width="10%" class="text-right">
+                                            </td>
+                                            <td width="10%" class="text-right">
+                                            </td>
+                                            <td width="10%" class="text-right">
+                                                <t t-if="tax_line['currency_position'] == 'before'">
+                                                    <strong><span><t t-esc="tax_line['currency_symbol']"/></span></strong>
+                                                    <strong><span t-esc="tax_line['total_line']['untaxed_amount_total']"></span></strong>
+                                                </t>
+                                                <t t-else="">
+                                                    <strong><span t-esc="tax_line['total_line']['untaxed_amount_total']"></span></strong>
+                                                    <strong><span><t t-esc="tax_line['currency_symbol']"/></span></strong>
+                                                </t>
+                                            </td>
+                                            <td width="10%" class="text-right">
+                                                <t t-if="tax_line['currency_position'] == 'before'">
+                                                    <strong><span><t t-esc="tax_line['currency_symbol']"/></span></strong>
+                                                    <strong><span t-esc="tax_line['total_line']['gst_total']"></span></strong>
+                                                </t>
+                                                <t t-else="">
+                                                    <strong><span t-esc="tax_line['total_line']['gst_total']"></span></strong>
+                                                    <strong><span><t t-esc="tax_line['currency_symbol']"/></span></strong>
+                                                </t>
+                                            </td>
+                                            <td width="10%" class="text-right">
+                                                <t t-if="tax_line['currency_position'] == 'before'">
+                                                    <strong><span><t t-esc="tax_line['currency_symbol']"/></span></strong>
+                                                    <strong><span t-esc="tax_line['total_line']['amount_total']"></span></strong>
+                                                </t>
+                                                <t t-else="">
+                                                    <strong><span t-esc="tax_line['total_line']['amount_total']"></span></strong>
+                                                    <strong><span><t t-esc="tax_line['currency_symbol']"/></span></strong>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <tr width="100%">
+                                        <td width="20%">
+                                            <t t-if="record['type'] == 'summary'">
+                                                <span class="ml-4"><strong><t t-esc="record['name_tag_summary']"/></strong></span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="ml-4"><strong>Total</strong></span>
+                                            </t>
+                                        </td>
+                                        <td width="10%" class="text-right">
+                                        </td>
+                                        <td width="10%" class="text-right">
+                                        </td>
+                                        <td width="10%" class="text-right">
+                                        </td>
+                                        <td width="10%" class="text-right">
+                                        </td>
+                                        <td width="10%" class="text-right">
+                                            <t t-if="currency_position == 'before'">
+                                                <strong><span><t t-esc="currency_symbol"/></span></strong>
+                                                <strong><span t-esc="record['tax_final_untaxed_amount_total']"></span></strong>
+                                            </t>
+                                            <t t-else="">
+                                                <strong><span t-esc="record['tax_final_untaxed_amount_total']"></span></strong>
+                                                <strong><span><t t-esc="currency_symbol"/></span></strong>
+                                            </t>
+                                        </td>
+                                        <td width="10%" class="text-right">
+                                            <t t-if="currency_position == 'before'">
+                                                <strong><span><t t-esc="currency_symbol"/></span></strong>
+                                                <strong><span t-esc="record['tax_final_gst_total']"></span></strong>
+                                            </t>
+                                            <t t-else="">
+                                                <strong><span t-esc="record['tax_final_gst_total']"></span></strong>
+                                                <strong><span><t t-esc="currency_symbol"/></span></strong>
+                                            </t>
+                                        </td>
+                                        <td width="10%" class="text-right">
+                                            <t t-if="currency_position == 'before'">
+                                                <strong><span><t t-esc="currency_symbol"/></span></strong>
+                                                <strong><span t-esc="record['tax_final_amount_total']"></span></strong>
+                                            </t>
+                                            <t t-else="">
+                                                <strong><span t-esc="record['tax_final_amount_total']"></span></strong>
+                                                <strong><span><t t-esc="currency_symbol"/></span></strong>
+                                            </t>
+                                        </td>
+                                    </tr>                            
+                                </tbody>
+                            </table>
+                        </t>
+                    </div>
+                    <br></br>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_print_tax_report" model="ir.actions.report">
+            <field name="name">Tax Report</field>
+            <field name="model">tax.report</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">equip3_accounting_reports.tax_report</field>
+            <field name="report_file">equip3_accounting_reports.tax_report</field>
+    </record>
+</odoo>

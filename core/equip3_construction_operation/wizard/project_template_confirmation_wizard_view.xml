@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <!-- project.template.confirmation.wizard form view -->
+    <record id="project_template_confirmation_wizard_view_form" model="ir.ui.view">
+        <field name="name">project.template.confirmation.wizard.view.form</field>
+        <field name="model">project.template.confirmation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <sheet>
+                    <group>
+                        <field name="template_id"/>
+                        <field name="allowed_job_order_templates" widget="many2many_tags"/>
+                        <field name="project_id" readonly="1"/>
+                        <field name="sale_order_id" readonly="1"/>
+                        <field name="total_weightage" invisible="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Project Template">
+                            <field name="project_template_line" widget="one2many_list">
+                                <tree create="true" delete="true" editable="bottom">
+                                    <control>
+                                        <create string="Add a line"/>
+                                    </control> 
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="sr_no" string="Sequence"/>
+                                    <field name="name" string="Stage"/>
+                                    <field name="stage_weightage"/>
+                                    <field
+                                        name="job_order_template_id"
+                                        widget="many2many_tags"
+                                        domain="[('id', 'in', parent.allowed_job_order_templates)]"
+                                        />
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Predecessor and Successor">
+                            <field name="predecessor_template_line">
+                                <tree create="true" delete="true" editable="bottom">
+                                    <control>
+                                        <create string="Add a line"/>
+                                    </control>
+                                    <field name="project_template_id" invisible="1"/> 
+                                    <field name="sequence" widget="handle"  invisible="1"/>
+                                    <field name="sr_no"/>
+                                    <field
+                                        name="predecessor_task_id"
+                                        domain="[('id', 'in', parent.allowed_job_order_templates), ('id', '!=', successor_task_id)]"
+                                        />
+                                    <field
+                                        name="successor_task_id"
+                                        domain="[('id', 'in', parent.allowed_job_order_templates), ('id', '!=', predecessor_task_id)]"
+                                        />
+                                    <field name="type"/>
+                                    <field name="lag"/>
+                                    <field name="lag_type"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Successor" invisible="1">
+                            <field name="successor_template_line">
+                                <tree create="false">
+                                    <field name="project_template_id" invisible="1"/>
+                                    <field name="predecessor_task_id"/>
+                                    <field name="successor_task_id"/>
+                                    <field name="type"/>
+                                    <field name="lag"/>
+                                    <field name="lag_type"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                    <footer>
+                        <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                        <button special="cancel" string="Cancel" class="btn-default"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

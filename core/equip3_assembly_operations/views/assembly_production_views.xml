@@ -1,0 +1,677 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<record id="view_assembly_production_record_tree" model="ir.ui.view">
+		<field name="name">view.assembly.production.record.tree</field>
+		<field name="model">assembly.production.record</field>
+		<field name="arch" type="xml">
+			<tree string="Assembly Production Record" decoration-info="state == 'draft'">
+				<field name="name"/>
+				<field name="product_id"/>
+				<field name="bom_id"/>
+				<field name="product_qty"/>
+				<field name="rejected_qty" invisible="1"/>
+				<field name="create_uid" string="Created By"/>
+				<field name="create_date" string="Created On"/>
+				<field name="confirm_date"/>
+				<field 
+					name="state" 
+					widget="badge"
+					decoration-primary="state == 'confirm'"
+					decoration-secondary="state == 'draft'"
+					/>
+				<field name="record_type" invisible="1"/>
+			</tree>
+		</field>
+	</record>
+
+	<record id="view_assembly_production_record_form" model="ir.ui.view">
+		<field name="name">view.assembly.production.record.form</field>
+		<field name="model">assembly.production.record</field>
+		<field name="arch" type="xml">
+			<form string="Assembly Production Record" js_class="assembly_material_view">
+				<header>
+					<button name="action_confirm" type="object" string="Confirm" class="btn-primary" attrs="{'invisible': [('state', '=', 'confirm')]}"/>
+					<field name="state" widget="statusbar"/>
+				</header>
+				<sheet>
+					<div class="oe_button_box" name="button_box">
+						<button name="action_get_account_moves" icon="fa-usd" class="oe_stat_button" string="Accounting Entries" type="object" attrs="{'invisible': [('account_move_ids', '=', [])]}"/>
+						<button name="action_get_purchase_requests" icon="o-hm-smart-all-purchased" class="oe_stat_button" string="Purchase Requests" type="object" attrs="{'invisible': [('purchase_request_ids', '=', [])]}"/>
+						<button name="action_view_transfer_request" icon="o-hm-smart-pos-pickings" class="oe_stat_button" type="object" attrs="{'invisible': [('internal_transfer_count', '=', 0)]}">
+							<div class="o_field_widget o_stat_info">
+								<span class="o_stat_value"><field name="internal_transfer_count"/></span>
+								<span class="o_stat_text">Transfers</span>
+							</div>
+						</button>
+						<button string="Valuation" type="object" name="action_view_stock_valuation_layers" class="oe_stat_button" icon="o-hm-smart-all-valuation" groups="base.group_no_one" attrs="{'invisible': [('state', '=', 'draft')]}" />
+					</div>
+					<div class="oe_title">
+						<h1>
+							<field name="name" readonly="1"/>
+						</h1>
+					</div>
+					<group>
+						<group>
+							<field name="product_tmpl_id" string="Finished Goods" force_save="1" options="{'no_create_edit': True, 'no_create': True}"/>
+							<field name="product_id" string="Variant" force_save="1" options="{'no_create_edit': True, 'no_create': True}"/>
+							<field name="bom_id" context="{'default_product_tmpl_id': product_tmpl_id}" options="{'no_create_edit': True, 'no_create': True}"/>
+							<field name="warehouse_id" readonly="context.get('readonly_fields', False)" force_save="1" options="{'no_create_edit': True, 'no_create': True}" domain="[('company_id', 'in', (company_id,False)),('branch_id', '=', branch_id)]"/>
+							<field name="warehouse_view_location_id" invisible="1"/>
+							<label for="product_qty" string="Finished"/>
+							<div class="o_row no-gutters">
+								<field name="product_qty" class="text-left" attrs="{'readonly': [('state', '=', 'confirm')]}"/>
+								<field name="product_uom_id" options="{'no_open': True, 'no_create': True}" force_save="1" groups="uom.group_uom" attrs="{'readonly': [('state', '!=', 'draft')]}" class="oe_inline"/>
+							</div>
+                            <label for="rejected_qty" string="Rejected"/>
+                            <div class="o_row no-gutters">
+                                <field name="rejected_qty"/>
+                                <field name="product_uom_id" options="{'no_open': True, 'no_create': True}" force_save="1" groups="uom.group_uom" attrs="{'readonly': [('state', '!=', 'draft')]}" class="oe_inline"/>
+                            </div>
+						</group>
+						<group>
+							<field name="company_id" readonly="context.get('readonly_fields', True)" force_save="1" options="{'no_create_edit': True, 'no_create': True}"/>
+							<field name="is_branch_required" invisible="1"/>
+							<field name="branch_id" attrs="{'required': [('is_branch_required', '=', True)]}" options="{'no_create_edit': True, 'no_create': True}"/>
+							<field name="create_uid" string="Created By"/>
+							<field name="create_date" string="Created On"/>
+							<field name="confirm_date" attrs="{'invisible': [('confirm_date', '=', False)], 'readonly': [('state', '=', 'confirm')]}"/>
+							<label for="action_generate_serial" string="Lot/Serial Number" attrs="{'invisible': [('any_byproduct_is_autogenerate', '=', False), ('is_autogenerate', '=', False)]}"/>
+                            <div class="o_row no-gutters d-flex" attrs="{'invisible': [('any_byproduct_is_autogenerate', '=', False), ('is_autogenerate', '=', False)]}">
+                                <button name="action_generate_serial" string="Generate" type="object" class="btn btn-primary" aria-label="Creates a new serial/lot number" title="Creates a new serial/lot number" role="img"/>
+                            </div>
+						</group>
+					</group>
+					<notebook>
+						<page string="Materials">
+							<div attrs="{'invisible': [('show_submit_button', '=', False)]}">
+								<button name="action_submit_transfer_request" string="Submit Transfer Request" type="object" class="oe_inline oe_highlight" style="margin-bottom:10px;"/>
+								<button name="action_submit_purchase_request" string="Submit Purchase Request" type="object" class="ml-2 oe_inline oe_highlight" style="margin-bottom:10px;"/>
+							</div>
+							<field name="move_raw_ids"
+								context="{
+									'default_company_id': company_id,
+									'default_date': date_planned_start, 
+									'default_date_deadline': date_deadline,
+									'default_location_id': location_src_id,
+									'default_location_dest_id': production_location_id,
+									'default_picking_type_id': picking_type_id,
+									'default_warehouse_id': warehouse_id,
+									'default_state': 'draft',
+									'default_assembly_component_id': active_id,
+								}"
+								attrs="{
+									'readonly': [('state', '=', 'confirm')]
+								}" 
+								options="{
+									'delete': [
+										('state', '=', 'draft')
+									], 
+									'create': [
+										('state', '=', 'draft')
+									]
+								}">
+								<tree default_order="is_done,sequence" decoration-warning="product_type != 'product'" editable="bottom" trash-icon="$bom_line_id === false">
+									<field name="company_id" optional="hide" groups="base.group_no_one"/>
+									<field name="date" optional="hide" groups="base.group_no_one"/>
+									<field name="date_deadline" optional="hide" groups="base.group_no_one"/>
+									<field name="location_id" optional="hide" domain="[('id', 'child_of', parent.location_src_id)]" groups="base.group_no_one"/>
+									<field name="location_dest_id" domain="[('id', '=', parent.production_location_id)]" optional="hide" groups="base.group_no_one"/>
+									<field name="name" optional="hide" groups="base.group_no_one"/>
+									<field name="operation_id" optional="hide" groups="base.group_no_one"/>
+									<field name="origin" optional="hide" groups="base.group_no_one"/>
+									<field name="picking_type_id" optional="hide" groups="base.group_no_one"/>
+									<field name="price_unit" optional="hide" groups="base.group_no_one"/>
+
+									<field name="product_id" 
+										context="{
+											'default_type': 'product'
+										}"
+										attrs="{
+											'readonly': [
+												('bom_line_id', '!=', False)
+											]
+										}" 
+										options="{'no_create_edit': True, 'no_create': True}"
+										force_save="1"
+										string="Products"/>
+									<field name="assembly_product_free_qty" string="Available Stock" class="oe_force_right"/>
+
+									<field name="product_uom_qty" invisible="1"/>
+									<field name="assembly_product_uom_qty" 
+										class="oe_force_right" 
+										width="1"
+										readonly="1"
+										force_save="1"
+										string="To Consume"/>
+
+									<field name="quantity_done" invisible="1"/>
+									<field name="assembly_quantity_done" 
+										class="oe_force_right"
+										width="1" 
+										force_save="1"
+										string="Consumed" 
+										attrs="{'readonly': [('parent.state', '=', 'confirm')]}"/>
+
+									<field name="product_uom" 
+										class="oe_force_right"
+										options="{
+											'no_open': True, 
+											'no_create': True
+										}" 
+										groups="uom.group_uom" 
+										force_save="1"
+										string="UoM"/>
+
+									<field name="warehouse_id" optional="hide" groups="base.group_no_one"/>
+
+									<field name="lot_ids" widget="many2many_tags"
+										string="Lot/Serial Numbers"
+                                        groups="stock.group_production_lot"
+                                        attrs="{'invisible': [('has_tracking', '=', 'none')]}"
+                                        optional="hide"
+                                        options="{'create': [('parent.use_create_lots', '=', True)]}"
+                                        context="{'default_company_id': company_id, 'default_product_id': product_id}"
+                                        domain="[('product_id','=',product_id)]"
+                                    />
+                                    <button name="action_show_details" type="object" icon="fa-list" width="0.1"
+                                            attrs="{'invisible': [('has_tracking', '=', 'none')]}" options='{"warn": true}'/>
+                                    <button name="action_assign_serial" type="object"
+                                            icon="fa-plus-square"
+                                            width="0.1"
+                                            role="img" title="Assign Serial Numbers"
+                                            attrs="{'invisible': ['|', ('has_tracking', '!=', 'serial'), ('show_operations', '=', False)]}"/>
+
+									<field name="assembly_component_id" optional="hide" groups="base.group_no_one"/>
+									<field name="bom_line_id" optional="hide" groups="base.group_no_one"/>
+									<field name="procure_method" optional="hide" groups="base.group_no_one"/>
+									<field name="sequence" optional="hide" groups="base.group_no_one"/>
+									<field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state not in ('done', 'cancel')"/>
+
+									<!-- INVISIBLE FIELDS -->
+									<field name="assembly_should_consume_qty" invisible="1"/>
+									<field name="assembly_unit_factor" invisible="1"/>
+									<field name="forecast_availability" invisible="1"/>
+									<field name="move_line_ids" invisible="1">
+										<tree>
+											<field name="lot_id"/>
+											<field name="owner_id"/>
+											<field name="package_id"/>
+											<field name="result_package_id"/>
+											<field name="location_id"/>
+											<field name="location_dest_id"/>
+											<field name="qty_done"/>
+											<field name="product_id"/>
+											<field name="product_uom_id"/>
+											<field name="product_uom_qty"/>
+											<field name="state"/>
+											<field name="move_id"/>
+											<field name="id"/>
+										</tree>
+									</field>
+									
+									<field name="product_uom_category_id" invisible="1"/>
+									<field name="allowed_operation_ids" invisible="1"/>
+									<field name="additional" invisible="1"/>
+									<field name="has_tracking" invisible="1"/>
+									<field name="is_done" invisible="1"/>
+									<field name="is_locked" invisible="1"/>
+									<field name="has_move_lines" invisible="1"/>
+									<field name="product_type" invisible="1"/>
+									<field name="product_qty" readonly="1" invisible="1"/>
+									<field name="reserved_availability" invisible="1"/>
+									<field name="forecast_expected_date" invisible="1"/>
+									<field name="is_quantity_done_editable" invisible="1"/>
+									<field name="show_details_visible" invisible="1"/>
+									<field name="show_operations" invisible="1"/>
+								</tree>
+							</field>
+						</page>
+						<page string="By-Products" attrs="{'invisible': [('move_byproduct_ids', '=', [])]}">
+							<field name="move_byproduct_ids" 
+								context="{
+									'default_company_id': company_id,
+									'default_date': date_planned_finished, 
+									'default_date_deadline': date_deadline,
+									'default_location_id': production_location_id, 
+									'default_location_dest_id': location_dest_id,
+									'default_picking_type_id': picking_type_id,
+									'default_warehouse_id': warehouse_id, 
+									'default_state': 'draft', 'default_assembly_finished_id': active_id,  
+								}" 
+								attrs="{
+									'readonly': [('state', '=', 'confirm')]
+								}" 
+								options="{
+									'delete': [('state', '=', 'draft')]
+								}">
+								<tree default_order="is_done,sequence" decoration-muted="is_done" editable="bottom">
+									<field name="company_id" optional="hide" groups="base.group_no_one"/>
+									<field name="date" optional="hide" groups="base.group_no_one"/>
+									<field name="date_deadline" optional="hide" groups="base.group_no_one"/>
+									<field name="location_id" domain="[('id', '=', parent.production_location_id)]" optional="hide" groups="base.group_no_one"/>
+									<field name="location_dest_id" domain="[('id', 'child_of', parent.location_dest_id)]" optional="hide" groups="base.group_no_one"/>
+									<field name="name" optional="hide" groups="base.group_no_one"/>
+									<field name="operation_id" optional="hide" groups="base.group_no_one"/>
+									<field name="origin" optional="hide" groups="base.group_no_one"/>
+									<field name="picking_type_id" optional="hide" groups="base.group_no_one"/>
+									<field name="price_unit" optional="hide" groups="base.group_no_one"/>
+									<field name="product_id" 
+										context="{'default_type': 'product'}" 
+										domain="[('id', '!=', parent.product_id)]" 
+										required="1" 
+										string="Products"
+									/>
+									<field name="assembly_product_free_qty" invisible="1"/>
+									<field name="product_uom_qty" invisible="1"/>
+									<field name="assembly_product_uom_qty" string="To Produce" readonly="1" force_save="1"/>
+									<field name="quantity_done" invisible="1"/>
+									<field name="assembly_quantity_done" string="Produced" attrs="{'readonly': [('parent.state', '!=', 'draft')]}"/>
+									<field name="product_uom" groups="uom.group_uom"/>
+									<field name="warehouse_id" optional="hide" groups="base.group_no_one"/>
+									<field name="assembly_finished_id" optional="hide" groups="base.group_no_one"/>
+									<field name="byproduct_id" optional="hide" groups="base.group_no_one"/>
+									<field name="move_line_ids" invisible="1">
+										<tree>
+											<field name="lot_id" invisible="1"/>
+											<field name="owner_id" invisible="1"/>
+											<field name="package_id" invisible="1"/>
+											<field name="result_package_id" invisible="1"/>
+											<field name="location_id" invisible="1"/>
+											<field name="location_dest_id" invisible="1"/>
+											<field name="qty_done" invisible="1"/>
+											<field name="product_id" invisible="1"/>
+											<field name="product_uom_id" invisible="1"/>
+											<field name="product_uom_qty" invisible="1"/>
+											<field name="state" invisible="1"/>
+											<field name="move_id" invisible="1"/>
+											<field name="id" invisible="1"/>
+										</tree>
+									</field>
+									<field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state not in ('done', 'cancel')"/>
+									
+									<!-- INVISIBLE FIELDS -->
+									<field name="product_uom_category_id" invisible="1"/>
+									<field name="allowed_operation_ids" invisible="1"/>
+									<field name="assembly_unit_factor" invisible="1"/>
+									<field name="additional" invisible="1"/>
+									<field name="has_tracking" invisible="1"/>
+									<field name="is_done" invisible="1"/>
+									<field name="byproduct_id" invisible="1"/>
+									<field name="sequence" invisible="1"/>
+									<field name="is_locked" invisible="1"/>
+									<field name="has_move_lines" invisible="1"/>
+									<field name="is_quantity_done_editable" invisible="1"/>
+									<field name="show_details_visible" invisible="1"/>
+									<field name="lot_ids" 
+										widget="many2many_tags"
+										groups="stock.group_production_lot"
+										optional="hide"
+										context="{
+											'default_company_id': company_id, 
+											'default_product_id': product_id
+										}"
+										domain="[('product_id', '=', product_id)]"
+									/>
+								</tree>
+							</field>
+						</page>
+						<page string="Finished Product" groups="base.group_no_one" invisible="1">
+							<field name="move_finished_ids">
+								<tree string="Finished Product" create="false" delete="false">
+									<field name="company_id" optional="hide"/>
+									<field name="date" optional="hide"/>
+									<field name="date_deadline" optional="hide"/>
+									<field name="location_id" optional="hide"/>
+									<field name="location_dest_id" optional="hide"/>
+									<field name="name" optional="hide"/>
+									<field name="operation_id" optional="hide"/>
+									<field name="origin" optional="hide"/>
+									<field name="picking_type_id" optional="hide"/>
+									<field name="price_unit" optional="hide"/>
+									<field name="product_id"/>
+									<field name="assembly_product_free_qty" invisible="1"/>
+									<field name="product_uom_qty" string="To Produce"/>
+									<field name="quantity_done" string="Produced" optional="hide"/>
+									<field name="product_uom"/>
+									<field name="warehouse_id" optional="hide"/>
+									<field name="assembly_finished_id" optional="hide"/>
+									<field name="byproduct_id" optional="hide"/>
+									<field name="move_dest_ids" optional="hide"/>
+									<field name="propagate_cancel" optional="hide"/>
+									<field name="product_uom_category_id" optional="hide"/>
+									<field name="allowed_operation_ids" optional="hide"/>
+									<field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state not in ('done', 'cancel')"/>
+								</tree>
+							</field>
+						</page>
+						<page name="finished_lot"
+                              string="Finished Goods Lot/Serial Number"
+                              attrs="{'invisible': [
+                                  ('product_tracking', 'not in', ('lot', 'serial'))
+                              ]}">
+                            <field name="finished_lot_ids" 
+                                   force_save="1"
+                                   attrs="{
+                                        'readonly': [
+                                            '|',
+                                                ('is_autogenerate', '=', True),
+                                                ('state', '!=', 'draft')
+                                        ]
+                                    }" 
+                                   context="{
+                                        'default_company_id': company_id,
+                                        'default_product_id': product_id,
+                                        'default_assembly_qty': default_finished_lot_qty
+                                    }">
+                                <tree string="Finished Goods Lot/Serial Number" editable="bottom" default_order="product_id,name">
+                                    <field name="name"/>
+                                    <field name="product_id" invisible="1"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="assembly_qty" string="Quantity" attrs="{'readonly': [('parent.product_tracking', '=', 'serial')]}" force_save="1" required="1"/>
+                                    <field name="assembly_expiration_date" string="Expiration Date" attrs="{'column_invisible': [('parent.product_use_expiration_date', '=', False)]}"/>
+                                </tree>
+                            </field>
+                        </page>
+						<page name="rejected_lot"
+                              string="Rejected Goods Lot/Serial Number"
+                              attrs="{'invisible': [
+                                  ('product_tracking', 'not in', ('lot', 'serial'))
+                              ]}">
+                            <field name="rejected_lot_ids"
+                                   force_save="1"
+                                   attrs="{
+                                        'readonly': [
+                                            '|',
+                                                ('is_autogenerate', '=', True),
+                                                ('state', '!=', 'draft')
+                                        ]
+                                    }" 
+                                    context="{
+                                        'default_company_id': company_id,
+                                        'default_product_id': product_id,
+                                        'default_assembly_qty': default_rejected_lot_qty
+                                    }">
+                                <tree string="Rejected Goods Lot/Serial Number" editable="bottom" default_order="product_id,name">
+                                    <field name="name"/>
+                                    <field name="product_id" invisible="1"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="assembly_qty" string="Quantity" attrs="{'readonly': [('parent.product_tracking', '=', 'serial')]}" force_save="1" required="1"/>
+                                    <field name="assembly_expiration_date" string="Expiration Date" attrs="{'column_invisible': [('parent.product_use_expiration_date', '=', False)]}"/>
+                                </tree>
+                            </field>
+                        </page>
+						<page name="byproduct_lot"
+                              string="ByProduct Lot/Serial Number"
+                              attrs="{'invisible': [
+							      ('show_byproduct_lot_tab', '=', False)
+						      ]}">
+                            <field name="byproduct_lot_ids"
+                                   force_save="1"
+                                   attrs="{
+                                        'readonly': [
+                                            '|',
+                                                ('all_byproduct_is_autogenerate', '=', True),
+                                                ('state', '!=', 'draft')
+                                        ]
+                                    }" 
+                                    context="{
+                                        'default_company_id': company_id,
+                                        'default_product_id': default_next_byproduct_product_id,
+                                        'assembly_byproduct_qty': default_byproduct_lot_qty
+                                    }">
+                                <tree string="ByProduct Lot/Serial Number" editable="bottom" default_order="product_id,name">
+                                    <field name="assembly_is_autogenerate" optional="hide"/>
+                                    <field name="name" attrs="{'readonly': [('assembly_is_autogenerate', '=', True)]}" force_save="1"/>
+                                    <field name="product_id" domain="[('id', 'in', parent.byproduct_manual_product_ids)]" attrs="{'readonly': [('assembly_is_autogenerate', '=', True)]}" force_save="1"/>
+                                    <field name="assembly_product_tracking" optional="hide"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="assembly_qty" string="Quantity" attrs="{'readonly': ['|', ('assembly_product_tracking', '=', 'serial'), ('assembly_is_autogenerate', '=', True)]}" force_save="1" required="1"/>
+                                    <field name="expiration_date" attrs="{'column_invisible': [('parent.product_use_expiration_date', '=', False)]}"/>
+                                </tree>
+                            </field>
+                        </page>
+						<page name="disassembly" string="Disassembly" groups="base.group_no_one">
+							<field name="disassembly_record_ids">
+								<tree string="Disassemblys" create='false' delete="false">
+									<field name="name"/>
+									<field name="product_id"/>
+									<field name="bom_id"/>
+									<field name="warehouse_id"/>
+									<field name="product_qty"/>
+									<field name="rejected_qty"/>
+									<field name="record_type" optional="hide"/>
+									<field name="state"/>
+								</tree>
+							</field>
+						</page>
+						<page string="Miscellaneous" groups="base.group_no_one">
+							<group>
+								<group string="Products">
+									<field name="product_uom_category_id"/>
+									<field name="product_tracking"/>
+									<field name="is_autogenerate"/>
+									<field name="product_use_expiration_date"/>
+								</group>
+								<group string="Dates">
+									<field name="date_planned_start"/>
+									<field name="date_planned_finished"/>
+									<field name="date_deadline"/>
+								</group>
+							</group>
+							<group>
+								<group string="Inventory">
+									<field name="picking_type_id"/>
+									<field name="use_create_lots"/>
+									<field name="location_src_id"/>
+									<field name="location_dest_id"/>
+									<field name="production_location_id"/>
+								</group>
+								<group string="Others">
+									<field name="record_type" readonly="1" force_save="1"/>
+									<field name="show_submit_button"/>
+									<field name="default_finished_lot_qty"/>
+									<field name="default_rejected_lot_qty"/>
+									<field name="disassembly_remaining_qty"/>
+									<field name="move_dest_ids" widget="many2many_tags" invisible="1"/>
+									<field name="account_move_ids" widget="many2many_tags"/>
+									<field name="purchase_request_ids" widget="many2many_tags"/>
+								</group>
+							</group>
+							<group>
+								<group string="By-Products">
+									<field name="show_byproduct_lot_tab"/>
+									<field name="byproduct_manual_product_ids" widget="many2many_tags"/>
+									<field name="default_byproduct_lot_qty"/>
+									<field name="default_next_byproduct_product_id"/>
+									<field name="any_byproduct_is_autogenerate"/>
+									<field name="all_byproduct_is_autogenerate"/>
+								</group>
+							</group>
+						</page>
+					</notebook>
+				</sheet>
+				<div class="oe_chatter">
+					<field name="message_follower_ids"/>
+					<field name="activity_ids"/>
+					<field name="message_ids"/>
+				</div>
+			</form>
+		</field>
+	</record>
+
+	<record id="view_disassembly_production_record_tree" model="ir.ui.view">
+		<field name="name">view.disassembly.production.record.tree</field>
+		<field name="model">assembly.production.record</field>
+		<field name="inherit_id" ref="view_assembly_production_record_tree"/>
+		<field name="mode">primary</field>
+		<field name="arch" type="xml">
+			<xpath expr="//field[@name='product_qty']" position="attributes">
+				<attribute name="string">Quantity</attribute>
+			</xpath>
+			<xpath expr="//field[@name='product_qty']" position="before">
+				<field name="assembly_record_id"/>
+			</xpath>
+		</field>
+	</record>
+
+	<record id="view_disassembly_production_record_form" model="ir.ui.view">
+		<field name="name">view.disassembly.production.record.form</field>
+		<field name="model">assembly.production.record</field>
+		<field name="inherit_id" ref="view_assembly_production_record_form"/>
+		<field name="mode">primary</field>
+		<field name="arch" type="xml">
+			<xpath expr="//label[@for='product_qty']" position="attributes">
+				<attribute name="string">Quantity</attribute>
+			</xpath>
+			<xpath expr="//field[@name='bom_id']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='bom_id']" position="after">
+				<field name="assembly_bom_id" string="Bill of Materials" context="{'default_product_tmpl_id': product_tmpl_id}" attrs="{'required': [('assembly_record_id', '=', False)]}" options="{'no_create_edit': True, 'no_create': True}"/>
+			</xpath>
+			<xpath expr="//label[@for='rejected_qty']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='rejected_qty']/parent::div" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='company_id']" position="before">
+				<field name="assembly_record_id" attrs="{'readonly': [('state', '=', 'confirm')]}" options="{'no_create_edit': True, 'no_create': True}"/>
+			</xpath>
+			<xpath expr="//field[@name='move_raw_ids']" position="attributes">
+				<attribute name="context">{
+					'default_company_id': company_id,
+					'default_date': date_planned_start, 
+					'default_date_deadline': date_deadline,
+					'default_location_id': production_location_id, 
+					'default_location_dest_id': location_src_id,
+					'default_picking_type_id': picking_type_id,
+					'default_warehouse_id': warehouse_id,
+					'default_state': 'draft',
+					'default_assembly_component_id': active_id,
+				}</attribute>
+				<attribute name="options">{
+					'delete': [
+						'&amp;', ('state', '=', 'draft'), ('assembly_record_id', '=', False)
+					], 
+					'create': [
+						'&amp;', ('state', '=', 'draft'), ('assembly_record_id', '=', False)
+					]
+				}</attribute>
+			</xpath>
+			<xpath expr="//field[@name='move_raw_ids']//field[@name='product_id']" position="attributes">
+				<attribute name="attrs">{
+					'readonly': [
+						'|', ('bom_line_id', '!=', False), ('parent.assembly_record_id', '!=', False)
+					]
+				}</attribute>
+			</xpath>
+			<xpath expr="//field[@name='move_raw_ids']//field[@name='assembly_product_uom_qty']" position="attributes">
+				<attribute name="string">Quantity</attribute>
+			</xpath>
+			<xpath expr="//field[@name='move_raw_ids']//field[@name='assembly_quantity_done']" position="attributes">
+				<attribute name="string">To Be Disassembled</attribute>
+			</xpath>
+			<xpath expr="//field[@name='move_raw_ids']//field[@name='product_uom']" position="attributes">
+				<attribute name="attrs">{
+					'readonly': [
+						('parent.assembly_record_id', '!=', False)
+					]
+				}</attribute>
+			</xpath>
+			<xpath expr="//field[@name='move_raw_ids']//field[@name='assembly_product_free_qty']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='move_raw_ids']//field[@name='location_id']" position="attributes">
+				<attribute name="domain">[('id', '=', parent.production_location_id)]</attribute>
+			</xpath>
+			<xpath expr="//field[@name='move_raw_ids']//field[@name='location_dest_id']" position="attributes">
+				<attribute name="domain">[('id', 'child_of', parent.location_dest_id)]</attribute>
+			</xpath>
+			<xpath expr="//field[@name='move_byproduct_ids']//field[@name='location_id']" position="attributes">
+				<attribute name="domain">[('id', 'child_of', parent.location_src_id)]</attribute>
+			</xpath>
+			<xpath expr="//field[@name='move_byproduct_ids']//field[@name='location_dest_id']" position="attributes">
+				<attribute name="domain">[('id', '=', parent.production_location_id)]</attribute>
+			</xpath>
+			<xpath expr="//field[@name='move_byproduct_ids']/parent::page" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//page[@name='disassembly']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//field[@name='disassembly_remaining_qty']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//label[@for='action_generate_serial']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//button[@name='action_generate_serial']/parent::div" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//page[@name='finished_lot']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+			<xpath expr="//page[@name='rejected_lot']" position="attributes">
+				<attribute name="invisible">1</attribute>
+			</xpath>
+		</field>
+	</record>
+
+	<record id="action_view_assembly_production_record" model="ir.actions.act_window">
+		<field name="name">Assembly Records</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">assembly.production.record</field>
+		<field name="view_mode">tree,form</field>
+		<field name="context">{'default_record_type': 'assembly'}</field>
+		<field name="domain">[('record_type', '=', 'assembly')]</field>
+		<field name="help" type="html">
+		  <p class="o_view_nocontent_smiling_face">
+			Create New Assembly Production
+		  </p>
+		</field>
+	</record>
+
+	<record id="action_view_assembly_production_record_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="equip3_assembly_operations.view_assembly_production_record_tree"/>
+        <field name="act_window_id" ref="equip3_assembly_operations.action_view_assembly_production_record"/>
+    </record>
+
+	<record id="action_view_assembly_production_record_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="equip3_assembly_operations.view_assembly_production_record_form"/>
+        <field name="act_window_id" ref="equip3_assembly_operations.action_view_assembly_production_record"/>
+    </record>
+
+	<record id="action_view_disassembly_production_record" model="ir.actions.act_window">
+		<field name="name">Disassembly Records</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">assembly.production.record</field>
+		<field name="view_mode">tree,form</field>
+		<field name="context">{'default_record_type': 'disassembly'}</field>
+		<field name="domain">[('record_type', '=', 'disassembly')]</field>
+		<field name="help" type="html">
+		  <p class="o_view_nocontent_smiling_face">
+			Create New Disassembly Production
+		  </p>
+		</field>
+	</record>
+
+	<record id="action_view_disassembly_production_record_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="equip3_assembly_operations.view_disassembly_production_record_tree"/>
+        <field name="act_window_id" ref="equip3_assembly_operations.action_view_disassembly_production_record"/>
+    </record>
+
+	<record id="action_view_disassembly_production_record_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="equip3_assembly_operations.view_disassembly_production_record_form"/>
+        <field name="act_window_id" ref="equip3_assembly_operations.action_view_disassembly_production_record"/>
+    </record>
+</odoo>

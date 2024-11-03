@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2015 DevIntelle Consulting Service Pvt.Ltd (<http://www.devintellecs.com>).
+
+For Module Support : devintelle@gmail.com  or Skype : devintelle
+ -->
+<odoo>
+    <!--form-->
+    <record id="form_dev_employee_probation" model="ir.ui.view">
+        <field name="name">form.dev.employee.probation</field>
+        <field name="model">employee.probation</field>
+        <field name="arch" type="xml">
+            <form string="Probation Form View">
+                <sheet>
+                    <div class="oe_title">
+                        <h1 class="o_row">
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Employee">
+                            <field name="employee_id"/>
+                            <field name="employee_email"/>
+                            <field name="department_id"/>
+                            <field name="manager_id"/>
+                            <field name="company_id"/>
+                        </group>
+                        <group string="Probation">
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Reviews">
+                            <field name="review_ids">
+                                <tree>
+                                    <field name="review_date"/>
+                                    <field name="user_id"/>
+                                    <field name="short_review" attrs="{'readonly': [('approved_by_hr', '=', True)]}"/>
+                                    <field name="performance" widget="selection" attrs="{'readonly': [('approved_by_hr', '=', True)]}"/>
+                                    <field name="rating" widget="priority" attrs="{'readonly': [('approved_by_hr', '=', True)]}"/>
+                                    <field name="probation_id" invisible="1"/>
+                                    <field name="approved_by_hr" invisible="1"/>
+                                    <button name="approve_review"
+                                            string="Approve"
+                                            type="object"
+                                            class="btn-primary"
+                                            groups="dev_employee_probation.right_dev_employee_probation_hr"
+                                            attrs="{'invisible': [('approved_by_hr', '=', True)]}"/>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="review_date"/>
+                                            <field name="user_id"/>
+                                            <field name="short_review" attrs="{'readonly': [('approved_by_hr', '=', True)]}"/>
+                                        </group>
+                                        <group>
+                                            <field name="performance" widget="selection" attrs="{'readonly': [('approved_by_hr', '=', True)]}"/>
+                                            <field name="rating" widget="priority" attrs="{'readonly': [('approved_by_hr', '=', True)]}"/>
+                                            <field name="probation_id" invisible="1"/>
+                                            <field name="approved_by_hr" invisible="1"/>
+                                        </group>
+                                    </group>
+                                    <separator string="Description"/>
+                                    <field name="description" attrs="{'readonly': [('approved_by_hr', '=', True)]}"/>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!--tree-->
+    <record id="tree_dev_employee_probation" model="ir.ui.view">
+        <field name="name">tree.dev.employee.probation</field>
+        <field name="model">employee.probation</field>
+        <field name="arch" type="xml">
+            <tree string="Probation Tree View">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!--search-->
+    <record id="search_dev_employee_probation" model="ir.ui.view">
+        <field name="name">Probation - Search</field>
+        <field name="model">employee.probation</field>
+        <field name="arch" type="xml">
+            <search string="Probation Search">
+                <field name="name"/>
+                <group expand="0" string="Group By" colspan="16">
+                    <filter name="employee_id" string="Employee" context="{'group_by':'employee_id'}"/>
+                    <filter name="manager_id" string="Manager" context="{'group_by':'manager_id'}"/>
+                    <filter name="department_id" string="Department" context="{'group_by':'department_id'}"/>
+                    <filter name="company_id" string="Company" context="{'group_by':'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!--Action-->
+    <!-- <record id="action_dev_employee_probation" model="ir.actions.act_window">
+        <field name="name">Employee Probation</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">employee.probation</field>
+        <field name="view_mode">tree,form</field>
+    </record> -->
+    <record id="action_dev_employee_probation" model="ir.actions.server">
+        <field name="name">Employee Probation</field>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <field name="model_id" ref="dev_employee_probation.model_employee_probation"/>
+        <field name="code">action = model.custom_menu()</field>
+    </record>
+
+
+    <!--Menus-->
+    <menuitem name="Employee Probation"
+              id="sub_menu_employee_probation"
+              parent="main_menu_employee_probation"
+              action="action_dev_employee_probation"
+              sequence="1"/>
+</odoo>

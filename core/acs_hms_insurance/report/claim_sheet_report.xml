@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <template id="report_acs_claim_sheet_document">
+        <t t-call="web.external_layout">
+            <div class="page">
+                <div class="mt64 text-center">
+                    <br/>
+                    <h4 class="mt16 row mt8">
+                        <div class="mt64 col-auto mw-50 mb-1"> 
+                            <strong>Claim Sheet :- <span t-field="doc.name"/></strong>
+                        </div>
+                    </h4>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Insurance Company :-</strong><span t-field="doc.insurance_company_id"/><br/>
+                        <strong>Claim Date :-</strong><span t-field="doc.date"/>
+                    </div>
+                    <div class="col-6">
+                        <strong>Date From :-</strong><span t-field="doc.date_from"/><br/>
+                        <strong>Date To :-</strong><span t-field="doc.date_to"/>
+                    </div>
+                </div>
+                <br/>
+                <br/>
+                <table class="table table-sm o_main_table mt16">
+                    <thead>
+                        <tr>
+                            <th style="width: 4%">No</th>
+                            <th style="width: 10%">Patient Name</th>
+                            <th style="width: 8%">Invoice No.</th>
+                            <th style="width: 8%">Date</th>
+                            <th style="width: 8%">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="doc.claim_line_ids" t-as="line" t-value="1">
+                            <tr>
+
+                                <td>
+                                    <span t-esc="line_index + 1"/>
+                                </td>
+                                <td>
+                                    <span t-field="line.claim_id.patient_id"/>
+                                </td>
+                                <td>
+                                    <span t-field="line.name"/>
+                                </td>
+                                <td>
+                                    <span t-field="doc.date"/>
+                                </td>
+                                <td>
+                                    <span t-field="line.amount_total"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                <div class="row">
+                    <div class="col-6">
+                    </div>
+                    <div class="col-6">
+                        <strong style="margin-left:65px;">Total:-</strong>
+                        <strong style="margin-left:130px;">
+                            <span t-field="doc.amount_total"/>
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_acs_claim_sheet">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms_insurance.report_acs_claim_sheet_document" t-lang="doc.insurance_company_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+
+    <record id="acs_claim_sheet_report_action" model="ir.actions.report">
+        <field name="name">Claim Sheet</field>
+        <field name="model">acs.claim.sheet</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms_insurance.report_acs_claim_sheet</field>
+        <field name="report_file">acs_hms_insurance.report_acs_claim_sheet</field>
+        <field name="binding_model_id" ref="acs_hms_insurance.model_acs_claim_sheet"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,424 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+    <!-- maintenance.plan calendar view -->
+    <record id="maintenance_plan_view_calendar" model="ir.ui.view">
+        <field name="name">maintenance.plan.view.calendar</field>
+        <field name="model">maintenance.plan</field>
+        <field name="arch" type="xml">
+            <calendar string="Calendar Description" date_start="start_date" date_stop="end_date" mode="month" event_open_popup="1" color="parent_id" quick_add="false" create="0">
+<!--                <field name="workorder_ids"/>-->
+                <field name="work_order_id"/>
+                <field name="parent_id"/>
+                <field name="user_id"/>
+                <!-- <field name="state"/> -->
+                <field name="task_check_list_ids" widget="many2many_tags"/>
+                <field name="facility_area" />
+                <field name="mwo_state" />
+            </calendar>
+        </field>
+    </record>
+
+    <record id="maintenance_plan_view_tree_view_inherited" model="ir.ui.view">
+        <field name="name">maintenance.plan.view.tree_view.inherited</field>
+        <field name="model">maintenance.plan</field>
+        <field name="inherit_id" ref="maintenance_plan.maintenance_plan_view_tree"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//tree" position="replace">
+                <tree string="Maintenance Plans">
+                    <field name="name"/>
+                    <field name="maintenance_team_id"/>
+                    <field name="create_date"/>
+                    <field name="state"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                </tree>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="maintenance_equipment_form_view_inherit" model="ir.ui.view">
+        <field name="name">maintenance.equipment.form.view.inherit</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="equip3_asset_fms_masterdata.inherit_equip_view_id"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='wo_action_link']" position="replace">
+                <button name="action_view_workorder_ids" type="object" class="oe_stat_button" icon="fa-wrench">
+                    <div class="o_stat_info">
+                        <field name="workorder_count" class="o_stat_value"/>
+                        <field name="workorder_ids" invisible="1"/>
+                        <span class="o_stat_text">Work Order</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page name="materials" string="Materials">
+                    <field name="maintenance_materials_list_ids" context="{'is_scrap_location':True}">
+                        <tree editable="bottom">
+                            <field name="product_id" string="Product" domain="[('type', 'in', ('consu', 'product'))]" required='1'/>
+                            <field name="equipment_part_id_domain" invisible="1"/>
+                            <field name="equipment_part_id" domain="equipment_part_id_domain"/>
+                            <field name="product_uom_qty"/>
+                            <field name="uom_id" string="UOM"/>
+                            <field name="location_id" domain="[('id', 'in', filter_location_ids)]" required="1"/>
+                            <field name="filter_location_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="location_dest_id" readonly="1" force_save="1"/>
+                            <field name="analytic_group_ids" widget="many2many_tags" />
+                            <field name="notes"/>
+                            <field name="price_unit" />
+                            <field name="taxes_id" widget="many2many_tags" options="{'no_create': True}" optional="show"/>
+                            <field name="price_subtotal" widget="monetary" readonly="1"/>
+                        </tree>
+                    </field>
+                </page>
+                <page name="tools" string="Tools">
+                    <field name="tools_materials_list_ids">
+                        <tree editable="bottom">
+                            <field name="product_id" string="Product" domain="[('type', 'in', ('consu', 'product'))]" required='1'/>
+                            <field name="product_uom_qty"/>
+                            <field name="uom_id" string="UOM"/>
+                            <field name="notes"/>
+                        </tree>
+                    </field>
+                </page>
+                 <page name="repair_history" string="Repair History">
+                    <field name="repair_history_line_ids" force_save="1" readonly="1">
+                        <tree editable="bottom">
+                            <field name="maintenance_ro_id" widget="many2one_clickable"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </tree>
+                    </field>
+                </page>
+                <page name="replace_history" string="Parts Replacement History">
+                    <field name="parts_replacement_history_line" force_save="1" readonly="1">
+                        <tree editable="bottom">
+                            <field name="equipment_id" invisible="1"/>
+                            <field name="maintenance_ro_id"/>
+                            <field name="old_part_id"/>
+                            <field name="old_part_sn"/>
+                            <field name="new_part_id"/>
+                            <field name="new_part_sn"/>
+                            <field name="replace_date"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="make_invisible" model="res.groups">
+        <field name="name">Invisible</field>
+    </record>
+
+    <record id="maintenance_plan.hr_equipment_request_action_from_plan" model="ir.actions.act_window">
+        <field name="groups_id" eval="[(6,0,[ref('make_invisible')])]"/>
+    </record>
+
+    <record id="maintenance_plan_view_form_inherited" model="ir.ui.view">
+        <field name="name">maintenance.plan.view.form.inherited</field>
+        <field name="model">maintenance.plan</field>
+        <field name="inherit_id" ref="maintenance_plan.maintenance_plan_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+
+            <xpath expr="//form/sheet" position="before">
+                <header>
+                    <button name="action_move_active" type="object" string="Active" class="oe_highlight" attrs="{'invisible':[('state', '!=', 'draft')]}"/>
+                    <button name="action_move_cancel" type="object" string="Cancel" class="oe_highlight" attrs="{'invisible':[('state', '!=', 'active')]}"/>
+                    <button name="action_move_print" type="object" string="Print" class="oe_highlight"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,cancel"/>
+                </header>
+            </xpath>
+
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '=', 'active')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='maintenance_team_id']" position="replace"/>
+            <xpath expr="//field[@name='company_id']" position="replace"/>
+            <xpath expr="//div[@name='button_box']" position="replace">
+                <div class="oe_button_box" name="button_box">
+                    <button name="workorder_link" type="object" class="oe_stat_button" icon="fa-wrench">
+                        <field string="Work Order" name="wo_count" widget="statinfo"/>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='equipment_id']" position="before">
+                <field name="partner_id" string="Customer" attrs="{'readonly':[('state', '=', 'active')]}"/>
+                <field name="facility_area" attrs="{'invisible':[('is_show_fac_area','=',True)], 'readonly':[('state', '=', 'active')]}"/>
+                <field name="maintenance_team_id" required="1" attrs="{'readonly':[('state', '=', 'active')]}"/>
+                <field name="calendar_action_boolean" invisible="1"/>
+                <field name="parent_id" invisible="1"/>
+                <field name="parent_record_boolean" invisible="1"/>
+                <field name="m_assignation_type" attrs="{'readonly':[('state', '=', 'active')]}"/>
+                <field name="maintenance_category_ids" context="{'is_odometer_m_plan': is_odometer_m_plan, 'active_id': active_id}" widget="many2many_tags" attrs="{'readonly':[('state', '=', 'active')]}"/>
+                <field name="is_show_fac_area" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//group[1]//group[2]" position="inside">
+                <field name="created_on" attrs="{'readonly':[('state', '=', 'active')]}"/>
+                <field name="user_id" attrs="{'readonly':[('state', '=', 'active')]}"/>
+                <field name="company_id" attrs="{'readonly':[('state', '=', 'active')]}"/>
+                <field name="branch_id" attrs="{'readonly':[('state', '=', 'active')]}" required="1"/>
+                <field name="is_approval_matrix" invisible="1"/>
+                <field name="approvalmatrix" attrs="{'required': [('is_approval_matrix', '=', True)], 'invisible': [('is_approval_matrix', '!=', True)]}"/>
+                <field name="approvers_id" widget="many2many_tags" invisible="1"/>
+                <field name="approval_sequence" invisible="1"/>
+                <field name="next_wo_date" attrs="{'readonly':[('state', '=', 'active')]}" groups="base.group_no_one"/>
+                <field name="maintenance_types" widget="many2many_tags"/>
+            </xpath>
+            <!-- <xpath expr="//field[@name='name']" position="attributes">
+                 <attribute name="attrs">{'readonly': [('state', '=', active)]}</attribute>
+            </xpath> -->
+            <xpath expr="//group[1]" position="after">
+                <group>
+                    <group>
+                        <field name="start_date" attrs="{'readonly':[('state', '=', 'active')]}" required="1"/>
+                        <field name="end_date" attrs="{'readonly':[('state', '=', 'active')]}" required="1"/>
+                    </group>
+                    <group>
+                        <label for="frequency_interval_number" attrs="{'invisible':['|',('is_hourmeter_m_plan', '=', True),('is_odometer_m_plan', '=', True)]}" required="1"/>
+                        <div attrs="{'invisible':['|',('is_hourmeter_m_plan', '=', True),('is_odometer_m_plan', '=', True)]}">
+                            <field class="oe_inline" attrs="{'readonly':[('state', '=', 'active')]}" name="frequency_interval_number" required="1"/>
+                            <span class="p-2">days</span>
+                        </div>
+                        <field name="remarks" string="Remarks" attrs="{'readonly':[('state', '=', 'active')]}"/>
+                    </group>
+                </group>
+                <group invisible="1">
+                    <field name="is_preventive_m_plan"/>
+                    <field name="is_hourmeter_m_plan"/>
+                    <field name="is_odometer_m_plan"/>
+                </group>
+            </xpath>
+
+            <xpath expr="//field[@name='equipment_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='maintenance_kind_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='start_maintenance_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='next_maintenance_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='duration']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='interval']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='maintenance_plan_horizon']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='interval_step']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='planning_step']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//label[@for='maintenance_plan_horizon']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//label[@for='interval']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//notebook/page[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//notebook/page[last()]" position="after">
+                <!-- <page string="Detailed Operations">
+                    <group>
+                        <group>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="frequency_interval_number" string="Frequency Interval Days"/>
+                        </group>
+                        <group>
+                            <field name="meter_interval_number" string="Odoo Meter Interval Days"/>
+                            <field name="hm_interval_number" string="HM Interval Days"/>
+                        </group>
+                    </group>
+                </page> -->
+
+                <page string="Asset Checklist">
+                    <field name="task_check_list_ids" context="{'is_odometer_m_plan': is_odometer_m_plan}" attrs="{'readonly':[('state', '=', 'active')]}">
+                        <tree editable="bottom">
+                            <field name="equipment_id" string="Asset" context="{'is_odometer_m_plan': is_odometer_m_plan}"/>
+                            <field name="vehicle_parts_ids" widget="many2many_tags" force_save="1" readonly="1"/>
+                            <field name="task" string="Details"/>
+                            <field name="is_odometer_m_plan" invisible="1"/>
+                            <field name="already_compute" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+
+                <page string="Materials">
+                    <field name="maintenance_materials_list_ids" attrs="{'readonly':[('state', '=', 'active')]}">
+                        <tree editable="bottom">
+                            <field name="product_id" string="Product"/>
+                            <field name="parent_equipment_id"/>
+                            <field name="part_equipment_id"/>
+                            <field name="product_uom_qty"/>
+                            <field name="uom_id" string="UOM"/>
+                            <field name="location_id"/>
+                            <field name="location_dest_id"/>
+                            <field name="notes"/>
+                        </tree>
+                    </field>
+                </page>
+
+                <page string="Tools">
+                    <field name="tools_materials_list_ids" attrs="{'readonly':[('state', '=', 'active')]}">
+                        <tree editable="bottom">
+                            <field name="product_id" string="Tools"/>
+                            <field name="product_uom_qty"/>
+                            <field name="uom_id" string="UOM"/>
+                            <field name="notes"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Maintenance" attrs="{'invisible': [('is_preventive_m_plan', '=', True)]}">
+                    <group>
+                        <group>
+                            <label for="maintenance_frequency_ids" context="{'is_hourmeter_m_plan': is_hourmeter_m_plan, 'is_odometer_m_plan': is_odometer_m_plan}"/>
+                            <div attrs="{'invisible': [('is_preventive_m_plan', '=', True)]}">
+                                <field class="oe_inline" name="maintenance_frequency_ids" attrs="{'readonly':[('state', '=', 'active')]}"/>
+                                <span class="p-2" attrs="{'invisible':['|',('is_preventive_m_plan', '=', True),('is_odometer_m_plan', '=', True)]}">
+                                    hours
+                                </span>
+                                <span class="p-2" attrs="{'invisible':['|',('is_preventive_m_plan', '=', True),('is_hourmeter_m_plan', '=', True)]}">
+                                    km
+                                </span>
+                            </div>
+                            <button string="Add Multiple Threshold" name="add_threshold_action" type="object"/>
+                        </group>
+                    </group>
+                    <field name="maintenance_threshold_ids" context="{'is_hourmeter_m_plan': is_hourmeter_m_plan, 'is_odometer_m_plan': is_odometer_m_plan}" attrs="{'readonly':[('state', '=', 'active')]}">
+                        <tree editable="bottom">
+                            <field name="threshold" type="char"/>
+                            <field name="unit" type="char"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="maintenance.menu_maintenance_title" name="Asset Control" web_icon="maintenance,static/description/icon.png" sequence="110"/>
+
+    <menuitem id="maintenance.menu_m_request" name="Operation" parent="maintenance.menu_maintenance_title" groups="maintenance.group_equipment_manager,base.group_user" sequence="3"/>
+
+    <!-- <record id="hr_equipment_request_view_form_inherit_customsaleorder" model="ir.ui.view">
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="equipment_maintenance_sales_order.hr_equipment_request_view_form_inherit_customsaleorder"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='maintenance_requestcustom_line_ids']/.." position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@class='oe_highlight']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//div[@class='oe_button_box']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_custom_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record> -->
+
+
+    <!-- seperate maintenance with different type -->
+
+    <record id="maintenance_plan_action_preventive" model="ir.actions.act_window">
+        <field name="name">Preventive Maintenance Plan</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.plan</field>
+        <field name="view_mode">tree,form,calendar</field>
+        <field name="view_id" ref="maintenance_plan.maintenance_plan_view_tree"/>
+        <field name="domain">[('is_preventive_m_plan', '=', True),('parent_record_boolean','=',False)]</field>
+        <field name="context">{'default_is_preventive_m_plan': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Maintenance Plan in your address book
+            </p>
+            <p>
+                Odoo helps you easily track all activities related to a Maintenance Plan.
+            </p>
+        </field>
+    </record>
+
+    <record id="maintenance_plan_action_preventive_calendar" model="ir.actions.act_window">
+        <field name="name">Preventive Maintenance Plan</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.plan</field>
+        <field name="view_mode">calendar</field>
+        <field name="view_id" ref="maintenance_plan_view_calendar"/>
+        <field name="domain">[('is_preventive_m_plan', '=', True),('parent_record_boolean','=',True)]</field>
+        <field name="context">{'default_is_preventive_m_plan': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Maintenance Plan in your address book
+            </p>
+            <p>
+                Odoo helps you easily track all activities related to a Maintenance Plan.
+            </p>
+        </field>
+    </record>
+
+    <record id="maintenance_plan_action_hourmeter" model="ir.actions.act_window">
+        <field name="name">Hour Meter Maintenance Plan</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.plan</field>
+        <field name="view_mode">tree,form,calendar</field>
+        <field name="view_id" ref="maintenance_plan.maintenance_plan_view_tree"/>
+        <field name="domain">[('is_hourmeter_m_plan', '=', True)]</field>
+        <field name="context">{'default_is_hourmeter_m_plan': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Maintenance Plan in your address book
+            </p>
+            <p>
+                Odoo helps you easily track all activities related to a Maintenance Plan.
+            </p>
+        </field>
+    </record>
+    <record id="maintenance_plan_action_odometer" model="ir.actions.act_window">
+        <field name="name">Odometer Maintenance Plan</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">maintenance.plan</field>
+        <field name="view_mode">tree,form,calendar</field>
+        <field name="view_id" ref="maintenance_plan.maintenance_plan_view_tree"/>
+        <field name="domain">[('is_odometer_m_plan', '=', True)]</field>
+        <field name="context">{'default_is_odometer_m_plan': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Maintenance Plan in your address book
+            </p>
+            <p>
+                Odoo helps you easily track all activities related to a Maintenance Plan.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="maintenance_plan.menu_m_plan_form" name="Maintenance Plans" parent="maintenance.menu_m_request" groups=""/>
+    <menuitem id="menu_preventive_m_plan_calendar" name="Preventive Maintenance Calendar" parent="maintenance_plan.menu_m_plan_form" action="maintenance_plan_action_preventive_calendar" sequence="1"/>
+    <menuitem id="menu_preventive_m_plan_form" name="Preventive Maintenance Plans" parent="maintenance_plan.menu_m_plan_form" action="maintenance_plan_action_preventive" sequence="2"/>
+    <menuitem id="menu_hourmeter_m_plan_form" name="Hour Meter Maintenance Plans" parent="maintenance_plan.menu_m_plan_form" action="maintenance_plan_action_hourmeter" sequence="3"/>
+    <menuitem id="menu_odometer_m_plan_form" name="Odometer Maintenance Plans" parent="maintenance_plan.menu_m_plan_form" action="maintenance_plan_action_odometer" sequence="4"/>
+</odoo>

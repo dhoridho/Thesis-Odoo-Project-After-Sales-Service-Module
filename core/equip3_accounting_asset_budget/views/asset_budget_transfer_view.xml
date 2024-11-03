@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_asset_budget_transfer_tree" model="ir.ui.view">
+        <field name="name">view.asset.budget.transfer.tree</field>
+        <field name="model">asset.budget.transfer</field>
+        <field name="arch" type="xml">
+            <tree string="Asset Budget Transfer">
+                <field name="name"/>
+                <field name="asset_budget_transfer_name"/>
+                <field name="source_budget_id"/>
+                <field name="destination_budget_id"/>
+                <field name="total_transfer_amount"/>
+                <field name="state" 
+                attrs="{'decoration-success':'state == \'confirm\'','decoration-danger':'state == \'cancel\'','decoration-primary':'state == \'draft\''}" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_asset_budget_transfer_form" model="ir.ui.view">
+        <field name="name">view.asset.budget.transfer.form</field>
+        <field name="model">asset.budget.transfer</field>
+        <field name="arch" type="xml">
+            <form string="Asset Budget Transfer">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" states="draft" class="oe_highlight"/>
+                    <!-- <button name="action_validate" string="Validate" type="object" states="confirm" class="oe_highlight"/> -->
+                    <!-- <button name="action_done" string="Done" type="object" states="validate" class="oe_highlight"/> -->
+                    <!-- <button name="action_reject" string="Reject" type="object" states="confirm"/> -->
+                    <button name="action_cancel" string="Cancel" type="object" states="confirm"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirm,cancel"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="asset_budget_transfer_name" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="source_budget_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="destination_budget_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="date" class="oe_inline" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="company_id" readonly="1"/>
+                            <field name="branch_id" attrs="{'readonly':[('state','!=','draft')]}" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="asset_budget_transfer" string="Asset Budget Transfer">
+                            <field name="asset_budget_transfer_line_ids" nolabel="1" widget="one2many_list" attrs="{'readonly':[('state','!=','draft')]}">
+                                <tree string="Asset Budget Transfer Line" editable="bottom">
+                                    <field name="asset_source_budget_id"/>
+                                    <field name="source_asset_budget_line_id"/>
+                                    <field name="source_remaining_amount" readonly="1" force_save="1"/>
+                                    <field name="asset_destination_budget_id"/>
+                                    <field name="destination_asset_budget_line_id"/>
+                                    <field name="destination_remaining_amount" readonly="1" force_save="1"/>
+                                    <field name="transfer_amount"/>
+                                    <field name="current_remaining_amount" />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="act_asset_budget_transfer" model="ir.actions.act_window">
+        <field name="name">Asset Budget Transfer</field>
+        <field name="res_model">asset.budget.transfer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_asset_budget_transfer_tree"/>
+    </record>
+
+    <menuitem id="menu_asset_budget_transfer" name="Asset Budget Transfer" action="act_asset_budget_transfer" parent="menu_asset_budget" />
+</odoo>

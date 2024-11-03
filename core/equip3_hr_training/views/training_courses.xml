@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="form_training_courses" model="ir.ui.view">
+            <field name="name">form.training.courses</field>
+            <field name="model">training.courses</field>
+            <field name="arch" type="xml">
+                <form string="Training Courses Form">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="training_category_id"/>
+                                <label for="renewable" string="Renewable Every"/>    
+                                <div class="o_row">                         
+                                    <field name="renewable"/>
+                                    <label for="renewable" string="Month"/>      
+                                </div>
+                                   
+                                <field name="description"/>
+
+                                <div class="o_row">
+                                    <label  style="color:black;font-weight: 600;" for="final_score_formula" string="Final Score Formula"/>     
+                                    <span title="pretest : variable that functions as a container for the results of pre-test score calculated using the formula
+                                    &#013;&#013;posttest : variable that functions as a container for the results of post-test score calculated using the formula
+                                    &#013;&#013;pre_test : participant pre-test score
+                                    &#013;&#013;post_test : participant post-test score
+                                    &#013;&#013;total : the calculated pre-test and post-test scores" class="o_doc_link"></span>
+                                </div>
+                                <field name="final_score_formula" nolabel='1'/>
+                                
+                                <field name="create_date" readonly="1"/>
+                                <field name="create_by" readonly="1"/>
+                                <field name="company_id" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="course_stages" string="Stages">
+                                <field name="stage_ids" >
+                                    <tree editable="bottom" delete="false">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="stage_id" required="1" />
+                                        <field name="survey_pre_test_id" domain="[('survey_type','=','general')]"/>
+                                        <field name="survey_post_test_id" domain="[('survey_type','=','general')]"/>
+                                        <!-- <field name="start" string="Start Stage"/>
+                                        <field name="completed" string="Complete Stage"/> -->
+                                        <field name="fold" invisible="1" />
+                                        <field name="remark" />
+                                        <field name="is_default_stages" invisible="1"/>
+                                        <button type="object" icon="fa-trash" name="unlink" attrs="{'invisible': [('is_default_stages', '=', True)]}"/>
+                                    </tree>
+                                </field>
+    
+                                
+                            </page>
+                        </notebook>
+                    </sheet>
+                    
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!--tree-->
+        <record id="tree_training_courses" model="ir.ui.view">
+            <field name="name">tree.training.courses</field>
+            <field name="model">training.courses</field>
+            <field name="arch" type="xml">
+                <tree string="Training Courses Tree">
+                    <field name="name"/>
+                    <field name="renewable"/>
+                    <field name="description"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_training_courses" model="ir.actions.act_window">
+            <field name="name">Training Courses</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">training.courses</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+
+        <record id="action_training_courses_kanban" model="ir.actions.act_window">
+            <field name="name">Training Courses</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">training.courses</field>
+            <field name="view_mode">kanban,form</field>
+        </record>
+
+    
+
+
+
+
+<!-- course kanban -->
+    <record id="view_training_courses_kanban" model="ir.ui.view">
+        <field name="name">training.courses.kanban</field>
+        <field name="model">training.courses</field>
+        <field name="arch" type="xml">
+            <kanban class="oe_background_grey o_kanban_dashboard o_hr_recruitment_kanban"  sample="1">
+                <field name="name"/>
+                <field name="estimated_cost"/>
+                <field name="renewable"/>
+                <field name="description"/>
+                <field name="color"/>
+                <field name="is_favorite"/>
+                <field name="count_conduct_to_approved"/>
+                <field name="count_conduct_on_progress"/>
+                <field name="count_conduct_completed"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="#{!selection_mode ? kanban_color(record.color.raw_value) : ''}">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <div class="o_primary col-12">
+                                        <span><t t-esc="record.name.value"/></span>
+                                    </div>
+                                    <field name="is_favorite" widget="boolean_favorite" nolabel="1"/>
+                                    
+                                </div>
+                                <div class="o_kanban_manage_button_section">
+                                    <a class="o_kanban_manage_toggle_button" href="#"><i class="fa fa-ellipsis-v" role="img" aria-label="Manage" title="Manage"/></a>
+                                </div>
+                            </div>
+                            <div class="container o_kanban_card_content">
+                                
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <button class="btn btn-primary" 
+                                            name="%(action_training_kanban_conduct_by_course)d" type="action"
+                                            >
+                                               Training Conduct
+                                            </button>
+                                        </div>
+                                        <div class="col-6">
+                                            <field name="description"/> <br/>
+                                            <field name="count_conduct_to_approved"/> To Approved <br/>
+                                            <field name="count_conduct_on_progress"/> On Progress <br/>
+                                            <field name="count_conduct_completed"/> Completed <br/>
+                                        </div>
+                                    </div>
+                                
+                                
+                                <div name="kanban_boxes" class="row o_recruitment_kanban_boxes">
+                                    <div class="o_recruitment_kanban_box o_kanban_primary_bottom bottom_block" style="padding-left:8px;">
+                                        <div class="col-6"></div>
+                                        <div class="col-6 o_link_trackers">
+                                            <!-- <a role="button" name="%(hr_recruitment.action_hr_job_sources)d" type="action" class="btn btn-sm ">
+                                                <span title="Link Trackers"><i class="fa fa-lg fa-envelope" role="img" aria-label="Link Trackers"/></span> 
+                                            </a> -->
+                                            <button class="btn btn-primary" name="create_training_conduct" type="object">
+                                                Create
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="o_kanban_card_manage_pane dropdown-menu" role="menu">
+                                <div class="o_kanban_card_manage_section">
+                                    <div role="menuitem"><a t-if="widget.editable" name="edit_course" type="edit">Edit</a></div>
+                                </div>
+                                <div role="menuitem" aria-haspopup="true">
+                                    <ul class="oe_kanban_colorpicker" data-field="color" role="menu"/>
+                                </div>
+                            </div>
+                          
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_training_course_filter" model="ir.ui.view">
+        <field name="name">training.courses.search</field>
+        <field name="model">training.courses</field>
+        <field name="arch" type="xml">
+            <search string="Training Courses">
+                <filter string="My Favorites" name="my_favorite_jobs" domain="[('favorite_user_ids', 'in', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+
+</data>
+
+
+</odoo>

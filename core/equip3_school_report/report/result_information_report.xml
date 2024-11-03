@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <template id="result_transcript_external_layout">
+        <t t-if="not o and doc">
+            <t t-set="o" t-value="doc"/>
+        </t>
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id"></t>
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company"></t>
+        </t>
+    
+        <t t-call="equip3_school_report.result_transcript_header" />
+        <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+            <t t-raw="0"/>
+        </div>
+        <t t-call="general_template.templates_footer"/>
+    </template>
+
+    <template id="result_transcript_header">
+        <div class="header" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <center>
+                                <table border="0" cellpadding="0" cellspacing="0" t-attf-style="padding:0px 20px 0px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+                                    <tr>
+                                        <td align="left" colspan="2" t-attf-style="color:#{text_color or '#ffffff'}; padding:0px 0px;" valign="top">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                <tr>
+                                                    <td align="left" t-attf-style="color:#4D4D4F; padding: 10px 20px 0px 20px; border-right: 1px solid #D4D1D1;" valign="top">
+                                                        <img t-attf-style="max-height: 50px; margin-top: 8%;" t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo)" t-if="o.company_id.logo"/>
+                                                        <br/>
+                                                    </td>
+                                                    <td t-attf-style="padding: 10px 20px 0px 20px;width:40%" valign="top">
+                                                        <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Address</p>
+                                                        <t t-call="general_template.templates_company_details"/>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </center>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </template>
+
+
+    <template id="result_transcript_report_pdf">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="result"><hr style="border:1px solid black"/>
+                <t t-call="equip3_school_report.result_transcript_external_layout">
+                    <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+                    <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+                    <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+                    <t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+                    <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+                    <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+                    <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+                    <t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+                <div class="page">
+                    <div class="oe_structure" />
+                    <br />
+                    <br />
+                    <hr style="border:1px solid black"/>
+
+                    <h3 align="center">Transcript Of Academic Record</h3>
+
+                    <table width="60%" t-attf-style="page-break-inside: auto">
+                        <!-- <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                            <th colspan="3" ><h3>Transcript Of Academic Record</h3></th>
+                        </tr> -->
+                        <tr t-attf-style="page-break-inside: avoid">
+                            <td width="30%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid transparent;">Student Name</td>
+                            <td width="5%" align="center" t-attf-style="font-size: 18px;">:</td>
+                            <td width="75%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid transparent; ">
+                                <span t-field="result.sudo().name"></span>
+                                <span t-field="result.middle"></span>
+                                <span t-field="result.last"></span>
+                            </td>
+                        </tr>
+                        <tr t-attf-style="page-break-inside: avoid">
+                            <td width="30%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid transparent; ">Academic Year</td>
+                            <td width="5%" align="center" t-attf-style="font-size: 18px;">:</td>
+                            <td width="75%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid transparent; ">
+                                <span t-field="result.year"></span>
+                            </td>
+                        </tr>
+                        <tr t-attf-style="page-break-inside: avoid">
+                            <td width="30%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid transparent; ">Term</td>
+                            <td width="5%" align="center" t-attf-style="font-size: 18px;">:</td>
+                            <td width="75%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid transparent; ">
+                                <span t-field="result.term_id"></span>
+                            </td>
+                        </tr>
+                        <tr t-attf-style="page-break-inside: avoid">
+                            <td width="30%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid transparent; ">Program</td>
+                            <td width="5%" align="center" t-attf-style="font-size: 18px;">:</td>
+                            <td width="75%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid transparent; ">
+                                <span t-field="result.standard_id.standard_id"></span>
+                            </td>
+                        </tr>
+                        <tr t-attf-style="page-break-inside: avoid">
+                            <td width="30%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid transparent; ">Intake</td>
+                            <td width="5%" align="center" t-attf-style="font-size: 18px;">:</td>
+                            <td width="75%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid transparent; ">
+                                <span t-field="result.standard_id"></span>
+                            </td>
+                        </tr>
+
+                    </table>
+                    <br />
+                    <table width="100%" border="1" cellpadding="0" cellspacing="0">
+                        <thead t-attf-style="background-color:#e6e6e6;">
+                            <tr>
+                                <td align="center" width="15%"
+                                    t-attf-style="font-family: 'Helvetica';font-size: 18px; ">
+                                    <b>Code</b>
+                                </td>
+                                <td align="center" width="20%"
+                                    t-attf-style="font-family: 'Helvetica';font-size: 18px; ">
+                                    <b>Subject</b>
+                                </td>
+                                <!-- <td align="center" width="15%"
+                                    t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black; border: 1px solid black; background-color:black;color:white;">
+                                    <b>Maximum marks</b>
+                                </td> -->
+                                <td align="center" width="25%"
+                                    t-attf-style="font-family: 'Helvetica';font-size: 18px; ">
+                                    <b>Minimum Marks</b>
+                                </td>
+                                <td align="center" width="15%"
+                                    t-attf-style="font-family: 'Helvetica';font-size: 18px; ">
+                                    <b>Obtains Mark</b>
+                                </td>
+                                <td align="center" width="15%"
+                                    t-attf-style="font-family: 'Helvetica';font-size: 18px; ">
+                                    <b>Grade</b>
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="get_exam_data(result.exam_results_ids,result)==[{}]">
+                                <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                    <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;padding:30px 0px" colspan="6">
+                                        <span>Exam Data Not Available</span>
+                                    </td>
+                                </tr>
+                            </t>
+                            <t t-foreach="get_lines(result.exam_results_ids,result)"
+                               t-as="result_ids">
+                                <tr>
+                                    <td align="center" width="15%"
+                                        t-attf-style="font-family: 'Helvetica';font-size: 16px;">
+                                        <span t-esc="result_ids.get('code')"></span>
+                                    </td>
+                                    <td align="center" width="20%"
+                                        t-attf-style="font-family: 'Helvetica';font-size: 16px;">
+                                        <span t-esc="result_ids.get('name')"></span>
+                                    </td>
+                                    <td align="center" width="15%"
+                                        t-attf-style="font-family: 'Helvetica';font-size: 16px;">
+                                        <span t-esc="result_ids.get('minimum_marks')"></span>
+                                    </td>
+                                    <td align="center" width="15%"
+                                        t-attf-style="font-family: 'Helvetica';font-size: 16px;">
+                                        <span t-esc="result_ids.get('obtain_marks')"></span>
+                                    </td>
+                                    <td align="center" width="15%"
+                                        t-attf-style="font-family: 'Helvetica';font-size: 16px;">
+                                        <span t-esc="result_ids.get('grade_line_id')"></span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                    <br />
+                    <br />
+                    <t t-foreach="get_exam_data(result.exam_results_ids,result)" t-as="exam_ids" t-if="get_exam_data(result.exam_results_ids,result)!=[{}]">
+                        <table width="100%" border="1" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td width="16.6%" align="center" t-attf-style="font-family: 'Helvetica';font-size: 18px; background-color:#e6e6e6;">
+                                    <b>Total</b>
+                                </td>
+                                <td width="16.6%" align="center" t-attf-style="font-family: 'Helvetica';font-size: 18px;">
+                                    <span t-esc="exam_ids.get('total')"></span>
+                                </td>
+                                <td width="16.6%" align="center" t-attf-style="font-family: 'Helvetica';font-size: 18px;border:background-color:#e6e6e6;">
+                                    <b>Percentage</b>
+                                </td>
+                                <td width="16.6%" align="center" t-attf-style="font-family: 'Helvetica';font-size: 18px;">
+                                    <span t-esc="exam_ids.get('percentage')"></span>%
+                                </td>
+                                <td width="16.6%" align="center" t-attf-style="font-family: 'Helvetica';font-size: 18px;background-color:#e6e6e6;">
+                                    <b>Result</b>
+                                </td>
+                                <td width="16.6%" align="center" t-attf-style="font-family: 'Helvetica';font-size: 18px;">
+                                    <span t-esc="exam_ids.get('result')"></span>
+                                </td>
+                            </tr>
+                        </table>
+                    </t>
+                </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="result_transcript_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="equip3_school_report.result_transcript_report_pdf"/>
+            </t>
+        </t>
+    </template>
+
+
+</odoo>

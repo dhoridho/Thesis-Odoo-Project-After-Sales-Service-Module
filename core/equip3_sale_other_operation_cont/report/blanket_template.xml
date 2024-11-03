@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<template id="external_layout_blanket">
+        <t t-if="not o and doc">
+            <t t-set="o" t-value="doc"/>
+        </t>
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id"></t>
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company"></t>
+        </t>
+    
+        <t t-call="equip3_sale_other_operation_cont.blanket_header" />
+        <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+            <t t-raw="0"/>
+        </div>
+        <t t-call="equip3_sale_other_operation_cont.blanket_footer"/>
+    </template>
+
+    <template id="blanket_header">
+        <div class="header" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <center>
+                                <table border="0" cellpadding="0" cellspacing="0" style="padding:0px 20px 0px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+                                    <tr>
+                                        <td align="left" colspan="2" t-attf-style="color:#{text_color or '#ffffff'}; padding:0px 0px;" valign="top">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                <tr>
+                                                    <td align="left" t-attf-style="color:#4D4D4F; padding: 10px 20px 0px 20px; border-right: 1px solid #D4D1D1;" valign="top">
+                                                        <img t-attf-style="max-height: 50px; margin-top: 8%;" t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo)" t-if="o.company_id.logo"/>
+                                                        <br/>
+                                                    </td>
+                                                    <td style="padding: 10px 20px 0px 20px;width:40%" valign="top">
+                                                        <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Address</p>
+                                                        <t t-call="general_template.templates_company_details"/>
+                                                    </td>
+                                                    <td style="padding: 10px 20px 0px 20px;width:40%" valign="top">
+                                                    	<div valign="top">
+															<t t-call="general_template.templates_customer_details"/>
+														</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </center>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </template>
+    
+    <template id="blanket_footer">
+        <div class="footer" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'" t-if="o.company_id.report_footer_selection == 'standard'">
+            <div class="text-center" style="border-top: 1px solid black;">
+                <ul class="list-inline mb4">
+                    <li t-if="company.phone">Phone: 
+                        <span t-field="company.phone"/></li>
+                    <li t-if="company.email">Email: 
+                        <span t-field="company.email"/></li>
+                    <li t-if="company.website">Web: 
+                        <span t-field="company.website"/></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'" t-if="o.company_id.report_footer_selection == 'multi_columns'">
+            <div class="col-md-3 text-center" style="width:27%; display:inline-block; vertical-align: top;">
+                <span t-field="o.company_id.name"/>
+                <br/>
+                <span t-esc="o._get_street(o.company_id.partner_id)"/>
+                <br/>
+                <span t-esc="o._get_address_details(o.company_id.partner_id)"/>
+            </div>
+            <div class="col-md-3 text-center" style="width:27%; display:inline-block; vertical-align: top;">
+                <span t-field="o.company_id.phone"/>
+                <br/>
+                <span t-field="o.company_id.website"/>
+                <br/>
+                <span t-field="o.company_id.email"/>
+                <br/>
+            </div>
+            <div class="col-md-3 text-center" style="width:27%; display:inline-block; vertical-align: top;">
+                <span t-field="o.company_id.report_footer"/>
+            </div>
+            <div class="col-md-3 text-center" style="width:15%; margin-bottom:20px; display: inline-block; vertical-align: top;">
+                <img style="margin-bottom:50px;max-height: 110px;max-width: 100%;"  t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo_footer)"/>
+            </div>
+        </div>
+        
+    </template>
+
+	<template id="report_blanket_printout">
+		<t t-call="equip3_sale_other_operation_cont.external_layout_blanket">
+			<t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+			<t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+			<t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+			<t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+			<t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+			<t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+			<t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+			<t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+			<div class="page" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+				<div class="oe_structure"/>
+				<div width="100%">
+					<div style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+						<div t-attf-style="background-color:#f2f2f2;border-bottom:1px solid #{theme_color or '#ececec'}; overflow: visible; margin-bottom: 20px;">
+							<div align="right" style="padding:15px 0px 15px 15px; width:50%;float:right;" valign="top">
+								<table t-attf-style="text-transform:capitalize; background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+									<tr>
+										<td t-attf-style="padding:9px 15px; font-weight:bold;">
+											<span><b>Order Reference</b></span>
+										</td>
+										<td t-attf-style="text-align:right; font-weight:bold; padding:9px 15px;">
+											<span t-esc="o.name"></span>
+										</td>
+									</tr>
+									<tr>
+										<td t-attf-style="padding:9px 15px; font-weight:bold;">
+											<span><b>Customer</b></span>
+										</td>
+										<td t-attf-style="text-align:right; font-weight:bold; padding:9px 15px;">
+											<span t-esc="o.partner_id.name"></span>
+										</td>
+									</tr>
+									<tr>
+										<td t-attf-style="padding:9px 15px; font-weight:bold;">
+											<span><b>Creation Date</b></span>
+										</td>
+										<td t-attf-style="text-align:right; font-weight:bold; padding:9px 15px;">
+											<span t-if="o.creation_date" t-esc="o.creation_date.strftime('%Y-%m-%d %H:%M')"></span>
+										</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+						<div>
+							<table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+								<thead>
+									<tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+										<td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"><b>Product</b></td>
+										<td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"><b>Quantity</b></td>
+										<td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"><b>Unit of Measure</b></td>
+										<td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"><b>Unit Price</b></td>
+										<td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;"><b>Subtotal</b></td>
+									</tr>
+								</thead>
+								<tbody>
+									<t t-as="line" t-foreach="o.order_line_ids">
+										<tr>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-esc="line.product_id.name"></span>
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-esc="line.quantity"></span>
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-esc="line.product_uom.name"></span>
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-esc="line.price_unit" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"></span>
+											</td>
+											<td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+												<span t-esc="line.price_subtotal" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"></span>
+											</td>
+										</tr>
+									</t>
+								</tbody>
+							</table>
+						</div>
+						<div style="overflow:visible;">
+							<div class="row">
+								<div class="col-6">
+								</div>
+								<div class="col-6">
+									<table class="pull-right" style="font-weight:bold;width:40%; text-transform:capitalize;">
+										<tr>
+											<td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;'"><b>Untaxed Amount</b></td>
+											<td align="right" style="padding:9px 0px 7px 10px;">
+												<t t-esc="o.amount_untaxed" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+											</td>
+										</tr>
+										<tr>
+											<td colspan="3" style="border-bottom:1px solid #959595"/>
+										</tr>
+										<tr>
+											<td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;'"><b>Taxes</b></td>
+											<td align="right" style="padding:9px 0px 7px 10px;">
+												<t t-esc="o.amount_tax" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+											</td>
+										</tr>
+										<tr>
+											<td colspan="3" style="border-bottom:1px solid #959595"/>
+										</tr>
+										<tr>
+											<td class="left" colspan="2" t-att-style="'padding:9px 10px 7px 0px;'"><b>Total</b></td>
+											<td align="right" style="padding:9px 0px 7px 10px;">
+												<t t-esc="o.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+											</td>
+										</tr>
+										<tr>
+											<td colspan="3" style="border-bottom:1px solid #959595"/>
+										</tr>
+									</table>
+								</div>
+							</div>
+						</div>
+						<div class="oe_structure"/>
+					</div>
+				</div>
+			</div>
+		</t>
+	</template>
+
+
+	<template id="blanket_report_printout">
+		<t t-call="web.html_container">
+			<t t-foreach="docs" t-as="o">
+				<t t-call="equip3_sale_other_operation_cont.report_blanket_printout"/>
+			</t>
+		</t>
+	</template>
+
+</odoo>

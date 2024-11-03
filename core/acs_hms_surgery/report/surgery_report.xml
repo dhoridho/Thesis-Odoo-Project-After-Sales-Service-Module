@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_medicament_table">
+        <table class="table table-sm o_main_table">
+            <thead>
+                <tr>
+                    <th>Sr.No</th>
+                    <th>Medicine</th>
+                    <th>Frequency</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-foreach="surgery.medicament_line_ids" t-as="line"  t-value="1">
+                    <tr>
+                        <td>
+                            <span t-esc="line_index + 1"/>
+                        </td>
+                        <td>
+                            <span t-field="line.product_id.name"/>
+                        </td>
+                        <td>
+                            <span t-if="line.common_dosage_id.name" t-field="line.common_dosage_id.name"/>
+                            <span t-if="not line.common_dosage_id.name" t-field="line.common_dosage_id.abbreviation"/>
+                        </td>
+                        <td>
+                            <span t-field="line.qty"/>
+                        </td>
+                    </tr>
+                </t>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="report_consumable_table">
+        <table class="table table-sm o_main_table">
+            <thead>
+                <tr>
+                    <th>Sr.No</th>
+                    <th>Medicine</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-foreach="surgery.consumable_line_ids" t-as="line"  t-value="1">
+                    <tr>
+                        <td>
+                            <span t-esc="line_index + 1"/>
+                        </td>
+                        <td>
+                            <span t-field="line.product_id.name"/>
+                        </td>
+                        <td>
+                            <span t-field="line.qty"/>
+                        </td>
+                    </tr>
+                </t>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="report_surgery_details">
+        <div t-if="surgery.diagnosis" class="col-12 mt8 mt8" style="page-break-inside: avoid;">
+            <strong><t t-if="print_surgery">Surgery </t>Diagnosis: </strong><br/>
+            <div class="ml32" t-field="surgery.diagnosis"/>
+        </div>
+
+        <div t-if="surgery.clinincal_history" class="col-12 mt8 mt8" style="page-break-inside: avoid;">
+            <strong><t t-if="print_surgery">Surgery </t>Clinical History: </strong><br/>
+            <div class="ml32" t-field="surgery.clinincal_history"/>
+        </div>
+
+        <div t-if="surgery.examination" class="col-12 mt8 mt8" style="page-break-inside: avoid;">
+            <strong><t t-if="print_surgery">Surgery </t>Examination: </strong><br/>
+            <div class="ml32" t-field="surgery.examination"/>
+        </div>
+
+        <div t-if="surgery.investigation" class="col-12 mt8 mt8" style="page-break-inside: avoid;">
+            <strong><t t-if="print_surgery">Surgery </t>Investigations: </strong><br/>
+            <div class="ml32" t-field="surgery.investigation"/>
+        </div>
+
+        <div t-if="surgery.consumable_line_ids" class="mt16 mb16 text-center">
+            <h5>
+                <strong>Used Medicines <t t-if="print_surgery">In Surgery </t></strong>
+            </h5>
+        </div>
+
+        <t t-if="surgery.consumable_line_ids" t-call="acs_hms_surgery.report_consumable_table">
+            <t t-set="surgery" t-value="surgery"/>
+        </t>
+
+        <div t-if="surgery.medicament_line_ids" class="mt16 mb16 text-center">
+            <h5>
+                <strong><t t-if="print_surgery">Surgery </t>Medication Plan</strong>
+            </h5>
+        </div>
+
+        <t t-if="surgery.medicament_line_ids" t-call="acs_hms_surgery.report_medicament_table">
+            <t t-set="surgery" t-value="surgery"/>
+        </t>
+
+        <div t-if="surgery.adv_on_dis" class="col-12 mt8 mt8" style="page-break-inside: avoid;">
+            <strong><t t-if="print_surgery">Surgery </t>Advise on Discharge: </strong><br/>
+            <div class="ml32" t-field="surgery.adv_on_dis"/>
+        </div>
+    </template>
+
+    <template id="report_acs_surgery_document">
+        <t t-call="web.external_layout">
+            <div class="page acs_report">
+
+                <div class="mt32 mb32 text-center">
+                    <h2>
+                        <strong>Surgey Summary</strong>
+                    </h2>
+                </div>
+                
+                <table class="table table-condensed">
+                    <tbody>
+                        <tr>
+                            <td style="width:20%;">
+                                <strong>Patient Name:</strong>
+                            </td>
+                            <td style="width:30%;">
+                                <span t-field="doc.patient_id.name"/>
+                            </td>
+                            <td style="width:20%;">
+                                <strong>Hospitalization No:</strong>
+                            </td>
+                            <td style="width: 30%;">
+                                <span t-field="doc.hospitalization_id.name"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Age/Gender:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.patient_id.age"/>/<span t-field="doc.patient_id.gender"/>
+                            </td>
+                            <td>
+                                <strong>Ward/Room:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.hospitalization_id.ward_id.name"/> - <span t-field="doc.hospitalization_id.bed_id.name"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Surgery Date:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.start_date"/>
+                            </td>
+                            <td>
+                                <strong>Surgery No:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.name"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Primary Physician:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.primary_physician"/>
+                            </td>
+                            <td>
+                                <strong>Surgery:</strong>
+                            </td>
+                            <td>
+                                <span t-field="doc.surgery_name"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Patient Address:</strong>
+                            </td>
+                            <td colspan="3">
+                                <span t-esc="', '.join(map(lambda x: x if x!=False else '', [doc.patient_id.street, doc.patient_id.street2, doc.patient_id.city, doc.patient_id.state_id.name, doc.patient_id.zip, doc.patient_id.country_id.name]))"/>
+                            </td>                            
+                        </tr>
+                    </tbody>
+                </table>
+
+                <t t-call="acs_hms_surgery.report_surgery_details">
+                    <t t-set="surgery" t-value="doc"/>
+                </t>
+
+                <p class="mt32">
+                    Should you have any questions or any Emergency please contact us at your convenience.<br/><br/>
+                    Best regards,<br/>
+                </p>
+
+                <div class="row" style="page-break-inside: avoid;">
+                    <div class="col-5">
+                        <span style="margin-left:-15px;" class="col-6"><strong>Medical Officer:</strong></span>
+                        <span class="col-6"><strong>Date:</strong></span><br/>
+                        <span/><br/>
+                        <span/><br/>
+                        <div style="border-top: 1px solid black;">Name and Sign</div><br/>
+                    </div>
+                    <div class="col-2"/>
+                    <div class="col-5">
+                        <span style="margin-left:-15px;" class="col-6"><strong>Primary Physician:</strong></span>
+                        <span class="col-6"><strong>Date:</strong></span><br/>
+                        <span/><br/>
+                        <span/><br/>
+                        <div style="border-top: 1px solid black;">Name and Sign</div><br/>
+                    </div>
+
+                </div>
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_acs_surgery">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms_surgery.report_acs_surgery_document" t-lang="doc.patient_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_surgery" model="ir.actions.report">
+        <field name="name">Surgery Discharge Card</field>
+        <field name="model">hms.surgery</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms_surgery.report_acs_surgery</field>
+        <field name="report_file">acs_hms_surgery.report_acs_surgery</field>
+        <field name="binding_model_id" ref="model_hms_surgery"/>
+        <field name="groups_id" eval="[(4, ref('acs_hms.group_hms_receptionist'))]"/>
+        <field name="print_report_name">(object.name or 'Surgery').replace('/','_') + '_Surgery'</field>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>
+

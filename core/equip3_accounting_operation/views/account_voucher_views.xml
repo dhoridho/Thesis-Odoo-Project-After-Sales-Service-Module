@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data> 
+        <record id="custom_view_voucher_form" model="ir.ui.view">
+            <field name="name">custom.view.voucher.form</field>
+            <field name="model">account.voucher</field>
+            <field name="inherit_id" ref="aos_account_voucher.view_voucher_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group/field[@name='pay_now']" position="after">
+                    <field name="currency_id"
+                           attrs="{'readonly' : [('state', '!=', 'draft')], 'required' : [('state', '=', 'draft')]}"/>
+                </xpath>
+
+                <xpath expr="//sheet/group/group/field[@name='payment_journal_id']" position="attributes">
+                    <attribute name="required">1</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/group/group/field[@name='account_date']" position="attributes">
+                    <attribute name="required">1</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/group/group/field[@name='date']" position="attributes">
+                    <attribute name="required">1</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/group/group/field[@name='name']" position="attributes">
+                    <attribute name="readonly">1</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/group/group/field[@name='paid']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/notebook//page/group/group[hasclass('oe_subtotal_footer')]/field[@name='tax_amount']" position="attributes">
+                    <attribute name="invisible">0</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/notebook//page/group/group[hasclass('oe_subtotal_footer')]/field[@name='tax_amount']" position="before">
+                    <field name="untax_amount"/>
+                </xpath>
+
+                <xpath expr="//field[@name='account_id']" position="after">
+                    <field name="approval_matrix_id"
+                           attrs="{'required': [('is_other_income_approval_matrix', '=', True)], 'invisible': [('is_other_income_approval_matrix', '=', False)]}"/>
+                    <field name="is_other_income_approval_matrix" invisible="1"/>
+                    <field name="approval_matrix_line_id" invisible="1"/>
+                    <field name="is_approve_button" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//button[@name='proforma_voucher']" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', ('is_other_income_approval_matrix', '=', True)]}
+                    </attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <field name="analytic_group_ids" widget="many2many_tags"/>
+                </xpath>
+
+
+                <xpath expr="//button[@name='proforma_voucher']" position="after">
+                    <button name="action_request_for_approval" string="Request For Approval" class="oe_highlight"
+                            type="object"
+                            attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('is_other_income_approval_matrix', '=', False)]}"/>
+                    <button name="action_approve" string="Approve"
+                            attrs="{'invisible': ['|', '|', ('is_other_income_approval_matrix','=', False), ('is_approve_button', '=', False), ('state', '!=', 'to_approve')]}"
+                            type="object" class="btn btn-primary"/>
+
+                    <button name="action_reject" string="Reject"
+                            attrs="{'invisible': ['|', '|', ('is_other_income_approval_matrix','=', False), ('is_approve_button', '=', False), ('state', '!=', 'to_approve')]}"
+                            type="object" class="btn btn-primary"/>
+                </xpath>
+                <field name="state" position="attributes">
+                    <attribute name="attrs">{'invisible': [('is_other_income_approval_matrix', '=', True)]}</attribute>
+                </field>
+                <field name="state" position="after">
+                    <field name="state1" widget="statusbar" statusbar_visible="draft,to_approve,posted"
+                           attrs="{'invisible': ['|', ('is_other_income_approval_matrix', '=', False), ('state', '=', 'rejected')]}"/>
+                    <field name="state2" widget="statusbar" statusbar_visible="draft,to_approve,rejected"
+                           attrs="{'invisible': ['|', ('is_other_income_approval_matrix', '=', False), ('state', '!=', 'rejected')]}"/>
+                </field>
+                <xpath expr="//notebook[last()]" position="inside">
+                    <page name="approved_matrix_ids" string="Approval Matrix Line"
+                          attrs="{'invisible': ['|', ('approval_matrix_id', '=', False), ('is_other_income_approval_matrix', '=', False)]}">
+                        <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}"
+                               force_save="1">
+                            <tree create="0" edit="0" delete="0">
+                                <field name="sequence"/>
+                                <field name="user_ids" widget="many2many_tags"/>
+                                <field name="minimum_approver"/>
+                                <field name="state_char"/>
+                                <field name="time_stamp" invisible="1"/>
+                                <field name="feedback"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+
+                <xpath expr="//sheet/notebook//page[2]/group" position="after">
+                    <group string="Other Information" name="mr_other_entry_info" modifiers="{}">
+                        <field name="create_uid" string="Created By" readonly="1" can_create="true" can_write="true"
+                               modifiers="{'readonly':true}" id="create_uid__13__"/>
+                        <field name="create_date" string="Created Date" readonly="1" modifiers="{'readonly':true}"
+                               id="create_date__14__"/>
+                    </group>
+                </xpath>
+
+                <xpath expr="//sheet/group/group/field[@name='name']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/group/group/field[@name='name']" position="after">
+                    <field name="move_id" readonly="1"/>
+                </xpath>
+
+                <xpath expr="//sheet/notebook/page[2]/group/field[@name='move_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/group/group/field[@name='partner_id']" position="after">
+                    <field name="company_id" on_change="1" readonly='1'/>
+                    <field name="branch_id" on_change="1" readonly='0'
+                           attrs="{'readonly' : [('state', '!=', 'draft')]}" required="1" options="{'no_create': True, 'no_create_edit': True}"/>
+                    <!-- <field name="branch_id" on_change="1" can_create="false" can_write="false" readonly='0'/> -->
+                </xpath>
+
+                <xpath expr="//sheet/group/group/field[@name='partner_id']" position="attributes">
+                    <attribute name="domain"></attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='line_ids']/tree/field[@name='account_analytic_id']"
+                       position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='line_ids']/tree/field[@name='account_id']"
+                       position="after">
+                    <field name="analytic_tag_ids" widget="many2many_tags" required="1"/>
+                </xpath>
+
+                <xpath expr="//field[@name='line_ids']/tree/field[@name='tax_ids']" position="replace">
+                    <field name="tax_ids" widget="many2many_tags" domain="[('type_tax_use', '=?', parent.voucher_type)]"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="custom_view_voucher_tree" model="ir.ui.view">
+            <field name="name">custom.view.voucher.tree</field>
+            <field name="model">account.voucher</field>
+            <field name="inherit_id" ref="aos_account_voucher.view_voucher_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='transaction_type']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

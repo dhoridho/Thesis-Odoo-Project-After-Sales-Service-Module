@@ -1,0 +1,502 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_order_form_inherit_student" model="ir.ui.view">
+            <field name="name">student.student.form.inherit</field>
+            <field name="model">student.student</field>
+            <field name="inherit_id" ref="school.view_student_student_form_2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/div[1]" position="replace">
+                    <div class="oe_button_box" name="button_box">
+                        <button name="button_admission_invoice" type="object" attrs="{'invisible': [('state', 'not in', ['confirmed'])]}">
+                            <i class="o-hm-icon o-hm-smart-school-invoices" style="font-size: 30px; margin-left: 12px;"/>
+                            <span style="margin-top: -16px; margin-left: 8px;">Student Invoice</span>
+                        </button>
+                    </div>
+                    <div class="oe_inline">
+                        <newline/>
+                        <separator string="Personal Information" colspan="4" />
+                        <group col="6">
+                            <field name="photo" widget="image" class="oe_left" nolabel="1" />
+                            <div class="oe_title" colspan="2">
+                                <br/>
+                                <group attrs="{'invisible':[('student_type','!=','existing_student')]}">
+                                    <field name="student_type" attrs="{'readonly':[('state','=','applied')]}"/>
+                                    <field name="type" attrs="{'readonly':[('state','=','applied')]}"/>
+                                    <field name="student_id" string="Student" attrs="{'readonly':[('state','=',('alumni','applied'))], 'invisible':[('student_type','!=','existing_student')], 'required':[('student_type','=','existing_student')]}" domain="[('state', '=', 'done'),('student_type', '=', 'new_student')]"/>
+                                    <div style="height: 17px;"></div>
+                                    <field name="user_id" nolabel="1" placeholder="Related Student" invisible="1" />
+                                </group>
+                                <group attrs="{'invisible':[('student_type','!=','new_student')]}">
+                                    <field name="student_type" attrs="{'readonly':[('state','=','applied')]}"/>
+                                    <field name="type" attrs="{'readonly':[('state','=','applied')]}"/>
+                                    <div style="height: 100px;"></div>
+                                    <field name="user_id" nolabel="1" placeholder="Related Student" invisible="1" />
+                                </group>
+                            </div>
+                            <div class="oe_title" colspan="3">
+                                <group>
+                                    <field name="full_name" nolabel="1" class="oe_read_only"/>
+                                    <div></div>
+                                    <field name="name" placeholder="First Name" string="Student Name" required="1" attrs="{'readonly':[('state','=','alumni')]}" class="oe_edit_only"/>
+                                    <div></div>
+                                    <field name="middle" placeholder="Middle Name" nolabel="1" attrs="{'readonly':[('state','=','alumni')]}" class="oe_edit_only"/>
+                                    <div></div>
+                                    <field name="last" placeholder="Last Name" nolabel="1" attrs="{'readonly':[('state','=','alumni')]}" class="oe_edit_only"/>
+                                    <div></div>
+                                    <field name="active" invisible="1"/>
+                                </group>
+                            </div>
+                            <field name="pid" nolabel="1" readonly="1"/>
+                        </group>
+                    </div>
+                </xpath>
+                <xpath expr="//sheet/group/group[1]" position="attributes">
+                    <attribute name="string">School and Program Information</attribute>
+                </xpath>
+                <field name="website" position="after">
+                    <field name="is_pdpa_constent" invisible="1"/>
+                    <field name="is_approve_button" invisible="1"/>
+                    <field name="approval_matrix_line_id" invisible="1"/>
+                    <field name="program_ids" invisible="1"/>
+                </field>
+                <field name="medium_id" position="attributes">
+                    <attribute name="required">1</attribute>
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <field name="standard_id" position="attributes">
+                    <attribute name="widget"></attribute>
+                    <attribute name="domain"></attribute>
+                    <attribute name="attrs"></attribute>
+                    <attribute name="required">1</attribute>
+                    <attribute name="string">Intake</attribute>
+                    <attribute name="placeholder">Intake</attribute>
+                </field>
+                <field name="email" position="attributes">
+                    <attribute name="required">1</attribute>
+                </field>
+                <field name="gender" position="before">
+                    <field name="name_presented" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                    <field name="nric" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                </field>
+                <field name="designation" position="after">
+                    <field name="email"/>
+                </field>
+                <field name="year" position="attributes">
+                    <attribute name="attrs">{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}</attribute>
+                    <attribute name="required">1</attribute>
+                </field>
+                <field name="school_id" position="attributes">
+                    <attribute name="attrs">{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}</attribute>
+                </field>
+                <field name="name" position="attributes">
+                    <attribute name="attrs">{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}</attribute>
+                </field>
+                <field name="middle" position="attributes">
+                    <attribute name="attrs">{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}</attribute>
+                </field>
+                <field name="last" position="attributes">
+                    <attribute name="attrs">{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}</attribute>
+                </field>
+                <xpath expr="//field[@name='state']" position="attributes">
+                    <attribute name="statusbar_visible">draft,applied,confirmed,done,rejected</attribute>
+                </xpath>
+                <xpath expr="//button[@name='admission_done']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='cancel_admission']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='admission_done']" position="after">
+                    <button name="student_admission_done" string="Done" type="object" class="oe_highlight" attrs = "{'invisible' : ['|', ('is_approve_button', '=', False), ('state', '!=', 'confirmed')]}" confirm="Are you sure you want to done this admission register? The student invoice is still pending."/>
+                    <button name="action_apply" string="Apply" type="object" class="oe_highlight" attrs = "{'invisible' : [('state', '!=', 'draft')]}"/>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" attrs = "{'invisible' : ['|', ('is_approve_button', '=', False), ('state', '!=', 'applied')]}"/>     
+                    <button name="action_reject" string="Reject" type="object" class="oe_highlight" attrs = "{'invisible' : ['|', ('is_approve_button', '=', False), ('state', 'not in', ('applied', 'confirmed'))]}"/>
+                    <button name="action_set_to_draft" string="Set to Draft" type="object" class="oe_highlight" attrs = "{'invisible' : ['|', ('is_approve_button', '=', False), ('state', '!=', 'rejected')]}"/>
+                </xpath>
+                <field name="year" position="after">
+                    <field name="term_id" required="1" invisible="1"/>
+                </field>
+                <xpath expr="//notebook" position="inside">
+                    <page string="Approval Matrix Line" name="approved_matrix_ids">
+                        <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}">
+                            <tree editable="bottom">
+                                <field name="state" />
+                                <field name="user_id" widget="many2many_tags"/>
+                                <field name="minimum_approver" />
+                                <field name="approved_status"/>
+                                <field name="approval_time"/>
+                            </tree>
+                          </field>
+                    </page>
+                </xpath>
+                <field name="medium_id" position="before">
+
+                    <field name="academic_code" invisible="1"/>
+                </field>
+                <xpath expr="//notebook/page/form/sheet/group/group[3]" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page/form/sheet/group/separator" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//form/sheet/group[2]/group[1]" position="replace">
+
+                </xpath>
+                <xpath expr="//form/sheet/group[2]" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group/field[@name='standard_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group/field[@name='medium_id']" position="before">
+                    <label for="street" string="Address" />
+                    <div class="o_address_format">
+                        <field name="street" placeholder="Street..." class="o_address_street" required="1" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                        <field name="street2" placeholder="Street 2..." class="o_address_street" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                        <field name="country_id" placeholder="Country" class="o_address_country" required="1" options="{&quot;no_open&quot;: True}" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                        <field name="city" placeholder="City" class="o_address_city" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                        <field name="state_id" class="o_address_state" placeholder="State" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                        <field name="zip" placeholder="ZIP" class="o_address_zip" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                    </div>
+                    <field name="branch_id" readonly="1" force_save="1" invisible="1"/>
+                </xpath>
+                <xpath expr="//page[6]" position="after">
+                    <page string="Emergency Contact">
+                        <group>
+                            <separator string="Emergency Contact Details" colspan="4"/>
+                            <group colspan="4" col="4">
+                                <field name="contact_phone" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}" placeholder="Phone Number"/>
+                                <field name="contact_mobile" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}" placeholder="Mobile Number"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+                <xpath expr="//field[@name='mother_tongue']" position="before">
+                    <field name="phone" placeholder="Phone Number" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                    <field name="mobile" placeholder="Mobile Number" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                    <field name="email" placeholder="Email Address" String="Email" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}" required="1"/>
+                    <field name="website" widget="url" placeholder="e.g. www.hashmicro.com" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                </xpath>
+                <xpath expr="//field[@name='company_id']" position="after">
+                    <field name="program_id" domain="[('id', 'in', program_ids)]" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                    <field name="standard_id" string='Intake' placeholder="Intake" domain="[('school_id','=',school_id),('medium_id','=',medium_id)]" widget="selection" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}" required="1"/>
+                    <field name="fees_ids" required="1" widget="section_and_note_many2one" readonly="1" force_save="1" attrs="{'readonly':['|',('state','=','applied'), ('state','=','alumni')]}"/>
+                    <field name="approved_matrix_id" required="True"/>
+                </xpath>
+                <xpath expr="//sheet/notebook" position="after">
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </xpath>
+                <xpath expr="//page/field[@name='parent_id']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page/field[@name='parent_id']" position="attributes">
+                    <attribute name="options">{}</attribute>
+                </xpath>
+                <xpath expr="//page/field[@name='reference_ids']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page/field[@name='previous_school_ids']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page/field[@name='family_con_ids']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page/form/field[@name='remark']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page/form/sheet/group" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='mother_tongue']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='admission_date']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='maritual_status']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='gender']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='date_of_birth']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page[4]" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//sheet/notebook" position="after">
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </xpath>
+                <xpath expr="//page/field[@name='parent_id']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page/field[@name='reference_ids']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page/field[@name='previous_school_ids']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page/field[@name='family_con_ids']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page/form/field[@name='remark']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//page/form/sheet/group" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='mother_tongue']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='admission_date']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='maritual_status']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='gender']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='date_of_birth']" position="attributes">
+                    <attribute name="attrs">{'readonly':[('state','=','applied')]}</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[1]" position="after">
+                    <page string="Pass Tracker" name="pass_tracker_tab" attrs="{'invisible':[('type','!=','international_student')]}">
+                        <form string="Pass Tracker">
+                            <sheet>
+                                <group>
+                                    <group id="header_left_group">
+                                        <field name="personal_document" />
+                                        <field name="transfer_student"/>
+                                        <field name="previous_school" attrs="{'invisible':[('transfer_student','!=','yes')]}"/>
+                                        <field name="student_pass_registry"/>
+                                        <field name="student_pass_status"/>
+                                        <field name="student_pass_digital" />
+                                    </group>
+                                    <group id="header_right_group">
+                                        <field name="appeal_from"/>
+                                        <field name="med_checkup_form" />
+                                        <field name="med_checkup_result"/>
+                                        <field name="med_checkup_date"/>
+                                    </group>
+                                </group>
+                            </sheet>
+                        </form>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="school.action_student_student_form_2">
+            <field name="domain">[('state', '!=', 'done')]</field>
+        </record>
+
+        <record model="ir.actions.act_window" id="school.action_student_student_form_12">
+            <field name="domain">[('state', '=', 'done'),('student_type', '=', 'new_student')]</field>
+        </record>
+
+        <record model="ir.actions.act_window" id="school_fees.action_student_payslip_form">
+            <field name="view_mode">tree,form,pivot</field>
+            <field name="name">Student Invoice</field>
+        </record>
+    
+        <record model="ir.actions.act_window" id="school_fees.action_student_fees_register_form">
+            <field name="view_mode">tree,form,pivot</field>
+        </record>
+
+        <record id="school_fees.menu_student_payslip" model="ir.ui.menu">
+            <field name="name">Student Invoice</field>
+        </record>
+
+        <record id="view_student_student_form2_inherit" model="ir.ui.view">
+            <field name="model">student.student</field>
+            <field name="inherit_id" ref="school_fees.view_student_student_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='%(school_fees.action_stu_fees_form)d']" position="replace">
+                    <button name="%(school_fees.action_stu_fees_form)d" type="action" class="oe_inline oe_stat_button" attrs="{'invisible':[('state', 'in', ['draft','terminate','alumni','cancel'])]}" groups="school.group_school_administration,school.group_school_student">
+                        <i class="o-hm-icon o-hm-smart-school-invoices" style="font-size:30px;"/>
+                        <span style="margin-top: -16px;margin-left: 8px;">Student Invoice</span>
+                    </button>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_student_student_form_1_inherit" model="ir.ui.view">
+            <field name="name">student.student.form.inherit</field>
+            <field name="model">student.student</field>
+            <field name="inherit_id" ref="school.view_student_student_form_1"/>
+            <field name="arch" type="xml">
+               <field name="medium_id" position="after">
+                   <field name="company_id" invisible="1"/>
+                   <field name="partner_id" invisible="1"/>
+               </field>
+               <field name="cast_id" position="before">
+                    <field name="name_presented"/>
+                    <field name="nric"/>
+               </field>
+               <field name="website" position="after">
+                    <field name="fees_ids" invisible="1"/>
+                    <field name="academic_tracking_ids" invisible="1"/>
+                    <field name="subject_ids" invisible="1"/>
+               </field>
+               <field name="designation" position="after">
+                    <field name="email"/>
+                </field>
+                <xpath expr="//div[hasclass('oe_button_box')]" position="after">
+                    <br/>
+                    <br/>
+                </xpath>
+                <field name="year" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <field name="school_id" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <xpath expr="//group/group[2]" position="after">
+                    <xpath expr="//field[@name='phone']/.." position="move"/>
+                </xpath>
+                <xpath expr="//group/group[2]" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='phone']/.." position="attributes">
+                    <attribute name="class">mt72</attribute>
+                </xpath>
+                <xpath expr="//field[@name='school_id']" position="after">
+                    <xpath expr="//group/group/label" position="move"/>
+                    <xpath expr="//group/group/div" position="move"/>
+                </xpath>
+                <xpath expr="//sheet/notebook" position="after">
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_student_student_tree_inherit" model="ir.ui.view">
+            <field name="name">student.student.tree.1</field>
+            <field name="model">student.student</field>
+            <field name="inherit_id" ref="school.view_student_student_tree_1"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='school_id']" position="after">
+                    <field name="branch_id"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_student_student_search_1_inherit" model="ir.ui.view">
+            <field name="name">student.student.search.1.inherit</field>
+            <field name="model">student.student</field>
+            <field name="inherit_id" ref="school.view_student_student_search_1"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group/field[@name='student_name']" position="attributes">
+                    <attribute name="invisible">0</attribute>
+                    <attribute name="string">Student Name</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="branch_res_branch_view_tree_inherit" model="ir.ui.view">
+            <field name="model">res.branch</field>
+            <field name="inherit_id" ref="branch.branch_res_branch_view_tree"/>
+            <field name="arch" type="xml">
+                 <xpath expr="//tree" position="attributes">
+                     <attribute name="create">true</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="model_account_move_action_share" model="ir.actions.server">
+            <field name="name">Update Subjects of Student</field>
+            <field name="model_id" ref="school.model_student_student"/>
+            <field name="binding_model_id" ref="school.model_student_student"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">records._compute_subject_ids()</field>
+        </record>
+        
+        <record id="view_student_pass_tracker_tree" model="ir.ui.view">
+            <field name="name">student.pass.tracker.tree</field>
+            <field name="model">student.pass.tracker</field>
+            <field name="arch" type="xml">
+                <tree string="Student Pass Tracker">
+                    <field name="student_name"/>
+                    <field name="source_document"/>
+                    <field name="sola_id"/>
+                    <field name="sp_request_status"/>
+                    <field name="fin_number" />
+                    <field name="stp_expiry_date"/>
+                    <field name="sp_eForm"/>
+                    <field name="transfer_student"/>
+                    <field name="school" />
+                    <field name="appointment_date"/>
+                    <field name="med_checkup_date"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_student_pass_tracker_form" model="ir.ui.view">
+            <field name="name">student.pass.tracker.form</field>
+            <field name="model">student.pass.tracker</field>
+            <field name="arch" type="xml">
+                <form string="Student Pass Tracker">
+                    <sheet>
+                        <group>
+                            <group id="header_left_group">
+                                <field name="student_name"/>
+                                <field name="source_document"/>
+                                <field name="student_pass_form"/>
+                                <field name="sola_id"/>
+                                <field name="sp_request_status"/>
+                                <field name="appeal_form"/>
+                                <field name="fin_number" />
+                                <field name="stp_expiry_date"/>
+                                <field name="sp_digital"/>
+                                <field name="sp_eForm"/>
+                            </group>
+                            <group id="header_right_group">
+                                <field name="ipa"/>
+                                <field name="transfer_student"/>
+                                <field name="school" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="appointment_date"/>
+                                <field name="med_checkup_form"/>
+                                <field name="med_checkup_result"/>
+                                <field name="med_checkup_date"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_student_pass_tracker" model="ir.actions.act_window">
+            <field name="name">Student Pass Tracker</field>
+            <field name="res_model">student.pass.tracker</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('view_student_pass_tracker_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('view_student_pass_tracker_form')})]"
+            />
+        </record>
+
+        <menuitem id="student_pass_tracker_main_menu" name="Student Pass Tracker" parent="school.menu_ems" sequence="2"/>
+        <menuitem id="menu_student_pass_tracker" name="Student Pass Tracker" parent="student_pass_tracker_main_menu" action="action_student_pass_tracker" sequence="10" groups="school.group_school_administration,school.group_is_admission"/>
+
+        <record id="equip3_school_operation.student_pass_tracker_main_menu" model="ir.ui.menu">
+            <field name="equip_icon_class">o-hm-sidebar-main-school-admission-register</field>
+        </record>
+
+    </data>
+</odoo>

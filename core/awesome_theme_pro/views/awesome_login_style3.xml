@@ -1,0 +1,119 @@
+<odoo>
+    <data>
+
+        <template id="awesome_theme_pro.frontend_layout3" name="awesome_login_layout" inherit_id="web.layout" primary="True">
+
+            <xpath expr="//head/meta[last()]" position="after">
+                <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+            </xpath>
+
+            <xpath expr="//head/link[last()]" position="after">
+                <t t-call-assets="web.assets_common" t-js="false"/>
+                <t t-call-assets="web.assets_frontend" t-js="false"/>
+                <!-- add the extra css -->
+                <link rel="stylesheet" href="/awesome_theme_pro/static/css/awesome_login/style3/awesome_login.css"/>
+                <style>{{login_style_txt}}</style>
+            </xpath>
+
+            <xpath expr="//head/script" position="after">
+                <script type="text/javascript">
+                    odoo.session_info = <t t-raw="json.dumps(request.env['ir.http'].get_frontend_session_info())"/>
+                    if (!/(^|;\s)tz=/.test(document.cookie)) {
+                        const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        document.cookie = `tz=${userTZ}; path=/`;
+                    }
+                </script>
+                <t t-call-assets="web.assets_common_minimal_js" t-css="false" defer_load="True"/>
+                <t t-call-assets="web.assets_frontend_minimal_js" t-css="false" defer_load="True"/>
+                <t t-call="web.conditional_assets_tests"/>
+                <t t-call-assets="web.assets_common_lazy" t-css="false" lazy_load="True"/>
+                <t t-call-assets="web.assets_frontend_lazy" t-css="false" lazy_load="True"/>
+            </xpath>
+
+            <xpath expr="//t[@t-raw='0']" position="replace">
+                <div class="site site--full d-flex align-items-center">
+                    <div class="container">
+                        <div class="banner__content animation-element " style="opacity: 1; transform: translateY(0px);" data-animation-options="type:fadeInTop;" data-animation="">
+                            <div class="m-w-xs m-h-a">
+                                <div class="box box--auth">
+                                    <div class="box__content">
+                                        <a href="/" data-logo-video="">
+                                            <img t-attf-src="/web/binary/company_logo{{ '?dbname='+db if db else '' }}" alt="Logo" style="max-height:120px; max-width: 100%; width:auto"/>
+                                        </a>
+                                        <t t-raw="0"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </xpath>
+        </template>
+
+        <!-- login layout style3 -->
+        <template id="awesome_theme_pro.login_layout3" name="awesome_theme_pro.login_layout" inherit_id="web.login_layout" primary="True">
+            <xpath expr="t" position="replace">
+                <t t-call="awesome_theme_pro.frontend_layout3">
+                    <!-- thes variable will use by the front layout -->
+                    <t t-set="html_data" t-value="{'style': 'height: 100%;'}"/>
+                    <!-- set the body class name -->
+                    <t t-set="body_classname" t-value="'bg-100'"/>
+                    <t t-raw="0"/>
+                </t>
+            </xpath>
+        </template>
+
+        <!-- theme login style3 -->
+        <template id="awesome_theme_pro.login_style3" name="awesome_theme_pro.login" inherit_id="web.login" primary="True">
+            <!-- replace the whole content -->
+            <xpath expr="." position="replace">
+                <t t-call="awesome_theme_pro.login_layout3">
+
+                    <form class="text-left" role="form" t-attf-action="/web/login" method="post" onsubmit="this.action = this.action + location.hash">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <div class="form-group input-group">
+                            <span class="input-group__icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon-ui icon-ui--24" viewBox="0 0 24 24" x="0px" y="0px">
+                                    <path class="stroke" d="M 2 4 h 20 v 16 H 2 V 4 Z" />
+                                    <path class="stroke" d="M 2 8 l 10 5 l 10 -5" />
+                                </svg>
+                            </span>
+
+                            <input placeholder="User Email" name="login" t-att-value="login" id="login" type="text" class="form-control" required="required" autofocus="autofocus" autocapitalize="off" />
+                        </div>
+
+                        <div class="form-group input-group">
+                            <span class="input-group__icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon-ui icon-ui--24" viewBox="0 0 24 24" x="0px" y="0px">
+                                    <path class="fill" d="M 19 8 V 7 c 0 -3.9 -3.1 -7 -7 -7 S 5 3.1 5 7 v 1 h 2 V 7 c 0 -2.8 2.2 -5 5 -5 s 5 2.2 5 5 v 1 H 19" />
+                                    <path class="stroke" d="M 3 9 h 18 v 14 H 3 V 9 Z" />
+                                    <circle class="fill" cx="8" cy="16" r="1" />
+                                    <circle class="fill" cx="12" cy="16" r="1" />
+                                    <circle class="fill" cx="16" cy="16" r="1" />
+                                </svg>
+                            </span>
+
+                            <input id="password" name="password" type="password" class="form-control" placeholder="Password" required="required" autocomplete="current-password" t-att-autofocus="'autofocus' if login else None" maxlength="4096" />
+                        </div>
+
+                        <div class="form__actions">
+                            <div class="p-3 text-center m-t-3x">
+                                <button class="btn btn--primary btn--block" type="submit">
+                                    <span class="btn__text">Log In</span>
+                                    <span class="btn-hover-effect" style="left: 367px; top: 8.58px;"/>
+                                </button>
+                                <br/>
+                                <br/>
+                                <!-- <t t-if="debug">
+                                    <button type="submit" name="redirect" value="/web/become" class="btn btn-link btn-sm btn-block">Log in as superuser</button>
+                                </t> -->
+                            </div>
+                        </div>
+                    </form>
+                </t>
+            </xpath>
+        </template>
+    </data>
+</odoo>

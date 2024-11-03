@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- edit field costing -->
+        <record id="edit_fields_costing" model="ir.ui.view">
+            <field name="name">edit.fields.costing</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <!-- hide fields -->
+                <xpath expr="//page[@name='costing']/group[1]/field[@name='estimation_sheet_cost']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='costing']/group[1]/field[@name='project_issue_cost']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='costing']/group[1]/field[@name='equipment_cost']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='costing']/group[1]/field[@name='vehicle_cost']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='costing']/group[1]/field[@name='extra_material_cost']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='costing']/group[2]" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='costing']/group[2]/field[@name='total_amount']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <!-- <xpath expr="//div[@name='button_box']/button[@name='attachment_tree_view']" position = 'after'>
+                    <button class="oe_stat_button"
+                            type="action"
+                            name="%(project.act_project_project_2_project_task_all)d"
+                            icon="fa-tasks">
+                            <field string="Job Order" name="task_count" widget="statinfo"/>
+                    </button>
+                </xpath> -->
+
+                <!-- add smart button -->
+                <xpath expr="//div[@name='button_box']/button[@name='action_view_cost_sheet']" position = 'after'>
+                    <button id="action_project_budget" 
+                            type="object" 
+                            class="oe_stat_button" 
+                            icon="o-hm-smart-construction-project-budget"
+                            name="action_project_budget"
+                            groups="equip3_construction_accessright_setting.group_construction_engineer">
+                        <field string="Budget" name="budget_count" widget="statinfo" modifiers="{'readonly': true}"/>
+                    </button>
+                    <button class="oe_stat_button"
+                            type="action"
+                            name="%(project.act_project_project_2_project_task_all)d"
+                            icon="o-hm-smart-construction-job-order">
+                        <field name="task_count" widget="statinfo" string="Job Order" />
+                    </button>
+                    <button id="action_s_curve" 
+                            type="object" 
+                            class="oe_stat_button" 
+                            icon="o-hm-smart-construction-s-curve"
+                            name="action_s_curve"
+                            groups="abs_construction_management.group_construction_manager">
+                        <div class="o_form_field o_stat_info">
+                            <span class="o_stat_text">S-Curve</span>
+                        </div>
+                    </button>
+                    <button id="action_project_issue" 
+                            type="object" 
+                            class="oe_stat_button" 
+                            icon="o-hm-smart-construction-issues"
+                            name="action_project_issue">
+                        <field string="Issue" name="project_issue_count" widget="statinfo" modifiers="{'readonly': true}"/>
+                    </button>
+                </xpath>
+
+                <xpath expr="//div[@name='button_box']/button[@name='%(project.act_project_project_2_project_task_all)d']/field[@name='task_count']" position="attributes">
+                    <attribute name="string">Job Orders</attribute>
+                    <attribute name="options">{}</attribute>
+                </xpath>
+
+                <!-- rename -->
+                <xpath expr="//page[@name='costing']" position="attributes">
+                    <attribute name="string">Cost &amp; Revenue</attribute>
+                </xpath>
+
+                <!-- actual date -->
+                <xpath expr="//field[@name='duration']" position="after">
+                    <field name="act_start_date" readonly="1" force_save="1"/>
+                    <field name="act_end_date" readonly="1" force_save="1"/>
+                    <field name="ks_chart_data" invisible="1"/>
+                    <field name="ks_graph_view" widget="ks_graph" invisible="1"/>
+                </xpath>
+
+                <!-- add new fields -->
+                <xpath expr="//page[@name='costing']" position="inside">
+                    <group name="main_form">
+                        <group string="Estimation Cost &amp; Revenue" name="left_section_main">
+                            <field name="estimation_material_cost" readonly="1" force_save='1'/>
+                            <field name="estimation_labour_cost" readonly="1" force_save='1'/>
+                            <field name="estimation_overhead_cost" readonly="1" force_save='1'/>
+                            <field name="estimation_asset_cost" readonly="1" force_save='1'/>
+                            <field name="estimation_equipment_cost" readonly="1" force_save='1'/>
+                            <field name="estimation_subcon_cost" readonly="1" force_save='1'/>
+                            <field name="total_estimation_cost" readonly="1" force_save='1'/>
+                            <field name="total_estimation_revenue" readonly="1" force_save='1'/>
+                            <field name="total_estimation_profit" readonly="1" force_save='1'/>
+                            <field name="progress" readonly="1" force_save='1' invisible="1"/>
+                            <field name="cost_sheet" force_save="1" string='Cost Sheet'/>
+                        </group>
+                        <group string="Actual Cost &amp; Revenue" name="right_section_main">
+                            <field name="actual_material_cost" readonly="1" force_save='1'/>
+                            <field name="actual_labour_cost" readonly="1" force_save='1'/>
+                            <field name="actual_overhead_cost" readonly="1" force_save='1'/>
+                            <field name="actual_asset_cost" readonly="1" force_save='1'/>
+                            <field name="actual_equipment_cost" readonly="1" force_save='1'/>
+                            <field name="actual_subcon_cost" readonly="1" force_save='1'/>
+                            <field name="total_actual_cost" readonly="1" force_save='1'/>
+                            <field name="purchased_amount" readonly="1" force_save='1'/>
+                            <field name="transferred_amount" readonly="1" force_save='1'/>
+                            <field name="used_amount" invisible="1" force_save='1'/>
+                        </group>
+                    </group>
+                </xpath>
+
+                <xpath expr="//page[@name='warehouse']" position="after">
+                    <page name="budget_period_history" string="Budget Period History">
+                        <field name="budget_period_history_ids" readonly='1' force_save='1'>
+                            <tree>
+                                <field name="no"/>
+                                <field name="project_id" invisible="1"/>
+                                <field name="previous_start_date" widget="date"/>
+                                <field name="previous_end_date" widget="date"/>
+                                <field name="previous_duration" />
+                                <field name="reason"/>
+                            </tree>
+                            <form string="Request Change Period">
+                                <sheet>
+                                    <field name="project_id" invisible='1'/>
+                                    <group>
+                                        <group>
+                                            <field name="previous_start_date" widget="date"/>
+                                            <field name="previous_end_date" widget="date"/>
+                                            <field name="previous_duration" />
+                                        </group>
+                                        <group>
+                                            <field name="planned_start_date" widget="date"/>
+                                            <field name="planned_end_date" widget="date"/>
+                                            <field name="planned_duration"/>
+                                        </group>
+                                    </group>
+                                    <group>
+                                        <field name="reason" required="1"/>
+                                    </group>
+                                </sheet>
+                            </form>
+                        </field>
+                    </page>
+                    <page name="labour_attendance" string="Labour Attendance">
+                        <group>
+                            <field name="project_location_ids" readonly="0">
+                                <tree editable="bottom">
+                                    <field name="project_id" invisible="1"/>
+                                    <field name="name" invisible="1"/>
+                                    <field name="active_location_id"/>
+                                </tree>
+                            </field>
+                        </group>
+
+                    </page>
+                </xpath>
+
+                <xpath expr="//button[@name='action_view_invoices']" position = 'attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_view_project_notes']" position = 'attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='create_date']" position="after">
+                    <field name="is_custom_project_progress" invisible="1"/>
+                </xpath>
+                
+                <xpath expr="//button[@name='button_complete']" position="after">
+                    <button name="action_request_change_period" type="object" class="btn-primary" 
+                            string="Request Change Period" groups="abs_construction_management.group_construction_manager"
+                            attrs="{'invisible':[('primary_states','!=','progress')]}"/>
+                </xpath>
+
+            </field>
+        </record>
+
+        <!-- invisible -->
+        <record id="project_invoice_form_inherited_invisible" model="ir.ui.view">
+            <field name="name">project.form.inherited.construction.inherit.invisible</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="hr_timesheet.project_invoice_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@id='allow_billable_container']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='analytic_idz']" position="after">
+                    <label for="working_hour_hours" string="Working Hours"/>
+                    <div>
+                        <field name="working_hour_hours"/>
+                        <span class="oe_inline o_form_label mx-3 oe_read_only"> Hours </span>
+                        <span class="oe_inline o_form_label mx-3 oe_edit_only"> Hours </span>
+                    </div>
+                    <label for="working_hour" string="Working Minutes"/>
+                    <div>
+                        <field name="working_hour" readonly='1' force_save='1'/>
+                        <span class="oe_inline o_form_label mx-3 oe_read_only"> Minutes </span>
+                        <span class="oe_inline o_form_label mx-3 oe_edit_only"> Minutes </span>
+                    </div>
+                    <field name="is_using_labour_attendance"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="project_form_inherited_invisible" model="ir.ui.view">
+            <field name="name">project.form.inherited.construction.inherit.invisible</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[@name='settings']/div[1]/div[@id='subtask_settings']" position='attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='settings']/div[1]/div[@id='recurring_tasks_setting']" position='attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//notebook/page[@name='settings']/div[1]/div[@id='recurring_tasks_setting']" position='attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='analytic_idz']" position='after'>
+                    <field name="working_hour" widget="float_time"/>
+                    <field name="is_custom_project_progress" invisible="1"/>
+                    <field name="custom_project_progress" required='1' invisible='1' attrs="{'invisible': [('is_using_labour_attendance', '=', True)]}"/>
+                    <field name="asset_allocation_option" required="1"/>
+                </xpath>
+            </field>
+        </record>
+
+
+        <!-- add field is_set_project and hide billable field  on setting tab inherit -->
+        <record id="project_invoice_form_inherited_edit" model="ir.ui.view">
+            <field name="name">project.invoice.form.inherited.construction.inherit.sale.edit</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="hr_timesheet.project_invoice_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@class='row mt16 o_settings_container']" position="inside">
+                    <div class="col-lg-6 o_setting_box"  id="is_set_projects_type" invisible="1">
+                        <div class="o_setting_left_pane">
+                            <field name="is_set_projects_type"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="is_set_projects_type" string="Set Project Type"/>
+                            <div class="text-muted">
+                                Can use Project Template and Job Order Template
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 o_setting_box"  id="subtask_settings" groups="project.group_subtask_project">
+                        <div class="o_setting_left_pane">
+                            <field name="allow_subtasks" />
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="allow_subtasks" />
+                            <div class="text-muted">
+                                Split your tasks to organize your work into sub-milestones
+                            </div>
+                            <!-- <div class="mt8" attrs="{'invisible': [('allow_subtasks', '=', False)]}">
+                                <label for="subtask_project_id" />
+                                <field name="subtask_project_id" />
+                            </div> -->
+                        </div>
+                    </div>
+                    <xpath expr="//div[@id='pad_settings']" position="move"/>
+                    <div class="col-lg-6 o_setting_box"  id="recurring_tasks_setting" groups="project.group_project_recurring_tasks">
+                        <div class="o_setting_left_pane">
+                            <field name="allow_recurring_tasks" />
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="allow_recurring_tasks" />
+                            <div class="text-muted">
+                                Auto-generate tasks for regular activities
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+        
+        <!-- rename smart button-->
+        <record id="project_setting_form_inherited" model="ir.ui.view">
+            <field name="name">project.form.view.inherit.construction.rename</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="equip3_construction_masterdata.project_form_view_inherit_construction"/>
+            <field name="arch" type="xml">
+                <!-- <xpath expr="//div[@name='button_box']//button[4]//field[@name='task_count']" position="attributes">
+                    <attribute name="string">Job Orders</attribute>
+                    <attribute name="options">{}</attribute>
+                </xpath> -->
+                <xpath expr="//page[@name='settings']//group//group//field[@name='allowed_portal_user_ids']"
+                       position="after">
+                    <field name="budgeting_method" widget="radio" force_save="1" attrs="{'readonly': [('primary_states', '!=', 'draft')]}"/>
+                    <field name="budgeting_period" widget="radio" force_save="1" attrs="{'readonly': [('primary_states', '!=', 'draft')]}"/>
+                    <field name="budget_period_id"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="project_invoice_form_form_construction_inherit" model="ir.ui.view">
+            <field name="name">project.invoice.form.form.construction.inherit</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="hr_timesheet.project_invoice_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@id='timesheet_settings']/div[@class='o_setting_left_pane']/field[@name='allow_timesheets']" position="before">
+                    <field name="is_hide_allow_timesheets" invisible="1"/>
+                </xpath>
+                <xpath expr="//div[@id='timesheet_settings']" position="attributes">
+                    <attribute name="attrs">{'invisible': [('is_hide_allow_timesheets', '=', True)]}</attribute>
+                </xpath>
+            </field>
+        </record>
+
+
+        <!-- invisible -->
+        <record id="view_project_kanban_const" model="ir.ui.view">
+            <field name="name">project.project.kanban.const</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="equip3_construction_masterdata.view_project_kanban_const"/>
+            <field name="arch" type="xml">
+                <xpath expr="//kanban" position="replace">
+
+                    <kanban class="oe_background_grey o_kanban_dashboard o_project_kanban o_emphasize_colors" sample="1">
+                        <field name="name"/>
+                        <field name="partner_id"/>
+                        <field name="task_count"/>
+                        <field name="label_tasks"/>
+                        <field name="is_favorite"/>
+                        <field name="ks_chart_data"/>
+                        <field name="total_actual_cost"/>
+                        <field name="total_estimation_revenue"/>
+                        <field name="progress" invisible="1"/>
+                        <field name="purchased_amount" invisible="1"/>
+                        <field name="transferred_amount" invisible="1"/>
+                        <field name="used_amount" invisible="1"/>
+                        <field name="total_actual_profit"/>
+                        <field name="is_hide_allow_timesheets"/>
+                        <!-- <field name="s_curve_progress"/> -->
+                        <templates>
+                            <t t-name="kanban-box">
+                                <div t-attf-class=" oe_kanban_global_click o_has_icon" style="width: 30%!important">
+                                    <div class="o_project_kanban_main" >
+                                        <div class="o_kanban_card_content">
+                                            <div class="o_kanban_primary_left">
+                                                <div class="o_primary">
+                                                    <span>
+                                                        <t t-esc="record.name.value"/>
+                                                    </span>
+                                                    <field name="partner_id"/>
+                                                    <field name="is_hide_allow_timesheets" invisible="1"/>
+                                                    <br/>
+                                                    <style>
+                                                        table {
+                                                            border-collapse: collapse;
+                                                            padding: 0;
+                                                            margin: 0;
+                                                        }
+
+                                                        td {
+                                                            border: none;
+                                                            padding: 0;
+                                                            padding-right: 50px;
+                                                            margin: 0;
+                                                        }
+                                                    </style>
+
+                                                    <table>
+                                                        <tr>
+                                                            <td>Total Actual Revenue</td>
+                                                            <td></td>
+                                                            <td><field name="total_estimation_revenue"/></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Total Actual Cost</td>
+                                                            <td></td>
+                                                            <td><field name="total_actual_cost"/></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="border-top: 1px solid #000000 !important;">Total Actual Profit</td>
+                                                            <td></td>
+                                                            <td><field name="total_actual_profit"/></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <br/>
+                                            
+                                            <div style="width: 100%!important" >
+                                                <field name="ks_graph_view" widget="ks_mini_graph" attrs="{'invisible': [('ks_graph_view', '=', 0)]}"/>
+                                            </div>
+                                        </div>
+
+                                        <div class="o_kanban_card_manage_pane dropdown-menu" groups="project.group_project_manager" role="menu">
+                                            <div class="o_kanban_card_manage_section o_kanban_manage_reports">
+                                                <div role="menuitem">
+                                                    <a type="edit">Edit</a>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <a class="o_kanban_manage_toggle_button o_left" href="#" groups="project.group_project_manager"><i class="fa fa-ellipsis-v" role="img" aria-label="Manage" title="Manage"/></a>
+                                        <span class="o_right"><field name="is_favorite" widget="boolean_favorite" nolabel="1" force_save="1" /></span>
+                                    </div>
+                                </div>
+                            </t>
+                        </templates>
+                    </kanban>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_project_kanban_inherit" model="ir.ui.view">
+            <field name="name">project.project.kanban.inherit</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.view_project_kanban"/>
+            <field name="arch" type="xml">
+                <xpath expr="//kanban/field[@name='analytic_account_id']" position="after">
+                    <field name="is_hide_allow_timesheets"/>
+                </xpath>
+                <xpath expr="//kanban//div[@class='o_primary']" position="inside">
+                    <field name="is_hide_allow_timesheets" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

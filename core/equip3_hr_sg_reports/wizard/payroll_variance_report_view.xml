@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="payroll_variance_report_view">
+        <field name="name">payroll.variance.report.form</field>
+        <field name="model">payroll.variance.report</field>
+        <field name="arch" type="xml">
+            <form string="upload xls file">
+                <group>
+                    <field name="name" invisible="1" />
+                    <field name="payroll_variance_by"/>
+                </group>
+                <group>
+                    <group>
+                        <field name="date"/>
+                    </group>
+                    <group>
+                        <field name="previous_date"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="all_employees" attrs="{'invisible': [('payroll_variance_by', '!=', 'basic_salary')]}"/>
+                    <!-- <field name="employee_ids" widget="many2many_tags" options="{'no_create_edit': True}" attrs="{'invisible': [('all_employees', '=', True)]}"/> -->
+                    <field name="employee_ids" 
+                        nolabel="1"
+                        options="{'no_create_edit': True}"
+                        attrs="{'invisible': ['|', ('all_employees', '=', True), (('payroll_variance_by', '!=', 'basic_salary'))]}">
+                        <tree string="Employees">
+                            <field name="name"/>
+                            <field name="department_id"/>
+                            <field name="work_email"/>
+                        </tree>
+                    </field>
+
+                    <field name="all_salary_rules" attrs="{'invisible': [('payroll_variance_by', '!=', 'by_company')]}"/>
+                    <!-- <field name="salary_rule_ids" widget="many2many_tags" options="{'no_create_edit': True}" attrs="{'invisible': [('all_salary_rules', '=', True)]}"/> -->
+                    <field name="salary_rule_domain_ids" invisible="1" />
+                    <field name="salary_rule_ids" 
+                        nolabel="1"
+                        options="{'no_create_edit': True}"
+                        domain="[('id', 'in', salary_rule_domain_ids)]"
+                        attrs="{'invisible': ['|', ('all_salary_rules', '=', True), ('payroll_variance_by', '!=', 'by_company')]}">
+                        <tree string="Salary Rules">
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="category_id"/>
+                        </tree>
+                    </field>
+                </group>
+                <footer>
+                    <button name="action_print" string="Print" type="object"
+                         class="oe_highlight" />
+                    or
+                    <button special="cancel" string="Cancel" class="oe_link" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_payroll_variance_report" model="ir.actions.act_window">
+        <field name="name">Payroll Variance Report</field>
+        <field name="res_model">payroll.variance.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+   </record>
+
+    <menuitem action="action_payroll_variance_report" id="menu_payroll_variance_report"
+        groups="l10n_sg_hr_payroll.group_hr_payroll_admin"
+        parent="scs_hr_payroll.menu_hr_payroll_root" />
+
+</odoo>

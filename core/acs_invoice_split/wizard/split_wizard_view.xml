@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Split Record -->
+    <record id="view_split_invoice_wizard" model="ir.ui.view">
+        <field name="name">split.invoice.wizard.form</field>
+        <field name="model">split.invoice.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Split Record">
+                <group>
+                    <p class="text-muted">**Only Draft Record can be splitted. <br/>**Splited quantity will be decreased from main order.<br/>
+                    ** Avoid Spliting system generated records.<br/>
+                    </p>
+                </group>
+                <group>
+                    <group>
+                        <field name="split_selection"/>
+                        <field name="partner_id"/>
+                        <field name="percentage" attrs="{'invisible':[('split_selection','=','lines')], 'required':[('split_selection','=','invoice')]}"/>
+                        <field name="line_split_selection" attrs="{'invisible':[('split_selection','=','invoice')]}"/>
+
+                    </group>
+                    <field name="line_ids" nolabel="1" colspan="4" attrs="{'invisible':[('split_selection','=','invoice')]}" widget="section_and_note_one2many">
+                        <tree string="Lines" editable="bottom" create='false'>
+                            <control>
+                                <create string="Add a line"/>
+                                <create string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                            </control>
+                            <field name="display_type" invisible="1"/>
+                            <field name="line_id" invisible="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="name" widget="section_and_note_text" readonly="1"/>
+                            <field name="price" readonly="1"/>
+                            <field name="quantity" readonly="1"/>
+                            <field name="qty_to_split" attrs="{'column_invisible':[('parent.line_split_selection','!=','qty')]}"/>
+                            <field name="price_to_split" attrs="{'column_invisible':[('parent.line_split_selection','!=','price')]}"/>
+                            <field name="percentage_to_split" attrs="{'column_invisible':[('parent.line_split_selection','!=','percentage')]}"/>
+                        </tree> 
+                    </field>
+                </group>
+                <footer>
+                    <button name="split_record" type="object" string="Split" class="oe_highlight"/>
+                    or
+                    <button special="cancel" string="Cancel" type="object"/>
+                </footer>
+           </form>
+        </field>
+    </record>
+
+    <record id="action_select_split_invoice_wizard" model="ir.actions.act_window">
+        <field name="name">Split Invoice</field>
+        <field name="res_model">split.invoice.wizard</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_split_invoice_wizard"/>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

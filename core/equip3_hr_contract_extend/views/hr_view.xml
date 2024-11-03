@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_master_data_employee_inherit" model="ir.ui.view">
+        <field name="name">hr.hr.employee.view.form2</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//field[@name='bank_account_id']" position="replace">
+                    <field name="bank_account_id" context="{'display_partner':True}"
+                           attrs="{'invisible' : [('address_home_id', '=', False)]}"/>
+                </xpath>
+                <xpath expr="//field[@name='resource_calendar_id']" position="replace">
+                    <field name="calendar_mismatch" invisible="1"/>
+                    <label for="resource_calendar_id" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True}"/>
+                    <div>
+                        <field name="resource_calendar_id"  required="1" nolabel="1" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True}"/>
+                        <span attrs="{'invisible': [('calendar_mismatch', '=', False)]}"
+                              class="fa fa-exclamation-triangle text-danger o_calendar_warning pl-3">
+                        </span>
+                        <span class="o_calendar_warning_tooltip text-danger">
+                            Calendar Mismatch : The employee's calendar does not match its current contract calendar.
+                            This could lead to unexpected behaviors.
+                        </span>
+                    </div>
+                </xpath>
+            </data>
+        </field>
+    </record>
+    <record id="inherit_form_hr_employee_view_form2" model="ir.ui.view">
+        <field name="name">inherit.form.hr.employee.view.form2</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='mobile_phone']" position="before">
+                <field name="sequence_code" placeholder="Employee ID"
+                       attrs="{'readonly': [('emp_seq', '=', True)], 'required': [('emp_seq', '!=', True)]}" />
+                <field name="emp_seq" invisible="1"/>
+                <field name="employee_id" groups="base.group_multi_employee"/>
+            </xpath>
+            <xpath expr="/form/sheet/notebook/page[@name='hr_settings']/group/group/field[@name='job_id']"
+                   position="replace">
+                <field name="job_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='mobile_phone']" position="replace">
+                <field name="mobile_phone" widget="phone" required="1"/>
+            </xpath>
+            <xpath expr="//field[@name='work_email']" position="replace">
+                <field name="work_email" widget="email" required="1"/>
+            </xpath>
+            <xpath expr="//field[@name='department_id']" position="replace">
+                <field name="department_id" required="1"/>
+            </xpath>
+            <xpath expr="/form/sheet/notebook/page[@name='personal_information']/group/group[3]" position="replace">
+                <group string="Marital Status" invisible="1">
+                    <field name="marital"/>
+                    <field name="spouse_complete_name"
+                           attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])]}"
+                           groups="hr.group_hr_user"/>
+                    <field name="spouse_birthdate"
+                           attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])]}"
+                           groups="hr.group_hr_user"/>
+                </group>
+            </xpath>
+            <xpath expr="/form/sheet/notebook/page[@name='personal_information']/group/group[5]" position="replace">
+                <group string="Emergency" invisible="1">
+                    <field name="emergency_contact"/>
+                    <field name="emergency_phone" class="o_force_ltr"/>
+                </group>
+            </xpath>
+            <xpath expr="/form/sheet/notebook/page[@name='personal_information']/group/group[7]" position="replace">
+                <group string="Education" invisible="1">
+                    <field name="certificate"/>
+                    <field name="study_field"/>
+                    <field name="study_school"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='work_location']" position="replace">
+                <field name="work_location" invisible="1"/>
+                <field name="location_id"/>
+            </xpath>
+            <xpath expr="/form/sheet/notebook/page[@name='public']/div/div/group" position="before">
+                <group string="Job">
+                    <field name="job_id" required="1"/>
+                    <field name="classification_id"/>
+                    <field name="first_contract_date" readonly="1" string="Joined Date"/>
+                    <label for="years_of_service" string="Years of Service"/>
+                    <div>
+                        <field name="years_of_service" readonly="1"/>
+                        <field name="year" readonly='1'/>
+                        <field name="months" readonly="1"/>
+                        <field name="month" readonly='1'/>
+                        <field name="days" readonly="1"/>
+                        <field name="day" readonly='1'/>
+                    </div>
+                    <field name="experience_id"/>
+                    <field name="grade_id"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='gender']" position="replace">
+                <field name="indentity_address"/>
+            </xpath>
+            <xpath expr="/form/sheet/notebook/page[@name='personal_information']/group/group[1]" position="replace">
+                <group string="Private Contact &amp; Status">
+                    <field name="address_home_id"
+                           context="{
+                                                'show_address': 1,
+                                                'default_type': 'private',
+                                                'form_view_ref': 'base.res_partner_view_form_private'}"
+                           options='{"always_reload": True, "highlight_first_line": True}'/>
+                    <field name="private_email" string="Email"/>
+                    <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Phone" readonly="True"/>
+                    <field name="bank_account_id" context="{'default_partner_id': address_home_id}"/>
+                    <label for="km_home_work"/>
+                    <div class="o_row" name="div_km_home_work">
+                        <field name="km_home_work" groups="hr.group_hr_user"/>
+                        <span>Km</span>
+                    </div>
+                    <field name="religion_id"/>
+                    <field name="race_id"/>
+                    <field name="gender" required="1"/>
+                    <field name="marital" required="1"/>
+                    <field name="spouse_complete_name"
+                           attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])]}"
+                           groups="hr.group_hr_user"/>
+                    <field name="spouse_birthdate"
+                           attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])]}"
+                           groups="hr.group_hr_user"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='private_email']" position="attributes">
+                <attribute name="readonly">False</attribute>
+            </xpath>
+            <xpath expr="//field[@name='phone']" position="attributes">
+                <attribute name="readonly">False</attribute>
+            </xpath>
+            <xpath expr="/form/sheet/notebook/page[@name='personal_information']/group/group[2]" position="replace">
+                <group string="Citizenship">
+                    <field name="country_id" options='{"no_open": True, "no_create": True}' required="1"/>
+                    <field name="state_id" domain="[('country_id','=',country_id)]" required="1"/>
+                    <field name="identification_id" groups="hr.group_hr_user" required="1"/>
+                    <field name="passport_id" groups="hr.group_hr_user"/>
+                    <field name="birthday" required="1"/>
+                    <field name="place_of_birth" required="1"/>
+                    <field name="country_of_birth" groups="hr.group_hr_user"/>
+                    <label for="birth_years" string="Age"/>
+                    <div>
+                        <field name="birth_years" readonly="1"/>
+                        <field name="birth_year" readonly='1'/>
+                        <field name="birth_months" readonly="1"/>
+                        <field name="birth_month" readonly='1'/>
+                        <field name="birth_days" readonly="1"/>
+                        <field name="birth_day" readonly='1'/>
+                    </div>
+                </group>
+            </xpath>
+            <xpath expr="/form/sheet/notebook/page[@name='personal_information']/group/group[4]" position="replace">
+                <group string="Dependant" invisible="1">
+                    <field name="children" invisible="1"/>
+                </group>
+            </xpath>
+            <xpath expr="/form/sheet/notebook/page[@name='personal_information']/group/group[5]" position="after">
+                <group string="Medical Information">
+                    <field name="blood_type"/>
+                    <field name="height"/>
+                    <field name="weight"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='address_home_id']" position="replace">
+                <field name="address_home_id"
+                       context="{
+                                'show_address': 1,
+                                'default_type': 'private',
+                                'form_view_ref': 'base.res_partner_view_form_private'}"
+                       options='{"always_reload": True, "highlight_first_line": True}' invisible="1"/>
+                <field name="current_address"/>
+            </xpath>
+            <xpath expr="//page[@name='personal_information']/group" position="after">
+                <group string="Emergency">
+                    <field name="emergency_ids">
+                        <tree editable="bottom">
+                            <field name="name"/>
+                            <field name="phone"/>
+                            <field name="relation_id"/>
+                            <field name="address"/>
+                        </tree>
+                    </field>
+                </group>
+                <group string="Bank Account Information">
+                    <field name="bank_ids">
+                        <tree editable="bottom">
+                            <field name="is_used"/>
+                            <field name="name"/>
+                            <field name="bic"/>
+                            <field name="acc_number"/>
+                            <field name="acc_holder"/>
+                        </tree>
+                    </field>
+                </group>
+                <group string="Dependence Details">
+                    <field name="fam_ids">
+                        <tree editable="bottom">
+                            <field name="member_name"/>
+                            <field name="relation_id"/>
+                            <field name="gender"/>
+                            <field name="age"/>
+                            <field name="education"/>
+                            <field name="occupation"/>
+                            <field name="city"/>
+                        </tree>
+                    </field>
+                </group>
+                <group string="Education Details">
+                    <field name="education_ids">
+                        <tree editable="bottom">
+                            <field name="certificate"/>
+                            <field name="study_field"/>
+                            <field name="study_school"/>
+                            <field name="city"/>
+                            <field name="graduation_year"/>
+                            <field name="gpa_score"/>
+                        </tree>
+                    </field>
+                </group>
+                <group string="Health Record">
+                    <field name="health_ids">
+                        <tree editable="bottom">
+                            <field name="name"/>
+                            <field name="illness_type"/>
+                            <field name="medical_checkup"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="notes"/>
+                        </tree>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <!--    <record id="inherit_form_hr_employee_view_address" model="ir.ui.view">-->
+    <!--        <field name="name">inherit.form.hr.employee.view.address</field>-->
+    <!--        <field name="model">hr.employee</field>-->
+    <!--        <field name="inherit_id" ref="hr_employee_updation.hr_employee_inherit_form_view"/>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <xpath expr="//field[@name='id_expiry_date']" position="after">-->
+    <!--                <field name="identity_address"/>-->
+    <!--            </xpath>-->
+    <!--            <xpath expr="//field[@name='member_contact']" position="replace">-->
+    <!--                <field name="age"/>-->
+    <!--                <field name="education"/>-->
+    <!--                <field name="occupation"/>-->
+    <!--                <field name="city"/>-->
+    <!--            </xpath>-->
+    <!--            <xpath expr="//field[@name='birth_date']" position="replace">-->
+    <!--            </xpath>-->
+    <!--        </field>-->
+    <!--    </record>-->
+</odoo>

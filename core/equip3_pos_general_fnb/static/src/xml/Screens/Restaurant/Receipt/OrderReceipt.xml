@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="OrderReceipt1Ext" t-inherit="equip3_pos_masterdata.OrderReceipt1" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('pos-receipt')]" position="attributes"> 
+            <attribute name="class">pos-receipt checker-receipt pos-receipt-custom_template</attribute>
+            <attribute name="t-att-style"> 'width:'+ props.receipt_template.width +';'</attribute>
+            <attribute name="t-att-id">props.receipt_template.element_id</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('pos-receipt')]" position="inside">
+            <div class="checker-receipt-container">
+                <div class="checker-receipt-header1">
+                    <div class="checker-receipt-floor-table"><t t-esc="receipt.floor"/> / <t t-esc="receipt.table"/></div>
+                </div>
+
+                <div class="checker-receipt-separator"></div>
+
+                <div class="checker-receipt-header2">
+                    <div class="checker-receipt-no_order">No Order: <t t-esc="receipt.name"/></div>
+                    <div class="checker-receipt-date">Date:
+                        <t t-if="receipt.date">
+                            <span><t t-esc="receipt.date.LocaleStringdateStyle"/></span>
+                            <span> <t t-esc="receipt.date.LocaleStringtimeStyle"/></span>
+                        </t>
+                    </div>
+                    <div class="checker-receipt-server">Server: <t t-esc="receipt.cashier"/></div>
+                </div>
+
+                <div class="checker-receipt-separator"></div>
+
+                <div class="checker-receipt-items">
+                    <t t-set="total_item" t-value="0"/>
+                    <t t-foreach="receipt.orderlines" t-as="line">
+                            <t t-set="total_item" t-value="total_item + line.quantity"/>
+
+                            <div class="checker-receipt-orderline-categ">
+                                <t t-if="line.pos_categ_id">
+                                    <t t-esc="line.pos_categ_id[1]"/>
+                                </t>
+                            </div>
+                            <div class="checker-receipt-orderline">
+                                <span class="checker-receipt-orderline-qty"><t t-esc="line.quantity"/>X </span>
+                                <span class="checker-receipt-orderline-name" style="position:relative;">
+                                     <t t-if="line.pos_coupon_reward_description">
+                                        <span><t t-esc="line.pos_coupon_reward_description"/></span>
+                                        <img style="max-height: 12px;width: auto;display: inline-block;margin-left: 5px;" 
+                                            t-att-src="receipt.icon_coupon_base64"/>
+                                    </t>
+                                    <t t-else="">
+                                        <span t-esc="line.product_only_name"/>
+                                    </t>
+                                </span>
+                            </div>
+
+                            <div class="checker-modifiers">
+                                <t t-if="line.combo_items">
+                                    <t t-foreach="line.combo_items" t-as="combo_item">
+                                        <div class="combo_item">
+                                            <t t-esc="combo_item.quantity"/>
+                                            <span> x </span>
+                                            <span t-esc="combo_item.product_id[1]"/>
+                                        </div>
+                                        <t t-if="combo_item.modifiers">
+                                            <t t-foreach="combo_item.modifiers" t-as="modifier" t-key="modifier">
+                                                <div class="combo_item">
+                                                    <span> - </span>
+                                                    <t t-esc="modifier"/>
+                                                    <span> : </span>
+                                                    <t t-esc="combo_item.modifiers[modifier]"/>
+                                                </div>
+                                            </t>
+                                        </t>
+                                    </t>
+                                </t>
+                            </div>
+
+                            <t t-if="line.note">
+                                <div class="checker-receipt-note">
+                                    <div>
+                                        NOTE
+                                        <span class="pos-receipt-right-align">...</span>
+                                    </div>
+                                    <div><span class="pos-receipt-left-padding">--- <t t-esc="line.note" /></span></div>
+                                </div>
+                            </t>
+
+                    </t>
+                </div>
+
+                <div class="checker-receipt-total_items">Total Items: <t t-esc="total_item"/></div>
+                <div class="checker-receipt-company_name"><t t-esc="receipt.company.name"/></div>
+            </div>
+        </xpath>
+    </t>
+
+</templates>

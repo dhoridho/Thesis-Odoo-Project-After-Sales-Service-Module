@@ -1,0 +1,120 @@
+<?xml version ="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- 	 Button Click -->
+        <record id="sh_custom_model_tab_wizard_view" model="ir.ui.view">
+            <field name="name">sh.custom.model.tab.wizard</field>
+            <field name="model">sh.custom.model.tab</field>
+            <field name="priority">10</field>
+            <field name="arch" type="xml">
+                <form string="Custom Tab">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" required="1" />
+                                <field name="label" required="1" />
+                                <field name="parent_view_id" invisible="1" />
+                                <field name="parent_model" invisible="1" />
+                            </group>
+                            <group>
+                                <field name="groups" widget="many2many_tags" /> <field name="invisible_tab" invisible="1" />
+                                <field name="tab_list" attrs="{'invisible':[('invisible_tab','=',True)]}" />
+                                <field name="sh_position" attrs="{'invisible':[('invisible_tab','=',True)]}" />
+                            </group>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="create_tab" string="Create Tab" type="object" class="oe_highlight" />
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="sh_custom_model_tab_wizard_action">
+            <field name="name">Global Custom Tab</field>
+            <field name="res_model">sh.custom.model.tab</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="sh_custom_model_tab_wizard_view" />
+            <field name="type">ir.actions.act_window</field>
+            <field name="target">new</field>
+        </record>
+
+        <!--   	Menu Action   -->
+
+        <record id="sh_custom_model_tab_form_view" model="ir.ui.view">
+            <field name="name">sh.custom.model.tab.form.view</field>
+            <field name="model">sh.custom.model.tab</field>
+            <field name="priority">50</field>
+            <field name="arch" type="xml">
+                <form string="Custom Tabs" create="false">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" readonly="1" />
+                                <field name="label" required="1" />
+                                <field name="parent_view_id" invisible="1" />
+                                <field name="parent_model" invisible="1" />
+                            </group>
+                            <group>
+                                <field name="parent_model_name" readonly="1" />
+                                <field name="groups" widget="many2many_tags" /><field name="invisible_tab" invisible="1" /> <field name="tab_list" attrs="{'invisible':[('invisible_tab','=',True)]}" />
+                                <field name="sh_position" attrs="{'invisible':[('invisible_tab','=',True)]}" />
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="sh_custom_model_tab_tree_view" model="ir.ui.view">
+            <field name="name">sh.custom.model.tab.tree.view</field>
+            <field name="model">sh.custom.model.tab</field>
+            <field name="arch" type="xml">
+                <tree create="false">
+                    <field name="name" />
+                    <field name="label" />
+                    <field name="parent_model_name" />
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="sh_custom_model_tab_form_action">
+            <field name="name">Custom Tab</field>
+            <field name="res_model">sh.custom.model.tab</field>
+            <field name="view_mode">tree,form</field>
+            <field
+                name="view_ids"
+                eval="[(5,0,0),
+                          (0,0,{'view_mode':'tree',  'view_id': ref('sh_global_custom_fields.sh_custom_model_tab_tree_view')}),
+                          (0,0,{'view_mode':'form', 'view_id': ref('sh_global_custom_fields.sh_custom_model_tab_form_view')})]"
+            />
+
+            <field name="type">ir.actions.act_window</field>
+        </record>
+    </data>
+
+    <record id="view_custom_tab_search" model="ir.ui.view">
+        <field name="name">sh.custom.model.tab.search</field>
+        <field name="model">sh.custom.model.tab</field>
+        <field name="arch" type="xml">
+            <search string="Global Custom Tab">
+                <field name="name" filter_domain="['|', ('name','ilike',self), ('label','like',self)]" string="Tab" />
+                <field name="parent_model" filter_domain="[('parent_model','ilike',self)]" string="Model" />
+
+                <group expand="0" string="Group By">
+                    <filter string="Model" name="model" domain="" context="{'group_by':'parent_model'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <menuitem
+        id="sh_custom_model_tab_form_action_menu"
+        name="Custom Tabs"
+        groups="sh_global_custom_fields.group_global_custom_field"
+        sequence="2"
+        parent="sh_global_custom_fields.sh_global_custom_fields_root_menu"
+        action="sh_custom_model_tab_form_action"
+    />
+</odoo>

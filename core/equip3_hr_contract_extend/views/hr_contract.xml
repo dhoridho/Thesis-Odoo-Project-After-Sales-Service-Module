@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="hr_contract_form_inherit_extend" model="ir.ui.view">
+            <field name="name">equip3.hr_contract.extend.form</field>
+            <field name="model">hr.contract</field>
+            <field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='hr_responsible_id']" position="after">
+                    <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                    <!-- <field name="branch_id" domain="[('company_id','=',company_id)]"/> -->
+                    <field name="create_date"/>
+                    <field name="create_uid"/>
+                    <field name="certificate_attachment_fname" invisible="1"/>
+                    <field name="certificate_attachment" invisible="1"/>
+                    <field name="email_template_id" invisible="1"/>
+                    <field name="employee_signature" widget="image" invisible="1"/>
+                </xpath>
+                <field name="company_id" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <field name="state" position="attributes">
+                    <attribute name="clickable">0</attribute>
+                </field>
+                <div name="wage" position="after">
+                    <label for="daily_wage"/>
+                    <div class="o_row" name="daily_wage">
+                        <field name="daily_wage" nolabel="1"/>
+                        <span>/ day</span>
+                    </div>
+                    <label for="hourly_wage"/>
+                    <div class="o_row" name="hourly_wage">
+                        <field name="hourly_wage" nolabel="1"/>
+                        <span>/ hour</span>
+                    </div>
+                </div>
+                <field name="department_id" position="attributes">
+                    <attribute name="required">1</attribute>
+                </field>
+                <field name="job_id" position="attributes">
+                    <attribute name="required">1</attribute>
+                </field>
+                <xpath expr="//header" position="inside">
+                    <button string="Send By Email" name="action_contract_email_send" type="object"
+                            class="oe_highlight"
+                            groups="equip3_hr_employee_access_right_setting.group_hr_officer,equip3_hr_employee_access_right_setting.group_hr_manager,equip3_hr_employee_access_right_setting.group_hr_manager"/>
+                </xpath>
+                <!-- <field name="employee_id" attrs="{'required': [('contracts','=',True)]}"/> -->
+                <!-- <field name="employee_ids" required="True" /> -->
+            </field>
+        </record>
+
+        <record id="hr_contract_inherit_view_form_many2many" model="ir.ui.view">
+            <field name="name">hr.contract.inherit.view.form</field>
+            <field name="model">hr.contract</field>
+            <field name="inherit_id" ref="hr_contract.hr_contract_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='employee_id']" position="attributes">
+                    <attribute name="required">True</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="hr_contract_view_tree_inherit" model="ir.ui.view">
+            <field name="name">hr.contract.inherit.view.tree</field>
+            <field name="model">hr.contract</field>
+            <field name="inherit_id" ref="hr_contract.hr_contract_view_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree/field[@name='name']" position="before">
+                    <header>
+                        <button name="action_contract_email" type="object" string="Send by Email" class="btn btn btn-primary fa fa-envelope" groups="equip3_hr_employee_access_right_setting.group_hr_officer"/>
+                    </header>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="hr_contract_form_type_inherit" model="ir.ui.view">
+            <field name="name">equip3.hr_contract.extend.form</field>
+            <field name="model">hr.contract</field>
+            <field name="inherit_id" ref="hr_contract_types.hr_contract_form_view_inherit"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='type_id']" position="before">
+                    <field name="work_location_id"/>
+                    <field name="edit_hide_css" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='structure_type_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='structure_type_id']" position="after">
+                    <field name="contract_template" string="Contract Letter"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="hr_contract_filter_inherit" model="ir.ui.view">
+            <field name="name">hr.contract.inherit.view.form</field>
+            <field name="model">hr.contract</field>
+            <field name="inherit_id" ref="hr_contract.hr_contract_view_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='activities_upcoming_all']" position="after">
+                    <field name="state"/>
+                    <filter name="state1" string="New" domain="[('state','=', 'draft')]"/>
+                    <filter name="state2" string="Running" domain="[('state','=', 'open')]"/>
+                    <filter name="state3" string="Expired" domain="[('state','=', 'close')]"/>
+                    <filter name="state4" string="Cancelled" domain="[('state','=', 'cancel')]"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="contract_expire_action" model="ir.actions.act_window">
+            <field name="name">Contract Expired</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.contract</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('state','=','close')]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new contract.
+                </p>
+            </field>
+        </record>
+        <record id="contract_running_action" model="ir.actions.act_window">
+            <field name="name">Contract Running</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.contract</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('state','=','open')]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new contract.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

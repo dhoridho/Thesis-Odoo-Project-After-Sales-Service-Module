@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_prescription_table">
+        <table class="table table-sm o_main_table mt16">
+            <thead>
+                <tr>
+                    <th>Sr.No</th>
+                    <th>Medicine</th>
+                    <th>Allow Substitution</th>
+                    <th>Frequency</th>
+                    <th>Dose Qty.</th>
+                    <th>Qty. Per Day</th>
+                    <th>Days</th>
+                    <th>Total Quantity</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-foreach="prescription.prescription_line_ids" t-as="line"  t-value="1">
+                    <tr>
+                        <td>
+                            <span t-esc="line_index + 1"/>
+                        </td>
+                        <td>
+                            <span t-field="line.sudo().product_id.name"/>
+                        </td>
+                        <td>
+                            <span t-field="line.allow_substitution"/>
+                        </td>
+                        <td>
+                            <span t-if="line.common_dosage_id.name" t-field="line.common_dosage_id.name"/>
+                            <span t-if="not line.common_dosage_id.name" t-field="line.common_dosage_id.abbreviation"/>
+                        </td>
+                        <td>
+                            <span t-field="line.dose"/>
+                        </td>
+                        <td>
+                            <span t-field="line.qty_per_day"/>
+                        </td>
+                        <td>
+                            <span t-field="line.days"/>
+                        </td>
+                        <td>
+                            <span t-field="line.quantity"/>
+                        </td>
+                        <td>
+                            <span t-field="line.short_comment"/>
+                        </td>
+                    </tr>
+                </t>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="report_acs_medical_advice_document">
+        <t t-call="web.external_layout">
+            <t t-set="doc" t-value="doc.with_context({'lang':doc.patient_id.lang})"/>
+            <div class="page">
+                <div class="mt64 text-center">
+                    <h3>
+                        <strong>Medical Advice</strong>
+                    </h3>
+                </div>
+
+                <div class="col-12 mt32 mb8" id="informations">
+                    <table class="table" style="margin-top:30px !important">
+                        <tr>
+                            <td style="border: none;">
+                                <strong>Patient: </strong>
+                                <span t-field="doc.patient_id.name"/>
+                            </td>
+                            <td style="border: none;">
+                                <strong>Age: </strong>
+                                <span t-field="doc.patient_id.age"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: none;">
+                                <strong>Advising Doctor: </strong><span t-field="doc.physician_id"/>
+                            </td>
+                            <td style="border: none;">
+                                <strong>Advice Date: </strong>
+                                <span t-field="doc.date"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="row mt8 mb16">
+                    <div class="col-4">
+                        <ul>
+                            <li>Weight: <span t-field="doc.weight"/> <span style="margin-left:5px;" t-field="doc.acs_weight_name"/></li>
+                            <li>Temp: <span t-field="doc.temp"/> <span style="margin-left:5px;" t-field="doc.acs_temp_name"/></li>
+                        </ul>
+                    </div>
+                    <div class="col-4">
+                        <ul>
+                            <li>HR: <span t-field="doc.hr"/></li>
+                            <li>RR: <span t-field="doc.rr"/></li>
+                        </ul>
+                    </div>
+                    <div class="col-4">
+                        <ul>
+                            <li>BP: <span t-field="doc.systolic_bp"/>/<span t-field="doc.diastolic_bp"/>
+                            </li>
+                            <li>SpO2: <span t-field="doc.spo2"/> <span style="margin-left:5px;" t-field="doc.acs_spo2_name"/></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div t-if="doc.chief_complain" class="col-12 mt8 mb8" style="page-break-inside: avoid;">
+                    <span><u><b>Chief Complaints</b></u>:</span><br/>
+                    <div class="ml32" t-field="doc.chief_complain"/>
+                </div>
+
+                <div t-if="doc.present_illness" class="col-12 mt8 mb8" style="page-break-inside: avoid;">
+                    <span><u><b>History of Present Illness</b></u>:</span><br/>
+                    <div class="ml32" t-field="doc.present_illness"/>
+                </div>
+
+                <div t-if="doc.past_history" class="col-12 mt8 mb8" style="page-break-inside: avoid;">
+                    <span><u><b>Past History</b></u>:</span><br/>
+                    <div class="ml32" t-field="doc.past_history"/>
+                </div>
+
+                <div t-if="doc.lab_report" class="col-12 mt8 mb8" style="page-break-inside: avoid;">
+                    <span><u><b>Laboratory</b></u>:</span><br/>
+                    <div class="ml32" t-field="doc.lab_report"/>
+                </div>
+
+                <div t-if="doc.radiological_report" class="col-12 mt8 mb8" style="page-break-inside: avoid;">
+                    <span><u><b>Radiological</b></u>:</span><br/>
+                    <div class="ml32" t-field="doc.radiological_report"/>
+                </div>
+
+                <div t-if="doc.differencial_diagnosis" class="col-12 mt8 mb8" style="page-break-inside: avoid;">
+                    <span><u><b>Differential Diagnosis</b></u>:</span><br/>
+                    <div class="ml32" t-field="doc.differencial_diagnosis"/>
+                </div>
+
+                <div t-if="doc.diseases_ids" class="col-12 mt8 mb8" style="page-break-inside: avoid;">
+                    <span><u><b>Disease:</b></u>:</span><br/>
+                    <div class="ml32">
+                        <span t-esc="', '.join(map(lambda x: (x.name), doc.diseases_ids))"/>
+                    </div>
+                </div>
+
+                <div t-if="doc.medical_advice" class="col-12 mt8 mb8" style="page-break-inside: avoid;">
+                    <span><u><b>Medical Advice</b></u>:</span><br/>
+                    <div class="ml32" t-field="doc.medical_advice"/>
+                </div>
+
+                <div t-if="doc.notes" class="col-12 mt8 mb8" style="page-break-inside: avoid;">
+                    <span><u><b>Notes</b></u>:</span><br/>
+                    <div class="ml32" t-field="doc.notes"/>
+                </div>
+
+                <div t-if="doc.prescription_ids" class="mt16 mb16 text-center">
+                    <h5>
+                        <strong>Prescribed Medicines</strong>
+                    </h5>
+                </div>
+                <div t-if="doc.prescription_ids" class="col-12 mb16">
+                    <t t-foreach="doc.prescription_ids" t-as="prescription">
+                        <t t-call="acs_hms.report_prescription_table">
+                            <t t-set="prescription" t-value="prescription"/>
+                        </t>
+                    </t>
+                </div>
+
+                <br/><br/>
+                <div class="col-12 mb32 mt64">
+                    <span>
+                        <u><b>Doctor's Stamp/Signature</b></u>
+                        <br/>
+                        <t t-if="doc.physician_id and doc.physician_id.signature">
+                            <span t-field="doc.physician_id.signature" t-options="{'widget': 'image', 'class': 'img-rounded', 'style':'max-height: 100px !important'}"/>
+                        </t>
+                    </span>
+                </div>
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_acs_medical_advice">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms.report_acs_medical_advice_document" t-lang="doc.patient_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="report_acs_medical_advice_id" model="ir.actions.report">
+        <field name="name">Medical Advice</field>
+        <field name="model">hms.appointment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms.report_acs_medical_advice</field>
+        <field name="report_file">acs_hms.report_acs_medical_advice</field>
+        <field name="print_report_name">(object.name or 'Appointment').replace('/','_')+'_ADVICE'</field>
+        <field name="binding_model_id" ref="model_hms_appointment"/>
+        <field name="groups_id" eval="[(4, ref('acs_hms.group_hms_receptionist'))]"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

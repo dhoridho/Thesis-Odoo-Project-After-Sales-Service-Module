@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="KitchenOrder" owl="1">
+        <div class="kitchen-box" t-att-class="{highlight: props.selectedOrder and props.selectedOrder.request_time == props.order.request_time}">
+            <div class="bg-classes" t-att-class="{'bg-blue': props.order.take_away_order, 'bg-green': !props.order.take_away_order}">
+                <div class="box-state">
+                    Order: 
+                    <t t-esc="props.order.name"/>
+                    <div class="guest_cl">#<t t-esc="props.order.customer_count"/></div>
+                </div>
+                <div class="table-cl">
+                    Table: 
+                        <t t-if="props.order.take_away_order">
+                            Take Away
+                        </t>
+                        <t t-else="">
+                            <t t-esc="props.order.table"/>
+                        </t>
+                    <div class="guest_cl"><t t-esc="props.order.user"/></div>
+                </div>
+                <div class="floor-cl">
+                    Floor: 
+                    <t t-esc="props.order.floor"/>
+                    <div class="guest_cl">
+                        <t t-esc="props.order.time.hours" /> : <t t-esc="props.order.time.minutes"/><br/>
+                    </div>
+                </div>
+                <div class="pp_buttons">
+                    <div class="pp_buttons_child">
+                        <button class="print-kot btn" t-on-click="printOrder"> Start </button>
+                    </div>
+                    <div class="pp_buttons_child">
+                        <button class="priority btn" t-on-click="trigger('click-setPriority', {order: props.order})">
+                            <i class="fa fa-bell-o"></i> Priority
+                        </button>
+                    </div>
+                    <div class="pp_buttons_child div_count_kot_backward" t-if="env.pos.config.period_minutes_warning > 0 ">
+                        <KitchenProcessingTimesBackward order="props.order"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pos-receipt-title high-priority product-name" t-if="props.order.priority">
+                <span class="warning_box" t-if="props.order.priority">High Priority</span>
+            </div>
+            <div class="order-item order-item-detail">
+                <table width="100%">
+                    <t t-foreach="props.order['cancelled'] || []" t-as="line" t-key="line.uid + count">
+                        <KitchenOrderLineDetail t-if="pos_categ_names.includes(line.category)" line="line" order="props.order"/>
+                    </t>
+                    <t t-foreach="props.order['new'] || []" t-as="line" t-key="line.uid + count">
+                        <KitchenOrderLineDetail t-if="pos_categ_names.includes(line.category)" line="line" order="props.order"/>
+                    </t>
+                </table>
+            </div>
+            
+            <div class="pos-receipt-order-data" t-if="env.pos.config.screen_type != 'kitchen'">
+                <button t-on-click="trigger('click-deliveryAll', {order: props.order})" class="btn all_done">ALL DONE</button>
+            </div>
+        </div>
+    </t>
+
+</templates>

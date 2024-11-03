@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_analyze_quotations_template">
+        <t t-call="web.external_layout">
+            <div class="page">
+                <div class="oe_structure" />
+                <br />
+                <br />
+                <div class="row">
+                    <div class="col-12 mx-auto">
+                        <div class="text-center">
+                            <b>
+                                <h4>Analyze Quotations</h4>
+                            </b>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <br />
+
+                <t t-if="partner_quote_dic">
+                    <t t-foreach="partner_quote_dic.keys()" t-as="partner">
+                        <t t-set="partner_dic" t-value="partner_quote_dic[partner]" />
+                        <strong>
+                            <t t-esc="partner_quote_dic[partner]['partner_name']" />
+                        </strong>
+                        <br />
+                        <t t-foreach="partner_quote_dic[partner]['orders'].sorted(key=lambda quotation: quotation.name)" t-as="quote">
+                            <center>
+                                <strong><t t-esc="quote.name" /></strong>
+                            </center>
+                            <table class="table table-condensed" style="border: 1px solid black;">
+                                <thead>
+                                    <tr style="border: 1px solid black;">
+                                        <th style="border: 1px solid black;">Description</th>
+                                        <th style="border: 1px solid black;">Product</th>
+                                        <th style="border: 1px solid black;">Price</th>
+                                        <th style="border: 1px solid black;">Quantity</th>
+                                        <th style="border: 1px solid black;">Amount</th>
+                                    </tr>
+                                    <t t-set="total_amount" t-value="0.0" />
+                                    <t t-foreach="quote.order_line" t-as="quote_line">
+                                        <t t-set="lowest_price" t-value="product_price_dic.get(quote_line.product_id.id)" />
+                                        <t t-set="style" t-value="''" />
+                                        <t t-if="lowest_price==quote_line.price_unit">
+                                            <t t-set="style" t-value="'color:green;'" />
+                                        </t>
+                                        <tr t-att-style="style">
+                                            <t t-set="total_amount" t-value="total_amount+quote_line.price_subtotal" />
+
+                                            <td style="border: 1px solid black;">
+                                                <span t-esc="quote_line.name" />
+                                            </td>
+                                            <td style="border: 1px solid black;">
+                                                <span t-esc="quote_line.product_id.name" />
+                                            </td>
+                                            <td style="border: 1px solid black;">
+                                                <span t-esc="'%.2f'%quote_line.price_unit" />
+                                            </td>
+                                            <td style="border: 1px solid black;">
+                                                <span t-esc="'%.2f'%quote_line.product_qty" />
+                                            </td>
+                                            <td style="border: 1px solid black;">
+                                                <span t-esc="'%.2f'%quote_line.price_subtotal" />
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-set="quote_style" t-value="''" />
+                                    <t t-if="quotation_lowest_total==total_amount">
+                                        <t t-set="quote_style" t-value="'color:green;'" />
+                                    </t>
+                                    <tr t-att-style="quote_style">
+                                        <td colspan="7" style="border: 1px solid black; text-align: right;">
+                                            <span t-esc="'%.2f'%total_amount" />
+                                        </td>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </t>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+    <template id="report_analyze_quotations">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="sh_po_tender_management.report_analyze_quotations_template" />
+            </t>
+        </t>
+    </template>
+</odoo>

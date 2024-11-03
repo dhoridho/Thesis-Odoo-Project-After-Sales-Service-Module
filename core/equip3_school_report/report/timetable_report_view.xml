@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="external_layout">
+        <t t-if="not o and doc">
+            <t t-set="o" t-value="doc"/>
+        </t>
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id"></t>
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company"></t>
+        </t>
+    
+        <t t-call="equip3_school_report.timetable_exclusive_header" />
+        <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+            <t t-raw="0"/>
+        </div>
+        <t t-call="general_template.templates_footer"/>
+    </template>
+
+    <template id="timetable_exclusive_header">
+        <div class="header" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <center>
+                                <table border="0" cellpadding="0" cellspacing="0" style="padding:0px 20px 0px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+                                    <tr>
+                                        <td align="left" colspan="2" t-attf-style="color:#{text_color or '#ffffff'}; padding:0px 0px;" valign="top">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                <tr>
+                                                    <td align="left" style="color:#4D4D4F; padding: 10px 20px 0px 20px; border-right: 1px solid #D4D1D1;" valign="top">
+                                                        <img style="max-height: 50px; margin-top: 8%;" t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo)" t-if="o.company_id.logo"/>
+                                                        <br/>
+                                                    </td>
+                                                    <td style="padding: 10px 20px 0px 20px;width:40%" valign="top">
+                                                        <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Address</p>
+                                                        <t t-call="general_template.templates_company_details"/>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </center>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </template>
+
+    <template id="student_timetable">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="equip3_school_report.external_layout">
+                    <t t-set="o" t-value="o.with_context({'lang':o.partner_id.lang})"/>
+                    <t t-set="theme_color" t-value="o.company_id and o.company_id.theme_color"/>
+                    <t t-set="theme_text_color" t-value="o.company_id and o.company_id.theme_text_color"/>
+                    <t t-set="company_color" t-value="o.company_id and o.company_id.company_color"/>
+                    <t t-set="company_address_color" t-value="o.company_id and o.company_id.company_address_color"/>
+                    <t t-set="customer_color" t-value="o.company_id and o.company_id.customer_color"/>
+                    <t t-set="customer_address_color" t-value="o.company_id and o.company_id.customer_address_color"/>
+                    <t t-set="text_color" t-value="o.company_id and o.company_id.text_color"/>
+                    <div class="page">
+                        <div class="oe_structure"/><br/><br/>
+                        <hr style="border:1px solid black"/>
+                        <h4 t-field="o.sudo().standard_id.school_id.name" class="text-center" style="font-weight:bolder;"></h4>
+                        <br/>
+                        <div style="border:0px;padding:15px;">
+                            <p t-attf-style="font-family: 'Helvetica';font-size: 18px;">
+                                Description : <span t-field="o.name"/>
+                            </p>
+                            <p t-attf-style="font-family: 'Helvetica';font-size: 18px;">
+                                Academic Year : <span t-field="o.year_id.name"/>
+                            </p>
+                             <p t-attf-style="font-family: 'Helvetica';font-size: 18px;">
+                                Program : <span t-field="o.program_id"/>
+                            </p>
+                             <p t-attf-style="font-family: 'Helvetica';font-size: 18px;">
+                                Intake : <span t-field="o.standard_id"/>
+                            </p>
+                             <p t-attf-style="font-family: 'Helvetica';font-size: 18px;">
+                                Term : <span t-field="o.term_id"/>
+                            </p>
+                        </div>
+                        <br/>
+                        <div  align="center">
+            
+                            <t t-if="o.timetable_type == 'regular'">
+                              
+                                <table width="100%" t-attf-style="border: 0px;">
+                                    <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                        <td width="17%" align="center" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Weekday</b>
+                                        </td>
+                                        <td align="center" width="17%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Subject</b>
+                                        </td>
+                                        <td align="center" width="16%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Start Time</b>
+                                        </td>
+                                        <td align="center" width="16%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>End Time</b>
+                                        </td>
+                                        <td align="center" wwidth="17%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Faculty Name</b>
+                                        </td>
+                                        <td align="center" width="17%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Classroom</b>
+                                        </td>
+                        
+                                    </tr>
+                                    <t t-foreach="o.timetable_line_ids" t-as="t">
+                                        <tr>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.week_day"/>
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.subject_id"/> 
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.start_time" t-options='{"widget": "float_time"}'/>  <span t-field="t.start_am_pm"/>
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.end_time" t-options='{"widget": "float_time"}'/>  <span t-field="t.end_am_pm"/>
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.teacher_id"/>
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.class_room_id"/>
+                                            </td>
+
+                                        </tr>
+                                    </t>
+                                </table>
+                            </t>
+                            <t t-if="o.timetable_type == 'exam'">
+                             
+                                <table width="100%" t-attf-style="border: 0px;">
+                                    <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                        <td width="14%" align="center" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Exam Date</b>
+                                        </td>
+                                        <td width="15%" align="center" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Weekday</b>
+                                        </td>
+                                        <td align="center" width="14%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Subject</b>
+                                        </td>
+                                        <td align="center" width="14%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Start Time</b>
+                                        </td>
+                                        <td align="center" width="14%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>End Time</b>
+                                        </td>
+                                        <td align="center" wwidth="15%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Faculty Name</b>
+                                        </td>
+                                        <td align="center" width="14%" t-attf-style="font-family: 'Helvetica';font-size: 18px;border: 2px solid black;">
+                                            <b>Classroom</b>
+                                        </td>
+                        
+                                    </tr>
+                                    <t t-foreach="o.timetable_line_ids" t-as="t">
+                                        <tr>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.exm_date"/>
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.week_day"/>
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.subject_id"/>  
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.start_time" t-options='{"widget": "float_time"}'/>  <span t-field="t.start_am_pm"/>
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.end_time" t-options='{"widget": "float_time"}'/>  <span t-field="t.end_am_pm"/>
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.teacher_id"/>
+                                            </td>
+                                            <td align="center"  t-attf-style="font-family: 'Helvetica';font-size: 16px;border: 2px solid black;">
+                                                <span t-field="t.class_room_id"/>
+                                            </td>
+                                            
+                                        </tr>
+                                    </t>
+                                </table>
+                            </t>
+                           
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+    
+</odoo>

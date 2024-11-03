@@ -1,0 +1,66 @@
+# -*- coding: utf-8 -*-
+# This module and its content is copyright of Technaureus Info Solutions Pvt. Ltd. - ©
+# Technaureus Info Solutions Pvt. Ltd 2019. All rights reserved.
+
+{
+    'name': 'Venue Booking',
+    'version': '1.1.2',
+    'summary': 'Venue Management, Booking, Cancellation',
+    'sequence': 1,
+    'author': 'Technaureus Info Solutions Pvt. Ltd.',
+    'description': 'Venue Management, Booking, Cancellation',
+    'website': 'http://www.technaureus.com',
+    'price': 330,
+    'currency': 'EUR',
+    'license': 'Other proprietary',
+    'depends': [
+        'account', 'base_geolocalize', 'snailmail_account', 'website', 'portal_rating'
+    ],
+    'data': [
+        'security/venue_management_security.xml',
+        'security/ir.model.access.csv',
+        'data/product_data.xml',
+        'data/google_maps_libraries.xml',
+        'data/mail_template.xml',
+        'views/h_f_venue_booking.xml',
+        'views/venue_view.xml',
+        'views/venue_venue_view.xml',
+        'views/res_config_view.xml',
+        'wizard/booking_invoice_wizard_view.xml',
+        'wizard/booking_cancel_wizard_view.xml',
+        'views/booking_views.xml',
+        'views/res_partner.xml',
+        'report/booking_analysis_view.xml',
+        'views/menu_reporting.xml',
+        'views/booking_gantt_template_views.xml',
+        'views/booking_gantt_view.xml',
+        'views/google_places_template.xml',
+        'views/booking_portal_template.xml',
+        'views/venue_web_page.xml',
+        'views/venue_booking_confirmed_page.xml',
+        'views/venue_detail_page.xml',
+        'views/venue_booking_form_page.xml',
+        'views/venue_booking_image_detail_page.xml',
+        'views/booking_dashboard.xml',
+        'views/all_venues_listing.xml',
+        'wizard/booking_binding_partner_view.xml',
+        'wizard/reporting_wizard_view.xml',
+        'wizard/check_availability_view.xml',
+        'report/booking_report.xml',
+        'report/booking_order_templates.xml',
+        'report/booking_detailed_report.xml',
+        'data/booking_sequence.xml',
+        'views/website_banner_views.xml',
+        'views/website_inner_banner_view.xml'
+    ],
+    'demo': [
+        'data/venue_type_data.xml',
+    ],
+    'qweb': [
+        'static/src/xml/*.xml',
+    ],
+    'images': ['images/main_screenshot.png'],
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+}

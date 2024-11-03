@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--Venue Type Form view-->
+    <record id="venue_details_form_view1" model="ir.ui.view">
+        <field name="name">venue.details.form</field>
+        <field name="model">venue.venue</field>
+        <field name="arch" type="xml">
+            <form string="Venue Details">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="view_location_map"
+                                type="object"
+                                class="oe_stat_button"
+                                string="Location Map"
+                                icon="fa-map-marker">
+                        </button>
+                    </div>
+                    <field name="image_medium" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label class="oe_edit_only" for="name" string="Venue Name"/>
+                        <h1>
+                            <field name="name" placeholder="Venue Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <label for="capacity"/>
+                            <div>
+                                <field name="capacity" class="oe_inline"/>
+                                <span class="oe_inline">Units</span>
+                            </div>
+                            <label for="seating"/>
+                            <div>
+                                <field name="seating" class="oe_inline"/>
+                                <span class="oe_inline">Units</span>
+                            </div>
+                            <label for="venue_type_id"/>
+                            <div>
+                                <field name="venue_type_id" class="oe_inline" placeholder="Venue Type"
+                                       widget="many2many_tags"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="latitude"/>
+                            <field name="longitude"/>
+                            <field name="analytic_account_id" groups="analytic.group_analytic_accounting" readonly="1"/>
+                        </group>
+                        <group string="Venue charges">
+                            <field name="charges_per_day" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="charges_per_hour" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="taxes" widget="many2many_tags"/>
+                        </group>
+                        <group string="Additional Charges">
+                            <field name="additional_charges_per_day" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="additional_charges_per_hour" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Day Configurations">
+                            <field name="start_time" widget="float_time"/>
+                            <field name="end_time" widget="float_time"/>
+                        </group>
+
+
+                    </group>
+                    <notebook>
+                        <page string="Amenities" name="venues_amenities">
+                            <field name="venue_amenities_ids"
+                                   mode="tree">
+                                <tree string="Amenities Lines"
+                                      editable="bottom" delete="1">
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="amenities_id" required="1"/>
+                                    <field name="type"/>
+                                    <field name="charge_per_day"
+                                           attrs="{'readonly':[('type', '=', 'inclusive')],
+                                                   'required':[('type', '=', 'additional')]}"
+                                           options="{'currency_field': 'currency_id'}"/>
+                                    <field name="charge_per_hour"
+                                           attrs="{'readonly':[('type', '=', 'inclusive')],
+                                                   'required':[('type', '=', 'additional')]}"
+                                           options="{'currency_field': 'currency_id'}"/>
+                                    <field name="taxes"
+                                           widget="many2many_tags"
+                                           attrs="{'readonly':[('type', '=', 'inclusive')]}"/>
+                                </tree>
+                                <form string="Amenities">
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="amenities_id"/>
+                                                <field name="type"/>
+                                                <field name="currency_id" invisible="1"/>
+                                            </group>
+                                            <group>
+                                                <field name="charge_per_day" widget="monetary"
+                                                       options="{'currency_field': 'currency_id'}"/>
+                                                <field name="charge_per_hour" widget="monetary"
+                                                       options="{'currency_field': 'currency_id'}"/>
+                                                <field name="taxes" widget="many2many_tags"/>
+                                            </group>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Venue Info" name="venue_info">
+                            <group string="Address">
+                                <group>
+                                    <label for="street" string="Landmark"/>
+                                    <div class="o_address_format">
+                                        <field name="street"/>
+                                        <field name="street2"/>
+                                    </div>
+                                    <field name="location_id" placeholder="Location"/>
+                                    <field name="zip" placeholder="ZIP" class="o_address_zip"/>
+
+
+                                </group>
+                                <group>
+
+                                    <field name="phone"/>
+                                    <label for="mobile"/>
+                                    <div class="o_row">
+                                        <field name="mobile" widget="phone"/>
+                                        <!--                                        <button-->
+                                        <!--                                                type="object"-->
+                                        <!--                                                name="send_whatsapp_msg_link"-->
+                                        <!--                                                class="btn-sm btn-link mb4 fa fa-whatsapp"-->
+                                        <!--                                                aria-label="Send WhatsApp Message"-->
+                                        <!--                                                title="Send WhatsApp Message"-->
+                                        <!--                                                style="color:green;font-size: 15px;"-->
+                                        <!--                                                attrs="{'invisible':[('mobile', '=', False)]}"-->
+                                        <!--                                                context="{'field_name': 'mobile'}"-->
+                                        <!--                                        />-->
+                                    </div>
+                                    <field name="email_from" widget="email"/>
+                                    <field name="website" widget="url"/>
+                                </group>
+                            </group>
+                            <group string="About">
+                                <field name="about_venue" nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="Gallery" name="gallery_venues">
+                            <field name="gallery_ids" mode="kanban">
+                                <kanban>
+                                    <field name="id"/>
+                                    <field name="image" widget="image"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div t-attf-class="oe_kanban_global_click">
+                                                <div class="o_attachment_image">
+                                                    <img t-att-src="kanban_image('venue.gallery', 'image', record.id.raw_value)"
+                                                         alt="1"/>
+                                                </div>
+                                                <div class="oe_kanban_details ">
+                                                    <field name="image_type"/>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="image" widget="image" required="1"/>
+                                            <field name="image_type" required="1"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Services" name="service_venues">
+                            <field name="services_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!--Venue Details Tree View-->
+    <record id="venue_details_tree_view1" model="ir.ui.view">
+        <field name="name">venue.details.tree</field>
+        <field name="model">venue.venue</field>
+        <field name="arch" type="xml">
+            <tree string="Venues">
+                <field name="sequence" widget="handle"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="name"/>
+                <field name="capacity"/>
+                <field name="charges_per_day" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="charges_per_hour" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="taxes" widget="many2many_tags"/>
+                <field name="additional_charges_per_day" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                <field name="additional_charges_per_hour" widget="monetary"
+                       options="{'currency_field': 'currency_id'}"/>
+            </tree>
+        </field>
+    </record>
+
+    <!--venue search view-->
+    <record model="ir.ui.view" id="venue_venue_search_view">
+        <field name="name">venue.venue.search.view</field>
+        <field name="model">venue.venue</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="venue_type_id"/>
+                <field name="venue_amenities_ids"/>
+                <field name="services_ids"/>
+<!--                <group expand="1" string="Group By">-->
+<!--                    <filter string="Venue Type" name="venue_type_id" context="{'group_by':'venue_type_id'}"/>-->
+<!--                    <filter string="Amenities" name="venue_amenities_ids" context="{'group_by':'venue_amenities_ids'}"/>-->
+<!--                    <filter string="Services" name="services_ids" context="{'group_by':'services_ids'}"/>-->
+<!--                </group>-->
+            </search>
+        </field>
+    </record>
+
+    <!-- Venue Kanban View -->
+    <record model="ir.ui.view" id="venue_kanban_view">
+        <field name="name">venue.kanban.view</field>
+        <field name="model">venue.venue</field>
+        <field name="arch" type="xml">
+            <kanban class="o_res_partner_kanban">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="capacity"/>
+                <field name="seating"/>
+                <field name="charges_per_day"/>
+                <field name="charges_per_hour"/>
+                <field name="additional_charges_per_day"/>
+                <field name="additional_charges_per_hour"/>
+                <!--                    <field name="venue_amenities_ids"/>-->
+                <field name="image_medium"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('venue.venue', 'image_medium', record.id.raw_value)"
+                                     alt="Venue"/>
+                            </div>
+
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title oe_partner_heading">
+                                    <field name="name"/>
+                                </strong>
+                                <div class="o_kanban_tags_section oe_kanban_partner_categories"/>
+                                <ul>
+                                    <li t-if="record.id.raw_value">
+                                        <span style="padding-right: 0.6em; padding-left: 0.6em;">Capacity:
+                                            <t t-esc="record.capacity.value"/>
+                                        </span>
+                                        <span style="padding-right: 0.6em; padding-left: 0.6em;">Seating:
+                                            <t t-esc="record.seating.value"/>
+                                        </span>
+                                    </li>
+
+                                    <li t-if="record.id.raw_value">
+                                        <span class="o_text_overflow"
+                                              style="padding-right: 0.6em; padding-left: 0.6em;">Booking Charge/Day:
+                                            <t t-esc="record.charges_per_day.value"/>
+                                        </span>
+                                    </li>
+                                    <li t-if="record.id.raw_value">
+                                        <span class="o_text_overflow"
+                                              style="padding-right: 0.6em; padding-left: 0.6em;">Booking Charge/Hour:
+                                            <t t-esc="record.charges_per_hour.value"/>
+                                        </span>
+                                    </li>
+                                    <li t-if="record.id.raw_value">
+                                        <span class="o_text_overflow"
+                                              style="padding-right: 0.6em; padding-left: 0.6em;">Add. Charge/Day:
+                                            <t t-esc="record.additional_charges_per_day.value"/>
+                                        </span>
+                                    </li>
+                                    <li t-if="record.id.raw_value">
+                                        <span class="o_text_overflow"
+                                              style="padding-right: 0.6em; padding-left: 0.6em;">Add. Charge/Hour:
+                                            <t t-esc="record.additional_charges_per_hour.value"/>
+                                        </span>
+                                    </li>
+                                </ul>
+                                <!--                                     <div>-->
+                                <!--                                        <field name="venue_amenities_ids" widget="many2many_tags" />-->
+                                <!--                                    </div>-->
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Tree View Venue Amenities and Rates-->
+    <record id="venue_amenities_details_tree_view" model="ir.ui.view">
+        <field name="name">venue.amenities.details.tree</field>
+        <field name="model">venue.amenities</field>
+        <field name="arch" type="xml">
+            <tree string="Amenities">
+                <field name="amenities_id"/>
+                <field name="type"/>
+                <field name="charge_per_day" widget="monetary"/>
+                <field name="taxes" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Map view for venue -->
+    <record id="view_venue_map" model="ir.ui.view">
+        <field name="name">view.venue.map</field>
+        <field name="model">venue.venue</field>
+        <field name="arch" type="xml">
+            <map class="o_res_partner_map" library="geometry" string="Map" lat="latitude" lng="longitude">
+                <field name="id"/>
+                <field name="latitude"/>
+                <field name="longitude"/>
+                <field name="name"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_res_partner_kanban">
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title oe_partner_heading">
+                                    <field name="name"/>
+                                </strong>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </map>
+        </field>
+    </record>
+
+    <record id="state_cities_form_view1" model="ir.ui.view">
+        <field name="name">state.cities.form</field>
+        <field name="model">state.cities</field>
+        <field name="arch" type="xml">
+            <form string="City Details">
+                <sheet>
+                    <div class="oe_title">
+                        <label class="oe_edit_only" for="name" string="City Name"/>
+                        <h1>
+                            <field name="name" placeholder="City Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                        </group>
+                        <group>
+                            <field name="state_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!--Action for Venue-->
+    <record id="action_venue_details_menu" model="ir.actions.act_window">
+        <field name="name">Venues</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">venue.venue</field>
+        <field name="view_mode">tree,form,kanban,map</field>
+        <!--        <field name="view_mode">tree,form</field>-->
+    </record>
+
+
+    <!-- Booking Menu- Venues-->
+    <menuitem id="venue_details_menu"
+              name="Venues"
+              parent="tis_venue_booking.venue_menu_root"
+              sequence="3"
+              groups="group_venue_user"/>
+    <!-- Sub Menu for Venues-->
+    <menuitem id="venue_venue_menu_venue"
+              name="Venues"
+              parent="venue_details_menu"
+              action="action_venue_details_menu"
+              sequence="2"
+              groups="group_venue_user"/>
+</odoo>

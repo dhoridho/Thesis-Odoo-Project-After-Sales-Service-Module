@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="equip3_pos_membership_member_tree_view" model="ir.ui.view">
+        <field name="name">res.partner.tree</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <tree string="Contacts">
+                <field name="display_name" string="Name"/>
+                <field name="special_name" optional="show"/>
+                <field name="phone"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                <field name="pos_loyalty_type"/>
+                <field name="company_id" optional="show"/>
+                <field name="branch_id" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="equip3_pos_membership_member_form_view" model="ir.ui.view">
+        <field name="name">equip3.pos.membership.member.form.view</field>
+        <field name="model">res.partner</field>
+        <field name="priority">5000</field>
+        <field name="arch" type="xml">
+            <form string="Partners">
+                <header>
+                    <field name="is_pos_member" invisible="1"/>
+                </header>
+                <div class="alert alert-warning oe_edit_only" role="alert" attrs="{'invisible': [('same_vat_partner_id', '=', False)]}">
+                  A partner with the same <span><span class="o_vat_label">Tax ID</span></span> already exists (<field name="same_vat_partner_id"/>), are you sure to create a new one?
+                </div>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"> 
+                        <button name="action_view_order" class="oe_stat_button" icon="fa-shopping-basket o-hm-icon o-hm-smart-pos-orders" type="object">
+                            <field name="order_count" widget="statinfo" string="Orders"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
+                    <field name="image_1920" widget='image' class="oe_avatar" options='{"preview_image": "image_128"}'/>
+                    <div class="oe_title">
+                        <field name="is_company" invisible="1"/>
+                        <field name="commercial_partner_id" invisible="1"/>
+                        <field name="active" invisible="1"/>
+                        <field name="company_type" widget="radio"
+                            class="oe_edit_only"
+                            options="{'horizontal': true}" invisible="1"/>
+                        <h1>
+                            <field name="name" default_focus="1" placeholder="Name" attrs="{'required' : [('type', '=', 'contact')]}"/>
+                        </h1>
+                        <div class="o_row oe_read_only">
+                            <field name="parent_id"
+                                widget="res_partner_many2one"
+                                placeholder="Company"
+                                domain="[('is_company', '=', True)]" context="{'default_is_company': True, 'show_vat': True}"
+                                attrs="{'invisible': ['|', '&amp;', ('is_company','=', True),('parent_id', '=', False),('company_name', '!=', False),('company_name', '!=', '')]}"/>
+                                <field name="company_name" attrs="{'invisible': ['|', '|', ('company_name', '=', False), ('company_name', '=', ''), ('is_company', '=', True)]}"/>
+                                <button name="create_company" icon="fa-plus-square" string="Create company"
+                                    type="object" class="oe_edit_only btn-link"
+                                    attrs="{'invisible': ['|', '|', ('is_company','=', True), ('company_name', '=', ''), ('company_name', '=', False)]}"/>
+                        </div>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="special_name" required="1"/>
+                            <field name="type" groups="base.group_no_one" attrs="{'invisible': [('is_company','=', True)], 'readonly': [('user_ids', '!=', [])]}" invisible="1"/>
+                            <span class="o_form_label o_td_label" name="address_name">
+                                <b attrs="{'invisible': ['|', ('parent_id', '=', False), ('type', '!=', 'contact')]}">Company Address</b>
+                                <b attrs="{'invisible': ['|', ('parent_id', '=', False), ('type', '!=', 'invoice')]}">Invoice Address</b>
+                                <b attrs="{'invisible': ['|', ('parent_id', '=', False), ('type', '!=', 'delivery')]}">Delivery Address</b>
+                                <b attrs="{'invisible': ['|', ('parent_id', '=', False), ('type', '!=', 'other')]}">Other Address</b>
+                                <b attrs="{'invisible': ['|', ('parent_id', '=', False), ('type', '!=', 'private')]}">Private Address</b>
+                                <b attrs="{'invisible': ['&amp;', ('parent_id', '!=', False), ('type', '!=', False)]}">Address</b>
+                            </span>
+                            <div class="o_address_format">
+                                <field name="street" placeholder="Street..." class="o_address_street"
+                                    attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+                                <field name="street2" placeholder="Street 2..." class="o_address_street"
+                                    attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+                                <field name="city" placeholder="City" class="o_address_city"
+                                    attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+                                <field name="state_id" class="o_address_state" placeholder="State" options="{'no_open': True, 'no_quick_create': True}"
+                                    attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}" context="{'country_id': country_id, 'default_country_id': country_id, 'zip': zip}"/>
+                                <field name="zip" placeholder="ZIP" class="o_address_zip"
+                                    attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+                                <field name="country_id" placeholder="Country" class="o_address_country" options='{"no_open": True, "no_create": True}'
+                                    attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+                            </div>
+                            <label for="barcode"/>
+                            <div class="o_row" name="field_generate_barcode">
+                                <field name="barcode" required="1" widget="equip3_generate_barcode"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="user_ids" invisible="1"/>
+                            <field name="phone" widget="phone" required="0"/>
+                            <field name="mobile" widget="phone" required="1"/>
+                            <field name="email" widget="email" context="{'gravatar_image': True}" required="1"/>
+                            <field name="title" options='{"no_open": True}' placeholder="e.g. Mister"
+                                attrs="{'invisible': [('is_company', '=', True)]}" invisible="1"/>
+                            <field name="active_lang_count" invisible="1"/>
+                            <label for="lang" attrs="{'invisible': [('active_lang_count', '&lt;=', 1)]}"/>
+                            <div class="o_row" attrs="{'invisible': [('active_lang_count', '&lt;=', 1)]}">
+                                <field name="lang"/>
+                                <button
+                                    type="action"
+                                    name="%(base.res_lang_act_window)d"
+                                    class="btn-sm btn-link mb4 fa fa-globe"
+                                    aria-label="More languages"
+                                    groups="base.group_system"
+                                    title="More languages"
+                                />
+                            </div>
+                            <field name="pos_branch_id" options="{'no_create': True, 'no_edit': True}" />
+                            <field name="vat" placeholder="e.g. BE0477472701" attrs="{'readonly': [('parent_id','!=',False)]}" invisible="1"/>
+                            <field name="company_id" options="{'no_create': True, 'no_edit': True}" readonly="1"/>
+                            <field name="birthday_date"/>
+                        </group>
+                    </group>
+
+                    <notebook colspan="4">
+                        <page name="member_info" string="Member Info">
+                            <group name="group_loyalty">
+                                <group>
+                                    <field name="pos_loyalty_point_import" invisible="1"/>
+                                    <field name="pos_loyalty_type" string="Member Type" readonly="1"/>
+                                    <field name="pos_loyalty_point" string="Member Points"/>
+                                    <field name="pos_loyalty_point_available" groups="base.group_no_one" invisible="1"/>
+                                </group>
+                            </group>  
+                            <group name="group_loyalty_history" string="Point Histories">
+                                <field name="pos_loyalty_point_ids" nolabel="1" colspan="4" readonly="1">
+                                    <tree string="Point Histories" editable="bottom">
+                                        <field name="order_id"/>
+                                        <field name="create_date" string="Order Date"/>
+                                        <field name="member_type"/>
+                                        <field name="point"/>
+                                        <field name="point_no_rounding" optional="hide"/>
+                                        <field name="type"/>
+                                        <field name="product_redeemed_ids" widget="many2many_tags"/>
+                                        <field name="end_date"/>
+                                        <field name="state"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+
+                        <page string="Invoicing" name="accounting">
+                            <group>
+                                <group string="Bank Accounts" name="banks">
+                                    <field name="bank_ids" nolabel="1">
+                                        <tree editable="bottom">
+                                            <field name="sequence" widget="handle"/>
+                                            <field name="bank_id"/>
+                                            <field name="acc_number"/>
+                                            <field name="acc_holder_name" invisible="1"/>
+                                        </tree>
+                                    </field>
+                                    <button type="action" class="btn-link" name="61" context="{'search_default_partner_id': active_id, 'default_partner_id': active_id, 'form_view_ref': 'account.view_company_partner_bank_form'}" string="View accounts detail" colspan="2"/>
+                                </group>
+                                <group string="Accounting Entries" name="accounting_entries">
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="property_account_receivable_id"/>
+                                    <field name="property_account_payable_id"/>
+
+                                    <!-- Start: from module equip3_accounting_masterdata -->
+                                        <field name="interest_customer_account_receivable"/>
+                                        <field name="interest_vendor_account_payable"/>
+                                    <!-- End: from module equip3_accounting_masterdata-->
+                                </group>
+                            </group>
+                            
+                            <group>
+                                <field name="customer_credit"/>
+                                <field name="customer_credit_limit" style="width: 200px;" attrs="{'invisible': [('customer_credit','=',False)] , 'required': [('customer_credit','=',True)] }"/>
+                                <field name="set_customer_onhold" attrs="{'invisible': [('customer_credit','=',False) ]}"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="equip3_pos_membership_member_action">
+        <field name="name">Members</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_pos_member','=',True)]</field>
+        <field name="context">{ 
+            'ctx_membership': True,
+            'default_is_pos_member': True,
+            'default_is_vendor': False,
+            'tree_view_ref': 'equip3_pos_membership.equip3_pos_membership_member_tree_view',
+            'form_view_ref': 'equip3_pos_membership.equip3_pos_membership_member_form_view' 
+        }</field>
+    </record>
+
+    <menuitem id="equip3_pos_membership_member_menu"
+        action="equip3_pos_membership_member_action"
+        parent="menu_loyalty"
+        sequence="40"
+        groups="equip3_pos_masterdata.group_pos_supervisor,equip3_pos_masterdata.group_pos_manager,equip3_pos_masterdata.group_pos_staff,equip3_pos_masterdata.group_pos_cashier,equip3_pos_masterdata.group_pos_waiter"/>
+	
+</odoo>

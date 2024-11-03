@@ -1,0 +1,127 @@
+<odoo>
+	<record model="ir.actions.server"
+		id="multi_action_product_product_set_mp_data">
+		<field name="name">Update Marketplace</field>
+		<field name="model_id" ref="product.model_product_product" />
+		<field name="binding_model_id"
+			ref="product.model_product_product" />
+		<field name="type">ir.actions.server</field>
+		<field name="state">code</field>
+		<field name="code">action = records.set_mp_data()</field>
+	</record>
+
+	<record model="ir.actions.server"
+		id="multi_action_product_template_set_mp_data">
+		<field name="name">Update Marketplace</field>
+		<field name="model_id" ref="product.model_product_template" />
+		<field name="binding_model_id"
+			ref="product.model_product_template" />
+		<field name="type">ir.actions.server</field>
+		<field name="state">code</field>
+		<field name="code">action = records.set_mp_data()</field>
+	</record>
+
+	<record id="view_wiz_mp_product_update" model="ir.ui.view">
+		<field name="name">Marketplace Product Update Wizard</field>
+		<field name="model">wiz.mp.product.update</field>
+		<field name="arch" type="xml">
+			<form>
+				<sheet>
+					<group>
+						<field name="mode" />
+						<label for="mp_account_ids" />
+						<div name="mp_account_ids">
+							<field name="mp_account_ids" widget="many2many_tags"
+								options="{'no_create': True, 'no_create_edit':True}"
+								class="oe_inline" />
+							<button type="object" name="change_mp_account_ids"
+								string="Update Line" />
+						</div>
+					</group>
+					<notebook>
+						<page string="Quick Line"
+							attrs="{'invisible':[('mode','not in',['stock_only','price_only'])]}">
+							<field name="line_ids">
+								<tree editable="bottom">
+									<field name="mode" invisible="1" />
+									<field name="mp_product_id" />
+									<field name="mp_account_id" />
+									<field name="stock"
+										attrs="{'invisible':[('mode','!=','stock_only')]}" />
+									<field name="price"
+										attrs="{'invisible':[('mode','!=','price_only')]}" />
+								</tree>
+							</field>
+						</page>
+						<page string="Activation Line"
+							attrs="{'invisible':[('mode','not in',['activation'])]}">
+							<field name="activation_ids">
+								<tree editable="bottom">
+									<field name="mode" invisible="1" />
+									<field name="mp_product_id" />
+									<field name="mp_account_id" />
+									<field name="activate" />
+								</tree>
+							</field>
+						</page>
+						<page string="Product Detail"
+							attrs="{'invisible':[('mode','not in',['detail'])]}">
+							<group string="General Information" colspan="4">
+								<field name="mp_product_ids" invisible="1" />
+								<field name="name" />
+								<field name="description" />
+								<field name="sku" />
+								<field name="condition" />
+							</group>
+							<notebook>
+								<page string="Dimension">
+									<group colspan="4">
+										<field name="weight" />
+										<field name="height" />
+										<field name="width" />
+										<field name="length" />
+									</group>
+								</page>
+								<page string="Wholesale">
+									<field name="wholesale_ids">
+										<tree editable="bottom">
+											<field name="min_qty" />
+											<field name="price" />
+										</tree>
+									</field>
+								</page>
+								<page string="Image">
+									<field name="image_ids">
+										<kanban>
+											<field name="id" />
+											<field name="image" />
+											<templates>
+												<t t-name="kanban-box">
+													<div class="oe_kanban_global_click">
+														<div class="o_kanban_image">
+															<img alt="Product Image"
+																t-att-src="kanban_image('wiz.mp.product.image.line','image',record.id.raw_value)" />
+														</div>
+													</div>
+												</t>
+											</templates>
+										</kanban>
+										<form>
+											<group>
+												<field name="sequence" />
+												<field name="image" widget="image" />
+											</group>
+										</form>
+									</field>
+								</page>
+							</notebook>
+						</page>
+					</notebook>
+				</sheet>
+				<footer>
+					<button type="object" name="update" string="Update" />
+				</footer>
+			</form>
+		</field>
+	</record>
+</odoo>

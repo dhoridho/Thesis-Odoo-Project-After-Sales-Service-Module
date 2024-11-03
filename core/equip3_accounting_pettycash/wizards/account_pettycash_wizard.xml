@@ -1,0 +1,101 @@
+<odoo>
+    <data>
+        <record id="account_pettycash_voucher_wizard_form" model="ir.ui.view">
+            <field name="name">account.pettycash.voucher.wizard.form</field>
+            <field name="model">account.pettycash.voucher.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button string="Approve" name="action_approved" states="waiting_for_approval" type="object" class="oe_highlight"/>
+                        <button string="Reject" name="action_rejected" states="waiting_for_approval" type="object" class="oe_highlight"/>
+                        <button string="Request for Approval" name="action_request_for_approval" attrs="{'invisible': [('state','!=','draft')]}" type="object" class="oe_highlight"/>
+                        <button string="Cancel" name="action_cancel" states="approved" type="object"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,waiting_for_approval,approved"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group id="header_left_group">
+                                <field name="fund"/>
+                                <field name="partner_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                <!-- <field name="date"/> -->
+                                <field name="ba_ca_journal_id"/>
+                                <field name="payment_reference" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                <field name="submitter_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            </group>
+                            <group id="header_right_group">
+                                <field name="date" string='Voucher Date' attrs="{'readonly':[('state','!=','draft')]}"/>
+                                <field name="attachment" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                <field name="tax_amount" invisible="1"/>
+                                <field name="total" invisible="1"/>
+                                <field name="currency_id"/>
+                                <field name="active_manual_currency_rate" invisible="1"/>
+                                <field name="apply_manual_currency_exchange" attrs="{'invisible': [('active_manual_currency_rate', '=', False)]}" />
+                                <field name="manual_currency_exchange_inverse_rate"
+                                    attrs="{'invisible': ['|',('apply_manual_currency_exchange', '=', False),('active_manual_currency_rate', '=', False)],'required':[('apply_manual_currency_exchange', '=', True)]}" />
+                                <field name="manual_currency_exchange_rate"
+                                    attrs="{'invisible': ['|',('apply_manual_currency_exchange', '=', False),('active_manual_currency_rate', '=', False)],'required':[('apply_manual_currency_exchange', '=', True)]}" />
+                                <field name="company_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page id="voucher_tab" string="Voucher Lines">
+                                <field name="voucher_line" edit='1' widget="section_and_note_one2many" mode="tree,kanban" attrs="{'readonly':[('state','!=','draft')]}">
+                                    <tree editable="bottom" string="Voucher Lines" delete='true'>
+                                        <field name="product_id"/>
+                                        <field name="name"/>
+                                        <field name="analytic_group_ids" widget="many2many_tags" domain="analytic_group_ids_domain"/>
+                                        <field name="analytic_group_ids_domain" invisible="1"/>
+                                        <field name="expense_account" required="1" />
+                                        <field name="quantity"/>
+                                        <field name="price_unit"/>
+                                        <field name="expense_budget"/>
+                                        <field name="crossovered_budget_line_id" invisible="1"/>
+                                        <field name="price_total" force_save='1' optional="hide"/>
+                                        <field name="tax_ids"/>                                        
+                                        <field name="taxes"  force_save='1' optional="hide"/>
+                                        <field name="amount" force_save='1'/>
+                                        <!-- <field name="expense_account_state"/>
+                                        <button name="button_approved" string="Approve" type="object" class="oe_highlight" attrs="{'invisible': [('expense_account_state', '=', 'filled')]}"/> -->
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+               </form>
+            </field>
+        </record>
+
+        <record id="account_pettycash_voucher_wizard_tree" model="ir.ui.view">
+            <field name="name">account.pettycash.voucher.wizard.tree</field>
+            <field name="model">account.pettycash.voucher.wizard</field>
+            <field name="arch" type="xml">
+                <tree create="false">
+                    <field name="date"/>
+                    <field name="submitter_id"/> 
+                    <field name="total"/>
+                    <field name="tax_amount" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="fund"/>
+                    <field name="partner_id"/>
+                    <field name="payment_reference"/>
+                    <field name="state"/>
+                    <button name="button_approved" string="Approve" type="object" class="oe_highlight" attrs="{'invisible':[('state', 'in', ['draft','approved','posted','cancelled','rejected'])]}"/>
+                    <button name="action_rejected" string="Reject" type="object" class="oe_highlight" attrs="{'invisible':[('state', 'in', ['draft','approved','posted','cancelled','rejected'])]}"/>
+                    <field name="expense_account_state" invisible="1"/> 
+                    <!-- <field name="is_pettycash_voucher_approved"/> -->
+                </tree>
+            </field>
+        </record>
+
+        <record id="account_pettycash_voucher_wizard_action" model="ir.actions.act_window">
+            <field name="name">Voucher</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">account.pettycash.voucher.wizard</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'account_reports.usr_created': True}</field>
+            <field name="view_id" ref="account_pettycash_voucher_wizard_tree"/>
+        </record>
+        
+    </data>
+</odoo>
+    

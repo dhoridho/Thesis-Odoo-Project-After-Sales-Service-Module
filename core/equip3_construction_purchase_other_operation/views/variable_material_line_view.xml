@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Add Line Varibale & Material -->
+        <record id="sh_purchase_agreement_form_view_sh_po_tender_management_2" model="ir.ui.view">
+            <field name="name">sh.purchase.agreement.form.view.sh.po.tender.management</field>
+            <field name="model">purchase.agreement</field>
+            <field name="inherit_id" ref="sh_po_tender_management.sh_purchase_agreement_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@class='oe_button_box']" position="inside">
+                    <field name="po_tender_count" invisible="1"/>
+                    <button type="object" name="action_material_tender" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': ['|', ('po_tender_count', '&lt;', 1), ('is_subcontracting', '=', False)]}">
+                        <field name="po_tender_count" widget="statinfo" string="Received Quotation"/>
+                    </button>
+                </xpath>
+                <xpath expr="//page[@name='product']" position="before">
+                    <page name="variable_line" string="Job Subcon" attrs="{'invisible':[('is_subcontracting','=',False)]}">
+                        <field name="project_scope_computed" widget="many2many_tags" invisible="1"/>
+                        <field name="variable_line_ids" class="o_agreement_variable_tender_line">
+                            <tree editable='bottom'>
+                                <control>
+                                    <create name="add_variable_control" string="Add a variable"/>
+                                </control>
+                                <field name="sr_no"/>
+                                <field name="sequence" widget="handle"/>
+                                <field name="cs_subcon_id" readonly='1' optional="hide" force_save="1" />
+                                <field name="bd_subcon_id" readonly='1' optional="hide" force_save="1" attrs="{'column_invisible': [('parent.is_multiple_budget','=',True)]}"/>
+                                <field name="bd_subcon_ids" readonly='1' optional="hide" force_save="1" attrs="{'column_invisible': [('parent.is_multiple_budget','=',False)]}"/>
+                                <field name="project_scope" required="1" domain="[('id','in',parent.project_scope_computed)]"
+                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="project_section_computed" widget="many2many_tags" invisible="1"/>   
+                                <field name="section" required="1" domain="[('id','in',project_section_computed)]"
+                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>               
+                                <field name="variable" required="1" context="{'default_variable_subcon':True}"
+                                       options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                <field name="analytic_tag_ids" widget="many2many_tags" optional="hide" force_save="1"/>
+                                <field name="quantity"/>
+                                <field name="budget_qty" readonly="1" force_save="1"/>
+                                <field name="uom" />
+                                <field name="reference_price"/>
+                                <field name="budget_amount" readonly='1' force_save="1"/>
+                                <field name="schedule_date" invisible='1'/>
+                                <field name="state" readonly='1' force_save="1"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page name="pa_subcon_estimation" string="estimation" attrs="{'invisible':[('is_subcontracting','=',False)]}">
+                        <notebook>
+                            <page name="material" string="Material" attrs="{'invisible':[('is_orders','=',True)]}">
+                                <field name="material_line_ids" class="o_agreement_tender_line" attrs="{'readonly':[('is_subcontracting','=',True)]}" force_save="1">
+                                    <tree editable='bottom'>
+                                        <control>
+                                            <create name="add_variable_control" string="Add a material"/>
+                                        </control>
+                                        <field name="sr_no"/>
+                                        <field name="cs_subcon_id" optional="hide"/>
+                                        <field name="bd_subcon_id" optional="hide"/>
+                                        <field name="variable_material_id" optional="hide"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="project_scope" required="1" domain="[('id','in',parent.project_scope_computed)]"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>   
+                                        <field name="section" required="1" domain="[('id','in',project_section_computed)]"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="subcon" force_save="1" required="1"
+                                               context="{'default_variable_subcon':True}"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="group_of_product" required="1" force_save="1"/>
+                                        <field name="product" required="1" force_save="1"/>
+                                        <field name="description" force_save="1"/>
+                                        <field name="analytic_tag_ids" widget="many2many_tags" optional="hide" force_save="1"/>
+                                        <field name="budget_quantity" force_save="1"/>
+                                        <field name="quantity" force_save="1"/>
+                                        <field name="uom" required="1" force_save="1"/>
+                                        <field name="destination_warehouse" invisible='1'/>
+                                        <field name="schedule_date" invisible='1'/>
+                                        <field name="reference_price"/>
+                                        <field name="subtotal" readonly="1" force_save="1" />
+                                        <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" invisible='1'/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="labour" string="Labour" attrs="{'invisible':['|',('is_orders','=',True), ('is_material_orders','=',True)]}">
+                                <field name="labour_line_ids" class="o_agreement_tender_line" attrs="{'readonly':['|',('is_subcontracting','=',True), ('is_material_orders','=',True)]}" force_save="1">
+                                    <tree editable='bottom'>
+                                        <control>
+                                            <create name="add_variable_control" string="Add a labour"/>
+                                        </control>
+                                        <field name="sr_no"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="project_scope" required="1" domain="[('id','in',parent.project_scope_computed)]"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>   
+                                        <field name="section" required="1" domain="[('id','in',project_section_computed)]"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="subcon" force_save="1" required="1"
+                                               context="{'default_variable_subcon':True}"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="group_of_product" required="1" force_save="1"/>
+                                        <field name="product" required="1" force_save="1"/>
+                                        <field name="description" force_save="1"/>
+                                        <field name="analytic_tag_ids" widget="many2many_tags" optional="hide" force_save="1"/>
+                                        <field name="quantity" force_save="1"/>
+                                        <field name="uom" required="1" force_save="1"/>
+                                        <field name="destination_warehouse" invisible='1'/>
+                                        <field name="schedule_date" invisible='1'/>
+                                        <field name="reference_price"/>
+                                        <field name="subtotal" readonly="1" force_save="1" />
+                                        <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" invisible='1'/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="service" string="Service" attrs="{'invisible':[('is_subcontracting','=',False)]}">
+                                <field name="service_line_ids" class="o_agreement_tender_line" attrs="{'readonly':[('is_subcontracting','=',True)]}" force_save="1">
+                                    <tree editable='bottom'>
+                                        <control>
+                                            <create name="add_variable_control" string="Add a service"/>
+                                        </control>
+                                        <field name="sr_no"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="project_scope" required="1" domain="[('id','in',parent.project_scope_computed)]"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>   
+                                        <field name="section" required="1" domain="[('id','in',project_section_computed)]"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="subcon" force_save="1" required="1"
+                                               context="{'default_variable_subcon':True}"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="group_of_product" required="1" force_save="1"/>
+                                        <field name="product" required="1" force_save="1"/>
+                                        <field name="description" force_save="1"/>
+                                        <field name="analytic_tag_ids" widget="many2many_tags" optional="hide" force_save="1"/>
+                                        <field name="quantity" force_save="1"/>
+                                        <field name="uom" required="1" force_save="1"/>
+                                        <field name="destination_warehouse" invisible='1'/>
+                                        <field name="schedule_date" invisible='1'/>
+                                        <field name="reference_price"/>
+                                        <field name="subtotal" readonly="1" force_save="1" />
+                                        <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" invisible='1'/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="overhead" string="Overhead" attrs="{'invisible':['|',('is_orders','=',True), ('is_material_orders','=',True)]}">
+                                <field name="overhead_line_ids" class="o_agreement_tender_line" attrs="{'readonly':['|',('is_subcontracting','=',True), ('is_material_orders','=',True)]}" force_save="1">
+                                    <tree editable='bottom'>
+                                        <control>
+                                            <create name="add_variable_control" string="Add a overhead"/>
+                                        </control>
+                                        <field name="sr_no"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="project_scope" required="1" domain="[('id','in',parent.project_scope_computed)]"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>   
+                                        <field name="section" required="1" domain="[('id','in',project_section_computed)]"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="subcon" force_save="1" required="1"
+                                               context="{'default_variable_subcon':True}"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="group_of_product" required="1" force_save="1"/>
+                                        <field name="product" required="1" force_save="1"/>
+                                        <field name="description" force_save="1"/>
+                                        <field name="analytic_tag_ids" widget="many2many_tags" optional="hide" force_save="1"/>
+                                        <field name="quantity" force_save="1"/>
+                                        <field name="uom" required="1" force_save="1"/>
+                                        <field name="destination_warehouse" invisible='1'/>
+                                        <field name="schedule_date" invisible='1'/>
+                                        <field name="reference_price"/>
+                                        <field name="subtotal" readonly="1" force_save="1" />
+                                        <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" invisible='1'/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="equipment" string="Equipment" attrs="{'invisible':['|',('is_orders','=',True), ('is_material_orders','=',True)]}">
+                                <field name="equipment_line_ids" class="o_agreement_tender_line" attrs="{'readonly':['|',('is_subcontracting','=',True), ('is_material_orders','=',True)]}" force_save="1">
+                                    <tree editable='bottom'>
+                                        <control>
+                                            <create name="add_variable_control" string="Add a equipment"/>
+                                        </control>
+                                        <field name="sr_no"/>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="project_scope" required="1" domain="[('id','in',parent.project_scope_computed)]"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="project_section_computed" widget="many2many_tags" invisible="1"/>   
+                                        <field name="section" required="1" domain="[('id','in',project_section_computed)]"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="subcon" force_save="1" required="1"
+                                               context="{'default_variable_subcon':True}"
+                                               options="{'no_create':True, 'no_quick_create':True, 'no_create_edit':True}"/>
+                                        <field name="group_of_product" required="1" force_save="1"/>
+                                        <field name="product" required="1" force_save="1"/>
+                                        <field name="description"  force_save="1"/>
+                                        <field name="analytic_tag_ids" widget="many2many_tags" optional="hide" force_save="1"/>
+                                        <field name="quantity" force_save="1"/>
+                                        <field name="uom" required="1" force_save="1"/>
+                                        <field name="destination_warehouse" invisible='1'/>
+                                        <field name="schedule_date" invisible='1'/>
+                                        <field name="reference_price"/>
+                                        <field name="subtotal" readonly="1" force_save="1" />
+                                        <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}" invisible='1'/>
+                                    </tree>
+                                </field>
+                            </page>
+                            
+                        </notebook>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

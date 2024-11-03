@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_view_stripping_ratio_report" model="ir.actions.client">
+        <field name="name">Stripping Ratio Report</field>
+        <field name="tag">mining_stripping_ratio_report</field>
+    </record>
+
+    <template id="mining_stripping_ratio_report_document">
+        <t t-call="web.internal_layout">
+            <div class="page">
+
+                <div class="oe_structure"/>
+
+                <h3><span t-esc="doc.company_id.name"/>: Stripping Ratio Report</h3>
+
+                <table class="o_report_filters">
+                    <tbody>
+                        <tr>
+                            <td><h5>Site</h5></td>
+                            <td><h5>: <t t-esc="filters['filter_site']['active'][1]"/></h5></td>
+                        </tr>
+                        <tr>
+                            <td><h5>Period</h5></td>
+                            <td><h5>: <t t-esc="filters['filter_period']['active'][1]"/></h5></td>
+                        </tr>
+                        <tr>
+                            <td><h5>Year</h5></td>
+                            <td><h5>: <t t-esc="filters['filter_year'].year"/></h5></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <t t-set="period" t-value="filters['filter_period']['active'][0]"/>
+                <t t-foreach="data" t-as="strip">
+                    <div class="o_stripping_info">
+                        <span class="o_waste_label">Waste:</span> <span class="o_waste_product" t-esc="strip['waste']['products']"/>
+                        <span class="o_ore_label">Ore:</span> <span class="o_ore_product" t-esc="strip['ore']['products']"/>
+                    </div>
+
+                    <table class="table o_table_stripping_report">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Operation</th>
+                                <t t-if="period == 'quarterly'">
+                                    <th class="o_separator" colspan="4">Q1</th>
+                                    <th class="o_separator" colspan="4">Q2</th>
+                                    <th class="o_separator" colspan="4">Q3</th>
+                                    <th class="o_separator" colspan="4">Q4</th>
+                                </t>
+                                <t t-else="">
+                                    <th class="o_separator" colspan="7">H1</th>
+                                    <th class="o_separator" colspan="7">H2</th>
+                                </t>
+                            </tr>
+                            <tr>
+                                <th class="o_separator">January</th>
+                                <th>February</th>
+                                <th>March</th>
+
+                                <t t-if="period == 'quarterly'">
+                                    <th class="o_total">Total</th>
+                                    <th class="o_separator">April</th>
+                                </t>
+                                <t t-else="">
+                                    <th>April</th>
+                                </t>
+                                
+                                <th>May</th>
+                                <th>June</th>
+                                <th class="o_total">Total</th>
+                                <th class="o_separator">July</th>
+                                <th>August</th>
+                                <th>September</th>
+
+                                <t t-if="period == 'quarterly'">
+                                    <th class="o_total">Total</th>
+                                    <th class="o_separator">October</th>
+                                </t>
+                                <t t-else="">
+                                    <th>October</th>
+                                </t>
+                                
+                                <th>November</th>
+                                <th>December</th>
+                                <th class="o_total">Total</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <t t-foreach="['waste', 'ore', 'total']" t-as="key">
+                                <t t-if="key == 'total'">
+                                    <t t-set="tr_class" t-value="'o_total'"/>
+                                </t>
+                                <t t-else="">
+                                    <t t-set="tr_class" t-value="''"/>
+                                </t>
+                                <tr t-attf-class="{{ tr_class }}">
+                                    <td><t t-esc="strip[key]['operation']"/></td>
+                                    
+                                    <t t-set="counter" t-value="1"/>
+                                    <t t-set="total" t-value="0"/>
+                                    <t t-foreach="strip[key]['months']" t-as="month">
+                                        <t t-set="td_class" t-value="'o_value'"/>
+                                        <t t-if="counter == 1 or counter == 7 or (period == 'quarterly' and (counter == 4 or counter == 10))">
+                                            <t t-set="td_class" t-value="td_class + ' o_separator'"/>
+                                        </t>
+        
+                                        <td t-attf-class="{{ td_class }}"><t t-esc="('{:.' + str(digits) + 'f}').format(month_value['qty'])"/> <t t-esc="month_value['uom']"/></td>
+                                        
+                                        <t t-set="total" t-value="total + month_value['qty']"/>
+                                        <t t-if="counter == 6 or counter == 12 or (period == 'quarterly' and (counter == 3 or counter == 9))">
+                                            <td class="o_total"><t t-esc="('{:.' + str(digits) + 'f}').format(total)"/> <t t-esc="month_value['uom']"/></td>
+                                            <t t-set="total" t-value="0"/>
+                                        </t>
+            
+                                        <t t-set="counter" t-value="counter + 1"/>
+                                    </t>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+            </div>
+            <div class="oe_structure"/>
+        </t>
+    </template>
+
+<!--    <template id="mining_stripping_ratio_report">-->
+<!--        <t t-call="web.html_container">-->
+<!--            <t t-foreach="docs" t-as="doc">-->
+<!--                <t t-set="values" t-value="doc.get_report_values()"/>-->
+<!--                <t t-set="data" t-value="values['data']"/>-->
+<!--                <t t-set="filters" t-value="values['filters']"/>-->
+<!--                <t t-set="digits" t-value="values['digits']"/>-->
+<!--                <t t-call="equip3_mining_reports.mining_stripping_ratio_report_document"/>-->
+<!--            </t>-->
+<!--        </t>-->
+<!--    </template>-->
+
+    <record id="paperformat_mining_stripping_ratio_report" model="report.paperformat">
+        <field name="name">Mining Stripping Ratio Report Paper</field>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">20</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">10</field>
+        <field name="dpi">110</field>
+    </record>
+
+    <record id="action_print_mining_stripping_ratio_report" model="ir.actions.report">
+        <field name="name">Stripping Ratio Report</field>
+        <field name="model">mining.stripping.ratio.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_mining_reports.mining_stripping_ratio_report</field>
+        <field name="report_file">equip3_mining_reports.mining_stripping_ratio_report</field>
+        <field name="print_report_name">'Stripping Ratio Report'</field>
+        <field name="binding_model_id" ref="model_mining_stripping_ratio_report"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="equip3_mining_reports.paperformat_mining_stripping_ratio_report"/>
+    </record>
+</odoo>

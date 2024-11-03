@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+ 
+    <record id="pos_coupon_form" model="ir.ui.view">
+        <field name="name">pos.coupon.form</field>
+        <field name="model">pos.coupon</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <header> 
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"> </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Conditions"> 
+                            <field name="number"/>
+                            <field name="code" readonly="1"/>
+                            <field name="type_apply"/>
+                            <field name="product_ids" widget="many2many_tags"/>
+                            <field name="minimum_purchase_quantity"/>
+                            <field name="sequence_generate_method"/>
+                            <field name="manual_input_sequence" attrs="{'invisible':[('sequence_generate_method','!=','Manual Input')]}"/>
+                        </group>
+                        <group string="Validity">
+                            <field name="start_date" required="1"/>
+                            <field name="end_date" required="1"/>
+                            <field name="no_of_usage"/> 
+                            <field name="no_of_used"/> 
+                            <field name="create_uid" class="oe_read_only"/> 
+                            <field name="create_date" class="oe_read_only"/> 
+                            <field name="coupon_program_id"/>
+                            <field name="company_id" options="{'no_open':True,'no_create':True}" required="1"/>
+                        </group>
+                    </group>  
+                    <group>
+                        <group string="Rewards"> 
+                            <field name="reward_type"/> 
+                            <field name="reward_product_ids" widget="many2many_tags" attrs="{
+                                'invisible':[('reward_type','!=','Free Item')],
+                                'required':[('reward_type','=','Free Item')],
+                            }"/> 
+                            <field name="reward_quantity" attrs="{
+                                'invisible':[('reward_type','!=','Free Item')],
+                                'required':[('reward_type','=','Free Item')],
+                            }"/> 
+                            <label string="Discount Type" for="reward_discount_type" attrs="{'invisible':[('reward_type','!=','Discount')],}" />
+                            <div name="reward_discount_type" class="o_row" attrs="{'invisible':[('reward_type','!=','Discount')],}">
+                                <field name="reward_discount_type" attrs="{'required':[('reward_type','=','Discount')],}"/> 
+                                <field name="reward_discount_amount" attrs="{'required':[('reward_type','=','Discount')],}"/>
+                            </div>
+                            <field name="reward_max_discount_amount" 
+                                attrs="{'invisible':['|',('reward_type','!=','Discount'),('reward_discount_type','!=','Percentage')], 
+                                'required':[('reward_type','=','Discount')],}"/>
+                        </group>
+                    </group>
+
+                    <group string="Histories Used">
+                        <field name="use_history_ids" nolabel="1" readonly="1">
+                            <tree string="Histories Used">
+                                <field name="pos_order_id"/>
+                                <field name="used_date"/>
+                                <field name="cashier_id"/>
+                            </tree>
+                        </field>
+                    </group>
+                        
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <record id="pos_coupon_tree" model="ir.ui.view">
+        <field name="name">pos.coupon.tree</field>
+        <field name="model">pos.coupon</field>
+        <field name="arch" type="xml">
+            <tree create="0" edit="0">
+                <field name="number"/>
+                <field name="code" readonly="1"/>
+                <field name="name"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="product_ids" widget="many2many_tags" optional="show"/>
+                <field name="reward_product_ids" widget="many2many_tags" string="Reward" optional="show"/>
+                <field name="company_id"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pos_coupon_search" model="ir.ui.view">
+        <field name="name">pos.coupon.filter</field>
+        <field name="model">pos.coupon</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="number"/>
+                <field name="code"/>
+                <field name="state"/>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="pos_coupon_action">
+        <field name="name">Coupon</field>
+        <field name="res_model">pos.coupon</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem 
+        id="pos_coupon_menu"
+        name="Coupons"
+        action="pos_coupon_action"
+        parent="menu_promotion_voucher_discount"
+        sequence="11"/>
+
+</odoo>

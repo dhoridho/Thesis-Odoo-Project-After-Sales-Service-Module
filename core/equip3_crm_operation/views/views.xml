@@ -1,0 +1,173 @@
+<odoo>
+  <data>
+    <record model="ir.ui.view" id="target_activity_tree">
+      <field name="name">target.activity.tree</field>
+      <field name="model">target.activity</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name" string="No."/>
+          <field name="user_id"/>
+          <field name="sales_team"/>
+          <field name="from_date"/>
+          <field name="to_date"/>
+        </tree>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="target_activity_form">
+      <field name="name">target.activity.form</field>
+      <field name="model">target.activity</field>
+      <field name="arch" type="xml">
+        <form duplicate="0">
+          <sheet>
+            <div class="oe_title oe_read_only">
+              <h1>
+                <field name="name" nolable="0" class="oe_inline"/>
+              </h1>
+            </div>
+            <group>
+              <group>
+                <field name="sales_team"/>
+                <field name="head_team" invisible="1"/>
+                <field name="user_id"/>
+                <field name="company_id" readonly="True"/>
+                <field name="branch_id"/>
+                <field name="activity_target_achieved"/>
+              </group>
+              <group>
+                <field name="create_date"/>
+                <field name="create_uid"/>
+                <field name="from_date"/>
+                <field name="to_date"/>
+              </group>
+            </group>
+            <notebook>
+              <page string="Target &amp; Achieved Status" name="activity_line">
+                <field name="activity_line">
+                  <tree editable="bottom">
+                    <field name="activity_type" width="40%"/>
+                    <field name="activity_target" width="20%"/>
+                    <field name="achieved_target" width="20%"/>
+                    <field name="remaining_target" width="20%"/>
+                  </tree>
+                </field>
+              </page>
+            </notebook>
+          </sheet>
+          <div class="oe_chatter">
+            <field name="message_follower_ids"/>
+            <field name="activity_ids"/>
+            <field name="message_ids"/>
+          </div>
+        </form>
+      </field>
+    </record>
+
+     <record id="target_activity_searchpanel_target_follow_ups" model="ir.ui.view">
+        <field name="name">target.activity.searchpanel</field>
+        <field name="model">target.activity</field>
+        <field name="arch" type="xml">
+            <search>
+                <searchpanel>
+                    <field name="sales_team" string="Sales Team" />
+                    <field name="user_id" string="Salesperson"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="target_activity_lines_graph">
+      <field name="name">target.activity.line.res.graph</field>
+      <field name="model">target.activity.line.res</field>
+      <field name="arch" type="xml">
+        <graph string="Target Activity Pivot Analysis" type="line" sample="1" disable_linking="1">
+          <field name="date" interval="month"/>
+          <field name="user_id" type="row"/>
+          <field name="target_activity" type="measure"/>
+          <field name="activity_done" type="measure"/>
+        </graph>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="target_activity_lines_tree">
+      <field name="name">target.activity.line.res.tree</field>
+      <field name="model">target.activity.line.res</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="activity_id" string="No"/>
+          <field name="user_id"/>
+          <field name="sales_team"/>
+          <field name="from_date"/>
+          <field name="to_date"/>
+        </tree>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="target_activity_lines_pivot">
+      <field name="name">target.activity.line.res.pivot</field>
+      <field name="model">target.activity.line.res</field>
+      <field name="arch" type="xml">
+        <pivot string="Target Activity Pivot Analysis">
+          <field name="date" interval="month"/>
+          <field name="user_id" type="row"/>
+          <field name="target_activity" type="measure"/>
+          <field name="activity_done" type="measure"/>
+        </pivot>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="target_activity_lines_search">
+      <field name="name">target.activity.line.res.search</field>
+      <field name="model">target.activity.line.res</field>
+      <field name="arch" type="xml">
+        <search>
+          <searchpanel view_types="tree,kanban,pivot,graph">
+            <field name="sales_team"/>
+            <field name="user_id" string="Assigned To"/>
+          </searchpanel>
+          <field name="user_id" invisible="1"/>
+          <group expand="0" string="Group By">
+            <filter string="Activity Type" name="activity_type" domain="[]" context="{'group_by': 'activity_type'}"/>
+            <filter string="Sales Person" name="sales" domain="[]" context="{'group_by': 'user_id'}"/>
+            <filter string="Date" name="date" domain="[]" context="{'group_by': 'date'}"/>
+          </group>
+        </search>
+      </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="target_activity_action">
+      <field name="name">Target Follow Ups</field>
+      <field name="res_model">target.activity</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="target_activity_pivot_actions">
+      <field name="name">Target Follow Ups Pivot Analysis</field>
+      <field name="res_model">target.activity.line.res</field>
+      <field name="view_mode">graph,pivot,tree</field>
+      <field name="search_view_id" ref="target_activity_lines_search"/>
+      <field name="context">{'search_default_date': 3,'search_default_sales': 2,'search_default_activity_type': 1}</field>
+    </record>
+
+    <record id="crm.crm_menu_sales" model="ir.ui.menu">
+      <field name="sequence">2</field>
+    </record>
+
+    <menuitem name="Target Follow Ups" id="target_act_menu_new" parent="crm.crm_menu_root"
+              action="target_activity_action" groups="sales_team.group_sale_salesman"/>
+
+    <menuitem name="Target Follow Ups Pivot Analysis" id="target_act_menu_pivots" parent="crm.crm_menu_report"
+              action="target_activity_pivot_actions"/>
+
+    <menuitem
+            id="crm.crm_lead_menu_my_activities"
+            name="My Activities"
+            parent="crm.crm_menu_sales"
+            groups="sales_team.group_sale_salesman"
+            sequence="2"/>
+
+    <record id="crm.crm_activity_report_action" model="ir.actions.act_window">
+      <field name="name">Follow Ups Analysis</field>
+    </record>
+  </data>
+</odoo>

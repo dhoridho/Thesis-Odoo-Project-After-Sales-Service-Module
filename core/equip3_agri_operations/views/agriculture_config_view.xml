@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Crop Phase Management -->
+    <record id="view_crop_phase_config_form" model="ir.ui.view">
+        <field name="name">crop.phase.config.form</field>
+        <field name="model">crop.phase</field>
+        <field name="arch" type="xml">
+            <form string='Crop Phase'>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <label for="crop_age"/>
+                            <div class="o_row">
+                                <field name="crop_age" class="oe_inline mr-8" required="1"/>
+                                <field name="period" class="oe_inline" required="1"/>
+                            </div>
+                            <field name="crop_age_str" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_crop_phase_config_tree" model="ir.ui.view">
+        <field name="name">crop.phase.config.tree</field>
+        <field name="model">crop.phase</field>
+        <field name="arch" type="xml">
+            <tree string="Crop Phase">
+                <field name="name"/>
+                <field name="crop_age_str"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_crop_phase_config" model="ir.actions.act_window">
+        <field name="name">Crop Phase</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">crop.phase</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to create new crop phase information.
+            </p>
+        </field>
+    </record>
+
+    <!-- Crop Activity Group -->
+    <record id="view_crop_activity_group_tree" model="ir.ui.view">
+        <field name="name">view.crop.activity.group.tree</field>
+        <field name="model">crop.activity.group</field>
+        <field name="arch" type="xml">
+            <tree string="Activity Group">
+                <field name="name"/>
+                <field name="type"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_crop_activity_group_form" model="ir.ui.view">
+        <field name="name">view.crop.activity.group.form</field>
+        <field name="model">crop.activity.group</field>
+        <field name="arch" type="xml">
+            <form string="Activity Group">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only" string="Activity Group Name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="type" required="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_crop_activity_group_config" model="ir.actions.act_window">
+        <field name="name">Activity Group</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">crop.activity.group</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to create new activity group information.
+            </p>
+        </field>
+    </record>
+
+    <!-- Crop Activity Management -->
+    <record id="view_crop_activity_config_form" model="ir.ui.view">
+        <field name="name">crop.activity.config.form</field>
+        <field name="model">crop.activity</field>
+        <field name="arch" type="xml">
+            <form string='Crop Activity'>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="group_id" options="{'no_create': 1, 'no_create_edit': 1}"/>
+                            <field name="group_type" invisible="1"/>
+                            <field name="account_id" options="{'no_create': 1, 'no_create_edit': 1}"/>
+                            <field name="is_planting" attrs="{'invisible': [('group_type', '!=', 'nursery')]}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="crop_ids" string="Crop" attrs="{'invisible': [('is_planting', '=', False)]}">
+                            <field name="crop_ids">
+                                <tree string="Crop" editable="bottom">
+                                    <field name="activity_id" invisible="1"/>
+                                    <field name="product_id" domain="[('agri_product_type', '=', 'crop')]"/>
+                                    <field name="product_uom_qty" required="1"/>
+                                    <field name="product_uom_id" string="UoM" readonly="1" force_save="1"/>
+                                    <field name="area" required="1"/>
+                                    <field name="area_uom_id" string="UoM" readonly="1" force_save="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="harvest_ids" string="Harvest" attrs="{'invisible': [('group_type', '!=', 'harvesting')]}">
+                            <field name="harvest_ids">
+                                <tree string="Harvest" editable="bottom">
+                                    <field name="activity_id" invisible="1"/>
+                                    <field name="product_id"/>
+                                    <field name="product_uom_qty" required="1"/>
+                                    <field name="product_uom_id" string="UoM" readonly="1" force_save="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="material_ids" string="Material">
+                            <field name="material_ids">
+                                <tree string="Material" editable="bottom">
+                                    <field name="activity_id" invisible="1"/>
+                                    <field name="product_id" options="{'no_create_edit': True, 'no_create': True}"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id" string="UoM"/>
+                                    <field name="standard_area" required="1"/>
+                                    <field name="area_uom_id" string="UoM" options="{'no_create_edit': True, 'no_create': True}"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="asset_ids" string="Asset">
+                            <field name="asset_ids">
+                                <tree string="Asset" editable="bottom">
+                                    <field name="activity_id" invisible="1"/>
+                                    <field name="asset_id" options="{'no_create': 1, 'no_create_edit': 1}"/>
+                                    <field name="user_id" options="{'no_create': 1, 'no_create_edit': 1}"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_crop_activity_config_tree" model="ir.ui.view">
+        <field name="name">crop.activity.config.tree</field>
+        <field name="model">crop.activity</field>
+        <field name="arch" type="xml">
+            <tree string="Crop Activity">
+                <field name="name"/>
+                <field name="account_id"/>
+                <field name="group_type"/>
+                <field name="group_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_crop_activity_config_search" model="ir.ui.view">
+        <field name="name">view.crop.activity.config.search</field>
+        <field name="model">crop.activity</field>
+        <field name="arch" type="xml">
+            <search string="Crop Activity">
+                <field name="name"/>
+                <field name="group_type"/>
+                <field name="group_id"/>
+                <field name="account_id"/>
+
+                <group string="Group By...">
+                    <filter name="groupby_group_id" domain="[]" context="{'group_by': 'group_id'}"/>
+                    <filter name="groupby_group_type" domain="[]" context="{'group_by': 'group_type'}"/>
+                    <filter name="groupby_account_id" domain="[]" context="{'group_by': 'account_id'}"/>
+                </group>
+
+                <searchpanel>
+                    <field name="group_type"/>
+                    <field name="group_id"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_crop_activity_config" model="ir.actions.act_window">
+        <field name="name">Activity</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">crop.activity</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to create new crop activity information.
+            </p>
+        </field>
+    </record>
+
+
+    <!-- Crop Estate Management -->
+    <record id="view_crop_estate_config_tree" model="ir.ui.view">
+        <field name="name">crop.estate.config.tree</field>
+        <field name="model">crop.estate</field>
+        <field name="arch" type="xml">
+            <tree string="Estate">
+                <field name="name"/>
+                <field name="location_id"/>
+                <field name="size"/>
+                <field name="block_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_crop_estate_config_form" model="ir.ui.view">
+        <field name="name">crop.estate.config.form</field>
+        <field name="model">crop.estate</field>
+        <field name="arch" type="xml">
+            <form string='Estate'>
+                <sheet>
+                    <field name="image_1920" widget="image" class="oe_avatar double_size"/>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="location_id" options="{'no_create_edit': True, 'no_create': True}"/>
+                            <label for="size"/>
+                            <div class="o_row">
+                                <field name="size" class="oe_inline mr-8"/>
+                                <field name="uom_id" class="oe_inline" options="{'no_create_edit': True, 'no_create': True}"/>
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Division">
+                            <field name="division_ids" readonly="1">
+                                <tree string="Division">
+                                    <field name="estate_id" invisible="1"/>
+                                    <field name="name" string="Division"/>
+                                    <field name="area"/>
+                                    <field name="area_uom_id"/>
+                                    <field name="block_ids" widget="many2many_tags"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Block">
+                            <field name="block_ids" readonly="1">
+                                <tree string="Block">
+                                    <field name="estate_id" invisible="1"/>
+                                    <field name="division_id"/>
+                                    <field name="name" string="Block"/>
+                                    <field name="size"/>
+                                    <field name="uom_id"/>
+                                    <field name="crop_ids" widget="many2many_tags"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_crop_estate_config" model="ir.actions.act_window">
+        <field name="name">Estate</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">crop.estate</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to create new crop estate information.
+            </p>
+        </field>
+    </record>
+
+    <!-- Crop Management -->
+    <record id="view_agriculture_crop_mgmt_form" model="ir.ui.view">
+        <field name="name">agriculture.crop.mgmt.form</field>
+        <field name="model">agriculture.crop</field>
+        <field name="arch" type="xml">
+            <form string='Crop' create="false" delete="false" edit="false">
+                <sheet>
+                    <field name="image_1920" widget="image" class="oe_avatar"/>
+                    <group>
+                        <group>
+                            <field name="crop"/>
+                            <field name="block_id"/>
+                            <label for="crop_count"/>
+                            <div class="o_row">
+                                <field name="crop_count" class="oe_inline mr-8"/>
+                                <field name="uom_id" class="oe_inline"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="crop_date"/>
+                            <field name="crop_phase"/>
+                            <field name="crop_age"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_agriculture_crop_mgmt_tree" model="ir.ui.view">
+        <field name="name">agriculture.crop.mgmt.tree</field>
+        <field name="model">agriculture.crop</field>
+        <field name="arch" type="xml">
+            <tree string="Crop" create="false" delete="false" edit="false">
+                <field name="crop"/>
+                <field name="block_id"/>
+                <field name="crop_count"/>
+                <field name="uom_id"/>
+                <field name="crop_date"/>
+                <field name="crop_phase"/>
+                <field name="origin" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_agriculture_crop_mgmt" model="ir.actions.act_window">
+        <field name="name">Crop</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">agriculture.crop</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to create new crop.
+            </p>
+        </field>
+    </record>
+
+    <!-- Crop Block Management -->
+    <record id="view_crop_block_config_tree" model="ir.ui.view">
+        <field name="name">crop.block.config.tree</field>
+        <field name="model">crop.block</field>
+        <field name="arch" type="xml">
+            <tree string="Block">
+                <field name="name"/>
+                <field name="estate_id"/>
+                <field name="size"/>
+                <field name="crop_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_crop_block_config_form" model="ir.ui.view">
+        <field name="name">crop.block.config.form</field>
+        <field name="model">crop.block</field>
+        <field name="arch" type="xml">
+            <form string='Block' js_class="agriculture_block_form_view">
+                 <sheet>
+                    <field name="image_1920" widget="image" class="oe_avatar double_size"/>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                     <group>
+                         <group>
+                            <field name="id" invisible="1"/>
+                            <field name="estate_id" options="{'no_create_edit': True, 'no_create': True}"/>
+                            <field name="division_id" required="1" options="{'no_create_edit': True, 'no_create': True}"/>
+                            <label for="size"/>
+                            <div class="o_row">
+                                <field name="size" class="oe_inline mr-8"/>
+                                <field name="uom_id" class="oe_inline" options="{'no_create_edit': True, 'no_create': True}"/>
+                            </div>
+                        </group>
+                        <group>
+                        </group>
+                     </group>
+                     <notebook>
+                         <page string="Crop Details">
+                             <field name="crop_ids" widget="many2many_list">
+                                 <tree string="Crop">
+                                    <field name="block_id" invisible="1"/>
+                                    <field name="crop"/>
+                                    <field name="crop_count"/>
+                                    <field name="uom_id"/>
+                                    <field name="crop_date"/>
+                                    <field name="crop_phase"/>
+                                    <field name="crop_age"/>
+                                </tree>
+                             </field>
+                         </page>
+                         <page name="activity_harvest_ids" string="Harvest History">
+                            <field name="activity_harvest_ids">
+                                <tree string="Harvest History" editable="bottom">
+                                    <field name="block_id" invisible="1"/>
+                                    <field name="daily_activity_harvest_id" string="Daily Activity"/>
+                                    <field name="activity_line_harvest_id" string="Activity Line"/>
+                                    <field name="activity_record_harvest_id" string="Activity Record"/>
+                                    <field name="activity_harvest_id" invisible="1"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="product_id"/>
+                                    <field name="product_uom_qty" string="To Produce"/>
+                                    <field name="quantity_done" string="Produced"/>
+                                    <field name="product_uom"/>
+                                    <field name="product_uom_category_id" invisible="1"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'done'"/>
+                                </tree>
+                            </field>
+                        </page>
+                         <page name="activity_line_ids" string="Activity Lines" invisible="1">
+                            <field name="activity_line_ids">
+                                <tree string="Activity Lines">
+                                    <field name="name"/>
+                                    <field name="activity_id"/>
+                                    <field name="worker_group_ids" widget="many2many_tags"/>
+                                    <field name="notes"/>
+                                    <field name="material_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="state" widget='badge' decoration-secondary="state == 'draft'"
+                                                   decoration-warning3="state == 'to_be_approved'"
+                                                   decoration-warning2="state == 'approved'"
+                                                   decoration-danger="state == 'rejected'"
+                                                   decoration-primary="state == 'confirm'"
+                                                   decoration-warning="state == 'progress'"
+                                                   decoration-success="state == 'done'"
+                                                   decoration-danger3="state == 'cancel'"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="activity_history_ids" string="Activity History">
+                            <field name="activity_history_ids">
+                                <tree string="Activity History">
+                                    <field name="name"/>
+                                    <field name="activity_id"/>
+                                    <field name="worker_group_ids" widget="many2many_tags"/>
+                                    <field name="notes"/>
+                                    <field name="material_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="state" widget='badge' decoration-secondary="state == 'draft'"
+                                                   decoration-warning3="state == 'to_be_approved'"
+                                                   decoration-warning2="state == 'approved'"
+                                                   decoration-danger="state == 'rejected'"
+                                                   decoration-primary="state == 'confirm'"
+                                                   decoration-warning="state == 'progress'"
+                                                   decoration-success="state == 'done'"
+                                                   decoration-danger3="state == 'cancel'"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="scheduled_ids" string="Scheduled Activity">
+                            <field name="scheduled_ids">
+                                <tree string="Scheduled Activity" editable="bottom">
+                                    <field name="block_id" invisible="1"/>
+                                    <field name="block_id" invisible="1"/>
+                                    <field name="activity_ids" widget="many2many_tags" required="1"/>
+                                    <field name="interval_number"/>
+                                    <field name="interval_type"/>
+                                    <field name="lastcall" readonly="1"/>
+                                    <field name="nextcall"/>
+                                </tree>
+                            </field>
+                        </page>
+                     </notebook>
+                 </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_crop_block_search" model="ir.ui.view">
+        <field name="name">view.crop.block.search</field>
+        <field name="model">crop.block</field>
+        <field name="arch" type="xml">
+            <search string="Block">
+                <field name="name"/>
+                <field name="estate_id"/>
+                <field name="division_id"/>
+                <field name="size"/>
+                <field name="crop_ids"/>
+
+                <group string="Group By...">
+                    <filter name="groupby_estate_id" domain="[]" context="{'group_by': 'estate_id'}"/>
+                    <filter name="groupby_division_id" domain="[]" context="{'group_by': 'division_id'}"/>
+                    <filter name="groupby_size" domain="[]" context="{'group_by': 'size'}"/>
+                </group>
+
+                <searchpanel>
+                    <field name="estate_id"/>
+                    <!-- <field name="division_id"/> -->
+                    <!-- <field name="crop_ids"/> -->
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_crop_block_config" model="ir.actions.act_window">
+        <field name="name">Block</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">crop.block</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to create new crop black information.
+            </p>
+        </field>
+    </record>
+
+    <!-- Division -->
+    <record id="view_agricuture_division_tree" model="ir.ui.view">
+        <field name="name">view.agriculture.division.tree</field>
+        <field name="model">agriculture.division</field>
+        <field name="arch" type="xml">
+            <tree string="Division">
+                <field name="name" string="Division"/>
+                <field name="estate_id"/>
+                <field name="area"/>
+                <field name="block_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_agricuture_division_form" model="ir.ui.view">
+        <field name="name">view.agriculture.division.form</field>
+        <field name="model">agriculture.division</field>
+        <field name="arch" type="xml">
+            <form string="Division">
+                <sheet>
+                    <field name="image_1920" widget="image" class="oe_avatar double_size"/>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="estate_id" options="{'no_create_edit': True, 'no_create': True}"/>
+                            <label for="area"/>
+                            <div class="o_row">
+                                <field name="area" class="oe_inline mr-8"/>
+                                <field name="area_uom_id" class="oe_inline" options="{'no_create_edit': True, 'no_create': True}"/>
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="block_ids" string="Blocks">
+                            <field name="block_ids" widget="many2many">
+                                <tree string="Blocks">
+                                    <field name="division_id" invisible="1"/>
+                                    <field name="name" string="Block"/>
+                                    <field name="size" string="Area"/>
+                                    <field name="uom_id" string="Unit of Measure"/>
+                                    <field name="crop_ids" widget="many2many_tags"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_agriculture_division_search" model="ir.ui.view">
+        <field name="name">view.agriculture.division.search</field>
+        <field name="model">agriculture.division</field>
+        <field name="arch" type="xml">
+            <search string="Division">
+                <field name="name"/>
+                <field name="estate_id"/>
+                <field name="area"/>
+
+                <group string="Group By...">
+                    <filter name="groupby_estate_id" domain="[]" context="{'group_by': 'estate_id'}"/>
+                    <filter name="groupby_area" domain="[]" context="{'group_by': 'area'}"/>
+                </group>
+
+                <searchpanel>
+                    <field name="estate_id"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_view_agriculture_division" model="ir.actions.act_window">
+        <field name="name">Division</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">agriculture.division</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to create new division.
+            </p>
+        </field>
+    </record>
+</odoo>

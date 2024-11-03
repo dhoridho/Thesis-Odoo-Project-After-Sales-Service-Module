@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_stock_inventory_log_line_tree" model="ir.ui.view">
+        <field name="name">view.stock.inventory.log.line.tree</field>
+        <field name="model">stock.inventory.log.line</field>
+        <field name="arch" type="xml">
+            <tree string="Batch" default_order="create_date">
+                <field name="log_id" invisible="1"/>
+                <field name="inventory_line_ids_str" invisible="1"/>
+                <field name="inventory_line_ids" invisible="1"/>
+                <field name="inventory_line_ids_display" string="Line IDS"/>
+                <field name="create_date"/>
+                <field name="name" optional="hide"/>
+                <field name="cron_id"/>
+                <field name="lines_processed"/>
+                <field name="total_lines"/>
+                <field name="cron_active" invisible="1"/>
+                <button name="run_manually" string="Run Manually" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'queue')]}"/>
+                <button name="re_run" string="Re-Run" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'failed')]}"/>
+                <field name="state" widget="badge" decoration-info="state == 'running'" decoration-success="state == 'done'" decoration-danger="state == 'failed'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_stock_inventory_log_line_form" model="ir.ui.view">
+        <field name="name">view.stock.inventory.log.line.form</field>
+        <field name="model">stock.inventory.log.line</field>
+        <field name="arch" type="xml">
+            <form string="Batch">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="log_id" invisible="1"/>
+                            <field name="create_date"/>
+                            <field name="cron_id"/>
+                            <field name="cron_active"/>
+                            <field name="inventory_line_ids_str" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="lines_processed"/>
+                            <field name="total_lines"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="inventory_lines" string="Processed Inventory Lines">
+                            <field name="inventory_line_ids">
+                                <tree string="Processed Inventory Lines">
+                                    <field name="product_id"/>
+                                    <field name="location_id"/>
+                                    <field name="theoretical_qty"/>
+                                    <field name="product_qty"/>
+                                    <field name="difference_qty"/>
+                                    <field name="theoretical_unit_price"/>
+                                    <field name="difference_unit_price"/>
+                                    <field name="is_validated" widget="boolean_toggle"/>
+                                    <field name="state" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="miscellaneous" string="Miscellaneous">
+                            <group>
+                                <field name="error_message" widget="text" attrs="{'invisible': [('error_message', '=', False)]}"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_stock_inventory_log_tree" model="ir.ui.view">
+        <field name="name">view.stock.inventory.log.tree</field>
+        <field name="model">stock.inventory.log</field>
+        <field name="arch" type="xml">
+            <tree string="Inventory Adjustment Logs" create="0" delete="0" edit="0" default_order="id desc">
+                <field name="inventory_id"/>
+                <field name="create_date" string="Created On"/>
+                <field name="lines_processed"/>
+                <field name="total_lines"/>
+                <field name="state" widget="badge" decoration-info="state == 'running'" decoration-success="state == 'done'" decoration-danger="state == 'failed'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_stock_inventory_log_form" model="ir.ui.view">
+        <field name="name">view.stock.inventory.log.form</field>
+        <field name="model">stock.inventory.log</field>
+        <field name="arch" type="xml">
+            <form string="Inventory Adjustment Logs" create="0" delete="0" edit="0">
+                <header>
+                    <field name="state" statusbar_visible="draft,queue,running,done" widget="statusbar"/>
+                    <button name="run" type="object" string="Run" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button string="Scheduled Actions" type="object" name="action_view_cron" class="oe_stat_button" icon="fa-exchange"/>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1><field name="inventory_id"/></h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="lines_processed"/>
+                            <field name="total_lines"/>
+                        </group>
+                        <group>
+                            <field name="create_date" string="Created On"/>
+                            <field name="next_line_id" string="Next Batch"/>
+                            <button string="Refresh" type="object" name="refresh" class="oe_highlight"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page name="cost_batch" string="Cost Batch">
+                            <field name="line_ids" context="{
+                                'tree_view_ref': 'equip3_inventory_base.view_stock_inventory_log_line_tree',
+                                'form_view_ref': 'equip3_inventory_base.view_stock_inventory_log_line_form'
+                            }"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_view_stock_inventory_log" model="ir.actions.act_window">
+        <field name="name">Inventory Adjustment Logs</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">stock.inventory.log</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem action="action_view_stock_inventory_log" id="menu_action_view_stock_inventory_log" parent="stock.menu_stock_warehouse_mgmt" sequence="31"/>
+
+</odoo>

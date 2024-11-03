@@ -1,0 +1,197 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="view_calendar_event_inherit" model="ir.ui.view">
+        <field name="name">view.calendar.event.inherit</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="calendar.view_calendar_event_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@role='status']" position="before">
+                <header>
+                    <button id="button_reschedule" name="%(equip3_crm_operation.crm_lead_meeting_reschedule_action)d" string="Reschedule" class="btn-primary"
+                            type="action" attrs="{'invisible': ['|',('state', '!=', 'meeting'),('sign_in', '=', True)]}"/>
+                    <button id="button_cancel" name="%(equip3_crm_operation.crm_lead_meeting_lost_action)d"
+                            string="Cancel" type="action" attrs="{'invisible': ['|',('state', '!=', 'meeting'),('sign_in', '=', True)]}"/>
+                    <field name="state" invisible="1"/>
+                    <field name="state_1" widget="statusbar" statusbar_visible="meeting,done" attrs="{'invisible': [('state', 'not in', ('meeting'))]}"/>
+                    <field name="state_2" widget="statusbar" statusbar_visible="meeting" attrs="{'invisible': [('state', 'not in', ('rescheduled','cancel','done'))]}"/>
+                </header>
+            </xpath>
+
+            <xpath expr="//div[@class='oe_title']" position="after">
+                <button string="Sign In" class="oe_highlight click_sign_in"
+                        custom="click" attrs="{'invisible': ['|',('state', 'in', ['rescheduled', 'done', 'cancel']),('sign_in', '!=', False)]}"/>
+
+                <button string="Cancel Sign In" class="oe_highlight cancel_sign_in" name="cancel_sign_in"
+                        attrs="{'invisible': ['|',('sign_in', '!=', True),('sign_out', '!=', False)]}"
+                        type="object"/>
+                <span style="display:inline-block; width: 10px;"></span>
+
+                <button string="Sign Out" class="oe_highlight click_sign_out"
+                        custom="click_sign_out"
+                        attrs="{'invisible': ['|','|',('state', 'in', ['rescheduled', 'done', 'cancel']),('sign_out', '!=', False),('sign_in', '=', False)]}"/>
+
+                <button string="Cancel Sign Out" class="oe_highlight cancel_sign_out" name="cancel_sign_out"
+                        attrs="{'invisible': [('sign_out', '!=', True)]}"
+                        type="object"/>
+            </xpath>
+            <xpath expr="//div[@class='oe_title']/h2/field[@name='partner_ids']" position="attributes">
+                <attribute name="domain">[('is_customer', '=', True)]</attribute>
+            </xpath>
+            <xpath expr="//div[@class='oe_title']" position="inside">
+                <label for="partner_attendees_ids" string="Other Attendees" class="oe_edit_only"/>
+                <h2>
+                    <field name="partner_attendees_ids" domain="[('is_customer', '=', True)]" widget="many2manyattendee" placeholder="Select attendees..." context="{'force_email':True}" class="oe_inline"/>
+                </h2>
+            </xpath>
+            <xpath expr="//page[4]" position="inside">
+                    <field name="opportunity_name" invisible="1"/>
+            </xpath>
+            <xpath expr="//page[1]/group/group[2]/field[@name='categ_ids']" position="attributes">
+                <attribute name="required">True</attribute>
+            </xpath>
+            <xpath expr="//page[1]" position="inside">
+                <group>
+                    <field name="sign_in_date" readonly="1"/>
+                    <field name="sign_out_date" readonly="1"/>
+                    <field name="sign_in" invisible="1"/>
+                    <field name="sign_out" invisible="1"/>
+                    <field name="note_field" widget="html"/>
+                </group>
+                <group>
+                    <group string="Sign In Location">
+                        <field name="sign_in_location" attrs="{'invisible': [('sign_in', '=', False)]}" widget="map"  nolabel="1"/>
+                    </group>
+                    <group string="Sign Out Location">
+                        <field name="sign_out_location" attrs="{'invisible': [('sign_out', '=', False)]}" widget="map"  nolabel="1"/>
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//notebook/page/group/group/field[@name='location']" position="after">
+				<field name="opportunity_id" string="Lead Name"/>
+                <field name="user_id" string="Sales Person" readonly="1"/>
+                <field name="team_id" string="Sales Team"/>
+                <field name="reasons_reschedule" attrs="{'invisible':[('state', 'not in', ['rescheduled'])]}"/>
+                <field name="cancelled_reasons" attrs="{'invisible':[('state', 'not in', ['cancel'])]}"/>
+                <field name="mandatory" invisible="1"/>
+			</xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', 'in', ['done','rescheduled', 'cancel'])]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_ids']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', 'in', ['done','rescheduled', 'cancel'])]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='start']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', 'in', ['done','rescheduled', 'cancel'])],'invisible': [('allday','=',True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='duration']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', 'in', ['done','rescheduled', 'cancel'])]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='start_date']" position="attributes">
+	            <attribute name="attrs">{'readonly': [('state', 'in', ['done','rescheduled', 'cancel'])],'invisible': [('allday','=',False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='stop_date']" position="attributes">
+	            <attribute name="attrs">{'readonly': [('state', 'in', ['done','rescheduled', 'cancel'])],'invisible': [('allday','=',False)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='allday']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', 'in', ['done','rescheduled', 'cancel'])]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='location']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', 'in', ['done','rescheduled', 'cancel'])]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='opportunity_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', 'in', ['done','rescheduled', 'cancel'])],'required':[('mandatory','=',True)]}</attribute>
+            </xpath>
+
+            <field name="user_id" position="attributes">
+                <attribute name="attrs">{'invisible':[('is_hide_salesperson','=',True)]}</attribute>
+            </field>
+            <field name="user_id" position="after">
+                <field name="is_hide_salesperson" invisible="1"/>
+                <field name="meeting_salesperson_ids" widget="many2many_tags" groups="equip3_crm_operation.group_use_multi_salesperson_on_leads"/>
+            </field>
+        </field>
+    </record>
+    <record id="calendar.action_calendar_event" model="ir.actions.act_window">
+        <field name="name">Meetings</field>
+        <field name="res_model">calendar.event</field>
+        <field name="view_mode">calendar,tree,form,graph,pivot</field>
+    </record>
+    <record model="ir.ui.view" id="view_calendar_graph">
+        <field name="name">calendar.event.graph</field>
+        <field name="model">calendar.event</field>
+        <field name="arch" type="xml">
+            <graph string="Meetings">
+            </graph>
+        </field>
+    </record>
+
+    <record id="meeting_view_calendar_event_modifier" model="ir.ui.view">
+        <field name="name">meeting.view.calendar.event.modifier</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="calendar.view_calendar_event_calendar" />
+        <field name="arch" type="xml">
+            <field name="partner_ids" position="attributes">
+                <attribute name="groups">base.group_system,-base.group_user</attribute>
+            </field>
+            <field name="partner_ids" position="before">
+                <field name="is_leader" invisible="1"/>
+            </field>
+            <field name="partner_ids" position="after">
+                <field name="opportunity_id"/>
+            </field>
+            <xpath expr="//calendar" position="attributes">
+                <attribute name="mode">month</attribute>
+            </xpath>
+            <field name="description" position="before">
+                <field name="customer_id"/>
+                <field name="state_3"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_calendar_event_type_tree_inherit" model="ir.ui.view">
+        <field name="name">calendar.event.type.inherit</field>
+        <field name="model">calendar.event.type</field>
+        <field name="inherit_id" ref="calendar.view_calendar_event_type_tree" />
+        <field name="arch" type="xml">
+            <field name="name" position="attributes">
+                <attribute name="width">50%</attribute>
+            </field>
+            <field name="name" position="after">
+                <field name="leads_meeting" width="50%"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_calendar_event_search_inherit" model="ir.ui.view">
+        <field name="name">calendar.event.search.inherit</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="calendar.view_calendar_event_search" />
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='mymeetings']" position="after">
+                <filter string="On Schedule" name="meeting"
+                        domain="[('state', '=', 'meeting')]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_calendar_event_tree" model="ir.ui.view">
+        <field name="name">calendar.event.tree</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="calendar.view_calendar_event_tree" />
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="res_name"/>
+            </field>
+            <field name="name" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <field name="location" position="after">
+                <field name="res_loc"/>
+            </field>
+            <field name="location" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

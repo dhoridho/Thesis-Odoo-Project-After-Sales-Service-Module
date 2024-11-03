@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <!--Payroll Admin : Added Payroll Admin group in Human Resource Category  -->
+    <record id="group_hr_payroll_admin" model="res.groups">
+        <field name="name">Payroll Admin</field>
+        <field name="category_id" ref="base.module_category_human_resources"/>
+        <field name="implied_ids" eval="[(6,0, [ref('base.group_user')])]"/>
+    </record>
+
+    <record id="property_rule_hr_contract" model="ir.rule">
+        <field name="name">HR Contract</field>
+        <field name="model_id" ref="model_hr_contract"/>
+        <field name="groups" eval="[(6, 0 ,[ref('group_hr_payroll_admin')])]"/>
+    </record>
+
+    <!--Payslip: Payroll admin can see all payslips from payroll users except his own-->
+    <record id="property_rule_hr_payslip" model="ir.rule">
+        <field name="name">HR Payslip</field>
+        <field name="model_id" ref="model_hr_payslip"/>
+        <field name="groups" eval="[(6, 0 ,[ref('group_hr_payroll_admin')])]"/>
+    </record>
+
+    <record id="payslip_line_hr_payroll_admin" model="ir.rule">
+        <field name="name">Payroll admin can see all payslip line</field>
+        <field name="model_id" ref="scs_hr_payroll.model_hr_payslip_line"/>
+        <field name="domain_force">[('employee_id.user_id', 'in', [usr.id for usr in user.user_ids])]</field>
+        <field name="groups" eval="[(6, 0 ,[ref('group_hr_payroll_admin')])]"/>
+    </record>
+
+    <!--Employee: Payroll admin can see all employees from payroll users-->
+    <record id="property_rule_hr_employee" model="ir.rule">
+        <field name="name">HR Employee</field>
+        <field name="perm_unlink" eval="False"/>
+        <field name="model_id" ref="model_hr_employee"/>
+        <field name="domain_force">[('user_id', 'in', [usr.id for usr in user.user_ids] + [user.id])]</field>
+        <field name="groups" eval="[(6, 0 ,[ref('group_hr_payroll_admin')])]"/>
+    </record>
+
+    <!--Holidays: Payroll Admin can see all Holidays from payroll users-->
+    <record id="property_rule_holidays_payroll_admin1" model="ir.rule">
+        <field name="name">Payroll Admin Holidays</field>
+        <field name="model_id" ref="hr_holidays.model_hr_leave"/>
+        <field name="domain_force">[('employee_id.user_id', 'in', [usr.id for usr in user.user_ids] + [user.id] )]</field>
+        <field name="groups" eval="[(6, 0, [ref('group_hr_payroll_admin')])]"/>
+    </record>
+
+    <record id="property_rule_hr_payslip_users" model="ir.rule">
+        <field name="name">Employee can see own payslip</field>
+        <field name="model_id" ref="model_hr_payslip"/>
+        <field name="domain_force">[('employee_id.user_id','child_of',user.id)]</field>
+        <field name="groups" eval="[(4,ref('base.group_user'))]"/>
+        <field name='perm_create' eval='False'/>
+        <field name='perm_read' eval='True'/>
+        <field name='perm_unlink' eval='False'/>
+        <field name='perm_write' eval='False'/>
+    </record>
+
+    <record id="property_rule_hr_payslip_line_users" model="ir.rule">
+        <field name="name">Employee can see own payslip line</field>
+        <field name="model_id" ref="scs_hr_payroll.model_hr_payslip_line"/>
+        <field name="domain_force">[('employee_id.user_id','child_of',user.id)]</field>
+        <field name="groups" eval="[(4,ref('base.group_user'))]"/>
+        <field name='perm_create' eval='False'/>
+        <field name='perm_read' eval='True'/>
+        <field name='perm_unlink' eval='False'/>
+        <field name='perm_write' eval='False'/>
+    </record>
+
+    <record id="property_rule_payslip_hr_manager" model="ir.rule">
+        <field name="name">Manager can see all record</field>
+        <field name="model_id" ref="model_hr_payslip"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4,ref('hr.group_hr_manager'))]"/>
+    </record>
+
+    <record id="property_rule_payslip_line_hr_manager" model="ir.rule">
+        <field name="name">Manager can see all payslip line</field>
+        <field name="model_id" ref="scs_hr_payroll.model_hr_payslip_line"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4,ref('hr.group_hr_manager'))]"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,35 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+{
+    'name': 'Equip3 Inventory Tracking',
+    'author': 'Hashmicro / Prince',
+    'version': '1.1.29',
+    'summary': 'Manage your Inventory tracking.',
+    'depends': ['aspl_product_expiry_alert', 'delivery', 'equip3_inventory_control'],
+    'category': 'Inventory/Inventory',
+    'data': [
+        'templates/icons.xml',
+        "views/assets.xml",
+        'views/product_views.xml',
+        'views/stock_production_lot.xml',
+        'views/stock_quant.xml',
+        # 'views/expiry_views.xml',
+        'views/internal_transfer.xml',
+        'views/stock_picking_views.xml',
+        'report/barcode_packaging_template.xml',
+        'report/stock_report_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/stock_quant_package_views.xml',
+        'views/stock_scrap_request_views.xml',
+        'views/stock_move_views.xml',
+        'data/ir_sequence_data.xml',
+        'data/cron_autoscrap.xml',
+        'data/mail_template.xml',
+        'data/stock_product_lot_cron.xml',
+        'views/menu_views.xml',
+    ],
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+}

@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="kpi_period_view_search" model="ir.ui.view">
+        <field name="name">kpi.period.search</field>
+        <field name="model">kpi.period</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="Open"
+                        name="open_periods"
+                        domain="[('state', '=', 'open')]"
+                />
+                <group expand="0" string="Group By">
+                    <filter string="State"
+                            name="group_state"
+                            context="{'group_by': 'state'}"
+                    />
+                    <filter string="Period Start"
+                            name="datetime_start_group"
+                            context="{'group_by': 'date_start'}"
+                    />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="kpi_period_view_form" model="ir.ui.view">
+        <field name="name">kpi.period.form</field>
+        <field name="model">kpi.period</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" 
+                           widget="statusbar"
+                           clickable="0"
+                           invisible="context.get('quick_kpi_period')"
+                    />
+                </header>
+                <sheet>
+                    <div class="oe_button_box" 
+                         name="button_box"
+                         invisible="context.get('quick_kpi_period')"
+                    >
+                        <button name="action_close"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-stop"
+                                attrs="{'invisible': [('state', 'not in', ['open'])]}"
+                        >
+                            Close Period
+                        </button>
+                        <button name="action_reopen"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-refresh"
+                                attrs="{'invisible': [('state', 'not in', ['closed'])]}"
+                        >
+                            Re-Open Period
+                        </button>
+                        <button name="%(kpi_scorecard.kpi_copy_template_action)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-exchange"
+                                attrs="{'invisible': [('state', 'not in', ['open'])]}"
+                                context="{'default_period_id': active_id}"
+                        >
+                            Substitute Targets
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"
+                                   placeholder="e.g. Year 2021"
+                                   class="oe_inline"
+                            />
+                        </h1>
+                    </div>
+                    <group>
+                        <label for="date_start" string="Period"/>
+                        <div>
+                             <field name="date_start"
+                                    class="oe_inline"
+                                    attrs="{'readonly': [('state', 'not in', 'open')]}"
+                            /> to
+                            <field name="date_end"
+                                   class="oe_inline"
+                                   attrs="{'readonly': [('state', 'not in', 'open')]}"
+                            />
+                        </div>
+                        <field name="template_id"
+                               options="{'no_create_edit': 1, 'no_quick_create': 1}" 
+                               invisible="not context.get('quick_kpi_period')"
+                        />
+                        <field name="company_id"
+                               options="{'no_create_edit': 1, 'no_quick_create': 1}"
+                               groups="base.group_multi_company" 
+                        />
+                    </group>
+                    <notebook invisible="context.get('quick_kpi_period')">
+                        <page string="Targets">
+                            <field name="line_ids"
+                                   attrs="{'readonly': [('state', 'not in', 'open')]}" 
+                            >
+                                <tree editable="bottom">
+                                    <field name="kpi_id"/>
+                                    <field name="target_value"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Misc">
+                            <group>
+                                <field name="last_recalculation_date"
+                                       readonly="1"
+                                /> 
+                            </group>
+                        </page>
+                        <page string="Help" attrs="{'invisible': [('help_notes', '=', False)]}">
+                            <field name="kpi_help_dummy" invisible="1"/>
+                            <field name="help_notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="kpi_period_view_tree" model="ir.ui.view">
+        <field name="name">kpi.period.tree</field>
+        <field name="model">kpi.period</field>
+        <field name="arch" type="xml">
+            <tree decoration-muted="state == 'closed'">
+                <field name="name"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    <record id="kpi_period_action" model="ir.actions.act_window">
+        <field name="name">Periods</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">kpi.period</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" eval="kpi_period_view_search"/>
+        <field name="context">{'search_default_open_periods': 1}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Add a new period to set KPI targets
+            </p>
+        </field>
+    </record>
+
+</odoo>

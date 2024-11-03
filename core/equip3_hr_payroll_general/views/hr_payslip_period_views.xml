@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="hr_payslip_period_form_view" model="ir.ui.view">
+            <field name="name">hr.payslip.period.form</field>
+            <field name="model">hr.payslip.period</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,open,closed" />
+                        <button name="action_create_period" string="Created Monthly Periods"  attrs="{'invisible':[('is_hide_create_month','=',True)]}" type="object" class="oe_highlight"/>
+                        <button name="to_open" string="Open Periods"  attrs="{'invisible':[('is_hide_open_period','=',True)]}" type="object" class="oe_highlight"/>
+                        <button name="to_close" string="Close Periods"  attrs="{'invisible':[('is_hide_close_period','=',True)]}" type="object" class="oe_highlight"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" attrs="{'readonly':[('state','in',['open','closed'])]}"/>
+                                <field name="code" attrs="{'readonly':[('state','in',['open','closed'])]}"/>
+                                <field name="start_date" attrs="{'readonly':[('state','in',['open','closed'])]}"/>
+                                <field name="end_date" attrs="{'readonly':[('state','in',['open','closed'])]}"/>
+                                <field name="start_period_based_on" attrs="{'readonly':[('state','in',['open','closed'])]}"/>
+                                <field name="overtime_period" attrs="{'readonly':[('state','in',['open','closed'])]}" required="1"/>
+                                <field name="hr_years_id" options="{'no_open':True,'no_create': True}" attrs="{'readonly':[('state','in',['open','closed'])],'invisible':[('overtime_period','=','payslip_period')],'required':[('overtime_period','=','hr_years')]}"/>
+                                <field name="tax_calculation_method" attrs="{'readonly':[('state','in',['open','closed'])],'invisible':[('tax_calculation_schema','!=','pph21')]}"/>
+                                <field name="tax_calculation_schema" readonly="1" force_save="1" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="create_date"/>
+                                <field name="create_uid"/>
+                                <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                                <field name="is_hide_create_month" invisible="1"/>
+                                <field name="is_hide_open_period" invisible="1"/>
+                                <field name="is_hide_close_period" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Monthly Periods">
+                                <field name="payslip_period_ids">
+                                    <tree editable="bottom" create="0" edit="0" delete="0">
+                                        <field name="year"/>
+                                        <field name="month"/>
+                                        <field name="start_date"/>
+                                        <field name="end_date"/>
+                                        <field name="state"/>
+                                        <field name="is_hide_re_open_line" invisible="1"/>
+                                        <field name="is_hide_close_line" invisible="1"/>
+                                        <button name="re_open" string="Re-Open"  attrs="{'invisible':[('is_hide_re_open_line','=',True)]}" type="object" class="oe_highlight"/>
+                                        <button name="to_close" string="Closed" attrs="{'invisible':[('is_hide_close_line','=',True)]}" type="object" class="oe_highlight"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Overtime Periods">
+                                <field name="overtime_period_ids">
+                                    <tree editable="bottom" create="0" edit="0" delete="0">
+                                        <field name="year"/>
+                                        <field name="month"/>
+                                        <field name="period_name"/>
+                                        <field name="code"/>
+                                        <field name="start_period"/>
+                                        <field name="end_period"/>
+                                        <field name="status"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" groups="base.group_user"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="hr_payslip_period_tree_view" model="ir.ui.view">
+            <field name="name">hr.payslip.period.tree</field>
+            <field name="model">hr.payslip.period</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="state" decoration-primary="state == 'draft'"
+                        decoration-success="state == 'open'"
+                        decoration-secondary="state == 'closed'" widget='badge'/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="hr_payslip_period_view" model="ir.ui.view">
+            <field name="name">hr.payslip.period.search</field>
+            <field name="model">hr.payslip.period</field>
+            <field name="arch" type="xml">
+                <search >
+                    <field name="name"/>
+                    <group expand="1" string="Group By">
+                        <filter string="Draft" name="Draft" domain="[('state','=','draft')]"/>
+                        <filter string="Open" name="Open" domain="[('state','=','open')]" context="{}"/>
+                        <filter string="Closed" name="Closed" domain="[('state','=','closed')]" context="{}"/>
+                        <filter string="Status" name="status" domain="[]" context="{'group_by':'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="hr_payslip_period_act_window" model="ir.actions.act_window">
+            <field name="name">Payslip Period</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.payslip.period</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new Payslip Period.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Payslip Period" 
+        id="hr_payslip_period_menu" 
+        sequence="2"
+        parent="hr_payroll_community.menu_hr_payroll_community_configuration" 
+        action="hr_payslip_period_act_window"/>
+
+        <record id="hr_payslip_period_line_tree_view" model="ir.ui.view">
+            <field name="name">hr.payslip.period.line.tree</field>
+            <field name="model">hr.payslip.period.line</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="year"/>
+                    <field name="month"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                </tree>
+            </field>
+        </record>
+
+    </data>
+</odoo>

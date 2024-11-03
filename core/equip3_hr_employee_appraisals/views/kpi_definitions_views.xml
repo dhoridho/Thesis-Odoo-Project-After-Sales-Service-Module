@@ -1,0 +1,98 @@
+<odoo>
+
+    <record id="kpi_definition_list_view" model="ir.ui.view">
+        <field name="name">KPIs List</field>
+        <field name="model">gamification.goal.definition</field>
+        <field name="arch" type="xml">
+            <tree string="KPIs">
+                <field name="name" string="Name"/>
+                <field name="description" string="Description"/>
+                <field name="computation_mode"/>
+                <field name="condition" string="KPI Comparison"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="kpi_definition_form_view" model="ir.ui.view">
+        <field name="name">KPIs Form</field>
+        <field name="model">gamification.goal.definition</field>
+        <field name="arch" type="xml">
+            <form string="KPIs">
+                <sheet>
+                    <label for="name" class="oe_edit_only" string="Name"/>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <label for="description" class="oe_edit_only" string="Description"/>
+                    <div>
+                        <field name="description" class="oe_inline"/>
+                    </div>
+
+                    <group string="How is the KPI computed?" name="compute_details">
+
+                        <field widget="radio" name="computation_mode"/>
+
+                        <!-- Hide the fields below if manually -->
+                        <field name="model_id" class="oe_inline"
+                            attrs="{'invisible':[('computation_mode','not in',('sum', 'count'))], 'required':[('computation_mode','in',('sum', 'count'))]}"/>
+                        <field name="model_inherited_ids" invisible="1"/>
+                        <field name="field_id" class="oe_inline"
+                            attrs="{'invisible':[('computation_mode','!=','sum')], 'required':[('computation_mode','=','sum')]}"/>
+                        <field name="field_date_id" class="oe_inline" attrs="{'invisible':[('computation_mode','not in',('sum', 'count'))]}"/>
+                        <field name="domain" attrs="{'invisible':[('computation_mode','not in',('sum', 'count'))], 'required':[('computation_mode','in',('sum', 'count'))]}" class="oe_inline"/>
+                        <field name="compute_code" attrs="{'invisible':[('computation_mode','!=','python')], 'required':[('computation_mode','=','python')]}"/>
+                        <field name="condition" widget="radio" string="KPI Comparison"/>
+                    </group>
+                    <group string="Optimisation" name="optimisation" attrs="{'invisible': [('computation_mode', 'not in', ('sum', 'count'))]}">
+                        <field name="batch_mode" />
+                        <div colspan="2">In batch mode, the domain is evaluated globally. If enabled, do not use keyword 'user' in above filter domain.</div>
+                        <field name="batch_distinctive_field" attrs="{'invisible': [('batch_mode', '=', False)], 'required':  [('batch_mode', '=', True)]}"
+                            domain="[('model_id', '=', model_id)]" class="oe_inline" />
+                        <field name="batch_user_expression" attrs="{'invisible': [('batch_mode', '=', False)], 'required':  [('batch_mode', '=', True)]}" class="oe_inline"
+                            placeholder="e.g. user.partner_id.id"/>
+                    </group>
+                    <group string="Formatting Options" name="format_options">
+                        <field name="display_mode" widget="radio" />
+                        <field name="suffix" placeholder="e.g. days" class="oe_inline"/>
+                        <field name="monetary"/>
+                    </group>
+                    <group string="Clickable Goals" name="clickable_goals" attrs="{'invisible': [('computation_mode', '=', 'manually')]}">
+                        <field name="action_id"  class="oe_inline"/>
+                        <field name="res_id_field"  attrs="{'invisible': [('action_id', '=', False)]}" class="oe_inline"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="kpi_definition_action" model="ir.actions.act_window">
+        <field name="name">KPIs</field>
+        <field name="res_model">gamification.goal.definition</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new KPIs
+            </p>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window.view" id="act_kpi_definition_tree">
+        <field name="sequence" eval="9"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="kpi_definition_list_view"/>
+        <field name="act_window_id" ref="kpi_definition_action"/>
+    </record>
+    <record model="ir.actions.act_window.view" id="act_kpi_definition_form">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="kpi_definition_form_view"/>
+        <field name="act_window_id" ref="kpi_definition_action"/>
+    </record>
+
+    <menuitem id="kpi_definition_menu" parent="employee_performance.menu_performance_config" action="kpi_definition_action" />
+
+    <record model='ir.ui.menu' id='kpi_definition_menu'>
+        <field name="groups_id" eval="[(6, 0, [ref('equip3_hr_employee_appraisals.group_hr_appraisal_manager')])]"/>
+    </record>
+    
+</odoo>

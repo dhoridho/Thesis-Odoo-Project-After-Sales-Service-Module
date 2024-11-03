@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+
+        <record id="agreement_form_inherit" model="ir.ui.view">
+            <field name="name">model.name.view.form</field>
+            <field name="model">agreement</field>
+            <field name="inherit_id" ref="agreement_legal.partner_agreement_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="attributes">
+                    <attribute name="duplicate">false</attribute>
+                </xpath>
+                <label for="name" position="attributes">
+                    <attribute name="string">Contract Name</attribute>
+                </label>
+                <field name="parent_agreement_id" position="attributes">
+                    <attribute name="string">Parent Contract</attribute>
+                </field>
+                <field name="agreement_type_id" position="attributes">
+                    <attribute name="string">Contract Type</attribute>
+                </field>
+                <field name="agreement_subtype_id" position="attributes">
+                    <attribute name="string">Contract Sub-type</attribute>
+                </field>
+
+                <xpath expr="//field[@name='code']" position="replace">
+                    <field name="code" string="Contract Number" readonly="1"/>
+                </xpath>
+                <xpath expr="//field[@name='template_id']" position="after">
+                    <field name="expected_revenue" string="Expected Revenue"/>
+                    <field name="expected_cost" string="Expected Cost"/>
+                </xpath>
+
+                <field name="start_date" position="attributes">
+                    <attribute name="attrs">{'required': [('is_template', '!=', True)]}</attribute>
+                </field>
+
+                <field name="end_date" position="attributes">
+                    <attribute name="attrs">{'required': [('is_template', '!=', True)]}</attribute>
+                </field>
+
+                <page name="child_agreements" position="attributes">
+                    <attribute name="string">Child Contracts</attribute>
+                </page>
+
+                <xpath expr="//group[@class='oe_edit_only']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='line_ids']/tree/field[@name='uom_id']" position="after">
+                    <field name="unit_price" />
+                    <field name="taxes_id" widget="many2many_tags" string="Taxes" options="{'no_create': True}" optional="show"/>
+                    <field name="price_subtotal" widget="monetary" readonly="1"/>
+                </xpath>
+                <xpath expr="//field[@name='line_ids']" position="after">
+                    <group class="oe_subtotal_footer oe_right">
+                        <field name="amount_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                        <field name="amount_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                        <div class="oe_subtotal_footer_separator oe_inline">
+                            <label for="amount_total"/>
+                        </div>
+                        <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- agreement calendar view -->
+        <record id="agreement_view_calendar" model="ir.ui.view">
+        <field name="name">agreement.view.calendar</field>
+        <field name="model">agreement</field>
+        <field name="arch" type="xml">
+            <calendar date_start="start_date" date_stop="end_date">
+            <field name="name" />
+            </calendar>
+        </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="agreement_legal.agreement_dashboard_agreement">
+            <field name="name">Contract</field>
+        </record>
+        <record model="ir.actions.act_window" id="agreement_legal.agreement_operations_agreement">
+            <field name="name">Contract</field>
+            <field name="res_model">agreement</field>
+            <field name="domain">[('is_template', '=', False)]</field>
+            <field name="context">{'default_is_template': False}</field>
+            <field name="view_mode">kanban,calendar,tree,form</field>
+        </record>
+        <record model="ir.actions.act_window" id="agreement_legal.action_agreement_report_order">
+            <field name="name">Contract</field>
+        </record>
+
+        <!-- This Menu Item will appear in the Upper bar, that's why It needs NO parent or action -->
+        <menuitem id="agreement.agreement_menu" name="Contracts" web_icon="equip3_contract_masterdata,static/description/icon.png"/>
+
+        <!-- changes menu's name -->
+        <menuitem name="Contract" id="agreement_legal.dashboard_agreements" parent="agreement_legal.agreement_dashboard" sequence="10" action="agreement_legal.agreement_dashboard_agreement" />
+        <menuitem name="Contract" id="agreement_legal.operations_agreements" parent="agreement_legal.agreement_operations" sequence="10" action="agreement_legal.agreement_operations_agreement" />
+        <menuitem name="Contract" id="agreement_legal.agreement_agreement_reporting" sequence="10" parent="agreement_legal.agreement_reporting" action="agreement_legal.action_agreement_report_order" />
+    </data>
+
+</odoo>

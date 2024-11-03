@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <record id="sh_target_commision_view_form" model="ir.ui.view">
+        <field name="name">sh.target.commision.view.form</field>
+        <field name="model">sh.target.commision</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <header>
+                    <button string = "Create Bill" name = "create_bill" type = "object" class="oe_highlight"></button>
+                </header>
+                
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type = "object"  name = "open_bills"  icon="fa-money" attrs="{'invisible':[('bill_count','=',0)]}">
+                            <field name="bill_count" string = "Bills" widget="statinfo"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" />
+                        </h1>
+                    </div>
+                    
+                    <widget name="web_ribbon" title="Archieved" bg_color="bg-danger" attrs="{'invisible':[('active','=',True)]}" />
+
+                    <group>
+                       <group>
+                            <field name="user_id"/> 
+                            <field name="type" widget="radio"/>
+                            <field name = "product_ids" attrs="{'invisible': [('type','=','category')],'required': [('type', '!=', 'category')] }" widget="many2many_tags"/>
+                            <field name = "company_id" />
+                            <field name = "category_ids" attrs="{'invisible': [('type','=','product')],'required': [('type', '!=', 'product')] }" widget="many2many_tags"/>
+                            <field name="sales_target_achieved"/>
+                            <field name = "active" invisible = "1"/>
+                       </group>
+                        <group>
+                            <field name="from_date"/> 
+                            <field name="to_date"/> 
+                            <field name="target_on" widget="radio"/> 
+                            <field name="commision_calculator"/>
+                            <field name = "percentage_on" attrs="{'invisible': [('commision_calculator','=','amount')],'required': [('commision_calculator', '!=', 'amount')] }"/>
+                            <field name = "collection_target_achieved"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Target &amp; Commision">
+                            <field name= "commision_detail_line">
+                                <tree editable = "bottom">
+                                    <field name = "sales_amount" string="Sales Target"/>
+                                    <field name = "collection_amount" string = "Collection Target" attrs="{'readonly':[('parent.target_on','=','qty')]}"/>
+                                    <field name="commision"  string = "Commision"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page string="Settlement">
+                            <group>
+                                <group>
+                                    <label for="achieved_sales_target"/>
+                                    <div class="o_row">
+                                        <field name="achieved_sales_target"/><span>%</span>
+                                    </div>
+        
+                                    <label for="achieved_collection_target"/>
+                                    <div class="o_row">
+                                        <field name="achieved_collection_target"/><span>%</span>
+                                    </div>
+                                </group>
+         
+                                 <group>
+                                     <label for="remaining_sales_target"/>
+                                     <div class="o_row">
+                                         <field name="remaining_sales_target"/><span>%</span>
+                                     </div>
+         
+                                     <label for="remaining_collection_target"/>
+                                     <div class="o_row">
+                                         <field name="remaining_collection_target"/><span>%</span>
+                                     </div>
+                                 </group>
+                             </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+   
+    <record id="sh_target_commision_view_tree" model="ir.ui.view">
+        <field name="name">sh.target.commision.view.tree</field>
+        <field name="model">sh.target.commision</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="user_id"/> 
+                <field name="type"/>
+                <field name="commision_calculator"/>
+                <field name="from_date"/> 
+                <field name="to_date"/> 
+                <field name="target_on"/>             
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="view_target_commision_filter" model="ir.ui.view">
+        <field name="name">sh.target.commision.filter</field>
+        <field name="model">sh.target.commision</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="active" />
+                <field name = "sales_target_achieved"/>
+                <field name = "collection_target_achieved"/>
+                <filter string="Archieved" name="filter" domain="[('active', '!=', True)]" />
+                <filter string="Unarchieved" name="filter" domain="[('active', '=', True)]" />
+                <filter string="Sales Target Achieved " name="sales_target_achieved" domain="[('sales_target_achieved', '=', True)]" />
+                <filter string="Collection Target Achieved" name="collection_target_achieved" domain="[('collection_target_achieved', '=', True)]" />
+                <group expand="0" name="group_by" string="Group By">
+                    <filter name="group_by_commision_calculator" string="Commission Calculator"  context="{'group_by' : 'commision_calculator'}" />
+                    <filter name="group_by_target_on" string="Target On"  context="{'group_by' : 'target_on'}" />
+                    <filter name="group_by_percentage_on" string="Percentage On"  context="{'group_by' : 'percentage_on'}" />
+                    <filter name="group_by_type" string="Type"  context="{'group_by' : 'type'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+
+    
+    <record id="sh_target_commision_action" model="ir.actions.act_window">
+        <field name="name">Target &amp; Commision</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sh.target.commision</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="menu_sh_target_commision_action"
+        name="Target &amp; Commision"
+        parent="sale.sale_menu_root"
+        sequence="99"
+        action="sh_target_commision_action"
+    /> 
+</odoo>

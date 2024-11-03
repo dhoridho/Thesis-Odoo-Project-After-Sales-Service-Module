@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="inventory_adjustment_report_view_tree" model="ir.ui.view">
+        <field name="name">inventory.adjustment.report.view.tree</field>
+        <field name="model">stock.inventory.line</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="company_id" invisible="1" />
+                <field name="state" invisible="1" force_save="1" />
+                <field name="product_id" />
+                <field name="theoretical_qty" />
+                <field name="product_qty" string="Counted Quantity" />
+                <field name="difference_qty" />
+                <field name="product_uom_id" />
+                <field name="location_id" />
+            </tree>
+        </field>
+    </record>
+
+    <record id="inventory_adjustment_report_view_pivot" model="ir.ui.view">
+        <field name="name">inventory.adjustment.report.view.pivot</field>
+        <field name="model">stock.inventory.line</field>
+        <field name="arch" type="xml">
+            <pivot sample="1">
+                <field name="write_date" interval="day" type="col" />
+                <field name="product_id" type="row" />
+                <field name="theoretical_qty" type="measure" />
+                <field name="product_qty" type="measure" />
+                <field name="difference_qty" type="measure" />
+            </pivot>
+        </field>
+    </record>
+
+    <!-- <record id="internal_transfer_inventory_report_view" model="ir.ui.view">
+        <field name="name">internal.transfer.inventory.report</field>
+        <field name="model">internal.transfer</field>
+        <field name="inherit_id" ref="equip3_inventory_operation.view_form_internal_transfer"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet/group/group[2]/field[@name='itr_approval_matrix_id']" position="after">
+                <field name="arrival_date" attrs="{'invisible': [('state2', 'in',
+    ['draft','to_approve','approved','rejected','cancel','confirmed'])]}"/>
+            </xpath>
+        </field>
+    </record> -->
+
+    <record id="inventory_adjustment_report_view_graph" model="ir.ui.view">
+        <field name="name">inventory.adjustment.report.view.graph</field>
+        <field name="model">stock.inventory.line</field>
+        <field name="arch" type="xml">
+            <graph sample="1">
+                <field name="product_id" />
+                <field name="write_date" interval="month" />
+                <field name="difference_qty" type="measure" />
+            </graph>
+        </field>
+    </record>
+
+    <record id="inventory_adjustment_stock_inventory_line_search" model="ir.ui.view">
+        <field name="name">inventory.adjustment.stock.inventory.line.search</field>
+        <field name="model">stock.inventory.line</field>
+        <field name="inherit_id" ref="stock.stock_inventory_line_search" />
+        <field name="arch" type="xml">
+            <xpath expr="//search/group" position="before">
+                <separator />
+                <filter string="Past 30 days" name="past_30_days"
+                    domain="[('create_date','&lt;=',context_today().strftime('%Y-%m-%d')), ('create_date','&gt;',(context_today()-relativedelta(days=30)).strftime('%Y-%m-%d'))]" />
+                <filter string="Past 60 days" name="past_60_days"
+                    domain="[('create_date','&lt;=',context_today().strftime('%Y-%m-%d')), ('create_date','&gt;',(context_today()-relativedelta(days=60)).strftime('%Y-%m-%d'))]" />
+                <filter string="Past 90 days" name="past_90_days"
+                    domain="[('create_date','&lt;=',context_today().strftime('%Y-%m-%d')), ('create_date','&gt;',(context_today()-relativedelta(days=90)).strftime('%Y-%m-%d'))]" />
+                <filter string="This Year" name="current_year"
+                    domain="[('create_date','&lt;',(context_today()+relativedelta(years=1)).strftime('%%Y-01-01')), ('create_date','&gt;=',time.strftime('%%Y-01-01'))]" />
+                <filter string="Last Year" name="last_year"
+                    domain="[('create_date','&lt;',time.strftime('%%Y-01-01')), ('create_date','&gt;=',(context_today()-relativedelta(years=1)).strftime('%%Y-01-01'))]" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_inventory_adjustment_report" model="ir.actions.act_window">
+        <field name="name">Inventory Adjustment Report</field>
+        <field name="res_model">stock.inventory.line</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="domain">[('state', '=' ,'done'), ('difference_qty', '!=', 0)]</field>
+        <field name="context">{'pivot_view_ref':
+            'equip3_inventory_reports.inventory_adjustment_report_view_pivot',
+            'tree_view_ref': 'equip3_inventory_reports.inventory_adjustment_report_view_tree',
+            'graph_view_ref': 'equip3_inventory_reports.inventory_adjustment_report_view_graph',
+            'search_default_past_30_days': 1}</field>
+    </record>
+
+    <!-- <menuitem id="menu_inventory_adjustment_report" name="Inventory Adjustment Report"
+        parent="equip3_inventory_reports.menu_reportings_inventory_control"
+        action="action_inventory_adjustment_report" /> -->
+</odoo>

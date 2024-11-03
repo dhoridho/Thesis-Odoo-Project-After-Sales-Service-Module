@@ -1,0 +1,97 @@
+<odoo>
+    <data>
+        <record id="view_manpower_planning_lines_filter" model="ir.ui.view">
+            <field name="name">manpower.planning.line.search</field>
+            <field name="model">manpower.planning.line</field>
+            <field name="arch" type="xml">
+                <search string="Search Manpower Planning Lines">
+
+                    <field name="manpower_id"/>
+                    <field name="mpp_year"/>
+                    <field name="job_position_id"/>
+                    <field name="work_location_id"/>
+                    <field name="department_id"/>
+                    <group name="group_by" string="Group By">
+                        <filter name="month" string="Month" domain="[]" context="{'group_by' : 'period:month'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+        <record id="manpower_planning_type_line_view" model="ir.ui.view">
+            <field name="name">Manpower Planning Line</field>
+            <field name="model">manpower.planning.line</field>
+            <field name="arch" type="xml">
+                <tree string="Manpower Planning Line" editable="bottom" create="0" class="menu_hr_recruitment_sticky">
+                    <field name="period" invisible="1"/>
+                    <field name="department_domain_ids" invisible="1"/>
+                    <field name="work_location_ids" invisible="1"/>
+                    <field name="manpower_id" invisible="1"/>
+                    <field name="create_date" invisible="1"/>
+                    <field name="period_shadow" invisible="1"/>
+                    <field name="department_id" domain="[('id','in',department_domain_ids)]" required="1"/>
+                    <field name="job_position_id" domain="[('department_id','=',department_id)]" required="1"/>
+                    <field name="work_location_id"
+                           options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True}"
+                           required="1" domain="[('id','in',work_location_ids)]"/>
+                    <field name="current_number_of_employee" readonly="1" force_save="1"/>
+                    <field name="current_number_of_employee_shadow" invisible="1"/>
+                    <field name="add" sum="Total Add"/>
+                    <field name="replace" sum="Total Replace"/>
+                    <field name="total_expected_new_employee" sum="Total Expected new Employee" readonly="1"
+                           force_save="1"/>
+                    <field name="total_fullfillment" readonly="1" force_save="1" sum="Total Fullfillment"/>
+                    <field name="total_forecasted_employees" sum="Total Forecasted Employees" readonly="1"
+                           force_save="1"/>
+                </tree>
+            </field>
+        </record>
+        <record id="manpower_planning_pivot_view" model="ir.ui.view">
+            <field name="name">Manpower Planning Pivot View</field>
+            <field name="model">manpower.planning.line</field>
+            <field name="arch" type="xml">
+                <pivot string="Manpower Planning">
+                    <field name="current_number_of_employee" type="measure"/>
+                    <field name="total_expected_new_employee" type="measure"/>
+                    <field name="total_forecasted_employees" type="measure"/>
+                    <field name="total_fullfillment" type="measure"/>
+                    <field name="add" type="measure"/>
+                    <field name="replace" type="measure"/>
+                    <field name="per_recruited" type="measure" string="Fulfillment Percentage"/>
+                    <field name="average_wage"/>
+                    <field name="total_basic_salary_given"/>
+                    <field name="mpp_year" type="row"/>
+                    <field name="mpp_type" type="row"/>
+                    <field name="manpower_id" type="row"/>
+                    <field name="job_position_id"/>
+                </pivot>
+            </field>
+        </record>
+
+            <record id="view_manpower_planning_request_filter" model="ir.ui.view">
+        <field name="name">manpower.planning.search</field>
+        <field name="model">manpower.planning</field>
+        <field name="arch" type="xml">
+            <search string="Search Manpower Planning">
+               <group name="group_by" string="Group By">
+                   <filter name="mpp_year" string="Year" domain="[]" context="{'group_by' : 'mpp_year'}" />
+                   <filter name="mpp_type" string="MPP Type" domain="[]" context="{'group_by' : 'mpp_type'}" />
+                   <filter name="name" string="Name" domain="[]" context="{'group_by' : 'name'}" />
+               </group>
+           </search>
+        </field>
+    </record>
+
+        <record id="action_manpower_analysis" model="ir.actions.act_window">
+            <field name="name">Manpower Analysis</field>
+            <field name="res_model">manpower.planning.line</field>
+            <field name="view_mode">pivot</field>
+            <field name="domain">[('state', '=', 'approved')]</field>
+            <field name="view_id" ref="manpower_planning_pivot_view"/>
+            <field name="help">Manpower Analysis allows you to easily check and analyse your company manpower planning
+                history and performance.
+            </field>
+        </record>
+        <menuitem name="Manpower Plan Analysis" id="man_plan_analysis_report_menu"
+                  parent="hr_recruitment.report_hr_recruitment" sequence="51" action="action_manpower_analysis"/>
+    </data>
+</odoo>

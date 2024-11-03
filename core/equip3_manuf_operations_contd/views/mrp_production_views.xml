@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="equip3_mrp_production_form_view">
+        <field name="name">equip3.mrp.production.form.view</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="equip3_manuf_operations.mrp_production_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//label[@for='lot_producing_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='lot_producing_id']/parent::div" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//span[hasclass('text-bf')]" position="replace">
+                <span class='text-bf'>Produced</span>
+            </xpath>
+
+            <xpath expr="//field[@name='qty_producing']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='qty_producing']" position="after">
+                <field name="finished_product_qty"/>
+            </xpath>
+
+            <xpath expr="//field[@name='move_finished_ids']/tree" position="inside">
+                <field name="price_unit"/>
+            </xpath>
+
+            <xpath expr="//field[@name='move_raw_ids']/tree" position="inside">
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-muted="state == 'cancel'" decoration-info="state not in ('done', 'cancel')" optional="hide"/>
+            </xpath>
+
+            <xpath expr="//field[@name='move_raw_ids']/tree" position="attributes">
+                <attribute name="decoration-muted">state == 'cancel'</attribute>
+            </xpath>
+
+            <xpath expr="//page[@name='finished_products']" position="after">
+                <page name="consumption_ids" string="Production Records" attrs="{'invisible': [('consumption_ids', '=', [])]}">
+                    <field name="consumption_ids" context="{'tree_view_ref': 'equip3_manuf_operations_contd.view_manuf_consumption_tree'}"/>
+                </page>
+            </xpath>
+
+            <xpath expr="//field[@name='move_raw_ids']/tree/field[@name='forecast_availability']" position="attributes">
+                <!-- column_invisible will hide column while invisible will hide it's content -->
+                <attribute name="attrs">{'column_invisible': [('parent.state', 'in', ['draft', 'done'])], 'invisible': [('state', 'in', ['draft', 'done'])]}</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='move_raw_ids']/tree/field[@name='product_uom_qty']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.state', 'not in', ('draft', 'approval', 'approved'))]}</attribute>
+            </xpath>
+            
+            <xpath expr="//field[@name='move_raw_ids']/tree/field[@name='product_uom_qty']" position="after">
+                <field name="mrp_product_uom_qty" widget="mrp_should_consume" string="To Consume" width="1" attrs="{'column_invisible': [('parent.state', 'in', ('draft', 'approval', 'approved'))]}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='move_raw_ids']/tree/button[@name='action_show_details']" position="after">
+                <button type="object" name="button_scale" class="fa fa-balance-scale o_button_scale" context="{
+                    'scale_res_model': 'stock.move',
+                    'scale_res_id': id,
+                    'scale_qty': 'quantity_done'
+                }"
+                attrs="{'invisible': ['|', ('show_details_visible', '=', False), ('state', 'in', ('done', 'cancel'))]}"/>
+            </xpath>
+
+            <xpath expr="//label[@for='product_qty']" position="before">
+                <field name="rejected_product_id" attrs="{'invisible': [('rejected_product_id', '=', False)]}" readonly="1" force_save="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='mrp_plan_id']" position="before">
+                <label for="rejected_product_qty" string="Rejected" attrs="{'invisible': [('rejected_product_qty', '=', 0)]}"/>
+                <div class="o_row no-gutters d-flex" attrs="{'invisible': [('rejected_product_qty', '=', 0)]}">
+                    <field name="rejected_product_qty" class="oe_inline"/>
+                    <field name="product_uom_id" class="oe_inline" options="{'no_open': True, 'no_create': True}" readonly="1" force_save="1" groups="uom.group_uom"/>
+                    <span class="text-bf">Produced</span>
+                </div>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

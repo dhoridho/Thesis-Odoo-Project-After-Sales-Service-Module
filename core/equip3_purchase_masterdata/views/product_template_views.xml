@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- record id="product_template_limit_form_view_inherit" model="ir.ui.view">
+        <field name="name">product.template.form.limit.info</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="equip3_purchase_operation.product_template_limit_form_view" />
+        <field name="arch" type="xml">
+            <field name="product_limit" position="attributes">
+                <attribute name="readonly">0</attribute>
+                <attribute name="force_save">True</attribute>
+            </field>
+            <field name="min_val" position="attributes">
+                <attribute name="readonly">0</attribute>
+                <attribute name="force_save">True</attribute>
+            </field>
+            <field name="max_val" position="attributes">
+                <attribute name="readonly">0</attribute>
+                <attribute name="force_save">True</attribute>
+            </field>
+        </field>
+    </record> -->
+   <!-- <record id="product_template_only_form_view_inherit_direct" model="ir.ui.view">-->
+<!--        <field name="name">product.template.form.inherit.direct</field>-->
+<!--        <field name="model">product.template</field>-->
+<!--        <field name="inherit_id" ref="product.product_template_only_form_view"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//form/sheet/div[2]/div/div[last()]" position="after">-->
+<!--                <div>-->
+<!--                    <field name="can_be_direct"/>-->
+<!--                    <label for="can_be_direct"/>-->
+<!--                </div>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record> -->
+<!--    <record id="product_template_only_form_view_inherit_direct" model="ir.ui.view">-->
+<!--        <field name="name">product.template.form.inherit.direct</field>-->
+<!--        <field name="model">product.template</field>-->
+<!--        <field name="inherit_id" ref="product.product_template_only_form_view"/> -->
+<!--        <field name="arch" type="xml">-->
+<!--            <field name="default_code" position="after">-->
+<!--                <field name="is_vendor_pricelist" invisible="1"/>-->
+<!--            </field>-->
+<!--            <xpath expr="//field[@name='sell_ids']" position="attributes">-->
+<!--                <attribute name="attrs">{'readonly': [('is_vendor_pricelist', '=', True)]}</attribute>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
+
+    <record id="product_product_only_form_view_inherit_direct" model="ir.ui.view">
+        <field name="name">product.product.form.inherit.direct</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/> 
+        <field name="arch" type="xml">
+            <field name="default_code" position="after">
+                <field name="is_vendor_pricelist" invisible="1"/>
+            </field>
+            <!--            <xpath expr="//field[@name='sell_ids']" position="attributes">-->
+<!--                <attribute name="attrs">{'readonly': [('is_vendor_pricelist', '=', True)]}</attribute>-->
+<!--            </xpath>-->
+        </field>
+    </record>
+
+
+    <record id="view_product_supplier_inherit" model="ir.ui.view">
+        <field name="name">product.template.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view" />
+        <field name="arch" type="xml">
+            <field name="seller_ids" position="before">
+                <field name="is_approve" invisible="1"/>
+                <field name="is_vendor_pricelist" invisible="1"/>
+                <field name="product_variant_count" invisible="1"/>
+            </field>
+            <xpath expr="//page[@name='inventory']//group[@name='packaging']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='seller_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='variant_seller_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <group name="purchase" position="before">
+                <!-- <group name="vendor_pricelist" string="Vendor Pricelists 1" attrs="{'invisible': ['|', ('product_variant_count','&gt;',1), ('is_approve', '=', True)]}">
+                    <div>
+                        <field name="seller_ids" context="{'default_product_tmpl_id':context.get('product_tmpl_id',active_id), 'product_template_invisible_variant': True, 'tree_view_ref':'purchase.product_supplierinfo_tree_view2'}" nolabel="1" attrs="{'invisible': ['|', ('product_variant_count','&gt;',1), ('is_approve', '=', True)]}"/>
+                    </div>
+                </group>
+                <group name="vendor_pricelist_variant" string="Vendor Pricelist 2" attrs="{'invisible': [('product_variant_count','&lt;=',1)]}">
+                    <div>
+
+                        <field name="variant_seller_ids" context="{'default_product_tmpl_id': context.get('product_tmpl_id', active_id), 'tree_view_ref':'purchase.product_supplierinfo_tree_view2'}" nolabel="1" attrs="{'readonly': [('is_vendor_pricelist', '=', True)],'invisible': [('product_variant_count','&lt;=',1)]}"/>
+                    </div>
+                </group> -->
+                <group name="vendor_pricelist" string="Vendor Pricelists" attrs="{'invisible': [('sell_ids','&lt;',1)]}">
+                    <div>
+                        <field name="sell_ids" context="{'default_product_tmpl_id':context.get('product_tmpl_id',active_id), 'product_template_invisible_variant': True, 'tree_view_ref':'purchase.product_supplierinfo_tree_view2'}" nolabel="1" attrs="{'invisible': [('seller_ids','&lt;',1)]}"/>
+                    </div>
+                </group>
+                <group name="purchase_history" string="Purchase Histories">
+                    <div>
+                        <field name="template_purchase_price_history_line_ids">
+                            <tree string="Price History" editable="bottom" limit="10">
+                                <field name="partner_id" string="Vendor" />
+                                <field name="purchase_order_id" />
+                                <field name="order_date" />
+                                <field name="variant_id" />
+                                <field name="quantity" />
+                                <field name="purchase_price" />
+                                <field name="total_price" />
+                            </tree>
+                            <form string="Purchase Price History Line">
+                                <sheet>
+                                    <group>
+                                        <group>
+                                            <field name="partner_id" string="Supplier" />
+                                            <field name="purchase_order_id" />
+                                            <field name="quantity" />
+                                            <field name="purchase_price" />
+                                        </group>
+                                        <group>
+                                            <field name="order_date" />
+                                            <field name="variant_id" />
+                                            <field name="total_price" />
+                                        </group>
+                                    </group>
+                                </sheet>
+                            </form>
+                        </field>
+                    </div>
+                </group>
+            </group>
+<!--            <group name="purchase" position="before">-->
+<!--                <field name="sell_ids" context="{'default_product_tmpl_id':context.get('product_tmpl_id',active_id), 'product_template_invisible_variant': True}" nolabel="1" attrs="{'invisible': ['|', ('product_variant_count','&gt;',1), ('is_approve', '=', False)], 'readonly': [('is_vendor_pricelist', '=', True)]}">-->
+<!--                    <tree create="false">-->
+<!--                        <field name="name" />-->
+<!--                        <field name="currency_id"/>-->
+<!--                        <field name="product_uom" />-->
+<!--                        <field name="price" />-->
+<!--                        <field name="delay" />-->
+<!--                        <field name="product_id" />-->
+<!--                        <field name="purchase_requisition_id" />-->
+<!--                        <field name="product_name" />-->
+<!--                        <field name="product_code" />-->
+<!--                        <field name="date_start" />-->
+<!--                        <field name="date_end"/>-->
+<!--                        <field name="company_id" />-->
+<!--                        <field name="min_qty" />-->
+
+<!--                    </tree>-->
+<!--                </field>-->
+<!--            </group>        -->
+        </field>
+    </record>
+
+    <record id="product_product_last_purchase_info_form_view_inherit" model="ir.ui.view">
+        <field name="name">product.product.last.purchase.info.form.view.inherit</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="purchase_last_price_info.product_product_last_purchase_info_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='last_purchase_price']" position="before">
+                <field name="currency_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='last_purchase_price']" position="replace">
+                <field name="last_purchase_price" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1" force_save="1"/>
+<!--                <attribute name="readonly">1</attribute>-->
+<!--                <attribute name="force_save">1</attribute>-->
+<!--                <attribute name="widget">monetary</attribute>-->
+<!--                <attribute name="options">{'currency_field': 'currency_id'}</attribute>-->
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_form" model="ir.ui.view">
+        <field name="name">product.template.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="purchase_last_price_info.product_template_last_purchase_info_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='last_supplier_id']" position="attributes">
+                <attribute name="readonly">1</attribute>
+                <attribute name="force_save">1</attribute>
+            </xpath>
+             <xpath expr="//field[@name='last_supplier_id']" position="attributes">
+                <attribute name="string">Last Vendor</attribute>
+            </xpath>
+            <xpath expr="//field[@name='last_purchase_date']" position="attributes">
+                <attribute name="readonly">1</attribute>
+                <attribute name="force_save">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='last_purchase_price']" position="after">
+                <field name="currency_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='last_purchase_price']" position="attributes">
+                <attribute name="readonly">1</attribute>
+                <attribute name="force_save">1</attribute>
+                <attribute name="widget">monetary</attribute>
+                <attribute name="options">{'currency_field': 'currency_id'}</attribute>
+            </xpath>    
+        </field>
+    </record>
+
+    <record id="sh_customer_product_purchase_price_history_form_inherit_new" model="ir.ui.view">
+        <field name="name">purchase.customer.product.price.history.form</field>
+        <field name="model">product.template</field>
+        <field name="priority" eval="15"/>
+        <field name="inherit_id" ref="sh_all_in_one_purchase_tools.sh_customer_product_purchase_price_history_form_view_inherit" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='purchase_price_history_line_ids']/.." position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- product.template inherit form view -->
+    <record id="equip3_purchase_product_template_view_form_inherit" model="ir.ui.view">
+        <field name="name">product.template.inherit.view.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="purchase.view_product_template_purchase_buttons_from"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/div[@name='button_box']/button[@name='action_view_po']" position="attributes">
+                <attribute name="icon">o-hm-smart-all-purchased</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="sh_purchase_template_product_form_view_inherit" model="ir.ui.view">
+        <field name="name">Product Template Form Inherit</field>
+        <field name="model">purchase.product.template</field>
+        <field name="inherit_id" ref="sh_all_in_one_purchase_tools.sh_purchase_template_product_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="replace">
+                <group>
+                    <group>
+                        <field name="name" />
+                        <field name="branch_id" options="{'no_create':True,'no_create_edit':True}"/>
+                        <field name="templ_active"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="is_good_services_order" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="order_type" widget="selection" placeholder="Select Order Type" attrs="{'invisible' : [('is_good_services_order', '=', False)]}"/>
+                        <field name="company_id"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- purchase.product.template inherit tree view -->
+    <record id="inherit_sh_purchase_template_product_tree_view" model="ir.ui.view">
+        <field name="name">purchase.product.template.inherit.view.tree</field>
+        <field name="model">purchase.product.template</field>
+        <field name="inherit_id" ref="sh_all_in_one_purchase_tools.sh_purchase_template_product_tree_view"/>
+        <field name="arch" type="xml">
+            <!-- Add your xpath here -->
+            <tree position="inside">
+                <field name="branch_id"/>
+                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="dynamic_product_bundle.bi_action_pack" model="ir.actions.act_window">
+        <field name="view_id" ref="equip3_kanban_view.equip_product_template_kanban_view"/>
+    </record>
+    
+    <menuitem id="menu_product_bundle_main_bi" name="Product Bundle" parent="purchase.menu_purchase_products" sequence="21" action="dynamic_product_bundle.bi_action_pack"/>
+</odoo>

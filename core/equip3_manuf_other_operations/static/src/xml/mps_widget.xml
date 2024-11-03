@@ -1,0 +1,296 @@
+<templates>
+
+    <t t-name="MPSWidget">
+        <div class="o_mps_table_container">
+            <table class="table o_mps_table">
+                <thead>
+                    <tr>
+                        <th class="o_sticky_1" colspan="2"/>
+                        <t t-foreach="ranges" t-as="date">
+                            <th><t t-esc="moment(date, 'YYYY-MM-DD').format('MMM DD')"/></th>
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="states" t-as="state">
+                        <tr class="o_border_bold">
+                            <td class="o_sticky_1 o_new_section" colspan="2">
+                                <a href="#" class="o_mps_url" t-att-data-res-id="state_value.product.id" data-res-model="product.product">
+                                    <t t-esc="state_value.product.display_name"/>
+                                </a>
+                                <span class="text-muted">By <t t-esc="state_value.uom.display_name"/></span>
+                                -
+                                <select class="o_mps_select_inline" t-att-data-product_id="state">
+                                    <t t-foreach="state_value.boms" t-as="bom">
+                                        <t t-if="bom.id == state_value.bom.id">
+                                            <option t-att-value="bom.id" selected="selected"><span t-esc="bom.display_name"/></option>
+                                        </t>
+                                        <t t-else="">
+                                            <option t-att-value="bom.id"><span t-esc="bom.display_name"/></option>
+                                        </t>
+                                    </t>
+                                </select>
+                            </td>
+                            <td t-att-colspan="ranges.length"/>
+                        </tr>
+                        <t t-if="!isReproduce">
+                            <tr>
+                                <td class="o_set_width o_sticky_1">
+                                    <div class="d-flex">
+                                        <button class="btn btn-primary btn-sm o_mps_details w-100 h-100" t-att-data-product_id="state">View Details</button>
+                                    </div>
+                                </td>
+                                <td class="o_sticky_2">
+                                    <span class="font-weight-bold text-danger" t-if="state_value.carryover_left">
+                                        Carryover Left: <t t-esc="formatFloat(state_value.carryover_left)"/>
+                                    </span>
+                                </td>
+                                <td t-att-colspan="ranges.length"/>
+                            </tr>
+    
+                            <!-- DEMAND -->
+                            <tr class="o_border_bold">
+                                <td class="o_set_width o_sticky_1" t-att-rowspan="debug ? 5 : 4"><b>Demand</b></td>
+                                <td class="o_sticky_2">Confirmed Demand</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_confirmed_demand_input" t-att-value="formatFloat(forecast_value.confirmed_demand)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr>
+                                <td class="o_sticky_2">Forecasted Demand</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <t t-if="forecast_value.is_backdate">
+                                        <td></td>
+                                    </t>
+                                    <t t-else="">
+                                        <td>
+                                            <button t-attf-class="btn btn-sm btn-primary o_mps_reset {{ (!forecast_value.is_forecasted_demand_edited or mode === 'readonly') and 'o_hidden' or 'mr-2'}}"
+                                                    t-att-data-product_id="state_value.product.id" 
+                                                    t-att-data-date="forecast" 
+                                                    data-qty_type="forecasted_demand">Reset</button>
+                                            <input class="o_mps_input o_mps_short o_mps_forecasted_demand_input" t-att-value="formatFloat(forecast_value.forecasted_demand)" t-if="mode === 'edit'" t-att-data-product_id="state_value.product.id" t-att-data-date="forecast" data-qty_type="forecasted_demand"/>
+                                            <input class="o_mps_input o_mps_short o_mps_forecasted_demand_input" t-att-value="formatFloat(forecast_value.forecasted_demand)" t-if="mode === 'readonly'" disabled="disabled"/>
+                                        </td>
+                                    </t>
+                                </t>
+                            </tr>
+                            <tr>
+                                <td class="o_sticky_2">Carryover Demand</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_carryover_demand_input" t-att-value="formatFloat(forecast_value.carryover_demand)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr t-if="debug">
+                                <td class="o_sticky_2">Total Forecast Demand (hide)</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_total_forecast_demand_input" t-att-value="formatFloat(forecast_value.total_forecast_demand)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr>
+                                <td class="o_sticky_2">Actual Delivery</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_actual_delivery_input" t-att-value="formatFloat(forecast_value.actual_delivery)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+    
+                            <!-- STOCK -->
+                            <tr class="o_border_bold">
+                                <t t-set="rowspan" t-value="2"/>
+                                <t t-if="state_value.has_reordering_rules">
+                                    <t t-set="rowspan" t-value="rowspan + 2"/>
+                                </t>
+                                <t t-if="debug">
+                                    <t t-set="rowspan" t-value="rowspan + 1"/>
+                                </t>
+                                <td class="o_set_width o_sticky_1" t-att-rowspan="rowspan"><b>Stock</b></td>
+                                <td class="o_sticky_2">
+                                    <t t-if="state_value.has_reordering_rules">Minimum Stock</t>
+                                    <t t-else="">
+                                        <t t-if="debug">On Hand (hide)</t>
+                                        <t t-else="">On Hand</t>
+                                    </t>
+                                </td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <t t-if="!forecast_value.is_backdate">
+                                            <t t-if="state_value.has_reordering_rules">
+                                                <input class="o_mps_input o_mps_short o_mps_min_stock_input" t-att-value="forecast_value.min_stock === false ? '' : formatFloat(forecast_value.min_stock)" disabled="disabled"/>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-if="debug">
+                                                    <input class="o_mps_input o_mps_short o_mps_on_hand_hide_input" t-att-value="formatFloat(forecast_value.on_hand_hide)" disabled="disabled"/>
+                                                </t>
+                                                <t t-else="">
+                                                    <input class="o_mps_input o_mps_short o_mps_on_hand_input" t-att-value="formatFloat(forecast_value.on_hand)" disabled="disabled"/>
+                                                </t>
+                                            </t>
+                                        </t>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr t-if="state_value.has_reordering_rules">
+                                <td class="o_sticky_2">Minimum Production</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_max_stock_input" t-att-value="forecast_value.max_stock === false ? '' : formatFloat(forecast_value.max_stock)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr t-if="state_value.has_reordering_rules &amp;&amp; debug">
+                                <td class="o_sticky_2">On Hand (hide)</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_on_hand_hide_input" t-att-value="formatFloat(forecast_value.on_hand_hide)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr t-if="state_value.has_reordering_rules || debug">
+                                <td class="o_sticky_2">On Hand</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_on_hand_input" t-att-value="formatFloat(forecast_value.on_hand)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr>
+                                <td class="o_sticky_2">Forecasted Stock</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_forecasted_stock_input" t-att-value="formatFloat(forecast_value.forecasted_stock)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+    
+                            <!-- PRODUCTION -->
+                            <tr class="o_border_bold">
+                                <td class="o_set_width o_sticky_1" t-att-rowspan="debug ? 6 : 5"><b>Production</b></td>
+                                <td class="o_sticky_2">Confirmed Production</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_confirmed_production_input" t-att-value="formatFloat(forecast_value.confirmed_production)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr t-if="debug">
+                                <td class="o_sticky_2">Need To Produce (hide)</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_need_to_produce_hide_input" t-att-value="formatFloat(forecast_value.need_to_produce_hide)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr>
+                                <td class="o_sticky_2">Need To Produce</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_need_to_produce_input" t-att-value="formatFloat(forecast_value.need_to_produce)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr>
+                                <td class="o_sticky_2">Max Load</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="!forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_max_load_input" t-att-value="formatFloat(forecast_value.max_load)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr>
+                                <td class="o_sticky_2">To Produce</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <t t-if="forecast_value.is_backdate">
+                                        <td></td>
+                                    </t>
+                                    <t t-else="">
+                                        <td>
+                                            <button t-attf-class="btn btn-sm btn-primary o_mps_reset {{ (!forecast_value.is_to_produce_edited or mode === 'readonly') and 'o_hidden' or 'mr-2'}}"
+                                                    t-att-data-product_id="state_value.product.id" 
+                                                    t-att-data-date="forecast" 
+                                                    data-qty_type="to_produce">Reset</button>
+                                            <input t-attf-class="o_mps_input o_mps_to_produce_input {{ isReproduce ? '' : 'o_mps_short' }}" t-att-value="formatFloat(forecast_value.to_produce)" t-if="mode === 'edit'" t-att-data-product_id="state_value.product.id" t-att-data-date="forecast" data-qty_type="to_produce" disabled="disabled"/>
+                                            <input t-attf-class="o_mps_input o_mps_to_produce_input {{ isReproduce ? '' : 'o_mps_short' }}" t-att-value="formatFloat(forecast_value.to_produce)" t-if="mode === 'readonly'" disabled="disabled"/>
+                                        </td>
+                                    </t>
+                                </t>
+                            </tr>
+                            <tr>
+                                <td class="o_sticky_2">Actual Produced</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input t-if="forecast_value.is_backdate" class="o_mps_input o_mps_short o_mps_actual_produced_input" t-att-value="formatFloat(forecast_value.actual_produced)" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr t-if="False">
+                                <td class="o_sticky_2">Start Date</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input type="datetime-local" t-attf-class="text-right form-control o_mps_input o_mps_scheduled_date_input {{ forecast_value.is_backdate ? 'o_transparent' : '' }}" t-att-value="forecast_value.scheduled_date" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr t-if="False">
+                                <td class="o_sticky_2">End Date</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <input type="datetime-local" t-attf-class="text-right form-control o_mps_input o_mps_expected_end_date_input {{ forecast_value.is_backdate ? 'o_transparent' : '' }}" t-att-value="forecast_value.expected_end_date" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                        </t>
+                        <t t-else="">
+                            <tr class="o_border_bold">
+                                <td class="o_set_width o_sticky_1" rowspan="3"><b>Production</b></td>
+                                <td class="o_sticky_2">To Produce</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td>
+                                        <button t-attf-class="btn btn-sm btn-primary o_mps_reset {{ (!forecast_value.is_to_produce_edited or mode === 'readonly') and 'o_hidden' or 'mr-2'}}"
+                                                t-att-data-product_id="state_value.product.id" 
+                                                t-att-data-date="forecast" 
+                                                data-qty_type="to_produce">Reset</button>
+                                        <input class="o_mps_input o_mps_to_produce_input" t-att-value="formatFloat(forecast_value.to_produce)" t-if="mode === 'edit'" t-att-data-product_id="state_value.product.id" t-att-data-date="forecast" data-qty_type="to_produce" disabled="disabled"/>
+                                        <input class="o_mps_input o_mps_to_produce_input" t-att-value="formatFloat(forecast_value.to_produce)" t-if="mode === 'readonly'" disabled="disabled"/>
+                                    </td>
+                                </t>
+                            </tr>
+                            <tr>
+                                <td class="o_sticky_2">Start Date</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td><input type="datetime-local" class="text-right form-control o_mps_input o_mps_scheduled_date_input" t-att-value="forecast_value.scheduled_date" disabled="disabled"/></td>
+                                </t>
+                            </tr>
+                            <tr>
+                                <td class="o_sticky_2">End Date</td>
+                                <t t-foreach="state_value.forecasts" t-as="forecast">
+                                    <td><input type="datetime-local" class="text-right form-control o_mps_input o_mps_expected_end_date_input" t-att-value="forecast_value.expected_end_date" disabled="disabled"/></td>
+                                </t>
+                            </tr>
+                        </t>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+
+    <t t-name="MPSPeriodWidget">
+        <select class="o_input o_field_widget o_required_modifier">
+            <t t-foreach="periods.selection" t-as="selection">
+                <t t-if="selection[0] === periods.selected">
+                    <option t-att-value="selection[0]" selected="selected"><t t-esc="selection[1]"/></option>
+                </t>
+                <t t-else="">
+                    <option t-att-value="selection[0]"><t t-esc="selection[1]"/></option>
+                </t>
+            </t>
+        </select>
+    </t>
+
+</templates>

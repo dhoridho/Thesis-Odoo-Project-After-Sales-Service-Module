@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+ 
+    <menuitem 
+        id="pos_online_outlet_menu_root"
+        name="Online Outlet" 
+        groups="equip3_pos_masterdata.group_pos_user"
+        parent="point_of_sale.menu_point_root"/>
+
+    <record id="equip3_pos_online_outlet.pos_online_outlet_menu_root" model="ir.ui.menu">
+            <field name="equip_icon_class">o-hm-sidebar-parent-pos-orders</field>
+            <field name="sequence">6</field>
+        </record>
+
+    <record id="pos_online_outlet_form" model="ir.ui.view">
+        <field name="name">pos.online.outlet.form</field>
+        <field name="model">pos.online.outlet</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_update_menu" string="Update Menu" type="object" 
+                        class="oe_highlight oe_read_only"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,closed" options="{'clickable': '1'}"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('close_duration','!=','1h')]}">
+                      Store will be closed for 1 hour
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name" required="1"/>
+                            <field name="currency_id" required="1"/>
+                        </group>
+                        <group>
+                            <field name="close_duration" invisible="1"/>
+                            <field name="close_date" readonly="1" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="operational" string="Operational Hours">
+                            <group>
+                                <field name="operational_hour_ids" nolabel="1">
+                                    <tree editable="bottom">
+                                        <field name="outlet_id" invisible="1"/>
+                                        <field name="day"/>
+                                        <field name="start_time" widget="float_time"/>
+                                        <field name="end_time" widget="float_time"/>
+                                    </tree>
+                                    <form>
+                                        <sheet>
+                                            <group>
+                                                <field name="day"/>
+                                                <field name="start_time_24hour" string="Start Time"/>
+                                                <field name="end_time_24hour" string="End Time"/>
+                                            </group>
+                                        </sheet>    
+                                    </form>
+                                </field>
+                            </group>
+                        </page>
+                        <page name="categories" string="Categories">
+                            <field name="categ_ids">
+                                <tree editable="bottom" delete="false" create="false">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="pos_categ_id" invisible="1" readonly="1"/>
+                                    <field name="name" readonly="1"/>
+                                    <field name="available_in_grabfood" string="GrabFood"/>
+                                    <field name="available_in_gofood" string="GoFood"/>
+                                </tree>
+                                <form delete="false" create="false">
+                                    <group>
+                                        <group>
+                                            <field name="pos_categ_id" string="Name"/>
+                                            <field name="available_in_grabfood" string="GrabFood"/>
+                                            <field name="available_in_gofood" string="GoFood"/>
+                                        </group>
+                                        <group>
+                                            <field name="sequence"/>
+                                        </group>
+                                    </group>
+                                    <group>
+                                        <field name="line_product_ids">
+                                            <tree editable="bottom">
+                                                <field name="pos_categ_id" readonly="1"/>
+                                                <field name="product_tmpl_id"/>
+                                                <field name="is_available"/>
+                                            </tree>
+                                        </field>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                        <page name="items_stock" string="Items Stock">
+                            <field name="product_ids">
+                                <tree editable="bottom" delete="false" create="false">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="pos_categ_id" invisible="1" readonly="1"/>
+                                    <field name="name" readonly="1" string="Category"/>
+                                    <field name="product_tmpl_id" readonly="1"/>
+                                    <field name="is_available" string="Availability"/>
+                                </tree>
+                                <form delete="false" create="false">
+                                    <group>
+                                        <group>
+                                            <field name="pos_categ_id" readonly="1"/>
+                                            <field name="product_tmpl_id" readonly="1"/>
+                                            <field name="is_available" string="Availability"/>
+                                        </group>
+                                        <group>
+                                            <field name="sequence"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pos_online_outlet_tree" model="ir.ui.view">
+        <field name="name">pos.online.outlet.tree</field>
+        <field name="model">pos.online.outlet</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="pos_online_outlet_search" model="ir.ui.view">
+        <field name="name">pos.online.outlet.filter</field>
+        <field name="model">pos.online.outlet</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="pos_online_outlet_action">
+        <field name="name">Online Outlets</field>
+        <field name="res_model">pos.online.outlet</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem 
+        id="pos_online_outlet_menu"
+        name="Outlets"
+        action="pos_online_outlet_action"
+        parent="pos_online_outlet_menu_root"
+        groups="equip3_pos_masterdata.group_pos_supervisor,equip3_pos_masterdata.group_pos_manager,equip3_pos_masterdata.group_pos_staff,equip3_pos_masterdata.group_pos_cashier,equip3_pos_masterdata.group_pos_waiter"
+        sequence="2"/>
+
+</odoo>

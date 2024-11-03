@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Lot Views -->
+    <record model="ir.ui.view" id="product_expiry_tree_view">
+        <field name="name">product.expiry.tree.view</field>
+        <field name="model">stock.production.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <tree decoration-info="expiry_state == 'alert'" decoration-success="expiry_state == 'normal'" decoration-danger="expiry_state == 'expired'">
+                </tree>
+            </xpath>
+            <field name="create_date" position="after">
+                <field name="locked" />
+                <field name="expiry_state" />
+            </field>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_production_lot_form">
+        <field name="name">stock.production.lot.form</field>
+        <field name="model">stock.production.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form" />
+        <field name="arch" type="xml">
+            <sheet position="before">
+                <header>
+                    <button name="button_lock" string="Block"
+                        type="object" attrs="{'invisible':[('locked','=',True)]}" />
+                    <button name="button_unlock" string="Unblock"
+                        type="object" attrs="{'invisible':[('locked','=',False)]}" />
+                </header>
+            </sheet>
+            <xpath expr="//group[@name='main_group']" position="after">
+                <group name="pricing" string="Pricing">
+                    <group>
+                        <field name="mrp"/>
+                    </group>
+                    <group/>
+                </group>
+            </xpath>
+            <field name="ref" position="after">
+                <field name="locked"/>
+            </field>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="stock_production_lot_expiry_search_view">
+        <field name="name">stock.production.lot.expiry.search</field>
+        <field name="model">stock.production.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter" />
+        <field name="arch" type="xml">
+            <field name="product_id" position="after">
+                <field name="locked"/>
+                <field name="expiry_state"/>
+            </field>
+            <filter name="group_by_product" position="before">
+                <filter name="group_by_locked" string="Blocked" domain="[]"
+                    context="{'group_by':'locked'}" />
+            </filter>
+        </field>
+    </record>
+
+    <!-- Quant Views -->
+    <record model="ir.ui.view" id="quant_expiry_tree_view">
+        <field name="name">quant.expiry.tree.view</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree"/>
+        <field name="arch" type="xml">
+            <field name='lot_id' position="after">
+                <field name="locked" groups="stock.group_production_lot"/>
+                <field name="expiry_state"/>
+            </field>
+            <xpath expr="//tree" position="attributes">
+                 <tree decoration-info="expiry_state == 'alert'" decoration-success="expiry_state == 'normal'" decoration-danger="expiry_state == 'expired'">
+                </tree>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="stock_quant_expiry_search_view">
+        <field name="name">stock.quant.expiry.search</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.quant_search_view"/>
+        <field name="arch" type="xml">
+            <field name="lot_id" position="after">
+                <field name="expiry_state"/>
+                <field name="locked" />
+            </field>
+        </field>
+    </record>
+
+    <record id="view_stock_quant_form_inh_locklot" model="ir.ui.view">
+        <field name="name">view.stock.quant.form.inh.locklot</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_form"/>
+        <field name="arch" type="xml">
+            <field name="lot_id" position="after">
+                <field name="locked" groups="stock.group_production_lot"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

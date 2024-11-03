@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="sale.action_report_saleorder" model="ir.actions.report">
+        <field name="binding_model_id" eval="False"/>
+        <field name="report_name">equip3_sale_operation.so_report_printout</field>
+        <field name="report_file">equip3_sale_operation.so_report_printout</field>
+    </record>
+
+    <record id="sale.action_report_pro_forma_invoice" model="ir.actions.report">
+        <field name="binding_model_id" eval="False"/>
+    </record>
+
+    <template id="report_quotation_main_inherit" inherit_id="general_template.report_sale_exclusive_main">
+        <xpath expr="//div[hasclass('left')]" position="after">
+            <div class="terms_condition">
+                <span t-raw="o.note"/>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="general_template.sale_order_lines_tem"> 
+        <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;table-layout:fixed;word-wrap:break-word" width="100%">
+            <thead>
+                <t t-set="display_discount" t-value="any([l.discount for l in o.order_line])"/>
+                <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                    <t t-set="colspan" t-value="5"/>
+                    <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="10%">No.</td>
+                    <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; max-width:50%; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="50%">Product</td>
+                    <t t-if="o.company_id.add_product_image == True">
+                        <td align="left" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">
+                            <span>Image</span>
+                            <t t-set="colspan" t-value="colspan+1"/>
+                        </td>
+                    </t>
+                    <td align="right" t-attf-style="padding:5px 10px;border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="14%">Qty</td>
+                    <td align="right" t-attf-style="padding:5px 10px;border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="17%">Unit Price</td>
+                    <td align="center" groups="product.group_discount_per_so_line" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="18%"><t t-set="colspan" t-value="colspan+1"/>Discount</td>
+                    <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="12%">Tax</td>
+                    <td align="right" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="25%">Price</td>
+                </tr>
+            </thead>
+            <tbody class="sale_tbody">
+                <t t-set="index_no" t-value="1"/>
+                <t t-set="current_subtotal" t-value="0"/>
+                <t t-foreach="o.order_line" t-as="line">
+                    <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                    <t t-set="current_subtotal" t-value="current_subtotal + line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+                    <t t-if="line_odd">
+                        <t t-set="ol_color" t-value="o.company_id.even_party_color"/>
+                    </t>
+                    <t t-if="line_even">
+                        <t t-set="ol_color" t-value="o.company_id.odd_party_color"/>
+                    </t>
+                    <tr t-att-style="'page-break-inside: avoid !important; color: %s; background-color: %s '%(text_color, ol_color)  ">
+                        <t t-if="not line.display_type">
+                            <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span style="font-weight:normal" t-esc="index_no"/>
+                            </td>
+                            <td class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-field="line.product_template_id.name"/>
+                                <t t-if="o.company_id.is_description == True">
+                                    <br/><br/>
+                                    <span style="font-weight:normal" t-field="line.name"/>
+                                </t>
+                            </td>
+                            <t t-if="o.company_id.add_product_image == True">
+                                <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; '">
+                                    <span style="width: 64px;height: 64px;margin: auto;display: -webkit-box;display: -ms-flexbox;display: flex;-webkit-box-pack: center;-ms-flex-pack: center;justify-content: center;-webkit-box-align: center;-ms-flex-align: center;align-items: center;" t-field="line.product_id.image_256" t-options="{&quot;widget&quot;:&quot;image&quot;,&quot;class&quot;:&quot;img-rounded mh-100&quot;}"/>
+                                </td>
+                            </t>
+                            
+                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span style="font-weight:normal" t-field="line.product_uom_qty"/>
+                                <span style="font-weight:normal" t-field="line.product_uom" groups="uom.group_uom"/>
+                            </td>
+                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span style="font-weight:normal" t-field="line.price_unit"/>
+                            </td>
+                            <td class="text-right" groups="product.group_discount_per_so_line" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'"> 
+                                <t t-if="line.discount_method == 'per'"> 
+                                    <span style="font-weight:normal" t-field="line.discount_amount"/>
+                                    <span style="font-weight:normal"> %</span>
+                                </t>
+                                <t t-else ="">
+                                    <span style="font-weight:normal" t-field="line.discount_amount" t-options='{"widget": "monetary", "display_currency": o.pricelist_id.currency_id}'/>
+                                
+                                </t>
+                            </td>
+                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span style="font-weight:normal" t-field="line.tax_id"/>
+                            </td>
+                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span style="font-weight:normal" t-field="line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                                <span style="font-weight:normal" t-field="line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+                            </td>
+                        </t>
+                        <t t-if="line.display_type == 'line_section'">
+                            <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-esc="index_no"/>
+                            </td>
+                            <td t-att-colspan="colspan">
+                                <span t-field="line.name" t-options="{'widget': 'text'}"/>
+                            </td>
+                            <t t-set="current_section" t-value="line"/>
+                            <t t-set="current_subtotal" t-value="0"/>
+                        </t>
+                        <t t-if="line.display_type == 'line_note'">
+                            <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span t-esc="index_no"/>
+                            </td>
+                            <td t-att-colspan="colspan">
+                                <span t-field="line.name" t-options="{'widget': 'text'}"/>
+                            </td>
+                        </t>
+                    </tr>
+
+                    <t t-if="current_section and (line_last or o.order_line[line_index+1].display_type == 'line_section')">
+                        <tr class="is-subtotal text-right" t-att-style="'background-color: %s; color: %s; '%(ol_color, text_color)">
+                            <td class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <t t-set="index_no" t-value="index_no+1"/>
+                                <span t-esc="index_no"/>
+                            </td>
+                            <td t-att-colspan="colspan">
+                                <strong class="mr16">Subtotal</strong>
+                                <span
+                                    t-esc="current_subtotal"
+                                    t-options='{"widget": "monetary", "display_currency": o.pricelist_id.currency_id}'
+                                />
+                            </td>
+                        </tr>
+                    </t>
+                    <t t-set="index_no" t-value="index_no+1"/>
+                </t>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="general_template.sale_order_lines_subtotal_tem">
+        <div class="clearfix">
+            <div class="row" name="total" t-att-style="'background-color: %s; color: %s; '%(ol_color, text_color)">
+                <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+                    <table class="table table-sm">
+                        <tr class="border-black" style="border-bottom:1px solid #dddddd;">
+                            <td><strong>Untaxed Amount</strong></td>
+                            <td class="text-right">
+                                <span t-field="o.amount_untaxed"/>
+                            </td>
+                        </tr>
+                        <tr class="border-black" style="border-bottom:1px solid #dddddd;">
+                            <td><strong>- Discount</strong></td>
+                            <td class="text-right">
+                                <span t-field="o.discount_amt"/>
+                            </td>
+                        </tr>
+                        
+                        <t t-foreach="o.amount_by_group" t-as="amount_by_group">
+                            <tr style="border-bottom:1px solid #dddddd;">
+                                <t t-if="amount_by_group[3] == 1 and o.amount_untaxed == amount_by_group[2]">
+                                    <td>
+                                        <span t-esc="amount_by_group[0]"/>
+                                        <span>&amp;nbsp;<span>on</span>&amp;nbsp;<t t-esc="amount_by_group[2]" t-options='{"widget": "monetary", "display_currency": o.pricelist_id.currency_id}'/></span>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-esc="amount_by_group[1]"
+                                            t-options='{"widget": "monetary", "display_currency": o.pricelist_id.currency_id}'/>
+                                    </td>
+                                </t>
+                                <t t-else ="">
+                                    <td>
+                                        <span t-esc="amount_by_group[0]"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-esc="amount_by_group[1]"
+                                            t-options='{"widget": "monetary", "display_currency": o.pricelist_id.currency_id}'/>
+                                    </td>
+                                </t>
+                            </tr>
+                        </t>
+                        <tr class="border-black">
+                            <td><strong>Total</strong></td>
+                            <td class="text-right">
+                                <span t-field="o.amount_total"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>

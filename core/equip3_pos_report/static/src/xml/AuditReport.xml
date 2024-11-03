@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	
+<templates id="audit_reports_template" inherit_id="point_of_sale.template" xml:space="preserve">
+
+	<t t-name="ReportLocationButtonWidget"  owl="1">
+		<div class="control-button location_summary">
+			<div>
+				<i class="fa fa-shopping-cart"></i>
+				<span>Audit Report</span>
+			</div>
+		</div>
+	</t>
+
+	<t t-name="PopupLocationWidget" owl="1">
+		<div role="dialog" class="modal-dialog" >
+			<Draggable>
+				<div class="popup popup-confirm" >
+					<header class="title drag-handle">
+						Audit Report
+					</header>
+					<main class="body" style="height: 200px;">
+						<div>
+							<ul class="tabs">
+								<li class="tab">
+									<input type="radio" name="tabs" id="tab1" checked="checked"/>
+									<label for="tab1" style="margin-left: 20px;margin-right: 5px;">Sessions </label>
+									<div id="tab-content1" class="content" style="min-width:420px; float:left">
+										<div class='location-detail2 required-field'>
+											<div id="select_ssn" class="alert" style="color: #ec1010; font-size: inherit; margin: 5px; text-align: center;">
+												<span class="closebtn"></span>  
+												Please Select Session.
+											</div>
+											<span class='label' style="text-align: center;display: block;">Sessions</span>
+											<select class="select_session_id" name='select_session_id' style="height: 40px;margin-top: 20px;min-width: 200px;margin-left: 30%;">
+												<option style="font-size: 14px; padding: 5px;" value=''>Select Session </option>
+												<t t-foreach='env.pos.pos_sessions' t-as='ssn' t-key='ssn'>
+													<option t-att-value='ssn.id'> 
+														<t t-esc='ssn.name'/>
+													</option>
+												</t>
+											</select>
+										</div>
+									</div>
+								</li>
+								<li class="tab">
+									<input type="radio" name="tabs" id="tab2" />
+									<label for="tab2">Locations</label>   
+									<div id="tab-content2" class="content" style="min-width:420px;">
+										<div class='location-detail2 required-field'>
+											<div id="select_loc" class="alert" style="color: #ec1010; font-size: inherit; margin: 5px; text-align: center;">
+												<span class="closebtn"></span>  
+												Please Select Location.
+											</div>
+											<span class='label' style="text-align: center;display: block;">Stock Locations</span>
+											<select class="summery_location_id" name='location_id' style="height: 40px;margin-top: 20px;margin-left: 15%;max-width: 390px;">
+												<option style="font-size: 14px; padding: 5px;" value=''>Select Stock Locations</option>
+												<t t-foreach='env.pos.locations' t-as='loc'>
+													<option t-att-value='loc.id'> 
+														<t t-esc='loc.complete_name'/>
+													</option>
+												</t>
+											</select>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</main>
+					<footer class="footer">
+						<div class="button confirm odoo-theme-button" t-on-click="print_location">
+							Print
+						</div>
+						<div class="button cancel odoo-theme-button" t-on-click="go_back_screen">
+							Close
+						</div>
+					</footer>
+				</div>
+			</Draggable>
+		</div>
+	</t>
+
+	<t t-name="LocationReceiptScreen" owl="1">
+		<div class="receipt-screen screen">
+			<div class="screen-content">
+				<div class="top-content">
+					<span class="button back" t-on-click="back">
+						<i class="fa fa-angle-double-left"></i>
+						<span> </span>
+						<span>Back</span>
+					</span>
+					<div class="top-content-center">
+						<h1> Audit Report</h1>
+					</div>
+				</div>
+				<div class="centered-content">
+					<div class="button print" t-on-click="printReceipt">
+						<i class="fa fa-print"></i>
+						<span> </span>
+						<span>Print</span>
+					</div>
+					<div class="pos-receipt-container">
+						<LocationReceipt order="location_receipt_data"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</t>
+
+	<t t-name="LocationReceipt" owl="1">
+		<div class="pos-receipt">
+			<t t-set="obj" t-value="props.order"/>
+			<img class="pos-receipt-logo" t-att-src='env.pos.company_logo_base64' alt="Logo"/>
+			<br/>
+			<div class="pos-receipt-contact">
+				<t t-if='env.pos.company.contact_address'>
+					<div><t t-esc='env.pos.company.contact_address' /></div>
+				</t>
+				<t t-if='env.pos.company.phone'>
+					<div>Tel:<t t-esc='env.pos.company.phone' /></div>
+				</t>
+				<t t-if='env.pos.company.vat'>
+					<div>VAT:<t t-esc='env.pos.company.vat' /></div>
+				</t>
+				<t t-if='env.pos.company.email'>
+					<div><t t-esc='env.pos.company.email' /></div>
+				</t>
+				<t t-if='env.pos.company.website'>
+					<div><t t-esc='env.pos.company.website' /></div>
+				</t>
+				<br/>
+				
+				<t t-if='env.pos.get_cashier()'>
+					<div class='cashier'>
+						<div>--------------------------------</div>
+						<div>Served by <t t-esc='env.pos.get_cashier().name' /></div>
+					</div>
+				</t>
+			</div>
+			<br />
+			<t t-if="obj.ssn">
+				<div class="pos-center-align">
+					<strong>Session Summary</strong>
+				</div><br />
+			</t>
+
+			<t t-if="!obj.ssn">
+				<div class="pos-center-align">
+					<strong>Location Summary</strong>
+				</div><br />
+			</t>
+			<br />
+			<table class='orderlines' style="margin: 0px auto;">
+				<colgroup>
+					<col width='40%' />
+					<col width='30%' />
+					<col width='30%' />
+				</colgroup>
+				<thead>
+					<tr style="border-bottom: 2px solid black;">
+						<th>Product</th>
+						<th style="text-align: center;">Sold qty</th>
+						<th class="pos-right-align">Available qty</th>
+					</tr>
+				</thead>
+				<tbody>
+				<tr t-foreach="obj.loc_summery" t-as="product">
+
+					<td style="float: left;">
+						<t t-esc="product"/>	 
+					</td>
+					<td class="pos-center-align">
+						<t t-esc="obj.loc_summery[product]['qty']"/>
+					</td>
+					<td  style="text-align: center;">
+						<t t-esc="obj.loc_summery[product]['avail_qty']"/>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+			<hr style="border-bottom: 2px solid black;"/>
+		</div>
+	</t>
+</templates>

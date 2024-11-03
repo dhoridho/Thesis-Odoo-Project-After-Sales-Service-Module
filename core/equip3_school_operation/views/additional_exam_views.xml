@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_additional_exam_result_tree" model="ir.ui.view">
+            <field name="name">additional.exam.line.tree</field>
+            <field name="model">additional.exam.line</field>
+            <field name="arch" type="xml">
+                <tree string="Additional Exam Result" create="0">
+                    <field name="name" string="Additional Exam Name"/>
+                    <field name="student_id"/>
+                    <field name="submission_type"/>
+                    <field name="standard_id"/>
+                    <field name="subject_id"/>
+                    <field name="exam_date"/>
+                    <field name="state" widget="badge" decoration-info="state in ('draft')" decoration-success="state in ('active','done')"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_additioanal_result_search" model="ir.ui.view">
+            <field name="name">additional.exam.line.search</field>
+            <field name="model">additional.exam.line</field>
+            <field name="arch" type="xml">
+                <search string="Search">
+                    <field name="student_id" />
+                    <field name="standard_id" />
+                    <group expand="1" string="Group By">
+                        <filter name="student" string="Student" help="By Name" domain="[]"
+                                context="{'group_by':'student_id'}"/>
+                        <separator orientation="vertical"/>
+                        <filter name="standard" string="Standard" help="By Name" domain="[]"
+                                context="{'group_by':'standard_id'}"/>
+                        <separator orientation="vertical"/>
+                    </group>
+                    <filter name="groupby_intake" string="Intake" context="{'group_by': 'standard_id'}"/>
+                <filter name="groupby_subject" string="Subject" context="{'group_by': 'subject_id'}"/>
+                <filter name="groupby_name" string="Assignment Name" context="{'group_by': 'name'}"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="additional_exam_line_form" model="ir.ui.view">
+            <field name="name">additional.exam.line.form</field>
+            <field name="model">additional.exam.line</field>
+            <field name="arch" type="xml">
+                <form string="Assignment Information" create="0">
+                    <header>
+                        <button name="done_done" string="Done" type="object" class="oe_highlight" help="done assigment" states="active"/>
+                        <button name="reassign_assignment" string="Reassign" class="oe_highlight" type="object" help="Re-assign assigment" states="reject"/>
+                        <button name="done_reject" string="Reject" help="reject assignment" type="object" states="active"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <group col="4">
+                            <div class="oe_button_box" name="button_box">
+                                <button name="action_show_survey" type="object" class="btn oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible':[('submission_type','!=','online')]}">
+                                    <field string="Answers" name="answers_count" widget="statinfo"/>
+                                </button>
+                            </div>
+                        </group>
+                        <group string="Additional Exam Information">
+                            <group>
+                                <field name="student_id" placeholder="Student" attrs="{'readonly':[('state','!=','draft')]}" options="{&quot;no_create&quot;: True, &quot;no_search&quot;: True}" domain="[('state','=','done')]"/>
+                                <field name="name" placeholder="Additional Exam Name" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                <field name="school_id" required="1" attrs="{'readonly':[('state','!=','draft')]}" options="{&quot;no_create&quot;: True, &quot;no_search&quot;: True}"/>
+                                <field name="program_id" required="1" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                <field name="standard_id" string="Intake" placeholder="Intake" attrs="{'readonly':[('state','!=','draft')]}" widget="selection"/>
+                                <field name="group_class" required="1" widget="many2many_tags"/>
+                                <field name="academic_year" required="1"/>
+                                <field name="grade_system"/>
+                            </group>
+                            <group>
+                                <field name="term_id" required="1"/>
+                                <field name="subject_id" placeholder="Subject" attrs="{'readonly':[('state','!=','draft')]}" widget="selection" domain="[('teacher_ids','in',teacher_id),('standard_ids','in',student_standard)]"/>
+                                <field name="teacher_id" placeholder="Teacher" attrs="{'readonly':[('state','!=','draft')]}" options="{&quot;no_create&quot;: True, &quot;no_search&quot;: True}"/>
+                                <field name="exam_date" placeholder="Exam Date" attrs="{'readonly':[('state','!=','draft')]}"/>
+                                <field name="submission_type" string="Exam Type" readonly="1" attrs="{'readonly':[('state','=','active'),('submission_type','=','online')]}"/>
+                                <field name="attached_homework" string="Attached Exam" placeholder="Attachment File" attrs="{'readonly':[('state','!=','draft')],'invisible':[('submission_type','=','online')]}" filename="attached_homework_file_name"/>
+                                <field name="submit_assign" filename="file_name" attrs="{'invisible':[('submission_type','in',['hardcopy', 'online'])],'readonly':[('state','!=','active')]}"/>
+                                <field name="rejection_reason" attrs="{'invisible':[('state','in',['draft','active','done','reject'])]}"/>
+                                <field name="attachfile_format" invisible="1" string="Assignment File Format" attrs="{'invisible':[('submission_type','in', ['hardcopy', 'online'])],'readonly':[('state','!=','draft')]}"/>
+                                <field name="additional_percentage" widget="percentage" readonly="0"/>
+                                <field name="stud_roll_no" invisible="1"/>
+                                <field name="attached_homework_file_name" invisible="1"/>
+                                <field name="file_name" invisible="1"/>
+                                <field name="score" attrs="{'invisible': [('submission_type', '=', 'online')]}"/>
+                                <field name="branch_id" />
+                            </group>
+                        </group>
+                        <field name="additional_score_ids" string="Additional Exam Score">
+                            <tree editable="bottom" create="0" delete="0">
+                                <field name="subject_id" readonly="1"/>
+                                <field name="score"/>
+                                <field name="grade"/>
+                                <field name="result"/>
+                            </tree>
+                        </field>
+                        <field name="student_standard" invisible="1"/>
+<!--                        <field name="active" invisible="1"/>-->
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_additional_exam_result_form" model="ir.actions.act_window">
+            <field name="name">Additional Exam Results</field>
+            <field name="res_model">additional.exam.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_groupby_intake': 1, 'search_default_groupby_subject': 1, 'search_default_groupby_name': 1}</field>
+        </record>
+
+        <menuitem id="menu_additional_exam_result" name="Additional Exam Results" parent="exam.additional_exam"
+              action="action_additional_exam_result_form" sequence="105"/>
+
+        <record id="exam.menu_additional_exam_result" model="ir.ui.menu" >
+            <field name="active" eval="False"/>
+        </record>
+
+        <record id="exam.menu_exam_batch_result" model="ir.ui.menu" >
+            <field name="active" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

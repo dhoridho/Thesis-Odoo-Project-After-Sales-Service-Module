@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_mining_extraction_report_pivot" model="ir.ui.view">
+        <field name="name">view.mining.extraction.report.pivot</field>
+        <field name="model">mining.production.record</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <pivot string="Extraction Report">
+                <field name="mining_operation_id" type="row"/>
+                <field name="daily_production_id" type="row"/>
+                <field name="name" type="row"/>
+                <field name="prod_rec_date" interval="month" type="col"/>
+                <field name="gross_total" type="measure"/>
+                <field name="tare_total" type="measure"/>
+                <field name="nett_total" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_mining_extraction_report_graph" model="ir.ui.view">
+        <field name="name">view.mining.extraction.report.graph</field>
+        <field name="model">mining.production.record</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <graph string="Extraction Report" type="line" sample="1" js_class="fixed_graph_view">
+                <field name="name"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_mining_waste_removal_report_pivot" model="ir.ui.view">
+        <field name="name">view.mining.waste.removal.repor.pivot</field>
+        <field name="model">mining.production.record</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <pivot string="Waste Removal Report">
+                <field name="mining_operation_id" type="row"/>
+                <field name="daily_production_id" type="row"/>
+                <field name="name" type="row"/>
+                <field name="prod_rec_date" interval="month" type="col"/>
+                <field name="gross_total" type="measure"/>
+                <field name="tare_total" type="measure"/>
+                <field name="nett_total" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_mining_waste_removal_report_graph" model="ir.ui.view">
+        <field name="name">view.mining.waste.removal.report.graph</field>
+        <field name="model">mining.production.record</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <graph string="Waste Removal Report" type="line" sample="1" js_class="fixed_graph_view">
+                <field name="name"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_mining_report_search" model="ir.ui.view">
+        <field name="name">view.mining.report.search</field>
+        <field name="model">mining.production.record</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <search>
+                <filter string="This Month" name="current_month" domain="[('prod_rec_date','&lt;',(context_today()+relativedelta(months=1)).strftime('%%Y-%%m-01')), ('prod_rec_date','&gt;=',time.strftime('%%Y-%%m-01'))]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_mining_stripping_ratio_report_pivot" model="ir.ui.view">
+        <field name="name">view.mining.stripping.ratio.report.pivot</field>
+        <field name="model">mining.production.record</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <pivot string="Stripping Ratio Report" js_class="stripping_ratio_pivot">
+                <field name="operation_type" type="row"/>
+                <field name="prod_rec_date" interval="month" type="col"/>
+                <field name="nett_total" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_mining_stripping_ratio_report_graph" model="ir.ui.view">
+        <field name="name">view.mining.stripping.ratio.report.graph</field>
+        <field name="model">mining.production.record</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <graph string="Stripping Ratio Report" type="pie" sample="1" js_class="stripping_ratio_graph">
+                <field name="operation_type"/>
+                <field name="nett_total" type="measure"/>
+            </graph>
+        </field>
+    </record>
+    
+    <!-- ACTIONS -->
+    <record id="action_mining_extraction_report" model="ir.actions.act_window">
+        <field name="name">Extraction Report</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.production.record</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="view_ids" eval="[(5,),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_mining_extraction_report_pivot')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_mining_extraction_report_graph')}),
+        ]"/>
+        <field name="search_view_id" ref="equip3_mining_reports.view_mining_report_search"/>
+        <field name="domain">[('mining_operation_id.operation_type_id', '=', 'extraction')]</field>
+        <field name="context">{
+            'search_default_current_month': 1,
+            'pivot_column_groupby': ['prod_rec_date:month', 'prod_rec_date:day'],
+        }
+        </field>
+    </record>
+
+    <record id="action_mining_waste_removal_report" model="ir.actions.act_window">
+        <field name="name">Waste Removal Report</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.production.record</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="view_ids" eval="[(5,),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_mining_waste_removal_report_pivot')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_mining_waste_removal_report_graph')}),
+        ]"/>
+        <field name="search_view_id" ref="equip3_mining_reports.view_mining_report_search"/>
+        <field name="domain">[('mining_operation_id.operation_type_id', '=', 'waste_removal')]</field>
+        <field name="context">{
+            'search_default_current_month': 1,
+            'pivot_column_groupby': ['prod_rec_date:month', 'prod_rec_date:day'],
+        }</field>
+    </record>
+
+    <record id="action_mining_stripping_ratio_report_new" model="ir.actions.act_window">
+        <field name="name">Stripping Ratio Report</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mining.production.record</field>
+        <field name="view_mode">graph,pivot</field>
+        <field name="view_ids" eval="[(5,),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_mining_stripping_ratio_report_graph')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_mining_stripping_ratio_report_pivot')}),
+        ]"/>
+        <field name="search_view_id" ref="equip3_mining_reports.view_mining_report_search"/>
+        <field name="domain">[('mining_operation_id.operation_type_id', 'in', ('extraction', 'waste_removal'))]</field>
+        <field name="context">{'search_default_current_month': 1}</field>
+    </record>
+</odoo>

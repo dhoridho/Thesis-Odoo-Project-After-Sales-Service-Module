@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="templates_warehouse_details">
+        <p t-attf-style="text-transform:capitalize; color: #{theme_color or '#000000'}; margin:0; margin-bottom:10px;">
+            <strong>Shipping address:</strong>
+        </p>
+        <t t-if="o.dest_address_id">
+            <span t-attf-style="text-transform:capitalize; padding:0px; margin:0; color: #{customer_color or '#ffffff'};">
+                <t t-if="o.company_id and o.company_id.is_customer_bold">
+                    <strong>
+                        <span t-field="o.dest_address_id"/>
+                    </strong>
+                </t>
+                <t t-if="not o.company_id.is_customer_bold">
+                    <span t-field="o.dest_address_id"/>
+                </t>
+            </span>
+            <p t-attf-style="color: #{customer_address_color or '#ffffff'};">
+                <span t-esc="o._get_street(o.dest_address_id)"/>
+                <br/>
+                <span t-esc="o._get_address_details(o.dest_address_id)"/>
+                <br/>
+                <t t-if="o.dest_address_id.mobile">
+                    <strong>Mobile: </strong>
+                    <span t-field="o.dest_address_id.mobile"/>
+                    <br/>
+                </t>
+                <t t-if="o.dest_address_id.email">
+                    <strong>Email: </strong>
+                    <span t-field="o.dest_address_id.email"/>
+                </t>
+            </p>
+        </t>
+        <t t-if="not o.dest_address_id and o.picking_type_id and o.picking_type_id.warehouse_id">
+            <span t-attf-style="text-transform:capitalize; padding:0px; margin:0; color: #{customer_color or '#ffffff'};">
+                <t t-if="o.company_id and o.company_id.is_customer_bold">
+                    <strong>
+                        <span t-field="o.picking_type_id.warehouse_id.name"/>
+                    </strong>
+                </t>
+                <t t-if="not o.company_id.is_customer_bold">
+                    <span t-field="o.picking_type_id.warehouse_id.name"/>
+                </t>
+            </span>
+            <p t-attf-style="color: #{customer_address_color or '#ffffff'};">
+                <span t-esc="o._get_street(o.picking_type_id.warehouse_id.partner_id)"/>
+                <br/>
+                <span t-esc="o._get_address_details(o.picking_type_id.warehouse_id.partner_id)"/>
+                <br/>
+                <t t-if="o.picking_type_id.warehouse_id.partner_id.mobile">
+                    <strong>Mobile: </strong>
+                    <span t-field="o.picking_type_id.warehouse_id.partner_id.mobile"/>
+                    <br/>
+                </t>
+                <t t-if="o.picking_type_id.warehouse_id.partner_id.email">
+                    <strong>Email: </strong>
+                    <span t-field="o.picking_type_id.warehouse_id.partner_id.email"/>
+                </t>
+            </p>
+        </t>
+    </template>
+    <template id="quotation_template_order_lines">
+        <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-bordered" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+            <thead>
+                <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                    <td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="8%">Sr.</td>
+                    <t t-if="o.company_id.add_product_image == True">
+                        <td align="left" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="10%">Image</td>
+                    </t>
+                    <td align="left" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="52%">Description</td>
+                    <td align="center" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="14%">Expected Date</td>
+                    <td align="right" t-attf-style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" width="15%">Qty</td>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-as="l" t-foreach="o.order_line">
+                    <t t-if="l_odd">
+                        <t t-set="ol_color" t-value="o.company_id.even_party_color"/>
+                    </t>
+                    <t t-if="l_even">
+                        <t t-set="ol_color" t-value="o.company_id.odd_party_color"/>
+                    </t>
+                    <tr t-att-style="'page-break-inside: avoid !important;background-color: ' + ol_color + '; color: ' + text_color">
+                        <td align="left" class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                            <span t-esc="l_index+1"/>
+                        </td>
+                        <t t-if="o.company_id.add_product_image == True">
+                            <td class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                <span style="width: 64px;height: 64px;margin: auto;display: -webkit-box;display: -ms-flexbox;display: flex;-webkit-box-pack: center;-ms-flex-pack: center;justify-content: center;-webkit-box-align: center;-ms-flex-align: center;align-items: center;" t-field="l.product_id.image_256" t-if="l.product_id" t-options="{&quot;widget&quot;:&quot;image&quot;,&quot;class&quot;:&quot;img-rounded mh-100&quot;}"/>
+                            </td>
+                        </t>
+                        <td align="left" class="text-left" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                            <t t-if="not o.company_id.is_description">
+                                <span t-field="l.product_id and l.product_id.name"/>
+                            </t>
+                            <t t-if="o.company_id.is_description">
+                                <span t-field="l.name" t-options="{'widget': 'text'}"/>
+                            </t>
+                        </td>
+                        <td align="center" class="text-center" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                            <span t-field="l.date_planned"/>
+                        </td>
+                        <td align="center" class="text-right" t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                            <span t-field="l.product_qty"/>
+                            <span groups="product.group_uom" t-field="l.product_uom.name"/>
+                        </td>
+                    </tr>
+                </t>
+            </tbody>
+        </table>
+    </template>
+</odoo>

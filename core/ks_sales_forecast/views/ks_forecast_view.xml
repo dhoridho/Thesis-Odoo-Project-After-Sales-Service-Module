@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <record id="ks_forecast_form_view" model="ir.ui.view">
+        <field name="name">forecast.form.view</field>
+        <field name="model">ks.sales.forecast</field>
+        <field name="arch" type="xml">
+            <form string="Sales Forecast">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-file-excel-o" name="ks_sale_forecast_xlsx_report"
+                                type="object" groups="ks_sales_forecast.ks_forecast_group">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Print Forecast</span><b/>
+                                <span class="o_stat_text">Report</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-gear" name="ks_open_tuner"
+                                type="object" groups="ks_sales_forecast.ks_forecast_group"
+                                attrs="{'invisible':[('ks_default_forecast_method', 'not in', ['ma', 'arma', 'arima', 'sarima','varma'])]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Tune Hyper</span><b/>
+                                <span class="o_stat_text">Parameters</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" icon="fa-line-chart" name="ks_predict_sales"
+                                type="object" groups="ks_sales_forecast.ks_forecast_group">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Predict Sales</span>
+                            </div>
+                        </button>
+                    </div>
+                    <group>
+                        <h1>
+                            <field name="ks_name" string="Name"/>
+                        </h1>
+                        <group invisible="1">
+                            <label for="ks_is_file" string="Want to import data with file"/>
+                            <div>
+                                <field name="ks_is_file" nolabel="1"/>
+                                <field name="ks_outcome" invisible="1"/>
+                                <field name="ks_danger_outcome" invisible="1"/>
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="ks_default_forecast_method" string="Default Method"
+                                   attrs="{'invisible':[('ks_is_method_change', '=', True)]}"/>
+                            <label for="ks_is_method_change" string="Want to Change Forecast Method"/>
+                            <div>
+                                <field name="ks_is_method_change" widget="boolean_toggle" nolabel="1"/>
+                                <field name="ks_forecast_method" string="Forecast Method"
+                                       attrs="{'invisible': [('ks_is_method_change','=', False)], 'required': [('ks_is_method_change','=', True)]}"/>
+                            </div>
+                        </group>
+                    </group>
+                    <group name="forecast_method_change_warning" attrs="{'invisible':['|',('ks_is_predicted', '=', False), '&amp;', ('ks_is_predicted', '=', True), ('ks_is_predicted_method', '=', True)]}">
+                        <div class="alert alert-warning text-center" role="status">
+                            <h6>
+                               Changes in Forecast method, with your approval, will replace the previously predicted data with the new one.
+                            </h6>
+                        </div>
+                    </group>
+                    <group>
+                        <group name="tuning_negative_results" attrs="{'invisible':[('ks_danger_outcome', '=', False)]}">
+                            <div class="alert alert-danger text-center" role="status">
+                                <h3> Sorry! According to your data and Coefficients configuration, Model is not able to provide any tuned parameter value.
+                                    Please Find Parameter Value Manually.
+                                </h3>
+                            </div>
+                        </group>
+                        <group name="tuning_results" attrs="{'invisible':['|',('ks_outcome', '=', False), ('ks_danger_outcome', '=', True)]}">
+                            <div class="alert alert-success text-center" role="status">
+                                <h3>Here are the tuned parameter for your model. You can either choose these parameters
+                                    value, or assign them manual after further explorations.
+                                </h3>
+                                <div>
+                                    <group>
+                                        <field name="ks_resp" attrs="{'invisible':[('ks_resp','&lt;',0)]}"/>
+                                    </group>
+                                    <group>
+                                        <field name="ks_resd" attrs="{'invisible':[('ks_resd','&lt;',0)]}"/>
+                                    </group>
+                                    <group>
+                                        <field name="ks_resq" attrs="{'invisible':[('ks_resq','&lt;',0)]}"/>
+                                    </group>
+                                </div>
+                                <div>
+                                    <group>
+                                        <field name="ks_sp" attrs="{'invisible':[('ks_sp','&lt;',0)]}"/>
+                                    </group>
+                                    <group>
+                                        <field name="ks_sd" attrs="{'invisible':[('ks_sd','&lt;',0)]}"/>
+                                    </group>
+                                    <group>
+                                        <field name="ks_sq" attrs="{'invisible':[('ks_sq','&lt;',0)]}"/>
+                                    </group>
+                                    <group>
+                                        <field name="ks_trend" attrs="{'invisible':[('ks_trend','=',False)]}"/>
+                                    </group>
+                                </div>
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="ks_chart_data" invisible="1"/>
+                    </group>
+                    <notebook>
+                        <page name="conf" string="Configurations">
+                            <div class="alert alert-info" role="alert" style="margin-bottom:0px;">
+                                <h3>Fields and their uses :-</h3>
+                                <ul>
+                                    <li>
+                                        <b>Start Date</b>
+                                        : Initial date from which data has to be extracted from database
+                                    </li>
+                                    <li>
+                                        <b>End Date</b>
+                                        : Date upto which data has to be extracted from database
+                                    </li>
+                                    <li>
+                                        <b>Forecast Base</b>
+                                        : Select whether the prediction has to be done for <b>Specific</b> or
+                                        <b>All products</b>
+                                    </li>
+                                    <li>
+                                        <b>Products</b>
+                                        : Helps to choose specific products
+                                    </li>
+                                    <li>
+                                        <b>Forecast Period</b>
+                                        : Select period of forecasting the Sales
+                                    </li>
+                                    <li>
+                                        <b>Forecast Unit</b>
+                                        : Count of (Forecast Period) for forecasting sales
+                                    </li>
+                                </ul>
+                            </div>
+                            <group>
+                                <group name="" string="">
+                                    <field name="ks_start_date" string="Start Date"
+                                           attrs="{'invisible': [('ks_is_file','=', True)]}"/>
+                                    <field name="ks_forecast_base" widget="radio"
+                                           attrs="{'invisible': [('ks_is_file','=', True)]}"/>
+                                    <field name="ks_file_type" widget="radio"
+                                           attrs="{'invisible': [('ks_is_file','=', False)]}"/>
+                                    <field name="ks_forecast_period" attrs="{'readonly': [('ks_is_predicted','=', True)]}"/>
+                                    <field name="ks_default_forecast_method" string="Default Method" invisible="1"/>
+                                </group>
+                                <group>
+                                    <field name="ks_model" string="Model" invisible="1"/>
+                                    <field name="ks_end_date" string="End Date"
+                                           attrs="{'invisible': [('ks_is_file','=', True)]}"/>
+                                    <field name="ks_product_ids" string="Products"
+                                           attrs="{'invisible': [('ks_forecast_base','in', ['all', False])], 'required': [('ks_forecast_base','!=', 'all')]}"
+                                           widget="many2many_tags"/>
+                                    <field name="ks_import_file" filename="ks_file_name"
+                                           attrs="{'invisible': [('ks_is_file','=', False)]}"/>
+                                    <field name="ks_file_name" invisible="1"/>
+                                    <field name="ks_forecast_unit"/>
+                                    <field name="ks_is_predicted" invisible="1"/>
+                                    <field name="ks_is_predicted_method" invisible="1"/>
+                                    <field name="ks_predicted_forecast_method" invisible="1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page name="coefficients" string="Forecasting Coefficients"
+                              attrs="{'invisible':[('ks_default_forecast_method', 'in', ['ar', 'auto_arima', 'ses', 'hwes', 'var'])]}">
+                            <div class="alert alert-info" role="alert" style="margin-bottom:0px;">
+                                <h3>Forecasting Coefficients Description :-</h3>
+                                <ul style="list-style-type:disc">
+                                    <h6>Order Coefficients</h6>
+                                    <div attrs="{'invisible': [('ks_default_forecast_method','not in', ['sarima', 'arma', 'arima', 'sarimax', 'varma'])]}">
+                                        <li>'p' is the number of <b>Autoregressive</b> terms.
+                                        </li>
+                                    </div>
+                                    <div attrs="{'invisible': [('ks_default_forecast_method','not in', ['sarima','arima', 'sarimax'])]}">
+                                        <li>'d' is the number of nonseasonal differences needed for <b>Stationarity</b>.
+                                        </li>
+                                    </div>
+                                    <div attrs="{'invisible': [('ks_default_forecast_method','not in', ['ma', 'arma', 'arima', 'sarima', 'sarimax', 'varma'])]}">
+                                        <li>'q' is the number of lagged forecast errors in the prediction equation</li>
+                                    </div>
+                                    <br></br>
+                                    <h6 attrs="{'invisible': [('ks_default_forecast_method','not in',['sarima', 'sarimax'])]}">
+                                        Seasonal Order Coefficients
+                                    </h6>
+                                    <div attrs="{'invisible': [('ks_default_forecast_method','not in',['sarima', 'sarimax'])]}">
+                                        <li>'P' is the number of <b>Seasonal Autoregressive</b> terms.
+                                        </li>
+                                        <li>'D' is the number of Seasonal differences needed for <b>Stationarity</b>.
+                                        </li>
+                                        <li>'Q' is the number of Seasonal lagged forecast errors in the prediction
+                                            equation
+                                        </li>
+                                    </div>
+                                </ul>
+                            </div>
+
+                            <group string="Order Coefficients"
+                                   attrs="{'invisible': [('ks_default_forecast_method','not in', ['ma', 'arma', 'arima', 'sarima', 'sarimax','varma'])]}">
+                                <group>
+                                    <field name="ks_p"
+                                           attrs="{'invisible': [('ks_default_forecast_method','not in', ['sarima', 'arma', 'arima', 'sarimax', 'varma'])], 'required': [('ks_default_forecast_method','in', ['ma', 'arma', 'arima', 'sarima'])]}"/>
+                                    <field name="ks_d"
+                                           attrs="{'invisible': [('ks_default_forecast_method','not in', ['sarima','arima', 'sarimax'])], 'required': [('ks_default_forecast_method','in', ['sarima', 'arima'])]}"/>
+                                    <field name="ks_q"
+                                           attrs="{'invisible': [('ks_default_forecast_method','not in', ['ma', 'arma', 'arima', 'sarima', 'sarimax', 'varma'])], 'required': [('ks_default_forecast_method','in', ['ma', 'arma', 'arima', 'sarima'])]}"/>
+
+                                </group>
+                            </group>
+                            <div class="alert alert-warning" role="alert" style="margin-bottom:0px;"
+                                 attrs="{'invisible': [('ks_default_forecast_method','not in',['sarima', 'sarimax'])]}">
+                                <h3>Be Careful to Select Trend Field, If data does not have trend, don't select Trend
+                                    field
+                                </h3>
+                            </div>
+                            <group string="Seasonal Order Coefficients"
+                                   attrs="{'invisible': [('ks_default_forecast_method','not in',['sarima', 'sarimax'])], 'required': [('ks_default_forecast_method','=','sarima')]}">
+                                <group>
+                                    <field name="ks_P"/>
+                                    <field name="ks_Q"/>
+                                </group>
+                                <group>
+                                    <field name="ks_D"/>
+                                    <field name="ks_m"/>
+                                </group>
+                                <group>
+                                    <field name="ks_trend"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                    <notebook>
+                        <page name="graph" string="Charts" attrs="{'invisible': [('ks_is_predicted', '=', False)]}">
+                            <field name="ks_graph_view" widget="ks_graph"
+                                   attrs="{'invisible': [('ks_is_predicted', '=', False)]}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="ks_forecast_tree_view" model="ir.ui.view">
+        <field name="name">forecast.tree.view</field>
+        <field name="model">ks.sales.forecast</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="ks_name" string="Name"/>
+                <field name="ks_model" string="Model"/>
+                <field name="ks_start_date" string="Start Date"/>
+                <field name="ks_end_date" string="End Date"/>
+                <field name="ks_forecast_base"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="ks_forecast_search_view" model="ir.ui.view">
+        <field name="model">ks.sales.forecast</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="ks_name" string="Name"/>
+                <field name="ks_model" string="Model"/>
+                <field name="ks_start_date" string="Start Date"/>
+                <field name="ks_end_date" string="End Date"/>
+                <field name="ks_forecast_base"/>
+                <separator/>
+                    <group expand="0" string="Group By">
+                        <filter string="Models" name="groupby_model" context="{'group_by':'ks_default_forecast_method'}"/>
+                    </group>
+
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="ks_forecast_action">
+        <field name="name">Sales Forecast</field>
+        <field name="res_model">ks.sales.forecast</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="ks_forecast_menuitem" name="Sales Forecast" action="ks_forecast_action" groups="base.group_user"
+              web_icon="ks_sales_forecast,static/description/final-logo.png"/>
+
+    <menuitem id="ks_forecast_sub_menuitem" name="Forecast" parent="ks_forecast_menuitem" action="ks_forecast_action"
+              sequence="2" groups="base.group_user"/>
+
+</odoo>

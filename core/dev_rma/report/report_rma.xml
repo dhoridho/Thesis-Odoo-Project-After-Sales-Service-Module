@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2015 DevIntelle Consulting Service Pvt.Ltd (<http://www.devintellecs.com>).
+
+For Module Support : devintelle@gmail.com  or Skype : devintelle 
+ -->
+<odoo>
+    <template id="dev_report_rma_template">
+		    <t t-call="web.external_layout">
+                <div class="page" style="color:#000;font-size:15px" >
+                    <style>
+                        .top_table{
+                            'width':100%;
+                        }
+                        .top_table td{
+                            padding:5px;
+                        }
+                        .main_table{
+                            width:100%;
+                        }
+                        .main_table th{
+                            padding:5px;
+                            background:#e3e4e5;
+                            border-bottom:1px solid black;
+                        }
+                        .main_table td{
+                            padding:5px;
+                        }
+                    </style>
+                    <div class="row">
+                            <div class="col-6">
+                                <b><sapn t-esc="o.partner_id.name"/></b>
+                                <div t-field="o.partner_id" t-options='{"widget": "contact", "fields": ["address",  "phone"], "no_marker": True}' />
+                            </div>
+                            <div class="col-6">
+                                <table style="width:100%" class="top_table">
+                                    <t t-if="o.sale_id">
+                                        <tr>
+                                            <td width="35%"><b>Order Ref.</b></td>
+                                            <td width="5%">:</td>
+                                            <td width="60%">
+                                                <span t-esc="o.sale_id.name"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="o.picking_id">
+                                        <tr>
+                                            <td width="35%"><b>Delivery Ref.</b></td>
+                                            <td width="5%">:</td>
+                                            <td width="60%">
+                                                <span t-esc="o.picking_id.name"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="o.date">
+                                        <tr>
+                                            <td width="35%"><b>Date</b></td>
+                                            <td width="5%">:</td>
+                                            <td width="60%">
+                                                <span t-esc="o.date" t-options='{"widget": "date"}'/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="o.deadline_date">
+                                        <tr>
+                                            <td width="35%"><b>Expected Closing</b></td>
+                                            <td width="5%">:</td>
+                                            <td width="60%">
+                                                <span t-esc="o.deadline_date" t-options='{"widget": "date"}'/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="o.user_id">
+                                        <tr>
+                                            <td width="35%"><b>Salesperson</b></td>
+                                            <td width="5%">:</td>
+                                            <td width="60%">
+                                                <span t-esc="o.user_id.name"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </table>
+                            </div>
+                    </div>
+                    <div class="row mt16 mb16">
+                        <div class="col-12">
+                            <h3>Return Order # <span t-esc="o.name"/> - 
+                                <t t-if="o.state == 'draft'">
+                                    Draft
+                                </t>
+                                <t t-if="o.state == 'confirm'">
+                                    Confirm
+                                </t>
+                                <t t-if="o.state == 'process'">
+                                    Process
+                                </t>
+                                <t t-if="o.state == 'close'">
+                                    Closed
+                                </t>
+                                <t t-if="o.state == 'reject'">
+                                    Reject
+                                </t>
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="row mt16 mb16">
+                        <div class="col-12">
+                            <table style="width:100%" class="top_table">
+                                <tr>
+                                    <t t-if="o.incoming_id">
+                                        <td>
+                                            <b>RMA Shipment :</b> <br/><span t-esc="o.incoming_id.name"/>
+                                        </td>
+                                    </t>
+                                    <t t-if="o.delivery_id">
+                                        <td>
+                                            <b>RMA Delivery Order :</b> <br/><span t-esc="o.delivery_id.name"/>
+                                        </td>
+                                    </t>
+                                    <t t-if="o.new_sale_id">
+                                        <td>
+                                           <b> RMA Sale Order :</b> <br/><span t-esc="o.new_sale_id.name"/>
+                                        </td>
+                                    </t>
+                                    <t t-if="o.invoice_id">
+                                        <td>
+                                            <b>RMA Credit Note :</b> <br/>
+                                                <t t-if="o.invoice_id.name">
+                                                    <span t-esc="o.invoice_id.name"/>
+                                                </t>
+                                                <t t-if="not o.invoice_id.name">
+                                                    Draft Credit Note
+                                                </t>
+                                        </td>
+                                    </t>
+                                </tr>
+                            </table>
+                        </div>
+                    
+                    </div>
+                    
+                    
+                    <div class="row mt16 mb16">
+                        <div class="col-12">
+                            <table class="main_table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th class="text-right">Delivered Qty</th>
+                                        <th class="text-right">Return Qty</th>
+                                        <t t-if="is_replace_product(o)">
+                                            <th>Replace Prod</th>
+                                            <th class="text-right">Rep Prod Qty</th>
+                                        </t>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                               </thead>
+                               <tbody>
+                                    <t t-foreach="o.rma_lines" t-as="line" >
+                                        <tr style="page-break-inside: avoid">
+                                            <td><span t-field="line.product_id.name"/></td>
+                                            <td class="text-right">
+                                                <span t-esc="'%.2f'%(line.delivered_qty)"/>
+                                                
+                                            </td>
+                                            <td class="text-right">
+                                                <span t-esc="'%.2f'%(line.return_qty)"/>
+                                                
+                                            </td>
+                                            <t t-if="is_replace_product(o)">
+                                                <td>
+                                                    <span t-esc="line.replace_product_id.name"/>
+                                                </td>
+                                                
+                                                <td class="text-right">
+                                                    <span t-esc="'%.2f'%(line.replace_qty)"/>
+                                                </td>
+                                            </t>
+                                            
+                                            
+                                            <td class="text-center">
+                                                <t t-if="line.action == 'refund'">
+                                                    REFUND
+                                                </t>
+                                                <t t-if="line.action == 'repair'">
+                                                    REPAIR
+                                                </t>
+                                                <t t-if="line.action == 'replace'">
+                                                    REPLACE
+                                                </t>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt16 mb16">
+                        <t t-if="o.reject_reason">
+                            <div class="col-12">
+                                <b>Reject Reason :</b><br/>
+                                <span t-esc="o.reject_reason"/>
+                            </div>
+                        </t>
+                    </div>
+                    
+                </div>
+            </t>
+    </template>
+
+    <template id="report_rma_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="dev_rma.dev_report_rma_template" />
+            </t>
+        </t>
+    </template>
+
+
+</odoo>

@@ -1,0 +1,2212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+        <!-- tree view -->
+        <record id="sale_order_const_view_tree" model="ir.ui.view">
+            <field name="name">sale.order.const.view.tree</field>
+            <field name="model">sale.order.const</field>
+            <field name="arch" type="xml">
+                <tree string="Quotations" class="o_sale_order" multi_edit="1" sample="1">
+                    <field name="active" invisible="1"/>
+                    <field name="name" class="font-weight-bold"/>
+                    <field name="project_id" context="{'form_view_ref': 'equip3_construction_masterdata.edit_project', 'is_sale_project':True}"/>
+                    <field name="partner_id" />
+                    <field name="contract_category" />
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="user_id" widget="many2many_tags"/>
+                    <field name="company_id" optional='hide'/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="contract_amount1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                    <field name="amount_total_rel" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                    <field name="state"
+                           widget="badge"
+                           decoration-secondary="state == 'draft'"
+                           decoration-warning3="state == 'waiting_for_over_limit_approval' or state == 'to_approve'"
+                           decoration-success2="state == 'over_limit_approved' or state == 'quotation_approved'"
+                           decoration-danger="state == 'reject' or state == 'over_limit_reject'"
+                           decoration-primary3="state == 'sent'"
+                           decoration-success="state == 'sale'"
+                           decoration-success3="state == 'done'"
+                           decoration-danger2="state == 'cancel'"
+                           decoration-warning="state == 'on_hold'"
+                           decoration-danger3="state == 'block'"
+                           />
+                </tree>
+            </field>
+        </record>
+    
+        <!-- form view -->
+        <record id="sale_order_const_view_form" model="ir.ui.view">
+            <field name="name">sale.order.const.view.form</field>
+            <field name="model">sale.order.const</field>
+            <field name="arch" type="xml">
+                <form string="Quotations">
+                    <header>
+                        <button name="button_confirm" id="button_confirm" type="object" string="Confirm Order" class="oe_highlight" attrs="{'invisible': ['|', ('state', 'in', ('sale','cancel','block')), ('is_customer_approval_matrix_const', '=', True)]}"/>
+                        <button name="button_confirm" id="button_confirm_2" type="object" string="Confirm Order" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'quotation_approved'), ('is_customer_approval_matrix_const', '=', False)]}"/>
+                        <button name="action_request_for_approving" type="object" string="Request For Approval" class="oe_highlight" attrs="{'invisible': ['|', ('is_customer_approval_matrix_const', '=', False), ('state', '!=', 'draft')]}"/>
+                        <button name="action_confirm_approving_matrix" type="object" string="Approve" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_customer_approval_matrix_const', '=', False), ('state', '!=', 'to_approve'), ('is_approver', '=', False)]}"/>
+                        <button name="action_reject_approving_matrix" type="object" string="Reject" attrs="{'invisible': ['|', '|', ('is_customer_approval_matrix_const', '=', False), ('state', '!=', 'to_approve'), ('is_approver', '=', False)]}"/>
+                        <button name="send_email" type="object" string="Send By Email" class="oe_highlight" attrs="{'invisible': [('state', 'in', ('reject', 'over_limit_reject','cancel', 'block', 'to_approve'))]}"/>
+                        <button name="print_out" type="object" string="Print" class="oe_highlight" attrs="{'invisible': [('state', 'in', ('reject', 'over_limit_reject','cancel', 'block', 'to_approve'))]}"/>
+                        <button name="action_set_quotation" id="action_set_quotation_1" type="object" string="Set to Quotation" attrs="{'invisible': ['|', ('state', 'not in', ('reject', 'over_limit_reject', 'cancel')), ('boq_revised_bool', '=', True)]}"/>
+                        <button name="action_boq_revision" type="object" string="Create BOQ Revision" attrs="{'invisible': ['|', ('state', 'not in', ('reject', 'cancel')), ('boq_revised_bool', '=', True)]}"
+                                confirm="Are you sure you want to make revisions for each BOQ selected?"/>
+                        <button name="action_done" type="object" string="Done" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'sale')]}"/>
+                        <button name="button_cancel" type="object" string="Cancel" attrs="{'invisible': [('state', '!=', 'quotation_approved')]}"/>
+                        <field name="approval_matrix_state" widget="statusbar" statusbar_visible="draft,quotation_approved,sale" attrs="{'invisible': ['|', ('is_customer_approval_matrix_const', '=', False), ('state', 'in', ('reject', 'cancel','block'))]}"/>
+                        <field name="approval_matrix_state_1" widget="statusbar" statusbar_visible="draft,reject" attrs="{'invisible': ['|', ('is_customer_approval_matrix_const', '=', False), ('state', '!=', 'reject')]}"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,sale,done" attrs="{'invisible': ['|', ('state', 'in', ('cancel','block')), ('is_customer_approval_matrix_const', '=', True)]}"/>
+                        <field name="state_1_const" widget="statusbar" statusbar_visible="draft,sale,cancel" invisible="1" attrs="{'invisible' : ['|', ('state', '!=', 'cancel'), ('is_customer_approval_matrix_const', '=', True)]}"/>
+                        <field name="state_done" widget="statusbar" statusbar_visible="draft,sale,done" attrs="{'invisible' : [('state', '!=', 'done')]}"/>
+                        <field name="state_cancel" widget="statusbar" statusbar_visible="draft,sale,cancel" attrs="{'invisible' : [('state', '!=', 'cancel')]}"/>
+                        <field name="state_block" widget="statusbar" statusbar_visible="block" attrs="{'invisible' : [('state', '!=', 'block')]}"/>
+                    </header>
+                    <header invisible="1"> 
+                        <field name="sale_state" widget="statusbar" statusbar_visible="pending,progress,done" attrs="{'invisible' : [('state', 'not in', ('sale', 'done'))]}"/>
+                    </header>
+                    <sheet>
+                        <div name="button_box" class="oe_button_box">
+                            <button name="action_revision_boq_view"
+                                    type="object"
+                                    class="oe_stat_button"
+                                    icon="o-hm-smart-construction-job-estimate"
+                                    attrs="{'invisible': [('boq_revised_bool', '=', False)]}">
+                                <field name="total_boq_revision" widget="statinfo"/>
+                            </button>
+                            <button id="action_project_1" type="object" class="oe_stat_button" icon="o-hm-smart-construction-project"
+                                    name="action_project" attrs="{'invisible' : [('state', 'not in', ('sale', 'done'))]}">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_text">Project</span>
+                                </div>
+                            </button>
+                            <button id="action_project_2" type="object" class="oe_stat_button" icon="o-hm-smart-construction-project"
+                                    name="action_project" attrs="{'invisible' : ['|', ('contract_category', '=', 'main'), ('state', 'in', ('sale', 'done'))]}">
+                                <div class="o_form_field o_stat_info">
+                                    <span class="o_stat_text">Project</span>
+                                </div>
+                            </button>
+                        </div>
+                        <widget name="web_ribbon" title="Confirmed" bg_color="bg-success" attrs="{'invisible': [('state', 'not in', ('sale', 'done'))]}"/>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" />
+                            </h1>
+                        </div>
+                        <group name="main_form" attrs="{'readonly': [('state', '=', 'block')]}">
+                            <group name="left_section_main">
+                                <field name="job_reference" invisible="1"/>
+                                <field name="project_id" options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"  context="{'form_view_ref': 'equip3_construction_masterdata.edit_project', 'is_sale_project':True}"/>
+                                <field name="job_references" widget="many2many_tags" string='BOQ'
+                                       domain="[('project_id', '=', project_id), ('state_new', '=', 'confirmed')]" 
+                                       options="{'no_create': True, 'no_quick_create':True,'no_create_edit':True}"/>
+                                <field name="is_wizard" invisible="1" force_save="1" />
+                                <field name="job_count" invisible="1" force_save="1" />
+                                <field name="active" invisible="1"/>
+                                <field name="partner_id" widget="res_partner_many2one" context="{'res_partner_search_mode': 'customer', 'show_address': 1, 'show_vat': True}" options='{"always_reload": True}' readonly="1" force_save="1"/>
+                                <field name="partner_invoice_id" groups="sale.group_delivery_invoice_address" context="{'default_type':'invoice'}" options='{"always_reload": True}' domain="[('is_customer', '=', True)]"/>
+                                <field name="analytic_idz" widget="many2many_tags" required="1"/>
+                                <field name="report_template_id" invisible = "1" />
+                            </group>
+                            <group name="right_section_main">
+                                <field name="date_order" string="Quotation Date" attrs="{'invisible': [('state', 'in', ['sale', 'done'])]}"/>
+                                <field name="date_order" string="Order Date" attrs="{'invisible': [('state', 'not in', ['sale', 'done'])]}"/>
+                                <field name="validity_date" attrs="{'invisible': [('state', 'in', ['sale', 'done'])]}"/>
+                                <field name="show_update_pricelist" invisible="1"/>
+                                <label for="pricelist_id"/>
+                                <div class="o_row">
+                                    <field name="pricelist_id" options="{'no_open':True,'no_create': True}"/>
+                                    <button name="update_prices" type="object"
+                                        string=" Update Prices"
+                                        help="Recompute all prices based on this pricelist"
+                                        class="btn-link mb-1 px-0" icon="fa-refresh"
+                                        confirm="This will update all unit prices based on the currently set pricelist."
+                                        attrs="{'invisible': ['|', ('show_update_pricelist', '=', False), ('state', 'in', ['sale', 'done','cancel'])]}"/>
+                                </div>
+                                <field name="currency_id" string="Currency"/>
+                                <field name="company_currency_id" invisible="1"/>
+                                <field name="adjustment_type" />
+                                <label for="is_set_adjustment_sale" invisible="1"/>
+                                <div class="o_row" name="adjustment_adv">
+                                    <field name="is_set_adjustment_sale" nolabel="1"/>
+                                    <span>Advance Adjustment Calculation</span>
+                                </div>
+                                <!-- <field name="is_set_adjustment_sale" /> -->
+                                <field name="discount_type" />
+                                <field name="is_customer_approval_matrix_const" invisible="1"/>
+                                <field name="is_approval_matrix_filled" invisible="1"/>
+                                <field name="is_approve_button" invisible="1"/>
+                                <field name="approval_matrix_line_id" invisible="1"/>
+                                <field name="use_retention" invisible="1"/>
+                                <field name="use_dp" invisible="1"/>
+                                <field name="boq_revised_bool" invisible="1"/>
+                                <field name="company_id" />
+                                <field name="branch_id" required="1" readonly="1" force_save="1"/>
+                                <field name="create_uid" string="Created By"/>
+                                <field name="create_date" string="Creation Date"/>    
+                                <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                                <field name="is_approver" invisible="1"/>
+                                <field name="approved_user_text" invisible="1"/>
+                                <field name="approved_user" invisible="1" readonly="0"/>
+                                <field name="employee_id" invisible="1"/>
+                                <field name="feedback_parent" invisible="1"/>
+                                <field name="is_over_budget_ratio" invisible="1"/>
+                                <field name="ratio_value" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="project_details" string="Contract Details" >
+                                <group name="project_detail_main">
+                                    <group name="pd_left">
+                                        <field name="contract_category" force_save="1" readonly="1"/>
+                                        <field name="payment_seq" invisible="1"/>
+                                        <field name="main_contract_ref"  force_save="1"
+                                               attrs="{'invisible': [('contract_category','=', 'main')], 'required':[('contract_category', '=', 'var')], 'readonly':[('contract_category', '=', 'var')]}" />
+                                        <label for="street" string="Construction Location"/>
+                                            <div class="o_address_format">
+                                                <field name="street" placeholder="Street..." class="o_address_street"/>
+                                                <field name="street_2" placeholder="Street 2..." class="o_address_street"/>
+                                                <field name="city" placeholder="City" class="o_address_city"/>
+                                                <field name="state_id" class="o_address_state" placeholder="State" options="{&quot;no_open&quot;: True}"/>
+                                                <field name="zip_code" placeholder="ZIP" class="o_address_zip" />
+                                                <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True}"/>
+                                            </div>
+                                        <field name="warehouse_address" invisible='1'/>
+                                        <field name="start_date" required="1"/>
+                                        <field name="end_date" required="1"/>
+                                        <field name="year" invisible="1"/>
+                                        <field name="vo_payment_type" force_save="1"
+                                               attrs="{'invisible': [('contract_category','=', 'main')], 'required':[('contract_category', '=', 'var')], 'readonly':['|', ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block')), ('contract_amount1', '&lt;', 0)]}" />
+                                        <field name="contract_parent" force_save="1" options="{'no_create': True, 'no_quick_create': True, 'no_create_edit':True}"
+                                               attrs="{'invisible': [('vo_payment_type','!=', 'join')], 'required':[('vo_payment_type', '=', 'join')], 'readonly':[('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}" 
+                                               domain="[('project_id', '=', project_id), ('vo_payment_type', '=', 'split'), ('state', '=', 'sale')]" />
+                                        <field name="count_contract" invisible="1"/>
+                                    </group>
+                                    <group name="pd_right">
+                                        <field name="contract_amount1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_variation_order_material" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                        <field name="total_variation_order_labour" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                        <field name="total_variation_order_overhead" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                        <field name="total_variation_order_subcon" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                        <field name="total_variation_order_asset" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                        <field name="total_variation_order_equipment" class="oe_inline" widget="monetary" invisible="1" options="{'currency_field': 'currency_id'}" force_save='1'/>
+                                        <field name="amount_total_variation_order" widget='monetary' readonly="1" force_save="1" invisible="0" options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('contract_category', '!=', 'var')]}"/>
+                                        <field name="total_variation_order" widget='monetary' readonly="1" force_save="1" options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('contract_category', '!=', 'var')]}"/>
+                                        <label for="down_payment" string="Down Payment"/>
+                                            <div class="d-flex">
+                                                <field name="dp_method" force_save="1" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"
+                                                    placeholder="Method" required="1"/>
+                                                <span class="oe_inline o_form_label mx-3 oe_read_only"> Amount </span>
+                                                <span class="oe_inline o_form_label mr-3 ml-3 oe_edit_only"> Amount </span>
+                                                <field name="down_payment" force_save="1" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"
+                                                    placeholder="Amount" required="1"/>
+                                                <label for="down_payment" string="%%"  class="oe_inline"
+                                                    attrs="{'invisible': [('dp_method', '!=', 'per')]}"/>
+                                            </div>
+                                        <field name="dp_amount" invisible="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="retention1" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                        <field name="retention1_amount" force_save="1" invisible="1"/>
+                                        <field name="retention1_date" invisible="1" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                        <field name="retention_term_1" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                        <field name="retention2" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}" force_save="1"/>
+                                        <field name="retention2_amount" class="oe_inline" force_save="1" invisible="1"/>
+                                        <field name="retention2_date" invisible="1" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                        <field name="retention_term_2" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                        <field name="tax_id" widget="many2many_tags" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                        <field name="payment_term_id"  force_save="1"
+                                                    options="{'no_create': True, 'no_quick_create': True, 'no_create_edit':True}" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page name="project_scope_ids" string="Project Scope">
+                                <field name="project_scope_ids" widget="one2many_list" class="o_scope_line" attrs="{'readonly': [('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}">
+                                    <tree editable="bottom" create="false" delete="false">
+                                        <field name="sequence" widget='handle'/>
+                                        <field name="active" invisible="1"/>
+                                        <field name="sr_no" readonly="1" />
+                                        <field name="order_id" string="Number" invisible = "1"/>
+                                        <field name="create_date" string="Creation Date" invisible = "1"/>
+                                        <field name="project_id" invisible = "1"/>
+                                        <field name="order_partner_id" invisible = "1"/>
+                                        <field name="user_id" invisible = "1" widget="many2many_tags"/>
+                                        <field name="job_references" widget="many2many_tags" invisible="1"/>
+                                        <field name="job_reference" invisible="1"/> 
+                                        <field name="project_scope" readonly="1" force_save="1"/>
+                                        <field name="description" readonly="1" force_save="1"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="adjustment_type" invisible = "1"/>
+                                        <field name="adjustment_method_scope" attrs="{'column_invisible': [('parent.adjustment_type','!=','scope')]}"/>
+                                        <field name="adjustment_amount_scope" attrs="{'column_invisible': [('parent.adjustment_type','!=','scope')]}"/>
+                                        <field name="adjustment_subtotal_scope" invisible = "1"/>
+                                        <field name="scope_adjustment" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Adjustment"/>
+                                        <field name="discount_type" invisible = "1"/>
+                                        <field name="discount_method_scope" attrs="{'column_invisible': [('parent.discount_type','!=','scope')]}"/>
+                                        <field name="discount_amount_scope" attrs="{'column_invisible': [('parent.discount_type','!=','scope')]}"/>
+                                        <field name="discount_subtotal_scope" invisible = "1"/>
+                                        <field name="scope_discount" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Discount"/>
+                                        <field name="subtotal_scope" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Contract"/>
+                                        <field name="state_line" invisible = "1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                    </tree>
+                                </field>
+                                <group attrs="{'readonly': [('state', '=', 'block')]}">
+                                    <group name="adjustment" string="Adjustment" attrs="{'invisible': [('adjustment_type','!=', 'global')]}">
+                                        <group>
+                                            <label for="adjustment_method_global" string="Method" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="adjustment_method_global" class="oe_inline" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            </div>
+                                            <label for="adjustment_amount_global" string="Amount" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="adjustment_amount_global" class="oe_inline" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                                <label for="adjustment_amount_global" string="%%" attrs="{'invisible': [('adjustment_method_global', '!=', 'per')]}" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="scope_adjustment_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_scope" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_type" invisible = "1"/>
+                                                    <field name="adjustment_method_scope" string="Method"/>
+                                                    <field name="adjustment_amount_scope" string="Amount"/>
+                                                    <field name="adjustment_subtotal_scope" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="section_adjustment_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1"  />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="section_name" readonly="1" force_save="1" invisible="1"/>
+                                                    <field name="section" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_section" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_type" invisible = "1"/>
+                                                    <field name="adjustment_method_section" string="Method"/>
+                                                    <field name="adjustment_amount_section" string="Amount"/>
+                                                    <field name="adjustment_subtotal_section" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group>
+                                        </group>
+                                    </group>    
+                                    <group name="discount" string="Discount" attrs="{'invisible': [('discount_type','!=', 'global')]}">
+                                        <group>
+                                            <label for="discount_method_global" string="Method" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="discount_method_global" class="oe_inline" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            </div>
+                                            <label for="discount_amount_global" string="Amount" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="discount_amount_global" class="oe_inline" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                                <label for="discount_amount_global" string="%%" attrs="{'invisible': [('discount_method_global', '!=', 'per')]}" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="scope_discount_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_scope" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_amount"  readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="discount_type" invisible = "1"/>
+                                                    <field name="discount_method_scope" string="Method"/>
+                                                    <field name="discount_amount_scope" string="Amount"/>
+                                                    <field name="discount_subtotal_scope" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="section_discount_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="section_name" readonly="1" force_save="1" invisible="1"/>
+                                                    <field name="section" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_section" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_amount"  readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="discount_type" invisible = "1"/>
+                                                    <field name="discount_method_section" string="Method"/>
+                                                    <field name="discount_amount_section" string="Amount"/>
+                                                    <field name="discount_subtotal_section" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group>
+                                        </group>
+                                    </group>
+                                </group>  
+                                <group name="bottom_fields" attrs="{'readonly': [('state', '=', 'block')]}">
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                        <field name="total_material" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_labour" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_overhead" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_asset" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_subcon" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="amount_untaxed" />
+                                        </div>
+                                        <field name="amount_untaxed" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="adjustment_sub" widget='monetary' options="{'currency_field': 'currency_id'}" string="Adjustment (+)"/>
+                                        <field name="discount_sub" widget="monetary" options="{'currency_field': 'currency_id'}"  string="Discount (-)"/> 
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="contract_amount" />
+                                        </div>
+                                        <field name="contract_amount" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary'/>
+                                        <field name="amount_tax" widget='monetary'/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="amount_total" />
+                                        </div>
+                                        <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary'/>
+                                    </group>
+                                    <group name="note_group">
+                                        <div>
+                                            <label for="terms_conditions_id" string="Terms and Conditions"/>
+                                            <field name="terms_conditions_id" nolabel="1"/>
+                                            <field name="note" nolabel="1" widget="html" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        </div>
+                                    </group> 
+                                </group> 
+                            </page>
+                            <page name="section_ids" string="Section">
+                                <field name="section_ids" widget="one2many_list" class="o_section_line" attrs="{'readonly': [('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}">
+                                    <tree editable="bottom" create="false" delete="false">
+                                        <field name="sequence" widget='handle'/>
+                                        <field name="active" invisible="1"/>
+                                        <field name="sr_no" readonly="1" />
+                                        <field name="order_id" string="Number" invisible = "1"/>
+                                        <field name="create_date" string="Creation Date" invisible = "1"/>
+                                        <field name="project_id" invisible = "1"/>
+                                        <field name="order_partner_id" invisible = "1"/>
+                                        <field name="user_id" invisible = "1" widget="many2many_tags"/>
+                                        <field name="job_references" widget="many2many_tags" invisible="1"/>
+                                        <field name="job_reference" invisible="1"/> 
+                                        <field name="project_scope" readonly="1" force_save="1"/>
+                                        <field name="section" readonly="1" force_save="1"/>
+                                        <field name="description" readonly="1" force_save="1"/>
+                                        <field name="quantity" readonly="1" force_save="1"/>
+                                        <field name="uom_id" readonly="1" force_save="1" />
+                                        <field name="unit_price" invisible="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="adjustment_type" invisible = "1"/>
+                                        <field name="adjustment_method_section" attrs="{'column_invisible': [('parent.adjustment_type','!=','section')]}"/>
+                                        <field name="adjustment_amount_section" attrs="{'column_invisible': [('parent.adjustment_type','!=','section')]}"/>
+                                        <field name="adjustment_subtotal_section" invisible = "1"/>
+                                        <field name="section_adjustment" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Adjustment"/>
+                                        <field name="discount_type" invisible = "1"/>
+                                        <field name="discount_method_section" attrs="{'column_invisible': [('parent.discount_type','!=','section')]}"/>
+                                        <field name="discount_amount_section" attrs="{'column_invisible': [('parent.discount_type','!=','section')]}"/>
+                                        <field name="discount_subtotal_section" invisible = "1"/>
+                                        <field name="section_discount" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Discount"/>
+                                        <field name="subtotal_section" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Contract"/>
+                                        <field name="state_line" invisible = "1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                    </tree>
+                                </field>
+                                <group attrs="{'readonly': [('state', '=', 'block')]}">
+                                    <group name="adjustment" string="Adjustment" attrs="{'invisible': [('adjustment_type','!=', 'global')]}">
+                                        <group>
+                                            <label for="adjustment_method_global" string="Method" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="adjustment_method_global" class="oe_inline" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            </div>
+                                            <label for="adjustment_amount_global" string="Amount" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="adjustment_amount_global" class="oe_inline" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                                <label for="adjustment_amount_global" string="%%" attrs="{'invisible': [('adjustment_method_global', '!=', 'per')]}" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="scope_adjustment_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_scope" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_type" invisible = "1"/>
+                                                    <field name="adjustment_method_scope" string="Method"/>
+                                                    <field name="adjustment_amount_scope" string="Amount"/>
+                                                    <field name="adjustment_subtotal_scope" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="section_adjustment_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1"  />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="section_name" readonly="1" force_save="1" invisible="1"/>
+                                                    <field name="section" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_section" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_type" invisible = "1"/>
+                                                    <field name="adjustment_method_section" string="Method"/>
+                                                    <field name="adjustment_amount_section" string="Amount"/>
+                                                    <field name="adjustment_subtotal_section" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group>
+                                        </group>
+                                    </group>    
+                                    <group name="discount" string="Discount" attrs="{'invisible': [('discount_type','!=', 'global')]}">
+                                        <group>
+                                            <label for="discount_method_global" string="Method" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="discount_method_global" class="oe_inline" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            </div>
+                                            <label for="discount_amount_global" string="Amount" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="discount_amount_global" class="oe_inline" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                                <label for="discount_amount_global" string="%%" attrs="{'invisible': [('discount_method_global', '!=', 'per')]}" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="scope_discount_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_scope" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_amount"  readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="discount_type" invisible = "1"/>
+                                                    <field name="discount_method_scope" string="Method"/>
+                                                    <field name="discount_amount_scope" string="Amount"/>
+                                                    <field name="discount_subtotal_scope" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="section_discount_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="section_name" readonly="1" force_save="1" invisible="1"/>
+                                                    <field name="section" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_section" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_amount"  readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="discount_type" invisible = "1"/>
+                                                    <field name="discount_method_section" string="Method"/>
+                                                    <field name="discount_amount_section" string="Amount"/>
+                                                    <field name="discount_subtotal_section" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group>
+                                        </group>
+                                    </group>
+                                </group>  
+                                <group name="bottom_fields" attrs="{'readonly': [('state', '=', 'block')]}">
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                        <field name="total_material" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_labour" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_overhead" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_asset" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_subcon" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="amount_untaxed" />
+                                        </div>
+                                        <field name="amount_untaxed" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="adjustment_sub" widget='monetary' options="{'currency_field': 'currency_id'}" string="Adjustment (+)"/>
+                                        <field name="discount_sub" widget="monetary" options="{'currency_field': 'currency_id'}"  string="Discount (-)"/> 
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="contract_amount" />
+                                        </div>
+                                        <field name="contract_amount" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary'/>
+                                        <field name="amount_tax" widget='monetary'/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="amount_total" />
+                                        </div>
+                                        <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary'/>
+                                    </group>
+                                    <group name="note_group">
+                                        <div>
+                                            <label for="terms_conditions_id" string="Terms and Conditions"/>
+                                            <field name="terms_conditions_id" nolabel="1"/>
+                                            <field name="note" nolabel="1" widget="html" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        </div>
+                                    </group> 
+                                </group> 
+                            </page>
+
+                            <page name="variable_ids" string="Variable" invisible='1'>
+                                <field name="variable_ids" widget="one2many_list" class="o_variable_line" attrs="{'readonly': [('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}">
+                                    <tree editable="bottom" create="false" delete="false">
+                                        <field name="sequence" widget='handle'/>
+                                        <field name="active" invisible="1"/>
+                                        <field name="sr_no" readonly="1" />
+                                        <field name="order_id" string="Number" invisible = "1"/>
+                                        <field name="create_date" string="Creation Date" invisible = "1"/>
+                                        <field name="project_id" invisible = "1"/>
+                                        <field name="order_partner_id" invisible = "1"/>
+                                        <field name="user_id" invisible = "1" widget="many2many_tags"/>
+                                        <field name="job_references" widget="many2many_tags" invisible="1"/>
+                                        <field name="job_reference" invisible="1"/> 
+                                        <field name="project_scope" readonly="1" force_save="1"/>
+                                        <field name="section" readonly="1" force_save="1"/>
+                                        <field name="variable" readonly="1" force_save="1"/>
+                                        <field name="quantity" readonly="1" force_save="1"/>
+                                        <field name="uom_id" readonly="1" force_save="1" />
+                                        <field name="unit_price" invisible="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="adjustment_type" invisible = "1"/>
+                                        <field name="adjustment_method_variable" attrs="{'column_invisible': [('parent.adjustment_type','!=','variable')]}"/>
+                                        <field name="adjustment_amount_variable" attrs="{'column_invisible': [('parent.adjustment_type','!=','variable')]}"/>
+                                        <field name="adjustment_subtotal_variable" invisible = "1"/>
+                                        <field name="variable_adjustment" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Adjustment"/>
+                                        <field name="discount_type" invisible = "1"/>
+                                        <field name="discount_method_variable" attrs="{'column_invisible': [('parent.discount_type','!=','variable')]}"/>
+                                        <field name="discount_amount_variable" attrs="{'column_invisible': [('parent.discount_type','!=','variable')]}"/>
+                                        <field name="discount_subtotal_variable" invisible = "1"/>
+                                        <field name="variable_discount" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Discount"/>
+                                        <field name="subtotal_variable" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" sum="Total Contract"/>
+                                        <field name="state_line" invisible = "1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                    </tree>
+                                </field>
+                                <group attrs="{'readonly': [('state', '=', 'block')]}">
+                                    <group name="adjustment" string="Adjustment" attrs="{'invisible': [('adjustment_type','!=', 'global')]}">
+                                        <group>
+                                            <label for="adjustment_method_global" string="Method" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="adjustment_method_global" class="oe_inline" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            </div>
+                                            <label for="adjustment_amount_global" string="Amount" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="adjustment_amount_global" class="oe_inline" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                                <label for="adjustment_amount_global" string="%%" attrs="{'invisible': [('adjustment_method_global', '!=', 'per')]}" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="scope_adjustment_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_scope" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_type" invisible = "1"/>
+                                                    <field name="adjustment_method_scope" string="Method"/>
+                                                    <field name="adjustment_amount_scope" string="Amount"/>
+                                                    <field name="adjustment_subtotal_scope" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="section_adjustment_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1"  />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="section_name" readonly="1" force_save="1" invisible="1"/>
+                                                    <field name="section" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_section" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_type" invisible = "1"/>
+                                                    <field name="adjustment_method_section" string="Method"/>
+                                                    <field name="adjustment_amount_section" string="Amount"/>
+                                                    <field name="adjustment_subtotal_section" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group>
+                                        </group>
+                                    </group>    
+                                    <group name="discount" string="Discount" attrs="{'invisible': [('discount_type','!=', 'global')]}">
+                                        <group>
+                                            <label for="discount_method_global" string="Method" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="discount_method_global" class="oe_inline" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            </div>
+                                            <label for="discount_amount_global" string="Amount" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="discount_amount_global" class="oe_inline" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                                <label for="discount_amount_global" string="%%" attrs="{'invisible': [('discount_method_global', '!=', 'per')]}" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="scope_discount_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_scope" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_amount"  readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="discount_type" invisible = "1"/>
+                                                    <field name="discount_method_scope" string="Method"/>
+                                                    <field name="discount_amount_scope" string="Amount"/>
+                                                    <field name="discount_subtotal_scope" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="section_discount_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="section_name" readonly="1" force_save="1" invisible="1"/>
+                                                    <field name="section" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_section" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_amount"  readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="discount_type" invisible = "1"/>
+                                                    <field name="discount_method_section" string="Method"/>
+                                                    <field name="discount_amount_section" string="Amount"/>
+                                                    <field name="discount_subtotal_section" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group>
+                                        </group>
+                                    </group>
+                                </group>  
+                                <group name="bottom_fields" attrs="{'readonly': [('state', '=', 'block')]}">
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                        <field name="total_material" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_labour" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_overhead" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_asset" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_subcon" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="amount_untaxed" />
+                                        </div>
+                                        <field name="amount_untaxed" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="adjustment_sub" widget='monetary' options="{'currency_field': 'currency_id'}" string="Adjustment (+)"/>
+                                        <field name="discount_sub" widget="monetary" options="{'currency_field': 'currency_id'}"  string="Discount (-)"/> 
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="contract_amount" />
+                                        </div>
+                                        <field name="contract_amount" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary'/>
+                                        <field name="amount_tax" widget='monetary'/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="amount_total" />
+                                        </div>
+                                        <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary'/>
+                                    </group>
+                                    <group name="note_group">
+                                        <div>
+                                            <label for="terms_conditions_id" string="Terms and Conditions"/>
+                                            <field name="terms_conditions_id" nolabel="1"/>
+                                            <field name="note" nolabel="1" widget="html" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        </div>
+                                    </group> 
+                                </group> 
+                            </page>
+                            <page name="order_ids" string="Order Lines">
+                                <field name="order_line_ids" widget="one2many_list" class="o_sale_order_line" attrs="{'readonly': [('state', '=', 'block')]}" invisible="1">
+                                    <tree editable="bottom" create="false" delete="false">
+                                        <field name="sr_no" readonly="1" />
+                                        <field name="active" invisible="1"/>
+                                        <field name="order_id" string="Number" invisible = "1"/>
+                                        <field name="create_date" string="Creation Date" invisible = "1"/>
+                                        <field name="project_id" invisible = "1"/>
+                                        <field name="order_partner_id" invisible = "1"/>
+                                        <field name="user_id" invisible = "1" widget="many2many_tags"/>
+                                        <field name="project_scope" readonly="1" force_save="1"/>
+                                        <field name="section_name" readonly="1" force_save="1"/>
+                                        <field name="variable_ref" readonly="1" force_save="1" invisible='1'/>
+                                        <field name="type" readonly="1" force_save="1" optional="show"/>
+                                        <field name="group_of_product" readonly="1" force_save="1" />
+                                        <field name="product_id" readonly="1" force_save="1" optional="show"/>
+                                        <field name="variable" readonly="1" force_save="1" optional="show"/>
+                                        <field name="description" readonly="1" force_save="1" />
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="analytic_idz" widget="many2many_tags" invisible="1"/>
+                                        <field name="quantity" readonly="1" force_save="1" />
+                                        <field name="uom_id" readonly="1" force_save="1" />
+                                        <field name="unit_price" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="line_tax_id"  widget="many2many_tags" />
+                                        <field name="adjustment_type" invisible = "1"/>
+                                        <field name="adjustment_method_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                        <field name="adjustment_amount_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                        <field name="adjustment_subtotal_line" invisible = "1"/>
+                                        <field name="adjustment_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                        <field name="discount_type" invisible = "1"/>
+                                        <field name="discount_method_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                        <field name="discount_amount_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                        <field name="discount_subtotal_line" invisible = "1"/>
+                                        <field name="discount_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                        <field name="subtotal" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                        <field name="amount_tax_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                        <field name="total_amount"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                        <field name="state_line" invisible = "1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                    </tree>
+                                </field>
+
+                                <notebook>
+                                    <page name="material_line_ids" string="Material Lines">
+                                        <field name="material_line_ids" widget="one2many_list"
+                                               class="o_sale_order_line" attrs="{'readonly': [('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}">
+                                            <tree editable="bottom" create="false" delete="false">
+                                                <field name="sr_no" readonly="1" />
+                                                <field name="active" invisible="1"/>
+                                                <field name="order_id" string="Number" invisible = "1"/>
+                                                <field name="create_date" string="Creation Date" invisible = "1"/>
+                                                <field name="project_id" invisible = "1"/>
+                                                <field name="order_partner_id" invisible = "1"/>
+                                                <field name="user_id" invisible = "1" widget="many2many_tags"/>
+                                                <field name="job_references" widget="many2many_tags" invisible="1"/>
+                                                <field name="job_reference" invisible="1"/> 
+                                                <field name="project_scope" readonly="1" force_save="1"/>
+                                                <field name="section_name" readonly="1" force_save="1"/>
+                                                <field name="variable_ref" readonly="1" force_save="1" invisible='1'/>
+                                                <field name="type" readonly="1" force_save="1" invisible = "1"/>
+                                                <field name="group_of_product" readonly="1" force_save="1" />
+                                                <field name="material_id" readonly="1" force_save="1"/>
+                                                <field name="description" readonly="1" force_save="1" />
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="analytic_idz" widget="many2many_tags" optional="hide"/>
+                                                <field name="budget_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}" optional="hide"/>
+                                                <field name="current_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}"/>
+                                                <field name="quantity" readonly="1" force_save="1" />
+                                                <field name="uom_id" readonly="1" force_save="1" />
+                                                <field name="unit_price" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="line_tax_id"  widget="many2many_tags" optional="hide"/>
+                                                <field name="adjustment_type" invisible = "1"/>
+                                                <field name="adjustment_method_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                <field name="adjustment_amount_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                <field name="adjustment_subtotal_line" invisible = "1"/>
+                                                <field name="adjustment_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="discount_type" invisible = "1"/>
+                                                <field name="discount_method_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                <field name="discount_amount_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                <field name="discount_subtotal_line" invisible = "1"/>
+                                                <field name="discount_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                                <field name="discount" readonly="1" force_save="1" invisible='1'/>
+                                                <field name="subtotal" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                                <field name="amount_tax_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                                <field name="total_amount"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                                <field name="state_line" invisible = "1"/>
+                                                <field name="currency_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="labour_line_ids" string="Labour Lines">
+                                        <field name="labour_line_ids" widget="one2many_list"
+                                               class="o_sale_order_line" attrs="{'readonly': [('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}">
+                                            <tree editable="bottom" create="false" delete="false">
+                                                <field name="sr_no" readonly="1" />
+                                                <field name="active" invisible="1"/>
+                                                <field name="order_id" string="Number" invisible = "1"/>
+                                                <field name="create_date" string="Creation Date" invisible = "1"/>
+                                                <field name="project_id" invisible = "1"/>
+                                                <field name="order_partner_id" invisible = "1"/>
+                                                <field name="user_id" invisible = "1" widget="many2many_tags"/>
+                                                <field name="job_references" widget="many2many_tags" invisible="1"/>
+                                                <field name="job_reference" invisible="1"/> 
+                                                <field name="project_scope" readonly="1" force_save="1"/>
+                                                <field name="section_name" readonly="1" force_save="1"/>
+                                                <field name="variable_ref" readonly="1" force_save="1" invisible='1'/>
+                                                <field name="type" readonly="1" force_save="1" invisible = "1"/>
+                                                <field name="group_of_product" readonly="1" force_save="1" />
+                                                <field name="labour_id" readonly="1" force_save="1"/>
+                                                <field name="description" readonly="1" force_save="1" />
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="analytic_idz" widget="many2many_tags" optional="hide"/>
+                                                <field name="budget_contractors" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}" optional="hide"/>
+                                                <field name="current_contractors" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}"/>
+                                                <field name="budget_time" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}" optional="hide"/>
+                                                <field name="current_time" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}"/>
+                                                <field name="contractors" readonly="1" force_save="1"/>
+                                                <field name="time" readonly="1" force_save="1"/>
+                                                <field name="quantity" readonly="1" force_save="1" invisible="1"/>
+                                                <field name="uom_id" readonly="1" force_save="1" />
+                                                <field name="unit_price" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="line_tax_id"  widget="many2many_tags" optional="hide"/>
+                                                <field name="adjustment_type" invisible = "1"/>
+                                                <field name="adjustment_method_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                <field name="adjustment_amount_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                <field name="adjustment_subtotal_line" invisible = "1"/>
+                                                <field name="adjustment_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                                <field name="discount_type" invisible = "1"/>
+                                                <field name="discount_method_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                <field name="discount_amount_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                <field name="discount_subtotal_line" invisible = "1"/>
+                                                <field name="discount_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                                <field name="discount" readonly="1" force_save="1" invisible='1'/>
+                                                <field name="subtotal" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                                <field name="amount_tax_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="total_amount"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="state_line" invisible = "1"/>
+                                                <field name="currency_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page name="overhead_line_ids" string="Overhead Lines">
+                                        <field name="overhead_line_ids" widget="one2many_list"
+                                               class="o_sale_order_line" attrs="{'readonly': [('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"> 
+                                            <tree editable="bottom" create="false" delete="false">
+                                                <field name="sr_no" readonly="1" />
+                                                <field name="active" invisible="1"/>
+                                                <field name="order_id" string="Number" invisible = "1"/>
+                                                <field name="create_date" string="Creation Date" invisible = "1"/>
+                                                <field name="project_id" invisible = "1"/>
+                                                <field name="order_partner_id" invisible = "1"/>
+                                                <field name="user_id" invisible = "1" widget="many2many_tags"/>
+                                                <field name="job_references" widget="many2many_tags" invisible="1"/>
+                                                <field name="job_reference" invisible="1"/> 
+                                                <field name="project_scope" readonly="1" force_save="1"/>
+                                                <field name="section_name" readonly="1" force_save="1"/>
+                                                <field name="variable_ref" readonly="1" force_save="1" invisible='1'/>
+                                                <field name="type" readonly="1" force_save="1" invisible = "1"/>
+                                                <field name="overhead_catagory" readonly="1" force_save="1"/>
+                                                <field name="group_of_product" readonly="1" force_save="1" />
+                                                <field name="overhead_id" readonly="1" force_save="1"/>
+                                                <field name="description" readonly="1" force_save="1" />
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="analytic_idz" widget="many2many_tags" optional="hide"/>
+                                                <field name="budget_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}" optional="hide"/>
+                                                <field name="current_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}"/>
+                                                <field name="quantity" readonly="1" force_save="1" />
+                                                <field name="uom_id" readonly="1" force_save="1" />
+                                                <field name="unit_price" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="line_tax_id"  widget="many2many_tags" optional="hide"/>
+                                                <field name="adjustment_type" invisible = "1"/>
+                                                <field name="adjustment_method_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                <field name="adjustment_amount_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                <field name="adjustment_subtotal_line" invisible = "1"/>
+                                                <field name="adjustment_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="discount_type" invisible = "1"/>
+                                                <field name="discount_method_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                <field name="discount_amount_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                <field name="discount_subtotal_line" invisible = "1"/>
+                                                <field name="discount_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="discount" readonly="1" force_save="1" invisible='1'/>
+                                                <field name="subtotal" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}" />
+                                                <field name="amount_tax_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="total_amount"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="state_line" invisible = "1"/>
+                                                <field name="currency_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page string="Asset Lines">
+                                        <notebook>
+                                            <page name="internal_asset_line_ids" string="Internal Asset Lines">
+                                                <field name="internal_asset_line_ids" widget="one2many_list"
+                                                    class="o_sale_order_line" attrs="{'readonly': [('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"> 
+                                                    <tree editable="bottom" create="false" delete="false">
+                                                        <field name="sr_no" readonly="1" />
+                                                        <field name="active" invisible="1"/>
+                                                        <field name="order_id" string="Number" invisible = "1"/>
+                                                        <field name="create_date" string="Creation Date" invisible = "1"/>
+                                                        <field name="project_id" invisible = "1"/>
+                                                        <field name="order_partner_id" invisible = "1"/>
+                                                        <field name="user_id" invisible = "1" widget="many2many_tags"/>
+                                                        <field name="job_references" widget="many2many_tags" invisible="1"/>
+                                                        <field name="job_reference" invisible="1"/> 
+                                                        <field name="project_scope" readonly="1" force_save="1"/>
+                                                        <field name="section_name" readonly="1" force_save="1"/>
+                                                        <field name="variable_ref" readonly="1" force_save="1" invisible='1'/>
+                                                        <field name="type" readonly="1" force_save="1" optional="hide"/>
+                                                        <field name="asset_category_id" readonly="1" force_save="1"/>
+                                                        <field name="asset_id" readonly="1" force_save="1"/>
+                                                        <field name="description" readonly="1" force_save="1" />
+                                                        <field name="company_id" invisible="1"/>
+                                                        <field name="analytic_idz" widget="many2many_tags" optional="hide"/>
+                                                        <field name="budget_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}" optional="hide"/>
+                                                        <field name="current_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}"/>
+                                                        <field name="quantity" readonly="1" force_save="1" />
+                                                        <field name="uom_id" readonly="1" force_save="1" />
+                                                        <field name="unit_price" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="line_tax_id"  widget="many2many_tags" optional="hide"/>
+                                                        <field name="adjustment_type" invisible = "1"/>
+                                                        <field name="adjustment_method_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                        <field name="adjustment_amount_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                        <field name="adjustment_subtotal_line" invisible = "1"/>
+                                                        <field name="adjustment_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="discount_type" invisible = "1"/>
+                                                        <field name="discount_method_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                        <field name="discount_amount_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                        <field name="discount_subtotal_line" invisible = "1"/>
+                                                        <field name="discount_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="subtotal" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="amount_tax_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="total_amount"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="state_line" invisible = "1"/>
+                                                        <field name="currency_id" invisible="1"/>
+                                                    </tree>
+                                                </field>
+                                                <group name="bottom_fields_internal_asset" attrs="{'readonly': [('state', '=', 'block')]}">
+                                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="asset_total">
+                                                        <field name="total_internal_asset" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                    </group>
+                                                </group>
+                                            </page>
+                                            <page name="equipment_line_ids" string="Equipment Lease Lines">
+                                                <field name="equipment_line_ids" widget="one2many_list"
+                                                    class="o_sale_order_line" attrs="{'readonly': [('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"> 
+                                                    <tree editable="bottom" create="false" delete="false">
+                                                        <field name="sr_no" readonly="1" />
+                                                        <field name="active" invisible="1"/>
+                                                        <field name="order_id" string="Number" invisible = "1"/>
+                                                        <field name="create_date" string="Creation Date" invisible = "1"/>
+                                                        <field name="project_id" invisible = "1"/>
+                                                        <field name="order_partner_id" invisible = "1"/>
+                                                        <field name="user_id" invisible = "1" widget="many2many_tags"/>
+                                                        <field name="job_references" widget="many2many_tags" invisible="1"/>
+                                                        <field name="job_reference" invisible="1"/> 
+                                                        <field name="project_scope" readonly="1" force_save="1"/>
+                                                        <field name="section_name" readonly="1" force_save="1"/>
+                                                        <field name="variable_ref" readonly="1" force_save="1" invisible='1'/>
+                                                        <field name="type" readonly="1" force_save="1" invisible = "1"/>
+                                                        <field name="group_of_product" readonly="1" force_save="1"/>
+                                                        <field name="equipment_id" readonly="1" force_save="1"/>
+                                                        <field name="description" readonly="1" force_save="1" />
+                                                        <field name="company_id" invisible="1"/>
+                                                        <field name="analytic_idz" widget="many2many_tags" optional="hide"/>
+                                                        <field name="budget_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}" optional="hide"/>
+                                                        <field name="current_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}"/>
+                                                        <field name="quantity" readonly="1" force_save="1" />
+                                                        <field name="uom_id" readonly="1" force_save="1" />
+                                                        <field name="unit_price" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="line_tax_id"  widget="many2many_tags" optional="hide"/>
+                                                        <field name="adjustment_type" invisible = "1"/>
+                                                        <field name="adjustment_method_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                        <field name="adjustment_amount_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                        <field name="adjustment_subtotal_line" invisible = "1"/>
+                                                        <field name="adjustment_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="discount_type" invisible = "1"/>
+                                                        <field name="discount_method_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                        <field name="discount_amount_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                        <field name="discount_subtotal_line" invisible = "1"/>
+                                                        <field name="discount_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="discount" readonly="1" force_save="1" invisible='1'/>
+                                                        <field name="subtotal" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="amount_tax_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="total_amount"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                        <field name="state_line" invisible = "1"/>
+                                                        <field name="currency_id" invisible="1"/>
+                                                    </tree>
+                                                </field>
+                                                <group name="bottom_fields_equipment" attrs="{'readonly': [('state', '=', 'block')]}">
+                                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="equipmet_total">
+                                                        <field name="total_equipment" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                    </group>
+                                                </group>
+                                            </page> 
+                                        </notebook>
+                                    </page>
+                                    <page name="subcon_line_ids" string="Subcon Lines">
+                                        <field name="subcon_line_ids" widget="one2many_list"
+                                               class="o_sale_order_line" attrs="{'readonly': [('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"> 
+                                            <tree editable="bottom" create="false" delete="false">
+                                                <field name="sr_no" readonly="1" />
+                                                <field name="active" invisible="1"/>
+                                                <field name="order_id" string="Number" invisible = "1"/>
+                                                <field name="create_date" string="Creation Date" invisible = "1"/>
+                                                <field name="project_id" invisible = "1"/>
+                                                <field name="order_partner_id" invisible = "1"/>
+                                                <field name="user_id" invisible = "1" widget="many2many_tags"/>
+                                                <field name="job_references" widget="many2many_tags" invisible="1"/>
+                                                <field name="job_reference" invisible="1"/> 
+                                                <field name="project_scope" readonly="1" force_save="1"/>
+                                                <field name="section_name" readonly="1" force_save="1"/>
+                                                <field name="variable_ref" readonly="1" force_save="1" invisible='1'/>
+                                                <field name="type" readonly="1" force_save="1" invisible = "1"/>
+                                                <field name="subcon_id" readonly="1" force_save="1"/>
+                                                <field name="description" readonly="1" force_save="1" />
+                                                <field name="company_id" invisible="1"/>
+                                                <field name="analytic_idz" widget="many2many_tags" optional="hide"/>
+                                                <field name="budget_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}" optional="hide"/>
+                                                <field name="current_quantity" readonly="1" force_save="1" attrs="{'column_invisible': [('parent.contract_category','!=','var')]}"/>
+                                                <field name="quantity" readonly="1" force_save="1" />
+                                                <field name="uom_id" readonly="1" force_save="1" />
+                                                <field name="unit_price" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="line_tax_id"  widget="many2many_tags" optional="hide"/>
+                                                <field name="adjustment_type" invisible = "1"/>
+                                                <field name="adjustment_method_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                <field name="adjustment_amount_line" attrs="{'column_invisible': [('parent.adjustment_type','!=','line')]}"/>
+                                                <field name="adjustment_subtotal_line" invisible = "1"/>
+                                                <field name="adjustment_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="discount_type" invisible = "1"/>
+                                                <field name="discount_method_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                <field name="discount_amount_line" attrs="{'column_invisible': [('parent.discount_type','!=','line')]}"/>
+                                                <field name="discount_subtotal_line" invisible = "1"/>
+                                                <field name="discount_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="subtotal" readonly="1" force_save="1" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="amount_line"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="amount_tax_line" readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="total_amount"  readonly="1" force_save="1" optional="hide" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                                <field name="state_line" invisible = "1"/>
+                                                <field name="currency_id" invisible="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                </notebook>
+                                <group attrs="{'readonly': [('state', '=', 'block')]}">
+                                    <group name="adjustment" string="Adjustment" attrs="{'invisible': [('adjustment_type','!=', 'global')]}">
+                                        <group>
+                                            <label for="adjustment_method_global" string="Method" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="adjustment_method_global" class="oe_inline" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            </div>
+                                            <label for="adjustment_amount_global" string="Amount" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="adjustment_amount_global" class="oe_inline" attrs="{'invisible': [('adjustment_type','!=','global')]}"/>
+                                                <label for="adjustment_amount_global" string="%%" attrs="{'invisible': [('adjustment_method_global', '!=', 'per')]}" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="scope_adjustment_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_scope" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_type" invisible = "1"/>
+                                                    <field name="adjustment_method_scope" string="Method"/>
+                                                    <field name="adjustment_amount_scope" string="Amount"/>
+                                                    <field name="adjustment_subtotal_scope" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group invisible="1">
+                                            <field name="section_adjustment_ids" widget="one2many_list" nolabel="1" class="o_scope_section" invisible="1">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1"  />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="section_name" readonly="1" force_save="1" invisible="1"/>
+                                                    <field name="section" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_section" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_type" invisible = "1"/>
+                                                    <field name="adjustment_method_section" string="Method"/>
+                                                    <field name="adjustment_amount_section" string="Amount"/>
+                                                    <field name="adjustment_subtotal_section" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group>
+                                        </group>
+                                    </group>    
+                                    <group name="discount" string="Discount" attrs="{'invisible': [('discount_type','!=', 'global')]}">
+                                        <group>
+                                            <label for="discount_method_global" string="Method" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="discount_method_global" class="oe_inline" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            </div>
+                                            <label for="discount_amount_global" string="Amount" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                            <div>
+                                                <field name="discount_amount_global" class="oe_inline" attrs="{'invisible': [('discount_type','!=','global')]}"/>
+                                                <label for="discount_amount_global" string="%%" attrs="{'invisible': [('discount_method_global', '!=', 'per')]}" class="oe_inline"/>
+                                            </div>
+                                        </group>
+                                        <group>
+                                            <field name="scope_discount_ids" widget="one2many_list" nolabel="1" class="o_scope_section" attrs="{'invisible': [('discount_type','!=','scope')], 'readonly': [('state','in',('reject','over_limit_reject','sale','done','cancel','on_hold'))]}">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_scope" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_amount"  readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="discount_type" invisible = "1"/>
+                                                    <field name="discount_method_scope" string="Method"/>
+                                                    <field name="discount_amount_scope" string="Amount"/>
+                                                    <field name="discount_subtotal_scope" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group>
+                                            <field name="section_discount_ids" widget="one2many_list" nolabel="1" class="o_scope_section" attrs="{'invisible': [('discount_type','!=','section')], 'readonly': [('state','in',('reject','over_limit_reject','sale','done','cancel','on_hold'))]}">
+                                                <tree editable="bottom" create="false" delete="false">
+                                                    <field name="sr_no" readonly="1" />
+                                                    <field name="order_id" string="Number" invisible = "1"/>
+                                                    <field name="project_scope" readonly="1" force_save="1"/>
+                                                    <field name="section_name" readonly="1" force_save="1" invisible="1"/>
+                                                    <field name="section" readonly="1" force_save="1"/>
+                                                    <field name="subtotal_section" readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="adjustment_amount"  readonly="1" force_save="1" invisible = "1"/>
+                                                    <field name="discount_type" invisible = "1"/>
+                                                    <field name="discount_method_section" string="Method"/>
+                                                    <field name="discount_amount_section" string="Amount"/>
+                                                    <field name="discount_subtotal_section" string="Subtotal"/>
+                                                </tree>
+                                            </field>
+                                        </group>
+                                        <group>
+                                        </group>
+                                    </group>
+                                </group>  
+                                <group name="bottom_fields" attrs="{'readonly': [('state', '=', 'block')]}">
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                        <field name="total_material" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_labour" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_overhead" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_asset" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="total_subcon" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="amount_untaxed" />
+                                        </div>
+                                        <field name="amount_untaxed" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary' options="{'currency_field': 'currency_id'}"/>
+                                        <field name="adjustment_sub" widget='monetary' options="{'currency_field': 'currency_id'}" string="Adjustment (+)"/>
+                                        <field name="discount_sub" widget="monetary" options="{'currency_field': 'currency_id'}"  string="Discount (-)"/> 
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="contract_amount" />
+                                        </div>
+                                        <field name="contract_amount" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary'/>
+                                        <field name="amount_tax" widget='monetary'/>
+                                        <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                                            <label for="amount_total" />
+                                        </div>
+                                        <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget='monetary'/>
+                                    </group>
+                                    <group name="note_group">
+                                        <div>
+                                            <label for="terms_conditions_id" string="Terms and Conditions"/>
+                                            <field name="terms_conditions_id" nolabel="1"/>
+                                            <field name="note" nolabel="1" widget="html" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        </div>
+                                    </group> 
+                                </group> 
+                            </page>
+                           <page name="penalty" string="Penalty">
+                                <div>
+                                    <br/>    
+                                    <div width="100%">
+                                        <div>
+                                            <h3>
+                                                <b>Penalty Details</b>
+                                            </h3>
+                                            <hr/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br/>
+                                <div>
+                                    <field name="diff_penalty" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                    <label for="diff_penalty"/>
+                                </div>
+                                <group>
+                                    <group>                                            
+                                        <div width="100%" attrs="{'invisible': [('diff_penalty', '=', False)]}">
+                                            <div>
+                                                <h3>
+                                                    <b>Contractor</b>
+                                                </h3>
+                                                <hr/>
+                                            </div>
+                                        </div>
+                                        <field name="method" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                        <label for="amount"/>
+                                        <div name="amount_div" class="o_row">
+                                            <field name="amount" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                            <label for="amount" string="%" attrs="{'invisible': [('method', '=', 'fix')]}"/>
+                                        </div>                                            
+                                    </group>
+                                    <group name="pd_right" attrs="{'invisible': [('diff_penalty', '=', False)]}">                                            
+                                        <div width="100%">
+                                            <div>
+                                                <h3>
+                                                    <b>Customer</b>
+                                                </h3>
+                                                <hr/>
+                                            </div>
+                                        </div>
+                                        <field name="method_client" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                        <label for="amount_client"/>
+                                        <div name="amount_div" class="o_row">
+                                            <field name="amount_client" attrs="{'readonly':['|', ('vo_payment_type', '=', 'join'), ('state', 'in', ('reject','over_limit_reject','quotation_approved','sale','done','cancel','on_hold','block'))]}"  force_save="1"/>
+                                            <label for="amount_client" string="%" attrs="{'invisible': [('method_client', '=', 'fix')]}"/>
+                                        </div>                                            
+                                    </group>
+                                </group>
+                            </page>
+                            <page name="other_info" string="Other Info">
+                                <group name="main_other_info">
+                                    <group name="other_info_left" string="Sales">
+                                        <field name="user_id" widget="many2many_tags" />
+                                        <field name="team_id" />
+                                        <field name="require_signature" />
+                                        <field name="require_payment" />
+                                        <field name="client_order_ref" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        <field name="tag_ids" widget="many2many_tags" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        <field name="report_grids" attrs="{'readonly': [('state', '=', 'block')]}" />
+                                    </group>
+                                    <group name="other_info_right" string="Invoicing" >
+                                        <field name="fiscal_position_id" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        <field name="analytic_account_id" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                    </group>
+                                </group>
+                                <group name="bottom_other_info">
+                                    <group name="reporting" string="Reporting">
+                                        <field name="origin" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        <field name="opportunity_id" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        <field name="campaign_id" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        <field name="medium_id" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        <field name="source_id" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page groups="base.group_no_one" string="Customer Signature" name="customer_signature" attrs="{'invisible': [('require_signature', '=', False), ('signed_by', '=', False), ('signature', '=', False), ('signed_on', '=', False)]}">
+                                <group name="main">
+                                    <group>
+                                        <field name="signed_by" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        <field name="signed_on" attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                        <field name="signature" widget='image' attrs="{'readonly': [('state', '=', 'block')]}"/>
+                                    </group>
+                                </group>
+                            </page>
+                            <page string="Related Contracts" name="related_contract_ids" attrs="{'invisible': ['|', ('vo_payment_type','!=','split'), ('count_contract', '&lt;', 2)]}">
+                                <group> 
+                                    <field name="related_contract_ids" widget="many2many_list" nolabel="1" readonly="1" force_save="1"/>
+                                </group>
+                            </page>
+                            <page string="Approval Matrix Line" attrs="{'invisible': [('is_customer_approval_matrix_const', '=', False)]}">
+                                <group name="approval">
+                                    <group >
+                                        <field name="approving_matrix_cont_id" widget="many2many_tags" attrs="{'invisible': [('is_customer_approval_matrix_const', '=', False)]}" string="Approval Matrix"/>
+                                    </group>
+                                </group>
+                                <field name="sale_order_const_user_ids">
+                                    <tree editable="bottom" create="false" delete="false">
+                                        <field name="name"/>
+                                        <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                        <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                        <field name="is_delegation_mail_sent" invisible="1"/>
+                                        <field name="minimum_approver" readonly="1" force_save="1"/>
+                                        <field name="timestamp" invisible="1" force_save="1"/>
+                                        <field name="approver_state" invisible="1" force_save="1"/>
+                                        <field name="approval_status" readonly="1" force_save="1"/>
+                                        <field name="approved_time" readonly="1" force_save="1"/>
+                                        <field name="is_approve" invisible="1"/>
+                                        <field name="approved_employee_ids" invisible="1"/>
+                                        <field name="feedback" readonly="1" force_save="1"/>
+                                    </tree>
+                                </field>
+                                <!-- <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}" class="o_sale_approval_matrix_line">
+                                    <tree editable="bottom">
+                                        <field name="sequence" />
+                                        <field name="user_name_ids" widget="many2many_tags"/>
+                                        <field name="approval_type"/>
+                                        <field name="minimum_approver" />
+                                        <field name="state_char" />
+                                        <field name="time_stamp" />
+                                        <field name="signature"/>
+                                        <field name="feedback" />
+                                    </tree>
+                                </field> -->
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter" name="chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- sales order lines -->
+        <record id="view_order_line_const_tree" model="ir.ui.view">
+            <field name="name">sale.order.line.const.tree</field>
+            <field name="model">sale.order.line.const</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <tree create="0" edit="0" string="Order Lines">
+                    <field name="order_id" string="Number"/>
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="project_id"/>
+                    <field name="order_partner_id"/>
+                    <field name="user_id" optional="hide" widget="many2many_tags"/>
+                    <field name="project_scope" optional="hide"/>
+                    <field name="section_name" optional="hide"/>
+                    <field name="variable_ref" invisible='1'/>
+                    <field name="type" invisible="1"/>
+                    <field name="group_of_product" />
+                    <field name="product_id" />
+                    <field name="variable" />
+                    <field name="description" optional="hide" />
+                    <field name="analytic_idz" widget="many2many_tags"/>
+                    <field name="quantity" />
+                    <field name="uom_id" />
+                    <field name="unit_price" />
+                    <field name="line_tax_id"  widget="many2many_tags"/>
+                    <field name="adjustment_line" optional="hide"/>
+                    <field name="discount_line"  optional="hide"/>
+                    <field name="subtotal" />
+                    <field name="amount_line" optional="hide"/>
+                    <field name="total_amount"  optional="hide"/>
+                    <field name="state_line" string="Status" optional="hide"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="sale_order_line_const_view_form_readonly" model="ir.ui.view">
+            <field name="name">sale.order.line.const.form.readonly</field>
+            <field name="model">sale.order.line.const</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <form create="0" edit="0" string="Order Lines"> 
+                    <header>
+                        <field name="state_line" widget="statusbar" statusbar_visible="draft,sent,sale"/>
+                    </header>
+                    <sheet>
+                        <div class="group_naming">
+                            <div>
+                                <h2>
+                                    <field name="order_id"/>
+                                    <h2>
+                                        <field name="project_id"/>
+                                    </h2>
+                                    <h2>
+                                        <field name="order_partner_id"/>
+                                    </h2>
+                                </h2>
+                            </div>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="type"/>
+                                <field name="group_of_product" />
+                                <field name="product_id" />
+                                <field name="variable" />
+                                <field name="description" />
+                            </group>
+                            <group>
+                                <field name="job_references" widget="many2many_tags" />
+                                <field name="job_reference" invisible="1"/>  
+                                <field name="project_scope" />
+                                <field name="section_name" />
+                                <field name="variable_ref" invisible='1'/>
+                            </group>
+                            <group>
+                                <field name="quantity" />
+                                <field name="uom_id"/>
+                                <field name="unit_price" />
+                                <field name="subtotal" />
+                                <field name="adjustment_line" />
+                                <field name="discount_line" />
+                            </group>    
+                            <group>
+                                <field name="line_tax_id"  widget="many2many_tags"/>
+                                <field name="amount_line" />
+                                <field name="amount_tax_line"  />
+                                <field name="total_amount"  />
+                            </group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                                <field name="company_id" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- material order lines -->
+        <record id="view_material_order_line_const_tree" model="ir.ui.view">
+            <field name="name">sale.material.order.line.const.tree</field>
+            <field name="model">sale.order.material.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <tree create="0" edit="0" string="Material Order Lines">
+                    <field name="order_id" string="Number"/>
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="project_id"/>
+                    <field name="order_partner_id"/>
+                    <field name="user_id" optional="hide" widget="many2many_tags"/>
+                    <field name="project_scope" optional="hide"/>
+                    <field name="section_name" optional="hide"/>
+                    <field name="variable_ref" invisible='1'/>
+                    <field name="type" invisible="1"/>
+                    <field name="group_of_product" />
+                    <field name="material_id" />
+                    <field name="description" optional="hide" />
+                    <field name="analytic_idz" widget="many2many_tags"/>
+                    <field name="quantity" />
+                    <field name="uom_id" />
+                    <field name="unit_price" />
+                    <field name="line_tax_id"  widget="many2many_tags"/>
+                    <field name="adjustment_line" optional="hide"/>
+                    <field name="discount_line"  optional="hide"/>
+                    <field name="subtotal" />
+                    <field name="amount_line" optional="hide"/>
+                    <field name="total_amount"  optional="hide"/>
+                    <field name="state_line" string="Status" optional="hide"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="sale_material_order_line_const_view_form_readonly" model="ir.ui.view">
+            <field name="name">sale.material.order.line.const.form.readonly</field>
+            <field name="model">sale.order.material.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <form create="0" edit="0" string="Material Order Lines"> 
+                    <header>
+                        <field name="state_line" widget="statusbar" statusbar_visible="draft,sent,sale"/>
+                    </header>
+                    <sheet>
+                        <div class="group_naming">
+                            <div>
+                                <h2>
+                                    <field name="order_id"/>
+                                    <h2>
+                                        <field name="project_id"/>
+                                    </h2>
+                                    <h2>
+                                        <field name="order_partner_id"/>
+                                    </h2>
+                                </h2>
+                            </div>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="type"/>
+                                <field name="group_of_product" />
+                                <field name="material_id" />
+                                <field name="description" />
+                            </group>
+                            <group>
+                                <field name="job_references" widget="many2many_tags" />
+                                <field name="job_reference" invisible="1"/> 
+                                <field name="project_scope" />
+                                <field name="section_name" />
+                                <field name="variable_ref" invisible='1'/>
+                            </group>
+                            <group>
+                                <field name="quantity" />
+                                <field name="uom_id"/>
+                                <field name="unit_price" />
+                                <field name="subtotal" />
+                                <field name="adjustment_line" />
+                                <field name="discount_line" />
+                            </group>    
+                            <group>
+                                <field name="line_tax_id"  widget="many2many_tags"/>
+                                <field name="amount_line" />
+                                <field name="amount_tax_line"  />
+                                <field name="total_amount"  />
+                            </group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                                <field name="company_id" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- labour order lines -->
+        <record id="view_labour_order_line_const_tree" model="ir.ui.view">
+            <field name="name">sale.labour.order.line.const.tree</field>
+            <field name="model">sale.order.labour.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <tree create="0" edit="0" string="Labour Order Lines">
+                    <field name="order_id" string="Number"/>
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="project_id"/>
+                    <field name="order_partner_id"/>
+                    <field name="user_id" optional="hide" widget="many2many_tags"/>
+                    <field name="project_scope" optional="hide"/>
+                    <field name="section_name" optional="hide"/>
+                    <field name="variable_ref" invisible='1'/>
+                    <field name="type" invisible="1"/>
+                    <field name="group_of_product" />
+                    <field name="labour_id" />
+                    <field name="description" optional="hide" />
+                    <field name="analytic_idz" widget="many2many_tags"/>
+                    <field name="quantity" />
+                    <field name="uom_id" />
+                    <field name="unit_price" />
+                    <field name="line_tax_id"  widget="many2many_tags"/>
+                    <field name="adjustment_line" optional="hide"/>
+                    <field name="discount_line"  optional="hide"/>
+                    <field name="subtotal" />
+                    <field name="amount_line" optional="hide"/>
+                    <field name="total_amount"  optional="hide"/>
+                    <field name="state_line" string="Status" optional="hide"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="sale_labour_order_line_const_view_form_readonly" model="ir.ui.view">
+            <field name="name">sale.labour.order.line.const.form.readonly</field>
+            <field name="model">sale.order.labour.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <form create="0" edit="0" string="Labour Order Lines"> 
+                    <header>
+                        <field name="state_line" widget="statusbar" statusbar_visible="draft,sent,sale"/>
+                    </header>
+                    <sheet>
+                        <div class="group_naming">
+                            <div>
+                                <h2>
+                                    <field name="order_id"/>
+                                    <h2>
+                                        <field name="project_id"/>
+                                    </h2>
+                                    <h2>
+                                        <field name="order_partner_id"/>
+                                    </h2>
+                                </h2>
+                            </div>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="type"/>
+                                <field name="group_of_product" />
+                                <field name="labour_id" />
+                                <field name="description" />
+                            </group>
+                            <group>
+                                <field name="job_references" widget="many2many_tags" />
+                                <field name="job_reference" invisible="1"/> 
+                                <field name="project_scope" />
+                                <field name="section_name" />
+                                <field name="variable_ref" invisible='1'/>
+                            </group>
+                            <group>
+                                <field name="quantity" />
+                                <field name="uom_id"/>
+                                <field name="unit_price" />
+                                <field name="subtotal" />
+                                <field name="adjustment_line" />
+                                <field name="discount_line" />
+                            </group>    
+                            <group>
+                                <field name="line_tax_id"  widget="many2many_tags"/>
+                                <field name="amount_line" />
+                                <field name="amount_tax_line"  />
+                                <field name="total_amount"  />
+                            </group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                                <field name="company_id" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- overhead order lines -->
+        <record id="view_overhead_order_line_const_tree" model="ir.ui.view">
+            <field name="name">sale.overhead.order.line.const.tree</field>
+            <field name="model">sale.order.overhead.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <tree create="0" edit="0" string="Overhaed Order Lines">
+                    <field name="order_id" string="Number"/>
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="project_id"/>
+                    <field name="order_partner_id"/>
+                    <field name="user_id" optional="hide" widget="many2many_tags"/>
+                    <field name="project_scope" optional="hide"/>
+                    <field name="section_name" optional="hide"/>
+                    <field name="variable_ref" invisible='1'/>
+                    <field name="type" invisible="1"/>
+                    <field name="group_of_product" />
+                    <field name="overhead_id" />
+                    <field name="description" optional="hide" />
+                    <field name="analytic_idz" widget="many2many_tags"/>
+                    <field name="quantity" />
+                    <field name="uom_id" />
+                    <field name="unit_price" />
+                    <field name="line_tax_id"  widget="many2many_tags"/>
+                    <field name="adjustment_line" optional="hide"/>
+                    <field name="discount_line"  optional="hide"/>
+                    <field name="subtotal" />
+                    <field name="amount_line" optional="hide"/>
+                    <field name="total_amount"  optional="hide"/>
+                    <field name="state_line" string="Status" optional="hide" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="sale_overhead_order_line_const_view_form_readonly" model="ir.ui.view">
+            <field name="name">sale.overhead.order.line.const.form.readonly</field>
+            <field name="model">sale.order.overhead.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <form create="0" edit="0" string="Overhead Order Lines"> 
+                    <header>
+                        <field name="state_line" widget="statusbar" statusbar_visible="draft,sent,sale"/>
+                    </header>
+                    <sheet>
+                        <div class="group_naming">
+                            <div>
+                                <h2>
+                                    <field name="order_id"/>
+                                    <h2>
+                                        <field name="project_id"/>
+                                    </h2>
+                                    <h2>
+                                        <field name="order_partner_id"/>
+                                    </h2>
+                                </h2>
+                            </div>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="type"/>
+                                <field name="group_of_product" />
+                                <field name="overhead_id" />
+                                <field name="description" />
+                            </group>
+                            <group>
+                                <field name="job_references" widget="many2many_tags" />
+                                <field name="job_reference" invisible="1"/>   
+                                <field name="project_scope" />
+                                <field name="section_name" />
+                                <field name="variable_ref" invisible='1' />
+                            </group>
+                            <group>
+                                <field name="quantity" />
+                                <field name="uom_id"/>
+                                <field name="unit_price" />
+                                <field name="subtotal" />
+                                <field name="adjustment_line" />
+                                <field name="discount_line" />
+                            </group>    
+                            <group>
+                                <field name="line_tax_id"  widget="many2many_tags"/>
+                                <field name="amount_line" />
+                                <field name="amount_tax_line"  />
+                                <field name="total_amount"  />
+                            </group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                                <field name="company_id" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- internal asset order lines -->
+        <record id="view_internal_asset_order_line_const_tree" model="ir.ui.view">
+            <field name="name">sale.internal_asset.order.line.const.tree</field>
+            <field name="model">sale.internal.asset.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <tree create="0" edit="0" string="Internal Asset Order Lines">
+                    <field name="order_id" string="Number"/>
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="project_id"/>
+                    <field name="order_partner_id"/>
+                    <field name="user_id" optional="hide" widget="many2many_tags"/>
+                    <field name="project_scope" optional="hide"/>
+                    <field name="section_name" optional="hide"/>
+                    <field name="variable_ref" invisible='1'/>
+                    <field name="type" invisible="1"/>
+                    <field name="asset_category_id" />
+                    <field name="asset_id" />
+                    <!-- <field name="description" optional="hide" /> -->
+                    <field name="analytic_idz" widget="many2many_tags"/>
+                    <field name="quantity" />
+                    <field name="uom_id" />
+                    <field name="unit_price" />
+                    <field name="line_tax_id"  widget="many2many_tags"/>
+                    <field name="adjustment_line" optional="hide"/>
+                    <field name="discount_line"  optional="hide"/>
+                    <field name="subtotal" />
+                    <field name="amount_line" optional="hide"/>
+                    <field name="total_amount"  optional="hide"/>
+                    <field name="state_line" string="Status" optional="hide" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="sale_internal_asset_order_line_const_view_form_readonly" model="ir.ui.view">
+            <field name="name">sale.internal.asset.order.line.const.form.readonly</field>
+            <field name="model">sale.internal.asset.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <form create="0" edit="0" string="Internal Asset Order Lines"> 
+                    <header>
+                        <field name="state_line" widget="statusbar" statusbar_visible="draft,sent,sale"/>
+                    </header>
+                    <sheet>
+                        <div class="group_naming">
+                            <div>
+                                <h2>
+                                    <field name="order_id"/>
+                                    <h2>
+                                        <field name="project_id"/>
+                                    </h2>
+                                    <h2>
+                                        <field name="order_partner_id"/>
+                                    </h2>
+                                </h2>
+                            </div>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="type"/>
+                                <field name="asset_category_id" />
+                                <field name="asset_id" />
+                                <field name="description" />
+                            </group>
+                            <group>
+                                <field name="job_references" widget="many2many_tags" />
+                                <field name="job_reference" invisible="1"/>   
+                                <field name="project_scope" />
+                                <field name="section_name" />
+                                <field name="variable_ref" invisible='1'/>
+                            </group>
+                            <group>
+                                <field name="quantity" />
+                                <field name="uom_id"/>
+                                <field name="unit_price" />
+                                <field name="subtotal" />
+                                <field name="adjustment_line" />
+                                <field name="discount_line" />
+                            </group>    
+                            <group>
+                                <field name="line_tax_id"  widget="many2many_tags"/>
+                                <field name="amount_line" />
+                                <field name="amount_tax_line"  />
+                                <field name="total_amount"  />
+                            </group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                                <field name="company_id" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- equipment order lines -->
+        <record id="view_equipment_order_line_const_tree" model="ir.ui.view">
+            <field name="name">sale.equipment.order.line.const.tree</field>
+            <field name="model">sale.order.equipment.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <tree create="0" edit="0" string="Equipment Order Lines">
+                    <field name="order_id" string="Number"/>
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="project_id"/>
+                    <field name="order_partner_id"/>
+                    <field name="user_id" optional="hide" widget="many2many_tags"/>
+                    <field name="project_scope" optional="hide"/>
+                    <field name="section_name" optional="hide"/>
+                    <field name="variable_ref" invisible='1'/>
+                    <field name="type" invisible="1"/>
+                    <field name="group_of_product" />
+                    <field name="equipment_id" />
+                    <field name="description" optional="hide" />
+                    <field name="analytic_idz" widget="many2many_tags"/>
+                    <field name="quantity" />
+                    <field name="uom_id" />
+                    <field name="unit_price" />
+                    <field name="line_tax_id"  widget="many2many_tags"/>
+                    <field name="adjustment_line" optional="hide"/>
+                    <field name="discount_line"  optional="hide"/>
+                    <field name="subtotal" />
+                    <field name="amount_line" optional="hide"/>
+                    <field name="total_amount"  optional="hide"/>
+                    <field name="state_line" string="Status" optional="hide" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="sale_equipment_order_line_const_view_form_readonly" model="ir.ui.view">
+            <field name="name">sale.equipment.order.line.const.form.readonly</field>
+            <field name="model">sale.order.equipment.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <form create="0" edit="0" string="Equipment Order Lines"> 
+                    <header>
+                        <field name="state_line" widget="statusbar" statusbar_visible="draft,sent,sale"/>
+                    </header>
+                    <sheet>
+                        <div class="group_naming">
+                            <div>
+                                <h2>
+                                    <field name="order_id"/>
+                                    <h2>
+                                        <field name="project_id"/>
+                                    </h2>
+                                    <h2>
+                                        <field name="order_partner_id"/>
+                                    </h2>
+                                </h2>
+                            </div>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="type"/>
+                                <field name="group_of_product" />
+                                <field name="equipment_id" />
+                                <field name="description" />
+                            </group>
+                            <group>
+                                <field name="job_references" widget="many2many_tags" />
+                                <field name="job_reference" invisible="1"/>   
+                                <field name="project_scope" />
+                                <field name="section_name" />
+                                <field name="variable_ref" invisible='1'/>
+                            </group>
+                            <group>
+                                <field name="quantity" />
+                                <field name="uom_id"/>
+                                <field name="unit_price" />
+                                <field name="subtotal" />
+                                <field name="adjustment_line" />
+                                <field name="discount_line" />
+                            </group>    
+                            <group>
+                                <field name="line_tax_id"  widget="many2many_tags"/>
+                                <field name="amount_line" />
+                                <field name="amount_tax_line"  />
+                                <field name="total_amount"  />
+                            </group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                                <field name="company_id" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- subcon order lines -->
+        <record id="view_subcon_order_line_const_tree" model="ir.ui.view">
+            <field name="name">sale.subcon.order.line.const.tree</field>
+            <field name="model">sale.order.subcon.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <tree create="0" edit="0" string="Subcon Order Lines">
+                    <field name="order_id" string="Number"/>
+                    <field name="create_date" string="Creation Date"/>
+                    <field name="project_id"/>
+                    <field name="order_partner_id"/>
+                    <field name="user_id" optional="hide" widget="many2many_tags"/>
+                    <field name="project_scope" optional="hide"/>
+                    <field name="section_name" optional="hide"/>
+                    <field name="variable_ref" invisible='1'/>
+                    <field name="type" invisible="1"/>
+                    <field name="subcon_id" />
+                    <field name="description" optional="hide" />
+                    <field name="analytic_idz" widget="many2many_tags"/>
+                    <field name="quantity" />
+                    <field name="uom_id" />
+                    <field name="unit_price" />
+                    <field name="line_tax_id"  widget="many2many_tags"/>
+                    <field name="adjustment_line" optional="hide"/>
+                    <field name="discount_line"  optional="hide"/>
+                    <field name="subtotal" />
+                    <field name="amount_line" optional="hide"/>
+                    <field name="total_amount"  optional="hide"/>
+                    <field name="state_line" string="Status" optional="hide"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="sale_subcon_order_line_const_view_form_readonly" model="ir.ui.view">
+            <field name="name">sale.subcon.order.line.const.form.readonly</field>
+            <field name="model">sale.order.subcon.line</field>
+            <field name="priority" eval="100"/>
+            <field name="arch" type="xml">
+                <form create="0" edit="0" string="Subcon Order Lines"> 
+                    <header>
+                        <field name="state_line" widget="statusbar" statusbar_visible="draft,sent,sale"/>
+                    </header>
+                    <sheet>
+                        <div class="group_naming">
+                            <div>
+                                <h2>
+                                    <field name="order_id"/>
+                                    <h2>
+                                        <field name="project_id"/>
+                                    </h2>
+                                    <h2>
+                                        <field name="order_partner_id"/>
+                                    </h2>
+                                </h2>
+                            </div>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="type"/>
+                                <field name="subcon_id" />
+                                <field name="description" />
+                            </group>
+                            <group>
+                                <field name="job_references" widget="many2many_tags" />
+                                <field name="job_reference" invisible="1"/>   
+                                <field name="project_scope" />
+                                <field name="section_name" />
+                                <field name="variable_ref" invisible='1'/>
+                            </group>
+                            <group>
+                                <field name="quantity" />
+                                <field name="uom_id"/>
+                                <field name="unit_price" />
+                                <field name="subtotal" />
+                                <field name="adjustment_line" />
+                                <field name="discount_line" />
+                            </group>    
+                            <group>
+                                <field name="line_tax_id"  widget="many2many_tags"/>
+                                <field name="amount_line" />
+                                <field name="amount_tax_line"  />
+                                <field name="total_amount"  />
+                            </group>
+                            <group>
+                                <field name="analytic_idz" widget="many2many_tags"/>
+                                <field name="company_id" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="quotation_contract_search" model="ir.ui.view">
+            <field name="name">quotation.contract.search</field>
+            <field name="model">sale.order.const</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="project_id"/>
+                    <field name="partner_id"/>
+                </search>
+            </field>
+        </record>
+
+        <!-- action -->
+        <record id="quotation_const_action" model="ir.actions.act_window">
+            <field name="name">Quotations</field>
+            <field name="res_model">sale.order.const</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('state', 'not in', ('sale','done')), ('department_type', '=', 'project')]</field>
+            <field name="context">{'default_department_type': 'project'}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Quotation found. Let's create one!
+                </p><p>
+                    Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+                </p>
+            </field>
+        </record>
+
+        <record id="sale_order_const_action" model="ir.actions.act_window">
+            <field name="name">Contracts</field>
+            <field name="res_model">sale.order.const</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('state', 'in', ('sale','done')), ('department_type', '=', 'project')]</field>
+            <field name="context">{'default_department_type': 'project'}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Sales Order found. Let's create one!
+                </p><p>
+                    Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+                </p>
+            </field>
+        </record>
+
+        <!-- <record id="order_lines_const_action" model="ir.actions.act_window">
+            <field name="name">Order Lines</field>
+            <field name="res_model">sale.order.line.const</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Sales Order Line found
+                </p><p>
+                    Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+                </p>
+            </field>
+        </record> -->
+
+        <record id="material_lines_const_action" model="ir.actions.act_window">
+            <field name="name">Material Order Lines</field>
+            <field name="res_model">sale.order.material.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Material Order Line found
+                </p><p>
+                    Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+                </p>
+            </field>
+        </record>
+
+        <record id="labour_lines_const_action" model="ir.actions.act_window">
+            <field name="name">Labour Order Lines</field>
+            <field name="res_model">sale.order.labour.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Labaur Order Line found
+                </p><p>
+                    Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+                </p>
+            </field>
+        </record>
+    
+        <record id="overhead_lines_const_action" model="ir.actions.act_window">
+            <field name="name">Overhead Order Lines</field>
+            <field name="res_model">sale.order.overhead.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Overhead Order Line found
+                </p><p>
+                    Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+                </p>
+            </field>
+        </record>
+        
+        <record id="internal_asset_lines_const_action" model="ir.actions.act_window">
+            <field name="name">Internal Asset Order Lines</field>
+            <field name="res_model">sale.internal.asset.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Internal Asset Order Line found
+                </p><p>
+                    Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+                </p>
+            </field>
+        </record>
+
+        <record id="equipment_lines_const_action" model="ir.actions.act_window">
+            <field name="name">Equipment Order Lines</field>
+            <field name="res_model">sale.order.equipment.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Equipment Order Line found
+                </p><p>
+                    Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+                </p>
+            </field>
+        </record>
+
+        <record id="subcon_lines_const_action" model="ir.actions.act_window">
+            <field name="name">Subcon Order Lines</field>
+            <field name="res_model">sale.order.subcon.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No Subcon Order Line found
+                </p><p>
+                    Once the quotation is confirmed by the customer, it becomes a sales order.<br/> You will be able to create an invoice and collect the payment.
+                </p>
+            </field>
+        </record>
+
+        <menuitem
+            id="quotation_const_menu"
+            name="Quotations"
+            action="equip3_construction_sales_operation.quotation_const_action"
+            parent="sale_order_menu_new"
+            sequence="3"/>
+        <menuitem
+            id="sale_order_const_menu"
+            name="Contracts"
+            action="equip3_construction_sales_operation.sale_order_const_action"
+            parent="sale_order_menu_new"
+            sequence="4"/>
+        <menuitem
+            id="order_lines_const_menu"
+            name="Order Lines"
+            parent="sale_order_menu_new"
+            sequence="5"/>
+        <menuitem
+            id="material_lines_const_menu"
+            name="Material Order Lines"
+            action="equip3_construction_sales_operation.material_lines_const_action"
+            parent="order_lines_const_menu"
+            sequence="1"/>
+        <menuitem
+            id="labour_lines_const_menu"
+            name="Labour Order Lines"
+            action="equip3_construction_sales_operation.labour_lines_const_action"
+            parent="order_lines_const_menu"
+            sequence="2"/>
+        <menuitem
+            id="overhead_lines_const_menu"
+            name="Overhead Order Lines"
+            action="equip3_construction_sales_operation.overhead_lines_const_action"
+            parent="order_lines_const_menu"
+            sequence="3"/>
+        <menuitem
+            id="asset_lines_const_menu"
+            name="Asset Order Lines"
+            parent="order_lines_const_menu"
+            sequence="4"/>
+        <menuitem
+            id="internal_asset_lines_const_menu"
+            name="Internal Asset Order Lines"
+            action="equip3_construction_sales_operation.internal_asset_lines_const_action"
+            parent="asset_lines_const_menu"
+            sequence="1"/>
+        <menuitem
+            id="equipment_lines_const_menu"
+            name="Equipment Order Lines"
+            action="equip3_construction_sales_operation.equipment_lines_const_action"
+            parent="asset_lines_const_menu"
+            sequence="2"/>
+        <menuitem
+            id="subcon_lines_const_menu"
+            name="Subcon Order Lines"
+            action="equip3_construction_sales_operation.subcon_lines_const_action"
+            parent="order_lines_const_menu"
+            sequence="5"/>
+
+    </data>
+</odoo>

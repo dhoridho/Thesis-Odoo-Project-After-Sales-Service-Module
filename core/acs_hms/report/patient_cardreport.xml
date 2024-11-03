@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="patient_cardreport_document">
+        <t t-call="web.external_layout">
+            <t t-set="doc" t-value="doc.with_context({'lang':doc.partner_id.lang})"/>
+            <div class="page">
+                <table style="border:1px solid;width:200px;height:150px;">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <center>
+                                    <img t-if="doc.code" t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' %('Code128',doc.code,180,50)" />
+                                </center>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="col-11">
+                                    <center>
+                                        <span t-field="doc.image_128"
+                                            t-options="{'widget': 'image', 'class': 'img-rounded'}"/>
+                                    </center>
+                                </div>
+                                <div class="col-11 mt16 mb16">
+                                    <strong>ID</strong> : <span t-field="doc.code" /><br/>
+                                    <strong>Name</strong> : <span t-field="doc.name"/><br/>
+                                    <strong>Birth Date</strong> : <span t-field="doc.birthday"/><br/>
+                                    <strong>Age</strong> : <span t-field="doc.age"/><br/>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <template id="patient_cardreport">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms.patient_cardreport_document" t-lang="doc.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="patient_card_report_id" model="ir.actions.report">
+        <field name="name">Patient Card</field>
+        <field name="model">hms.patient</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms.patient_cardreport</field>
+        <field name="report_file">acs_hms.patient_cardreport</field>
+        <field name="print_report_name">(object.code or object.name).replace('/','_')</field>
+        <field name="binding_model_id" ref="model_hms_patient"/>
+        <field name="groups_id" eval="[(4, ref('acs_hms.group_hms_receptionist'))]"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

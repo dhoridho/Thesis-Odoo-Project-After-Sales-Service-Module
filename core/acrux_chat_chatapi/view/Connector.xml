@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<odoo>
+<data>
+
+    <record model="ir.ui.view" id="view_acrux_chat_connector_form">
+        <field name="name">acrux.chat.connector.form chatapi</field>
+        <field name="model">acrux.chat.connector</field>
+        <field name="inherit_id" ref="acrux_chat.view_acrux_chat_connector_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="ca_get_settings" type="object" string="Get Setting"
+                        class="oe_stat_button" icon="fa-cog"
+                        attrs="{'invisible':[('connector_type','!=', 'chatapi'), ('ca_status','=', False)]}"/>
+                <button name="del_and_recreate_image_chat" type="object" string="Refresh size images"
+                        class="oe_stat_button" icon="fa-cog"
+                        attrs="{'invisible':[('connector_type','!=', 'chatapi')]}"
+                        title="Size for all connector! Set size in Config Parameters."/>
+                <button name="ca_get_chat_list" type="object" string="Get Chat List"
+                        class="oe_stat_button" icon="fa-cog"
+                        attrs="{'invisible':[('connector_type','!=', 'chatapi'), ('ca_status','=', False)]}"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="after">
+                <widget name="web_ribbon" title="Disconnected" bg_color="bg-danger"
+                        attrs="{'invisible': ['|', ('connector_type','!=', 'chatapi'), ('ca_status', '=', True)]}"/>
+                <widget name="web_ribbon" title="Connected" bg_color="bg-success"
+                        attrs="{'invisible': ['|', ('connector_type','!=', 'chatapi'), ('ca_status', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//group[@name='connector']" position="before">
+                <group string="ChatApi" attrs="{'invisible':[('connector_type','!=', 'chatapi')]}">
+                    <field name="ca_status" readonly="1" force_save="1"/>
+                    <field name="ca_app_name" readonly="1" force_save="1"/>
+                    <field name="source"/>
+                    <field name="channel"/>
+                    <field name="uuid"/>
+                    <field name="time_to_respond" invisible="1"/>
+                </group>
+            </xpath>
+            <xpath expr="//group[@name='connector']" position="after">
+                <separator string="Configuration Instructions" class="mt32 o_group_col_12" colspan="4"
+                           attrs="{'invisible':[('connector_type','!=', 'chatapi')]}"/>
+                <div class="mt8 o_settings_container o_group_col_12"
+                     attrs="{'invisible':[('connector_type','!=', 'chatapi')]}">
+                    <div class="col-12 o_setting_box">
+                        <div class="o_setting_left_pane" style="width: 50px;">
+                            <label for="endpoint" string="Step 1" style="font-weight: bold;"/>
+                        </div>
+                        <div class="o_setting_right_pane" style="margin-left: 50px;">
+                            <div class="content-group">
+                                <b>API URL:</b><br/>
+                                <field name="endpoint"/>
+                            </div>
+                            <div class="mt8">
+                                <img alt="Chat-Api URL" style="margin-bottom: 16px;" class="img-thumbnail"
+                                     src='/acrux_chat_chatapi/static/image/chat_api_odoo_3.png'/>
+                            </div>
+                        </div>
+
+                        <div class="o_setting_left_pane" style="width: 50px;">
+                            <label for="apikey" string="Step 2" style="font-weight: bold;"/>
+                        </div>
+                        <div class="o_setting_right_pane" style="margin-left: 50px;">
+                            <div class="content-group">
+                                <b>Token:</b><br/>
+                                <field name="apikey" password="True"/>
+                            </div>
+                            <div class="mt8">
+                                <img alt="Chat-Api Token" style="margin-bottom: 16px;" class="img-thumbnail"
+                                     src='/acrux_chat_chatapi/static/image/chat_api_odoo_4.png'/>
+                            </div>
+                        </div>
+
+                        <div class="o_setting_left_pane" style="width: 50px;">
+                            <label for="ca_qr_code" string="Step 3" style="font-weight: bold;"/>
+                        </div>
+                        <div class="o_setting_right_pane" style="margin-left: 50px;">
+                            <b>Connect:</b><br/>
+                            <div attrs="{'invisible':[('ca_status','=', False)]}">
+                                <div class="list-group">
+                                    <div class="list-group-item list-group-item-success" style="width: fit-content;">
+                                        Status: <b>Connected</b><span class="spinner-grow spinner-grow-sm"/><br/><br/>
+                                        <button name="ca_get_status" type="object" string="Check Status or Get QR code"
+                                                class="btn-primary" icon="fa-cog" style="margin-right: 16px;"/>
+                                        <button name="ca_set_logout" type="object" string="Logout from WhatsApp Web"
+                                                class="btn-primary" icon="fa-cog"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div attrs="{'invisible':[('ca_status','=', True)]}">
+                                <div attrs="{'invisible':[('ca_qr_code','!=', False)]}">
+                                    You need to scan the QR code from the device on which WhatsApp is registered.<br/>
+                                    QR code is valid for 40 seconds.<br/>
+                                    <div class="mb16 mt8">
+                                        <button name="ca_get_status" type="object" string="Get QR code"
+                                                class="btn-primary" icon="fa-cog"/>
+                                    </div>
+                                    If you get an error, please click here to refresh your QR Code and try again.
+                                    <div class="mb16 mt8">
+                                        <button name="ca_set_logout" type="object" string="Logout from WhatsApp Web"
+                                                class="btn-primary" icon="fa-cog"/>
+                                    </div>
+                                </div>
+                                <div attrs="{'invisible':[('ca_qr_code','=', False)]}">
+                                    <div class="list-group">
+                                        <div class="list-group-item list-group-item-info" style="width: fit-content;">
+                                            Scan QR code from your phone and click here to read Status:
+                                            <button name="ca_get_status" type="object" string="Get Status"
+                                                    class="btn-primary btn-sm" icon="fa-cog"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-group">
+                                <field name="ca_qr_code" widget="image" readonly="1" force_save="1"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="Information" col="1" colspan="4" attrs="{'invisible':[('connector_type','!=', 'chatapi')]}">
+                    <ul>
+                        <li>Your account can be banned by anti-spam system WhatsApp after several clicking the "block" button.</li>
+                        <li>Message files will be stored for 30 days and then deleted.</li>
+                        <li>Limit: 6.000 message per day.</li>
+                    </ul>
+                    <div class="list-group col-sm-12">
+                        <div class="list-group-item text-danger">
+                            <strong>Chat-Api Terms of Service</strong><br/><br/>
+                            <div>
+                                1. Chat-Api is unofficial and independent of WhatsApp Inc.<br/>
+                                2. You agree not to use the Chat-Api service for spam and bulk messaging.<br/>
+                                3. By authorizing the phone number (messenger account) in the Chat-Api service, you agree that Chat-Api will have full access to the authorized account in the messenger.<br/>
+                                4. Chat-Api has the right to block your access to the service in case of violation of the "Public Agreement" or "Message Content Requirements".
+                            </div>
+                            <br/>
+                            Authorising your number you agree on our terms of service. We advise you to read our tips on using Chat-Api.
+                        </div>
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</data>
+</odoo>

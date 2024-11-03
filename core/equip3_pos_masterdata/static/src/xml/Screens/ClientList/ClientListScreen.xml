@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="ClientListScreen" t-inherit="point_of_sale.ClientListScreen" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('button')][3]" position="replace">
+
+        </xpath>
+        <xpath expr="//div[hasclass('button')][3]" position="after">
+            <div class="button save" t-if="state.detailIsShown" t-on-click="trigger('click-save')">
+                <t t-if="!env.isMobile">
+                    <i class="fa fa-floppy-o" style='margin-right: 5px;'/>
+                    <span> Save</span>
+                </t>
+                <t t-else="">
+                    <i class="fa fa-floppy-o"/>
+                </t>
+            </div>
+        </xpath>
+
+
+<!--        <xpath expr="//div[hasclass('button')][1]" position="before">-->
+<!--            <span t-if="!state.detailIsShown and state.selectedClient" class="client-selected">-->
+<!--                <t t-esc="state.selectedClient.name"/>-->
+<!--                <span> </span>-->
+<!--                <i class="fa fa-hand-o-right"/>-->
+<!--            </span>-->
+<!--        </xpath>-->
+
+        <xpath expr="//div[hasclass('searchbox-client')]//input" position="attributes">
+            <attribute name="t-model">state.query</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('searchbox-client')]" position="after">
+
+            <div class="button btn-sync-pos-partner" t-if="!state.detailIsShown and isShowSyncPosPartner()" t-on-click="trigger('sync-pos-partner')" t-att-sync-state="sync_state.state">
+                <t t-if="sync_state.state == 'connecting'">
+                    <i aria-label="Sync Connecting" title="Sync Connecting" class="fa fa-fw fa-spin fa-spinner"></i>
+                </t>
+                <t t-if="!env.isMobile">
+                    <i class="fa fa-refresh" style='margin-right: 7px;'></i>
+                    <span><t t-esc="sync_pos_partner_button_label()"/></span>
+                </t>
+                <t t-else="">
+                    <i class="fa fa-refresh" style='margin-right: 7px;'></i>
+                    <span>Sync</span>
+                </t>
+            </div>
+
+        <!--     <div class="button save" t-on-click="trigger('clear-search')" t-if="!state.detailIsShown">
+                <t t-if="!env.isMobile">
+                    <i class="fa fa-refresh"/>
+                    <span> Clear Search</span>
+                </t>
+                <t t-else="">
+                    <i class="fa fa-refresh"/>
+                </t>
+            </div> -->
+        </xpath>
+        <xpath expr="//div[hasclass('searchbox-client')]/input" position="before">
+            <i class="fa fa-search"/>
+        </xpath>
+        <xpath expr="//div[hasclass('searchbox-client')]/input" position="after">
+            <div class="button save btn_clear" t-on-click="trigger('clear-search')" t-if="!state.detailIsShown">
+                    <span> Clear</span>
+            </div>
+        </xpath>
+        <xpath expr="//span[hasclass('search-clear-client')]" position="after">
+            <span class="shortcut-keyboard" t-if="!env.isMobile and env.isShowKeyBoard">
+                <i class="fa fa-keyboard-o"/>
+                (B or ESC): Back Screen -
+                (Arrow Up/Down): Up/Down Select Customer -
+                (Enter): Set/DeSelected Customer -
+                (Any another key): Auto focus to Search Box
+            </span>
+        </xpath>
+<!--         <xpath expr="//div[hasclass('back')]" position="inside">
+            <t t-if="!env.isMobile">
+                <span>  </span>
+                <i class="fa fa-keyboard-o"/>B / ESC
+            </t>
+        </xpath> -->
+        <xpath expr="//div[hasclass('next')]" position="inside">
+            <t t-if="!env.isMobile" style="color: #fff">
+                <span>  </span>
+                <i class="fa fa-keyboard-o"/>Enter
+            </t>
+        </xpath>
+        <xpath expr="//section[hasclass('list')]" position="replace">
+            <table class='summary-table' t-if="!state.detailIsShown and clients.length != 0">
+
+                <colgroup>
+                    <t t-foreach="lineHeaders" t-as="line">
+                        <col t-att-width='line.width'/>
+                    </t>
+                </colgroup>
+
+                <tr class="receipt-line header">
+                    <t t-foreach="lineHeaders" t-as="line">
+                        <td style="text-align: center">
+                            <t t-esc="line.name"/>
+                        </td>
+                    </t>
+                </tr>
+
+                <t t-set="number" t-value="1"/>
+                <t t-foreach="clients" t-as="partner"
+                   t-key="partner.id">
+                    <ClientLine partner="partner"
+                                number="number"
+                                selectedClient="state.selectedClient"
+                                detailIsShown="state.detailIsShown"
+                                t-on-click-client="clickClient" />
+                    <t t-set="number" t-value="number +1"/>
+                </t>
+            </table>
+        </xpath>
+    </t>
+
+</templates>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--Pivot View of Student Leave Request-->
+    <record id="view_studentleave_request_pivot" model="ir.ui.view">
+        <field name="name">studentleave.request.pivot</field>
+        <field name="model">studentleave.request</field>
+        <field name="arch" type="xml">
+            <pivot string="Student Leave Request">
+                <field name="name" type="col"/>
+                <field name="standard_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="student_leave_req_tree_inherit" model="ir.ui.view">
+        <field name="name">studentleave.request.tree</field>
+        <field name="model">studentleave.request</field>
+        <field name="inherit_id" ref="school_attendance.student_leave_req_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='roll_no']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='teacher_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='standard_id']" position="attributes">
+                <attribute name="string">Intake</attribute>
+            </xpath>
+            <xpath expr="//field[@name='standard_id']" position="after">
+                <field name="pic_intake"/>
+                <field name="pic_class"/>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit Form View to Modify it -->
+    <record id="student_leave_req_form_inherit" model="ir.ui.view">
+        <field name="name">studentleave.request.tree</field>
+        <field name="model">studentleave.request</field>
+        <field name="inherit_id" ref="school_attendance.student_leave_req_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="replace">
+                <sheet>
+                    <group>
+                        <group string="Student Information">
+                            <field name="student_id" domain="[('state','=','done')]" options="{&quot;no_create&quot;: True}" attrs="{'readonly': [('state', 'in', ['approve', 'reject', 'toapprove', 'waiting', 'rejected'])]}" context="{'student_id':True}"/>
+                            <field name="school_id" attrs="{'readonly': [('state', '!=', 'draft')]}" force_save="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="branch_id"/>
+                            <field name="program_id" attrs="{'readonly': [('state', '!=', 'draft')]}" force_save="1"/>
+                            <field name="standard_id" string="Intake" readonly="1" required="1" />
+                            <field name="group_class" readonly="1" force_save="1"/>
+                            <field name="is_leave_approval_matrix" invisible="1" />
+                            <field name="approval_matrix_id" attrs="{'invisible': [('is_leave_approval_matrix', '=', False)]}"/>
+                            <field name="is_need_approval" invisible="1"/>
+                            <field name="is_created" invisible="1"/>
+                        </group>
+                        <group string="Leave Details">
+                            <field name="is_student_leave_request_per_subject" invisible="1"/>
+                            <field name="subject_id" attrs="{'required': [('is_student_leave_request_per_subject', '=', True)], 'invisible': [('is_student_leave_request_per_subject', '=', False)], 'readonly':[('state','in',['approve','reject','toapprove', 'waiting', 'rejected'])]}"/>
+                            <field name="reason" required="1" attrs="{'readonly':[('state','in',['approve','reject','toapprove', 'waiting', 'rejected'])]}"/>
+                            <field name="start_date" class="oe_edit_only" required="1" attrs="{'readonly':[('state','in',['approve','reject','toapprove', 'waiting', 'rejected'])]}"/>
+                            <field name="end_date" class="oe_edit_only" required="1"  attrs="{'readonly':[('state','in',['approve','reject','toapprove', 'waiting', 'rejected'])]}"/>
+                            <div>
+                                <div>
+                                    <field name="days" class="oe_inline" attrs="{'readonly':[('state','in',['approve','reject','toapprove'])]}" readonly="1"/> days
+                                </div>
+                            </div>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Teacher Information">
+                            <field name="pic_intake" readonly="1" force_save="1"/>
+                            <field name="pic_class" readonly="1" force_save="1"/>
+                        </group>
+                        <group>
+                            <field name="attachments" attrs="{'readonly':[('state','in',['approve','reject','toapprove', 'waiting', 'rejected'])]}"/>
+                        </group>
+                    </group>
+
+                    <notebook name="student_leave_request">
+                        <page name="approval_matrix" string="Approval Matrix" attrs="{'invisible':[('approval_matrix_id','=', False)]}">
+                            <group name="approval_matrix_line">
+                                <field name="approval_matrix_line_ids" nolabel="1">
+                                    <tree edit="0" create="0">
+                                        <field name="sequence" />
+                                        <field name="user_ids" widget="many2many_tags" />
+                                        <field name="minimum_approver" />
+                                        <field name="approval_status" />
+                                        <field name="approved_time" />
+                                        <field name="feedback" />
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </xpath>
+
+            <xpath expr="//button[@name='approve_state']" position="attributes">
+                <attribute name="name">action_approve</attribute>
+                <attribute name="class">oe_highlight</attribute>
+                <attribute name="attrs">{'invisible': ['|', ('state', '!=', 'waiting'), ('is_need_approval', '=', False)]}</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='toapprove_state']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='reject_state']" position="attributes">
+                <attribute name="name">action_open_fedback_wizard</attribute>
+                <attribute name="attrs">{'invisible': ['|', ('state', '!=', 'waiting'), ('is_need_approval', '=', False)]}</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='draft_state']" position="attributes">
+                <attribute name="attrs">{'invisible': True}</attribute>
+            </xpath>
+
+            <xpath expr="//button[@name='toapprove_state']" position="before">
+                <button name="request_approval" type="object" class="oe_highlight" string="Request for Approval" attrs="{'invisible':['|', '|', ('state','!=', 'draft'), ('approval_matrix_id', '=', False), ('is_created', '=', False)]}"/>
+            </xpath>
+            
+            <xpath expr="//button[@name='draft_state']" position="before">
+                <button name="approve_state" type="object" class="oe_highlight" string="Approve" attrs="{'invisible':['|', ('state','!=', 'toapprove'), ('approval_matrix_id', '!=', False)]}"/>
+            </xpath>
+
+            <xpath expr="//button[@name='approve_state']" position="after">
+                <button name="action_approve_request" type="object" string="Approve" class="oe_highlight" attrs="{'invisible': ['|', '|', ('is_leave_approval_matrix', '=', True), ('state', '!=', 'draft'), ('is_created', '=', False)]}"/>
+                <button name="draft_state" type="object" string="Send to Draft" attrs="{'invisible': ['|', ('is_leave_approval_matrix', '=', True), ('state', '!=', 'approve')]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="school_attendance.action_student_leave_form" model="ir.actions.act_window">
+        <field name="view_mode">tree,form,pivot</field>
+    </record>
+
+</odoo>

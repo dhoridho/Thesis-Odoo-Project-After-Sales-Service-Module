@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="view_order_invoice_discount_form_inherits" model="ir.ui.view">
+        <field name="name">sale.order.invoice.discount.form.view.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form" />
+        <field name="priority" eval="10"/>
+        <field name="arch" type="xml">
+
+            <field name="payment_term_id" position="after">
+                <field name="discount_type" widget="radio" />
+            </field>
+
+            <xpath expr="//group[@name='sale_total']" position="after">
+                <group attrs="{'invisible': [('discount_type','=','line')]}" name="group_disc">
+                    <label for="discount_method" attrs="{'invisible': [('discount_type','=','line')]}"/>
+                    <div>
+                        <field name="discount_method" class="oe_inline" attrs="{'invisible': [('discount_type','=','line')]}"/>
+                    </div>
+                    <label for="discount_amount" attrs="{'invisible': [('discount_type','=','line')]}"/>
+                    <div>
+                        <field name="discount_amount" class="oe_inline" attrs="{'invisible': [('discount_type','=','line')]}"/>
+                        <label for="discount_amount" string="%%" attrs="{'invisible': [('discount_method', '!=', 'per')]}" class="oe_inline"/>
+                    </div>
+                </group>
+            </xpath>
+
+            <field name="amount_tax" position="before">
+                <field name="discount_amt" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('discount_type','=','line')]}"/>
+                <field name="discount_amt_line" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'invisible': [('discount_type','=','global')]}"/>
+            </field>
+
+
+            <xpath expr="//tree/field[@name='product_uom_qty']" position="before">
+                <field name="discount_type" invisible="1"/>
+                <field name="discount_method" attrs="{'column_invisible': [('parent.discount_type', '=', 'global')],'invisible': [('discount_type','=','global')]}"/>
+                <field name="discount_amount" attrs="{'column_invisible': [('parent.discount_type', '=', 'global')],'invisible': [('discount_type','=','global')]}"/>
+                <field name="discount_amt" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='order_line']/form/group/group/field[@name='price_unit']" position="before">
+                <field name="discount_type" invisible="1"/>
+                <field name="discount_amt" invisible="1"/>
+                <label for="discount_method" string="Discount Method" attrs="{'invisible': [('parent.discount_type','=','global')]}"/>
+                <div attrs="{'invisible': [('parent.discount_type','=','global')]}">
+                    <field name="discount_method" attrs="{'invisible': [('parent.discount_type','=','global')]}"/>
+                </div>
+                <label for="discount_amount" string="Discount Method"
+                       attrs="{'invisible': [('parent.discount_type','=','global')]}"/>
+                <div attrs="{'invisible': [('parent.discount_type','=','global')]}">
+                    <field name="discount_amount" attrs="{'invisible': [('parent.discount_type','=','global')]}"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//tree/field[@name='discount']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form/group/group/div[@name='discount']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form/group/group/div/field[@name='discount']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="project_view_form_inherit_equip3_sale" model="ir.ui.view">
+            <field name="name">project.project.view.form.simplified.equip3.sale</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="priority">24</field>
+            <field name="arch" type="xml">
+                <field name="user_id" position="after">
+                    <field name="lead_id" invisible="1"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="project_view_form_inherit_equip3_sale_operation" model="ir.ui.view">
+            <field name="name">project.project.view.form.simplified.equip3.sale.operation</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="equip3_construction_masterdata.project_form_view_inherit_construction_sales"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='analytic_account_id']" position="before">
+                    <field name="lead_id" readonly='1' force_save='1'/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="project_view_form_inherit_equip3_operation" model="ir.ui.view">
+            <field name="name">project.project.view.form.simplified.equip3.operation</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="equip3_construction_masterdata.project_form_view_inherit_construction"/>
+            <field name="priority">20</field>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='analytic_account_id']" position="before">
+                    <field name="lead_id" readonly='1' force_save='1'/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="crm_case_kanban_view_leads" model="ir.ui.view">
+            <field name="name">crm.lead.kanban.lead</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+            <field name="arch" type="xml">
+                <xpath expr="//kanban" position="attributes">
+                    <attribute name="on_create"/>
+                </xpath>
+                <xpath expr="//field[@name='name']" position="before">
+                    <field name="is_allowed_access" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="action_job_estimate_new" model="ir.actions.act_window">
+            <field name="name">BOQ</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">job.estimate</field>
+            <field name="context">{'default_partner_id': partner_id}</field>
+            <field name="view_mode">form</field>
+        </record>
+
+        <record id="hide_button_new_quotation_inherit" model="ir.ui.view">
+            <field name="name">hide.button.new.quotation.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="sale_crm.crm_case_form_view_oppor"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//button[@name='action_create_quotation']" position="before">
+                    <button string="Create BOQ" name="action_job_new" type="object" class="oe_highlight"
+                            attrs="{'invisible': [('is_project', '=', False)]}"/>
+                </xpath>
+
+                <xpath expr="//button[@name='action_schedule_meeting']" position="before">
+                    <button name="action_project" type="object" class="oe_stat_button" icon="o-hm-smart-construction-project"
+                            attrs="{'invisible' : [('project_count', '=', 0)]}"
+                            context="{'form_view_ref': 'equip3_construction_masterdata.edit_project', 'is_sale_project':True}">
+                        <div class="o_form_field o_stat_info">
+                            <span class="o_stat_text">Project</span>
+                        </div>
+                    </button>
+                    <button name="action_job_cons"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="o-hm-smart-construction-job-estimate"
+                            attrs="{'invisible': [('count_job_cons', '=', 0)]}">
+                        <field name="count_job_cons" widget="statinfo" string="BOQ"/>
+                    </button>
+                    <button name="action_contract_cons"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="o-hm-smart-crm-agreement"
+                            attrs="{'invisible': [('count_contract_cons', '=', 0)]}">
+                        <field name="count_contract_cons" widget="statinfo" string="Contracts"/>
+                    </button>
+                    <field name="project_count" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//button[@name='action_view_sale_quotation']" position="attributes">
+                    <attribute name="attrs">{'invisible': [('is_project', '!=', False)]}</attribute>
+                </xpath>
+                
+                <xpath expr="//field[@name='company_id']" position="attributes">
+                    <attribute name="readonly">1</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/group[1]" position="attributes">
+                    <attribute name="name">lead_new</attribute>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="add_fields_crm_inherit" model="ir.ui.view">
+            <field name="name">add.fields.crm.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="equip3_crm_operation.crm_lead_view_form_inherit"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='information_cust_left']/field[@name='partner_id']" position="before">
+                    <field name="project_id" string="Project" class="font-weight-bold"/>
+                    <field name="is_project" invisible="1"/>
+                    <field name="project_short_name" force_save="1" attrs="{'required': [('project_id', '!=', False)]}"/>
+                    <field name="is_allowed_access" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="action_view_project_for_crm_construction" model="ir.actions.act_window">
+            <field name="name">Projects</field>
+            <field name="res_model">project.project</field>
+            <field name="view_ids" eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('project.view_project')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('equip3_construction_masterdata.edit_project')}),
+                ]"/>
+            <field name="search_view_id" ref="project.view_project_project_filter"/>
+            <field name="domain">[('department_type', '=', 'project')]</field>
+            <field name="context">{'default_department_type': 'project','is_sale_project':True}</field>
+            <field name="view_mode">tree,form</field>
+            <field name="target">main</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No projects found. Let's create one!
+                </p>
+            </field>
+        </record>
+
+        <menuitem 
+            id="menu_project_for_crm_construction"
+            name="Projects"
+            parent="crm.menu_crm_config_lead"
+            action="action_view_project_for_crm_construction"
+            sequence="1"/>
+
+    
+    </data>
+</odoo>

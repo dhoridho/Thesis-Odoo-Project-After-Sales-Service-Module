@@ -1,0 +1,375 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="view_hr_attendance_change_tree" model="ir.ui.view">
+        <field name="name">hr.attendance.change.tree</field>
+        <field name="model">hr.attendance.change</field>
+        <field name="arch" type="xml">
+            <tree string="Attendance Change">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="request_date_from"/>
+                <field name="request_date_to"/>
+                <field name="state" decoration-success="state == 'approved'" 
+                       decoration-danger="state == 'refused'" 
+                       decoration-primary="state == 'draft'"
+                       decoration-warning="state == 'to_approve'"
+                       widget='badge'/>
+                <field name="attachment" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="hr_attendance_change_request_search" model="ir.ui.view">
+            <field name="name">hr.attendance.change.search</field>
+            <field name="model">hr.attendance.change</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="employee_id" />
+                    <field name="department_id" />
+                    <field name="job_id" />
+                    <group expand="0" string="Group By">
+                        <filter string="Employee" name="group_employee" domain="[]" context="{'group_by': 'employee_id'}"/>
+                        <filter string="Department" name="group_department" domain="[]" context="{'group_by': 'department_id'}"/>
+                        <filter string="Job Position" name="group_job_position" domain="[]" context="{'group_by': 'job_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+    <record id="view_hr_attendance_change_form" model="ir.ui.view">
+        <field name="name">hr.attendance.change.form</field>
+        <field name="model">hr.attendance.change</field>
+        <field name="arch" type="xml">
+            <form string="Attendance Change">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="wizard_approve" string="Approve" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_approver', '=', False), ('state', '!=', 'to_approve')]}"/>
+                    <button name="wizard_refuse" string="Refuse" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_approver', '=', False), ('state', '!=', 'to_approve')]}"/>
+
+                    <!--                    <button name="action_approve" string="Approve" type="object" class="oe_highlight"-->
+                    <!--                            attrs="{'invisible': [('is_approver', '!=', True)]}"/>-->
+                    <!--                    <button name="action_refuse" string="Refuse" type="object" class="oe_highlight"-->
+                    <!--                            attrs="{'invisible': [('is_approver', '!=', True)]}"/>-->
+                    <field name="state"  widget="statusbar" attrs="{'invisible':[('is_attendance_change_approval_matrix','=',False)]}"/>
+                    <!--is_attendance_change_approval_matrix== True condition-->
+                    <field name="state1" widget="statusbar" statusbar_visible="draft,approved" attrs="{'invisible':[('is_attendance_change_approval_matrix','!=',False)]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title" name="title">
+                        <h2>
+                            <field name="name" nolabel="1" readonly="1"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id" domain="[('id','in',domain_employee_ids)]" attrs="{'readonly':['|',('is_readonly','=',True),('state','!=','draft')]}"/>
+                            <field name="domain_employee_ids" invisible="1"/>
+                            <field name="is_readonly" invisible="1"/>
+                            <label for="request_date_from" string="Period"/>
+                            <div class="o_row">
+                                <span class="oe_inline">
+                                    From
+                                </span>
+                                <field name="request_date_from" class="oe_inline" nolabel="1"
+                                       attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <span class="oe_inline">
+                                    To
+                                </span>
+                                <field name="request_date_to" class="oe_inline"
+                                       attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            </div>
+                            <field name="attachment" attrs="{'readonly': [('state', '!=', 'draft')]}" filename='attachment_name'/>
+                            <field name="attachment_name" invisible='1'/>
+                            <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                            <field name="is_approver" invisible="1"/>
+                            <field name="approved_user_text" invisible="1"/>
+                            <field name="approved_user" invisible="1" readonly="0"/>
+                            <field name="job_id" invisible="1"/>
+                            <field name="department_id" invisible="1"/>
+                            <field name="feedback_parent" invisible="1"/>
+                            <field name="is_attendance_change_approval_matrix" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Attendance Change">
+                            <field name="attendance_change_line_ids" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                                <tree editable="bottom" create="false" delete="false">
+                                    <field name="date" readonly="1" force_save="1"/>
+                                    <field name="resource_calendar_id" readonly="1" force_save="1"/>
+                                    <field name="hr_attendance_id" invisible="1" force_save="1"/>
+                                    <field name="check_in" widget="float_time" readonly="1" force_save="1"/>
+                                    <field name="check_out" widget="float_time" readonly="1" force_save="1"/>
+                                    <field name="checkin_status" readonly="1" force_save="1"/>
+                                    <field name="checkout_status" readonly="1" force_save="1"/>
+                                    <field name="attendance_status" readonly="1" force_save="1"/>
+                                    <field name="check_in_correction" widget="float_time"/>
+                                    <field name="check_out_correction" widget="float_time"/>
+                                    <field name="checkin_status_correction"/>
+                                    <field name="checkout_status_correction"/>
+                                    <field name="attendance_status_correction"/>
+                                    <field name="reason" required="1"/>
+                                </tree>
+                                <form string="Attendance Change Lines">
+                                    <group>
+                                        <group>
+                                            <field name="hr_attendance_change_id"/>
+                                            <field name="resource_calendar_id"/>
+                                            <field name="check_in" widget="float_time"/>
+                                            <field name="check_out" widget="float_time"/>
+                                            <field name="checkin_status"/>
+                                            <field name="checkout_status"/>
+                                            <field name="attendance_status"/>
+                                            <field name="hr_attendance_id"/>
+                                        </group>
+                                        <group>
+                                            <field name="date"/>
+                                            <field name="check_in_correction" widget="float_time"/>
+                                            <field name="check_out_correction" widget="float_time"/>
+                                            <field name="checkin_status_correction"/>
+                                            <field name="checkout_status_correction"/>
+                                            <field name="attendance_status_correction"/>
+                                            <field name="reason"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Approval Matrix Lines" attrs="{'invisible':[('is_attendance_change_approval_matrix','=',False)]}">
+                            <field name="attendance_change_user_ids">
+                                <tree editable="bottom" create="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                    <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                    <field name="is_delegation_mail_sent" invisible="1"/>
+                                    <field name="minimum_approver" readonly="1" force_save="1"/>
+                                    <field name="timestamp" invisible="1" force_save="1"/>
+                                    <field name="approver_state" invisible="1" force_save="1"/>
+                                    <field name="approval_status" readonly="1" force_save="1"/>
+                                    <field name="approved_time" readonly="1" force_save="1"/>
+                                    <field name="is_approve" invisible="1"/>
+                                    <field name="approved_employee_ids" invisible="1"/>
+                                    <field name="feedback" readonly="1" force_save="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+
+    <!--     Start Custom View for my attendance-->
+    <record id="view_hr_attendance_change_custom_tree" model="ir.ui.view">
+        <field name="name">hr.attendance.change.tree</field>
+        <field name="model">hr.attendance.change</field>
+        <field name="arch" type="xml">
+            <tree string="Attendance Change">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="request_date_from"/>
+                <field name="request_date_to"/>
+                <field name="state"/>
+                <field name="attachment" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_hr_attendance_change_custom_form" model="ir.ui.view">
+        <field name="name">hr.attendance.change.form</field>
+        <field name="model">hr.attendance.change</field>
+        <field name="arch" type="xml">
+            <form string="Attendance Change">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="wizard_approve" string="Approve" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_approver', '=', False), ('state', '!=', 'to_approve')]}"/>
+                    <button name="action_refuse" string="Refuse" type="object" class="oe_highlight"
+                            attrs="{'invisible': ['|', ('is_approver', '=', False), ('state', '!=', 'to_approve')]}"/>
+                    <field name="state"  widget="statusbar" attrs="{'invisible':[('is_attendance_change_approval_matrix','=',False)]}"/>
+                    <!--is_attendance_change_approval_matrix== True condition-->
+                    <field name="state1" widget="statusbar" statusbar_visible="draft,approved" attrs="{'invisible':[('is_attendance_change_approval_matrix','!=',False)]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title" name="title">
+                        <h2>
+                            <field name="name" nolabel="1" readonly="1"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_id" readonly="1"/>
+                            <label for="request_date_from" string="Period"/>
+                            <div class="o_row">
+                                <span class="oe_inline">
+                                    From
+                                </span>
+                                <field name="request_date_from" class="oe_inline" nolabel="1"
+                                       attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <span class="oe_inline">
+                                    To
+                                </span>
+                                <field name="request_date_to" class="oe_inline"
+                                       attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            </div>
+                            <field name="attachment" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <field name="approvers_ids" widget="many2many_tags" invisible="1"/>
+                            <field name="approved_user_ids" widget="many2many_tags" invisible="1" readonly="0"/>
+                            <field name="is_approver" invisible="1"/>
+                            <field name="approved_user_text" invisible="1"/>
+                            <field name="approved_user" invisible="1" readonly="0"/>
+                            <field name="job_id" invisible="1"/>
+                            <field name="department_id" invisible="1"/>
+                            <field name="feedback_parent" invisible="1"/>
+                            <field name="is_attendance_change_approval_matrix" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Attendance Change">
+                            <field name="attendance_change_line_ids" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                                <tree editable="bottom" create="false" delete="false">
+                                    <field name="date" readonly="1" force_save="1"/>
+                                    <field name="resource_calendar_id" readonly="1" force_save="1"/>
+                                    <field name="hr_attendance_id" invisible="1" force_save="1"/>
+                                    <field name="check_in" widget="float_time" readonly="1" force_save="1"/>
+                                    <field name="check_out" widget="float_time" readonly="1" force_save="1"/>
+                                    <field name="checkin_status" readonly="1" force_save="1"/>
+                                    <field name="checkout_status" readonly="1" force_save="1"/>
+                                    <field name="attendance_status" readonly="1" force_save="1"/>
+                                    <field name="check_in_correction" widget="float_time"/>
+                                    <field name="check_out_correction" widget="float_time"/>
+                                    <field name="checkin_status_correction"/>
+                                    <field name="checkout_status_correction"/>
+                                    <field name="attendance_status_correction"/>
+                                    <field name="reason" required="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Approval Matrix Lines" attrs="{'invisible':[('is_attendance_change_approval_matrix','=',False)]}">
+                            <field name="attendance_change_user_ids">
+                                <tree editable="bottom" create="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="user_ids" widget="many2many_tags" readonly="1" force_save="1"/>
+                                    <field name="matrix_user_ids" widget="many2many_tags" invisible="1" readonly="1" force_save="1"/>
+                                    <field name="is_delegation_mail_sent" invisible="1"/>
+                                    <field name="minimum_approver" readonly="1" force_save="1"/>
+                                    <field name="timestamp" invisible="1" force_save="1"/>
+                                    <field name="approver_state" invisible="1" force_save="1"/>
+                                    <field name="approval_status" readonly="1" force_save="1"/>
+                                    <field name="approved_time" readonly="1" force_save="1"/>
+                                    <field name="is_approve" invisible="1"/>
+                                    <field name="approved_employee_ids" invisible="1"/>
+                                    <field name="feedback" readonly="1" force_save="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <!--    End  Custom View for my attendance-->
+
+    <record id="hr_attendance_my_attendance_action" model="ir.actions.act_window">
+        <field name="name">My Attendance</field>
+        <field name="res_model">hr.attendance</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('employee_id.user_id', '=', uid)]</field>
+    </record>
+
+    <record id="hr_attendance_change_action" model="ir.actions.act_window">
+        <field name="name">My Attendance Change Request</field>
+        <field name="res_model">hr.attendance.change</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('employee_id.user_id', '=', uid)]</field>
+    </record>
+
+    <record id="hr_attendance_change_custom_action" model="ir.actions.server">
+        <field name="name">My Attendance Change Request</field>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <field name="model_id" ref="equip3_hr_attendance_extend.model_hr_attendance_change"/>
+        <field name="code">action = model.custom_menu()</field>
+       
+    </record>
+
+   
+
+
+    <record id="hr_attendance_change_action_custom_tree" model="ir.actions.act_window.view">
+        <field eval="2" name="sequence"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="equip3_hr_attendance_extend.view_hr_attendance_change_custom_tree"/>
+        <field name="act_window_id" ref="hr_attendance_change_action"/>
+    </record>
+    <record id="hr_attendance_change_action_custom_form" model="ir.actions.act_window.view">
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="equip3_hr_attendance_extend.view_hr_attendance_change_custom_form"/>
+        <field name="act_window_id" ref="hr_attendance_change_action"/>
+    </record>
+
+
+    <record id="hr_attendance_change_action_manager" model="ir.actions.server">
+        <field name="name">Attendance Change Requests</field>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <field name="model_id" ref="equip3_hr_attendance_extend.model_hr_attendance_change"/>
+        <field name="code">action = model.custom_menu_request()</field>
+        </record>
+
+    <!-- <record id="hr_attendance_change_action_manager" model="ir.actions.act_window">
+        <field name="name">Attendance Change Requests</field>
+        <field name="res_model">hr.attendance.change</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('approvers_ids', '=', uid)]</field>
+    </record> -->
+
+    <record id="action_my_working_schedule_action" model="ir.actions.act_window">
+        <field name="name">My Working Calendar</field>
+        <field name="res_model">employee.working.schedule.calendar</field>
+        <field name="view_mode">calendar,tree,form</field>
+        <field name="domain">[('employee_id.user_id', '=', uid)]</field>
+    </record>
+
+
+    <menuitem id="hr_attendance_change_menu_root"
+              parent="hr_attendance.menu_hr_attendance_root"
+              name="My Attendance"
+              sequence="1"
+    />
+
+    <record id="hr_attendance_change_menu_root" model="ir.ui.menu">
+        <field name="equip_icon_class">o-hm-sidebar-parent-hrm-my-attendance</field> 
+    </record>
+   
+    <menuitem id="hr_attendance.menu_hr_attendance_my_attendances" name="Check In / Check Out"
+              parent="hr_attendance_change_menu_root"
+              sequence="0" groups="hr_attendance.group_hr_attendance"
+              action="hr_attendance.hr_attendance_action_my_attendances"/>
+     <menuitem id="hr_my_working_schedule_menu" name="My Working Calendar"
+              parent="hr_attendance_change_menu_root"
+              sequence="1" action="action_my_working_schedule_action"/>
+    <menuitem id="hr_attendance_my_attendance_menu" name="My Attendance"
+              parent="hr_attendance_change_menu_root"
+              sequence="2" action="hr_attendance_my_attendance_action"/>
+    <menuitem id="hr_attendance_change_menu" name="My Attendance Change Request"
+              parent="hr_attendance_change_menu_root"
+              sequence="3" action="hr_attendance_change_custom_action"/>
+
+    <menuitem id="hr_attendance_change_manager_menu" name="Attendance Change Requests"
+              parent="hr_attendance.menu_hr_attendance_manage_attendances"
+              sequence="99" action="hr_attendance_change_action_manager"/>
+</odoo>

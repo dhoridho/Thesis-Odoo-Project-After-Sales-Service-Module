@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="setu_inventory_ledger_report_form1" model="ir.ui.view">
+            <field name="name">setu.inventory.ledger.report.form</field>
+            <field name="model">setu.inventory.ledger.report</field>
+            <field name="arch" type="xml">
+                <form string="Inventory Ledger Report">
+                    <sheet string="Inventory Ledger">
+                        <group expand="0" >
+                            <group expand="0" string="Report filter">
+                                <field name="report_by" widget="radio" required="True"/>
+                            </group>
+                            <group expand="0" string="Choose dates to calculate ledger">
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                            </group>
+                        </group>
+                        <group expand="0">
+                            <group expand="0" string="Products &#038; Categories">
+                                <field name="product_category_ids" widget="many2many_tags" options="{'no_create_edit': True}"/>
+                                <field name="product_ids" widget="many2many_tags" options="{'no_create_edit': True}"/>
+                            </group>
+                            <group expand="0" string="Companies &#038; Warehouses">
+                                <field name="company_ids" widget="many2many_tags"
+                                       domain="[('id', 'in', allowed_company_ids)]" options="{'no_create_edit': True}"/>
+                                <field name="warehouse_ids" widget="many2many_tags" attrs="{'invisible':[('report_by','=','company_wise')]}"
+                                       options="{'no_create_edit': True}"/>
+<!--                                <field name="stock_location" widget="many2many_tags" options="{'no_create_edit': True}"/>-->
+                            </group>
+                        </group>
+                        <footer>
+                            <button name="download_report_in_listview" string="View Data" type="object"
+                                    class="oe_highlight"/>
+                            <button string="Cancel" class="oe_link" special="cancel" />
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="setu_inventory_ledger_report_action" model="ir.actions.act_window">
+            <field name="name">Inventory Ledger Report</field>
+            <field name="res_model">setu.inventory.ledger.report</field>
+            <field name="binding_view_types">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="setu_inventory_ledger_reports_menu" name="Inventory Ledger Report" action="setu_inventory_ledger_report_action"
+                  parent="stock.menu_warehouse_report" sequence="18" />
+
+        <record id="setu_inventory_ledger_bi_report_form" model="ir.ui.view">
+            <field name="name">setu.inventory.ledger.bi.report.form</field>
+            <field name="model">setu.inventory.ledger.bi.report</field>
+            <field name="arch" type="xml">
+                <form string="Inventory Ledger Detailed Report" create="false">
+                    <sheet string="Inventory Ledger Detailed Report">
+                        <group expand="0" readonly="1">
+                            <group>
+                                <field name="inventory_date" readonly="1"/>
+                                <field name="product_id" readonly="1"/>
+                                <field name="wizard_id" invisible="1" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="company_id" readonly="1"/>
+                                <field name="warehouse_id" attrs="{'invisible':[('warehouse_id','=',False)]}" readonly="1"/>
+                            </group>
+                        </group>
+                        <group>
+                            <div readonly="1">
+                                <table style="width:50%; align:center; background-color:#;" border="0" cellpadding="5px">
+                                    <h2>
+                                        <tr style="text-align:center">
+                                            <th style="width:25%; font-size: 22px"><label for="opening_stock"/></th>
+                                            <th style="width:25%; font-size: 22px"><label for="total_in" /></th>
+                                            <th style="width:25%; font-size: 22px"><label for="total_out"/></th>
+                                            <th style="width:25%; font-size: 22px"><label for="closing"/></th>
+                                        </tr>
+                                        <tr style="text-align:center">
+                                            <td style="width:25%; color:#3498db;"><field name="opening_stock" nolabel="1" readonly="1"/></td>
+                                            <td style="width:25%; color:#28b463;"><field name="total_in" nolabel="1"/></td>
+                                            <td style="width:25%; color:#ff4240;"><field name="total_out" nolabel="1"/></td>
+                                            <td style="width:25%; color:#3498db;"><field name="closing" nolabel="1" readonly="1"/></td>
+                                        </tr>
+                                    </h2>
+                                </table>
+                            </div>
+                        </group>
+                        <group readonly="1">
+                            <group expand="0" string="In movements">
+                                <field name="purchase" style="color:#28b463; font-size:16px" readonly="1"/>
+                                <field name="sales_return" style="color:#28b463; font-size:16px" readonly="1"/>
+                                <field name="internal_in" style="color:#28b463; font-size:16px" attrs="{'invisible':[('warehouse_id','=',False)]}" readonly="1"/>
+                                <field name="adjustment_in" style="color:#28b463; font-size:16px" readonly="1"/>
+                                <field name="transit_in" style="color:#28b463; font-size:16px" attrs="{'invisible':[('warehouse_id','=',False)]}" readonly="1"/>
+                                <field name="production_in" style="color:#28b463; font-size:16px" readonly="1"/>
+                            </group>
+                            <group expand="0" string="Out movements">
+                                <field name="purchase_return" style="color:#ff4240; font-size:16px" readonly="1"/>
+                                <field name="sales" style="color:#ff4240; font-size:16px" readonly="1"/>
+                                <field name="internal_out" style="color:#ff4240; font-size:16px" attrs="{'invisible':[('warehouse_id','=',False)]}" readonly="1"/>
+                                <field name="adjustment_out" style="color:#ff4240; font-size:16px" readonly="1"/>
+                                <field name="transit_out" style="color:#ff4240; font-size:16px" attrs="{'invisible':[('warehouse_id','=',False)]}" readonly="1"/>
+                                <field name="production_out" style="color:#ff4240; font-size:16px" readonly="1"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group expand="0">
+                                <field name="product_movements" required="1"/>
+                            </group>
+                        </group>
+                        <group string="Product movements" style="color:#3498db;">
+                            <field name="ledger_detail_ids" nolabel="1" readonly="1">
+                                <tree>
+                                    <field name="date"/>
+                                    <field name="location_id"/>
+                                    <field name="location_dest_id"/>
+                                    <field name="product_uom_qty"/>
+                                    <field name="partner_id"/>
+                                    <field name="picking_id"/>
+                                    <field name="origin"/>
+                                    <field name="inventory_id"/>
+                                    <field name="state" invisible="1"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="setu_inventory_ledger_bi_report_tree" model="ir.ui.view">
+            <field name="name">setu.inventory.ledger.bi.report.tree</field>
+            <field name="model">setu.inventory.ledger.bi.report</field>
+            <field name="arch" type="xml">
+                <tree string="Inventory Ledger Report" create="false">
+                    <field name="inventory_date" />
+                    <field name="company_id" />
+                    <field name="warehouse_id" />
+<!--                    <field name="stock_location" />-->
+                    <field name="product_category_id" optional="hide"/>
+                    <field name="product_id"/>
+                    <field name="opening_stock"/>
+                    <field name="purchase" optional="show"/>
+                    <field name="sales" optional="show"/>
+                    <field name="purchase_return" optional="show"/>
+                    <field name="sales_return" optional="show"/>
+                    <field name="internal_in" optional="show"/>
+                    <field name="internal_out" optional="show"/>
+                    <field name="adjustment_in" optional="show"/>
+                    <field name="adjustment_out" optional="show"/>
+                    <field name="production_in" optional="show"/>
+                    <field name="production_out" optional="show"/>
+                    <field name="transit_in" optional="hide" />
+                    <field name="transit_out" optional="hide" />
+                    <field name="closing" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="setu_inventory_ledger_bi_report_tree_cmpwise" model="ir.ui.view">
+            <field name="name">setu.inventory.ledger.bi.report.tree.cmpwise</field>
+            <field name="model">setu.inventory.ledger.bi.report</field>
+            <field name="arch" type="xml">
+                <tree string="Inventory Ledger Report" create="false">
+                    <field name="inventory_date" />
+                    <field name="company_id" />
+<!--                    <field name="warehouse_id" />-->
+<!--                    <field name="stock_location" />-->
+                    <field name="product_category_id" optional="hide"/>
+                    <field name="product_id"/>
+                    <field name="opening_stock"/>
+                    <field name="purchase" optional="show"/>
+                    <field name="sales" optional="show"/>
+                    <field name="purchase_return" optional="show"/>
+                    <field name="sales_return" optional="show"/>
+                    <field name="internal_in" optional="show"/>
+                    <field name="internal_out" optional="show"/>
+                    <field name="adjustment_in" optional="show"/>
+                    <field name="adjustment_out" optional="show"/>
+                    <field name="production_in" optional="show"/>
+                    <field name="production_out" optional="show"/>
+                    <field name="transit_in" optional="hide" />
+                    <field name="transit_out" optional="hide" />
+                    <field name="closing" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="setu_inventory_ledger_bi_report_searchview" model="ir.ui.view">
+            <field name="name">setu.inventory.ledger.bi.report.searchview</field>
+            <field name="model">setu.inventory.ledger.bi.report</field>
+            <field name="arch" type="xml">
+                <search string="Inventory Ledger Report">
+                    <field name="company_id" />
+                    <field name="warehouse_id" />
+                    <field name="product_category_id" />
+                    <field name="product_id" />
+                    <filter string="Product Category" context="{'group_by':'product_category_id'}" name="product_category_groupby"/>
+                    <filter string="Product" context="{'group_by':'product_id'}" name="product_groupby"/>
+                    <filter string="Warehouse" context="{'group_by':'warehouse_id'}" name="warehouse_groupby"/>
+                    <filter string="Date" context="{'group_by':'inventory_date'}" name="date_groupby"/>
+                </search>
+            </field>
+        </record>
+    </data>
+</odoo>

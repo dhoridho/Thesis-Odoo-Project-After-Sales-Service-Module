@@ -1,0 +1,126 @@
+<?xml version="1.0" ?>
+<odoo>
+
+    <record model="ir.ui.view" id="patient_death_register_view">
+        <field name="name">Patient Death</field>
+        <field name="model">patient.death.register</field>
+        <field name="arch" type="xml">
+            <form string="Patient Death Register">
+                <header>
+                    <button name="action_done" class="oe_highlight" string="Done" states="draft" type="object" groups="acs_hms.group_hms_jr_doctor"/>
+                    <button name="action_draft" class="oe_highlight" string="Set to Draft" states="done" type="object" groups="acs_hms.group_hms_jr_doctor"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="patient_id" required="1"/>
+                            <field name="patient_gender"/>
+                            <field name="patient_age"/>
+                        </group>
+                        <group>
+                            <field name="date_of_death"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            <field name="hospitalizaion_id" context="{'default_patient_id':patient_id}" domain="[('patient_id','=',patient_id)]"/>
+                            <field name="physician_id"/>
+                        </group>
+                    </group>
+                    <separator string="Death Reason" colspan="4"/>
+                    <field name="reason" colspan='4' nolabel="1"/>
+                    <separator string="Remarks" colspan="4"/>
+                    <field name="extra_info" colspan='4' nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="patient_death_register_tree">
+        <field name="name">Patient Death Lists</field>
+        <field name="model">patient.death.register</field>
+        <field name="arch" type="xml">
+            <tree string='Patient Death'>
+                <field name="state" invisible="1"/>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="date_of_death"/>
+                <field name="patient_gender"/>
+                <field name="patient_age"/>
+                <field name="hospitalizaion_id"/>
+                <field name="physician_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_patient_death_register_search" model="ir.ui.view">
+        <field name="name">Patient Death Search</field>
+        <field name="model">patient.death.register</field>
+        <field name="arch" type="xml">
+            <search string="Search delivery">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="date_of_death"/>
+                <field name="hospitalizaion_id"/>
+                <field name="physician_id"/>
+                <separator/>
+                <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="This Month" name="month" domain="[('date_of_death','&lt;=', time.strftime('%Y-%m-%d')),('date_of_death','&gt;=',time.strftime('%Y-%m-01'))]" help="month"/>
+                <separator/>
+                <filter string="Done" name="done" domain="[('state','in',('done'))]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Creation" name="group_by_create_date" help="Creation Date" domain="[]" context="{'group_by':'create_date'}"/>
+                    <filter string="Month"  name="group_by_date_of_death" domain="[]" context="{'group_by':'date_of_death'}" help="Calls Date by Month"/>
+                    <filter name="group_by_gender" string="Group By Gender" context="{'group_by':'patient_gender'}"/>
+                    <filter name="group_by_comp" string="Company" context="{'group_by':'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_acs_patient_death_register_calendar" model="ir.ui.view">
+        <field name="name">patient.death.register.calendar</field>
+        <field name="model">patient.death.register</field>
+        <field name="type">calendar</field>
+        <field name="arch" type="xml">
+            <calendar string="Patient Death" color="physician_id" date_start="date_of_death">
+                <field name="physician_id"/>
+                <field name="patient_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_patient_death_register_pivot" model="ir.ui.view">
+        <field name="name">patient.death.register.pivot</field>
+        <field name="model">patient.death.register</field>
+        <field name="arch" type="xml">
+            <pivot string="Patient Death">
+                <field name="date_of_death" type="row"/>
+                <field name="physician_id" type="row"/>
+                <field name="patient_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="hms_action_death_register">
+        <field name="name">Patient Death Register</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">patient.death.register</field>
+        <field name="view_mode">tree,form,calendar,pivot</field>
+        <field name="context">{'search_default_month':True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Record Found
+            </p>
+            <p>
+                Click to add new record.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,138 @@
+<odoo>
+
+    <!-- Portal View -->
+    <template id="portal_my_home_menu_hms" name="Portal layout : HMS Data" inherit_id="portal.portal_breadcrumbs" priority="20">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'insurance_claim' or insurance_claim" t-attf-class="breadcrumb-item #{'active ' if not insurance_claims else ''}">
+                <a t-if="insurance_claim" t-attf-href="/my/insuranceclaims?{{ keep_query() }}">Insurance Claims</a>
+                <t t-else="">Insurance Claims</t>
+            </li>
+            <li t-if="insurance_claim" class="breadcrumb-item active">
+                <t t-esc="insurance_claim.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_my_home" name="Portal My Home: HMS entries" inherit_id="portal.portal_my_home" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-if="insurance_claim_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Insurance Claims</t>
+                <t t-set="url" t-value="'/my/insuranceclaims'"/>
+                <t t-set="count" t-value="insurance_claim_count"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="insurance_claims" name="My Insurance Claims">
+        <t t-call="portal.portal_layout">
+
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Insurance Claims</t>
+            </t>
+            <t t-if="not insurance_claims">
+                <p>There are currently no Insurance Claims for your account.</p>
+            </t>
+
+            <div t-if="insurance_claims" class="panel panel-default">
+                <div class="table-responsive">
+                    <table class="table table-hover bg-white status_table o_portal_my_doc_table">
+                        <thead>
+                            <tr class="active">
+                                <th>Name</th>
+                                <th>Insurance Company</th>
+                                <th>Insurance Policy</th>
+                                <th>Date</th>
+                                <th>Reference</th>
+                                <th>State</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <t t-foreach="insurance_claims" t-as="claim">
+                            <tr>
+                                <td>
+                                    <a t-attf-href="/my/insuranceclaims/#{claim.id}?{{ keep_query() }}"><t t-esc="claim.name"/></a>
+                                </td>
+                                <td>
+                                    <span t-field="claim.insurance_company_id"/>
+                                </td>
+                                <td>
+                                    <span t-field="claim.insurance_id"/>
+                                </td>
+                                <td>
+                                    <span t-field="claim.date"/>
+                                </td>
+                                <td>
+                                    <t t-if="claim.claim_for=='appointment'">
+                                        <span t-field="claim.appointment_id"/>
+                                    </t>
+                                    <t t-if="claim.claim_for=='hospitalization'">
+                                        <span t-field="claim.hospitalization_id"/>
+                                    </t>
+                                </td>
+                                <td>
+                                    <span t-field="claim.state"/>
+                                </td>
+                                <td>
+                                    <a class="btn btn-primary" target="_blank" title="Lab Report"
+                                        t-att-href="'/report/pdf/acs_hms_insurance.claim_report/'+str(claim.id)">Print</a>
+                                </td>
+                            </tr>
+                        </t>
+                    </table>
+                </div>
+            </div>
+            <div t-if="pager" class="o_portal_pager text-center">
+                <t t-call="portal.pager"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="my_insurance_claim" name="Insurance Claim" >
+        <t t-call="portal.portal_layout">
+            <!-- Page Content -->
+            <div id="claim_content" class="col-12 col-lg mt32">
+                <!-- <div t-if="insurance_claim.doc_ids" class="mt-4">
+                    <h2>Related Documents</h2>
+                    <div class="table-responsive">
+                        <table class="table table-hover bg-white status_table o_portal_my_doc_table">
+                            <thead>
+                                <tr class="active">
+                                    <th>Document</th>
+                                    <th>Name</th>
+                                    <th class="col-md-8">Description</th>
+                                </tr>
+                            </thead>
+
+                            <t t-foreach="insurance_claim.doc_ids" t-as="document">
+                                <tr>
+                                    <td>Document <t t-esc="document.id"/></td>
+                                    <td>
+                                        <div>
+                                          <a t-att-href="'/web/content?model=ir.attachment&amp;field=datas&amp;id=%s&amp;download=true&amp;filename_field=name' % document.id"><span class="fa fa-download"/><span t-field="document.name"/></a>
+                                        </div>
+                                    </td>
+                                    <td><span t-field="document.description"/></td>
+                                </tr>
+                            </t>
+                        </table>
+                    </div>
+                </div> -->
+
+                <div class="o_portal_html_view shadow p-3" style="background-color: white;">
+                    <iframe id="claim_html" width="100%" height="1080px" frameborder="0" scrolling="no" t-att-src="'/report/html/acs_hms_insurance.claim_report/'+str(insurance_claim.id)"/>
+                </div>
+                <!-- chatter -->
+                <div id="claim_communication" class="mt-4">
+                    <h2>History</h2>
+                    <t t-call="portal.message_thread">
+                        <t t-set="object" t-value="insurance_claim"/>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <template id="student_leave_portal_list" name="Student Leave">
+        <t t-call="website.layout">
+            <t t-set="head">
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.min.js"></script>
+                <script>
+                    $(document).ready(function(){
+                        jQuery.validator.addMethod("greaterStart", function (value, element, params) {
+                            return this.optional(element) || new Date(value) >= new Date($(params).val());
+                        }, 'Must be greater than start date.');
+                        jQuery.validator.addMethod("dateNotLessThanToday", function(value, element) {
+                            var _today = (new Date()).toISOString().split('T')[0];
+                            return this.optional(element) || (new Date(value).getTime() >= new Date(_today).getTime());
+                        }, "You cannot select a date less than today.");
+                        var _validator = $("#leaveRequestForm").validate({
+                            ignore: [],
+                            rules: {
+                                "type_of_leave": {
+                                    required: true
+                                },
+                                "student_name": {
+                                    required: true,
+                                },
+                                "start_date": {
+                                    required: true,
+                                    dateNotLessThanToday: true,
+                                },
+                                "end_date": {
+                                    required: true,
+                                    greaterStart: "#start_date"
+                                },
+                                "reason_for_leave": {
+                                    required: true
+                                },
+                            },
+                            messages: {
+                                student_name: {
+                                    required: "Please fill Student name",
+                                },
+                                start_date: {
+                                    required: "Please fill Start Date",
+                                },
+                                end_date: {
+                                    required: "Please fill End Date",
+                                },
+                                reason_for_leave: {
+                                    required: "Please fill Reason for leave",
+                                }
+                            },
+                        });
+                    });
+                </script>
+            </t>
+            <div id="wrap" >
+                <div class="oe_structure">
+                    <section class="mt-4 mb-4">
+                        <div class="container-fluid d-flex">
+                            <div class="school_portal_sidebar other_form">
+                                <nav id = "sidebar">
+                                    <ul class="list-unstyled parent_links">
+                                        <li class="parent_url">
+                                            <span class="o-hm-icon o-hm-menu-icon o-hm-sidebar-main-school-admission-register"></span>
+                                            <a href="#admission-register" data-toggle="collapse" aria-expanded="true" equip_icon_class="o-hm-sidebar-sub-school-classes">ADMISSION REGISTER</a>
+                                        </li>
+                                        <div class="col-20 menu-border">
+                                            <div/>
+                                        </div>
+                                        <ul class="list-unstyled collapse show child_links" id="admission-register">
+                                            <li class="child_url">
+                                                <a href="/student/admission">Admission Register</a>
+                                            </li>
+                                        </ul>
+                                    </ul>
+
+                                    <ul class="list-unstyled parent_links" t-if="request.env.user.has_group('base.group_user')">
+                                        <li class="parent_url">
+                                            <span class="o-hm-icon o-hm-menu-icon o-hm-sidebar-sub-school-classes"></span>
+                                            <a href="#academic-tracking" data-toggle="collapse" aria-expanded="true">ACADEMIC TRACKING</a>
+                                        </li>
+                                        <div class="col-20 menu-border">
+                                            <div/>
+                                        </div>
+
+                                        <ul class="list-unstyled collapse show child_links" id="academic-tracking">
+                                            <li class="child_url">
+                                                <a href="/student/profile">Student Profile</a>
+                                            </li>
+                                        </ul>
+
+                                        <ul class="list-unstyled collapse show child_links" id="academic-tracking">
+                                            <li class="child_url">
+                                                <a href="/student/academic/tracking">Academic Tracking</a>
+                                            </li>
+                                        </ul>
+
+                                        <ul class="list-unstyled collapse show child_links" id="academic-tracking">
+                                            <li class="child_url">
+                                                <a href="/student/transcript">Student Transcript</a>
+                                            </li>
+                                        </ul>
+                                    </ul>
+
+                                    <ul class="list-unstyled parent_links">
+                                        <li class="parent_url">
+                                            <span class="o-hm-icon o-hm-menu-icon o-hm-sidebar-sub-school-monthly-attendance-sheet"></span>
+                                            <a href="#student-invoice" data-toggle="collapse" aria-expanded="true">STUDENT INVOICE</a>
+                                        </li>
+                                        <div class="col-20 menu-border">
+                                            <div/>
+                                        </div>
+
+                                        <ul class="list-unstyled collapse show child_links" id="student-invoice">
+                                            <li class="child_url">
+                                                <a href="/my/invoices">Student Invoice</a>
+                                            </li>
+                                        </ul>
+                                    </ul>
+
+                                    <ul class="list-unstyled parent_links" t-if="request.env.user.has_group('base.group_user')">
+                                        <li class="parent_url">
+                                            <span class="o-hm-icon o-hm-menu-icon o-hm-sidebar-sub-school-monthly-attendance-sheet"></span>
+                                            <a href="#exam-assignment" data-toggle="collapse" aria-expanded="true">EXAM AND ASSIGNMENT</a>
+                                        </li>
+                                        <div class="col-20 menu-border">
+                                            <div/>
+                                        </div>
+
+                                        <ul class="list-unstyled collapse show child_links" id="exam-assignment">
+                                            <li class="child_url">
+                                                <a href="/student/assignment">Student Assignment</a>
+                                            </li>
+                                        </ul>
+
+                                        <ul class="list-unstyled collapse show child_links" id="exam-assignment">
+                                            <li class="child_url">
+                                                <a href="/student/exam">Student Exam</a>
+                                            </li>
+                                        </ul>
+
+
+                                        <ul class="list-unstyled collapse show child_links" id="exam-assignment">
+                                            <li class="child_url">
+                                                <a href="/student/additional">Additional Exam</a>
+                                            </li>
+                                        </ul>
+                                    </ul>
+
+                                    <ul class="list-unstyled parent_links" t-if="request.env.user.has_group('base.group_user')">
+                                        <li class="parent_url">
+                                            <span class="o-hm-icon o-hm-menu-icon o-hm-sidebar-sub-school-monthly-attendance-sheet"></span>
+                                            <a href="#attendance-classes" data-toggle="collapse" aria-expanded="true">ATTENDANCE AND CLASSES</a>
+                                        </li>
+                                        <div class="col-20 menu-border">
+                                            <div/>
+                                        </div>
+
+                                        <ul class="list-unstyled collapse show child_links" id="attendance-classes">
+                                            <li class="child_url">
+                                                <a href="/student/attendance">Daily Attendance</a>
+                                            </li>
+                                        </ul>
+
+                                        <ul class="list-unstyled collapse show child_links" id="attendance-classes">
+                                            <li class="child_url">
+                                                <a href="/student/leaves">Student Leave Request</a>
+                                            </li>
+                                        </ul>
+
+                                        <ul class="list-unstyled collapse show child_links" id="attendance-classes">
+                                            <li class="child_url">
+                                                <a href="/regular/class/calendar">Classes</a>
+                                            </li>
+                                        </ul>
+
+                                        <!-- <ul class="list-unstyled collapse show child_links" id="attendance-classes">
+                                            <li class="child_url">
+                                                <a href="/exam/class">Exam Classes</a>
+                                            </li>
+                                        </ul> -->
+                                    </ul>
+                                </nav>
+                            </div>
+                            <div style="width: 100%;" class="ml-3">
+                                <nav class="navbar navbar-light navbar-expand-lg border py-0 mb-2 o_portal_navbar  mt-3 rounded">
+                                    <ol class="o_portal_submenu breadcrumb mb-0 py-2 flex-grow-1 row" style="background-color: #FFFFFF">
+                                        <li class="ml-1" data-oe-id="2699" data-oe-xpath="/data/xpath/li" data-oe-model="ir.ui.view" data-oe-field="arch"></li>
+                                        <li class="breadcrumb-item active" style="margin-left: -15px;">Student Leave Request</li>
+                                    </ol>
+                                    <div t-if="search_sorting" class="form-inline">
+                                        <span class="small mr-1 navbar-text">Sort By:</span>
+                                        <div class="btn-group">
+                                            <button id="student_leave_request_searchbar_sortby" data-toggle="dropdown" class="btn btn-secondary btn-sm dropdown-toggle">
+                                                <t t-esc="search_sorting[sortby].get('label', 'Newest')"/>
+                                            </button>
+                                            <div class="dropdown-menu" aria-labelledby="student_leave_request_searchbar_sortby">
+                                                <t t-foreach="search_sorting" t-as="option">
+                                                    <a t-att-href="request.httprequest.path + '?' + keep_query('*', sortby=option)"
+                                                       t-attf-class="dropdown-item#{sortby == option and ' active' or ''}">
+                                                        <span t-esc="search_sorting[option].get('label')"/>
+                                                    </a>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div t-if="search_filter" class="form-inline ml-lg-2">
+                                        <span class="small mr-1 navbar-text">Filter By:</span>
+                                        <div class="btn-group">
+                                            <button id="student_leave_request_searchbar_filters" data-toggle="dropdown" class="btn btn-secondary btn-sm dropdown-toggle">
+                                                <t t-esc="search_filter.get(filterby,search_filter.get('all')).get('label', 'All')"/>
+                                            </button>
+                                            <div class="dropdown-menu" aria-labelledby="student_leave_request_searchbar_filters">
+                                                <t t-foreach="search_filter" t-as="option">
+                                                    <a t-att-href="default_url + '?' + keep_query('*', filterby=option)"
+                                                       t-attf-class="dropdown-item#{filterby == option and ' active' or ''}">
+                                                        <span t-esc="search_filter[option].get('label')"/>
+                                                    </a>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div t-if="search_group" class="form-inline ml-lg-2">
+                                        <span class="small mr-1 navbar-text">Group By:</span>
+                                        <div class="btn-group">
+                                            <button id="student_leave_request_searchbar_groupby" data-toggle="dropdown" class="btn btn-secondary btn-sm dropdown-toggle">
+                                                <t t-esc="search_group[groupby].get('label', 'None')"/>
+                                            </button>
+                                            <div class="dropdown-menu" aria-labelledby="student_leave_request_searchbar_groupby">
+                                                <t t-foreach="search_group" t-as="option">
+                                                    <a t-att-href="default_url + '?' + keep_query('*', groupby=option)"
+                                                       t-attf-class="dropdown-item#{groupby == option and ' active' or ''}">
+                                                        <span t-esc="search_group[option].get('label')"/>
+                                                    </a>
+                                                </t>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <form t-if="searchbar_inputs" class="form-inline o_portal_search_panel ml-lg-4 col-xl-4 col-md-5">
+                                        <div class="input-group input-group-sm w-100">
+                                            <div class="input-group-prepend">
+                                                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"/>
+                                                <div class="dropdown-menu" role="menu">
+                                                    <t t-foreach='searchbar_inputs' t-as='input'>
+                                                        <a t-att-href="'#' + searchbar_inputs[input]['input']"
+                                                            t-attf-class="dropdown-item#{search_in == searchbar_inputs[input]['input'] and ' active' or ''}">
+                                                            <span t-raw="searchbar_inputs[input]['label']"/>
+                                                        </a>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                            <input type="text" class="form-control form-control-sm" placeholder="Search" t-att-value='search' name="search"/>
+                                            <span class="input-group-append">
+                                                <button class="btn btn-secondary search-submit" type="button">
+                                                    <span class="fa fa-search"/>
+                                                </button>
+                                            </span>
+                                        </div>
+                                    </form>
+                                    <t t-raw="0"/>
+                                </nav>
+                                <div class='row' style='margin-top: 22px;margin-right: 24px;'>
+                                    <div style="margin-top: -15px;margin-bottom: 10px;margin-left: 17px;">
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#leave_request_modal">Create</button>
+                                    </div>
+                                </div>
+                                <t t-if = "not grouped_tasks">
+                                    <div class="table-responsive border rounded border-top-0">
+                                        <t t-if="leave_ids">
+                                            <table class="table table-hover table-striped" style="background-color: #FFFFFF">
+                                                <thead>
+                                                    <tr>
+        <!--                                                <th scope="col">Type of Leave</th>-->
+                                                        <th scope="col">Student</th>
+                                                        <th scope="col">Intake</th>
+                                                        <th scope="col">School</th>
+                                                        <th scope="col">Program</th>
+                                                        <th scope="col">Class Teacher</th>
+                                                        <th scope="col">Start Date</th>
+                                                        <th scope="col">End Date</th>
+                                                        <th scope="col">Status
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                            <tbody>
+                                                <t t-foreach="leave_ids" t-as="leave">
+                                                    <tr>
+        <!--                                                <td><span t-field="leave.name"/></td>-->
+                                                        <td><span t-esc="leave.student_id.name"/></td>
+                                                        <td><span t-field="leave.standard_id.name"/> </td>
+                                                        <td><span t-field="leave.school_id.name"/></td>
+                                                        <td><span t-field="leave.program_id.name"/></td>
+                                                        <td><span t-field="leave.standard_id.user_id.name"/></td>
+                                                        <td><span t-esc="leave.start_date"/></td>
+                                                        <td><span t-esc="leave.end_date"/></td>
+                                                        <td><span t-field="leave.state"/></td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                            </table>
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-if = "grouped_tasks">
+                                    <div class="table-responsive border rounded border-top-0">
+                                        <t t-if="leave_ids">
+                                            <t t-foreach="grouped_tasks" t-as="grouped_task">
+                                                <table class="table table-hover table-striped" style="background-color: #FFFFFF">
+                                                    <thead>
+                                                        <tr t-attf-class="{{'thead-light' if not groupby == 'none' else ''}}" class="active">
+        <!--                                                    <th t-if="groupby == 'none'">Type of Leave</th>-->
+                                                            <th t-if="groupby == 'School'">
+                                                                <em class="font-weight-normal text-muted">School:</em>
+                                                                <span t-field="grouped_task[0].school_id.name" />
+                                                            </th>
+                                                            <th t-if="groupby == 'Program'">
+                                                                <em class="font-weight-normal text-muted">Program:</em>
+                                                                <span t-field="grouped_task[0].program_id.name" />
+                                                            </th>
+                                                            <th t-if="groupby == 'Intake'">
+                                                                <em class="font-weight-normal text-muted">Intake:</em>
+                                                                <span t-esc="grouped_task[0].standard_id.name" />
+                                                            </th>
+                                                            <th t-if="groupby == 'Class Teacher'">
+                                                                <em class="font-weight-normal text-muted">Class Teacher:</em>
+                                                                <span t-esc="grouped_task[0].standard_id.user_id.name" />
+                                                            </th>
+                                                            <th t-if="groupby == 'Status'">
+                                                                <em class="font-weight-normal text-muted">Status:</em>
+                                                                <span t-esc="dict(grouped_task[0]._fields['state'].selection).get(grouped_task[0].state, '')"/>
+                                                            </th>
+                                                            <th>Student</th>
+                                                            <th scope="col">Intake</th>
+                                                            <th scope="col">School</th>
+                                                            <th scope="col">Program</th>
+                                                            <th scope="col">Class Teacher</th>
+                                                            <th>Start Date</th>
+                                                            <th>End Date</th>
+                                                            <th scope="col">Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <t t-foreach="grouped_task" t-as="leave">
+                                                            <tr>
+        <!--                                                        <td>-->
+        <!--                                                            <t t-esc="leave.name" />-->
+        <!--                                                        </td>-->
+                                                                <td><span t-esc="leave.student_id.name"/></td>
+                                                                <td><span t-field="leave.standard_id.name"/> </td>
+                                                                <td><span t-field="leave.school_id.name"/></td>
+                                                                <td><span t-field="leave.program_id.name"/></td>
+                                                                <td><span t-field="leave.standard_id.user_id.name"/></td>
+                                                                <td><span t-esc="leave.start_date"/></td>
+                                                                <td><span t-esc="leave.end_date"/></td>
+                                                                <td><span t-field="leave.state"/></td>
+                                                            </tr>
+                                                        </t>
+                                                    </tbody>
+                                                </table>
+                                            </t>
+                                        </t>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        <div t-if="pager" class="o_portal_pager text-center" style="margin-top: 1%; margin-left: 18%;margin-bottom:1%;">
+                            <t t-call="portal.pager"/>
+                        </div>
+                        <div class="m-4">
+                            <div id="leave_request_modal" class="modal" tabindex="-1" style="z-index: 9999;" data-keyboard="false" data-backdrop="static">
+                                <style>
+                                    #leave_request_modal .select2-container .select2-choice .select2-arrow {
+                                        background: transparent;
+                                        border: none;
+                                    }
+                                    #leave_request_modal .select2-container .select2-choice .select2-arrow b {
+                                        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+                                        background-repeat: no-repeat;
+                                        background-position: right 0.15rem center;
+                                        background-size: 19px 15px;
+                                        padding: .375rem .25rem .375rem .75rem;
+                                    }
+                                    #leave_request_modal .select2-container .select2-choice{
+                                        height: calc(1.5em + 0.75rem + 2px);
+                                        padding: 0.375rem 0.75rem;
+                                        background-color: transparent !important;
+                                        background-image: none;
+                                    }
+                                    .modal-open .select2-drop-active {
+                                        border-color: #8dd9d7 !important;
+                                        box-shadow: 0 4px 0 0.2rem rgba(58, 173, 170, 0.25);
+                                    }
+                                    #leave_request_modal .form-control.select2-container.select2-dropdown-open{
+                                        border-color: #8dd9d7;
+                                        box-shadow: 0 0 0 0.2rem rgba(58, 173, 170, 0.25);
+                                    }
+                                    #leave_request_modal input[type="date"]::-webkit-calendar-picker-indicator {
+                                        border-left: 1px solid rgb(129, 133, 137);
+                                    }
+                                    #leave_request_modal label.error {
+                                        text-decoration: underline;
+                                        color: red;
+                                        font-size: 9pt;
+                                        font-style: oblique;
+                                    }
+                                </style>
+                                <div class="modal-dialog" role="document">
+                                    <div class="col-lg-auto modal-content mt32" style="border-radius: 20px;">
+                                        <form id="leaveRequestForm" method="post" action="/student/leave/request">
+                                            <div class="modal-body d-flex mt-4">
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                                <div class="table">
+        <!--                                            <div class="form-row mt-4">-->
+        <!--                                                <div class="col-lg-4 ml-4">-->
+        <!--                                                    <label for="type_of_leave" class="o_required"><b>Type Of Leave</b></label>-->
+        <!--                                                </div>-->
+        <!--                                                <div class="col-lg-6">-->
+        <!--                                                    <input type="text" class="form-control" id="type_of_leave" name="type_of_leave"-->
+        <!--                                                           placeholder="e.g Sick"/>-->
+        <!--                                                </div>-->
+        <!--                                            </div>-->
+                                                    <div class="form-row mt-4">
+                                                        <div class="col-lg-4 ml-4">
+                                                            <label for="student_name" class="o_required"><b>Student</b></label>
+                                                        </div>
+                                                        <div class="col-lg-6">
+                                                            <div t-if="is_student">
+                                                                <input type="text" class="form-control" id="student_name" t-att-value='student_name' readonly="true"/>
+                                                                <input type="text" class="form-control d-none" name="student_id" t-att-value='student_id'/>
+                                                            </div>
+                                                            <div t-if="not is_student">
+                                                                <span class="student_data d-none" t-esc="student_data"/>
+        <!--                                                        <input type="text" class="form-control d-none" id="student_name"/>-->
+                                                                <input type="text" class="form-control d-none" name="student_id" />
+                                                                <select class="form-control" id="student_name" name="student_name" >
+                                                                    <option value=""></option>
+                                                                    <t t-foreach="student_data" t-as="student">
+                                                                        <option t-attf-value="{{student['id']}}">
+                                                                            <t t-esc="student['name']"/>
+                                                                        </option>
+                                                                    </t>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-row mt-4">
+                                                        <div class="col-lg-4 ml-4">
+                                                            <label for="start_date" class="o_required"><b>Start Date</b></label>
+                                                        </div>
+                                                        <div class="col-lg-6">
+                                                            <input type="date" class="form-control" id="start_date" name="start_date"/>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-row mt-4">
+                                                        <div class="col-lg-4 ml-4">
+                                                            <label for="end_date" class="o_required"><b>End Date</b></label>
+                                                        </div>
+                                                        <div class="col-lg-6">
+                                                            <input type="date" class="form-control" id="end_date" name="end_date"/>
+                                                            <input type="text" class="float-right mt-1" name="duration" id="duration" placeholder="0" style="border: transparent; width: 30px; pointer-events: none; text-align: right;" readonly="true" />
+                                                            <span class="float-right mt-1">Days</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-row mt-4">
+                                                        <div class="col-lg-4 ml-4">
+                                                            <label for="student_class"><b>Intake</b></label>
+                                                        </div>
+                                                        <div class="col-lg-6">
+                                                            <div t-if="is_student">
+                                                                <input type="text" readonly="true" style="pointer-events: none; " class="form-control" id="student_class" t-att-value='class_id' />
+                                                            </div>
+                                                            <div t-if="not is_student">
+                                                                <input type="text" readonly="true" style="pointer-events: none; " class="form-control" id="student_class" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div t-if="is_student_leave_request_per_subject" class="form-row mt-4">
+                                                        <div class="col-lg-4 ml-4">
+                                                            <label for="subject_id" class="o_required"><b>Subject</b></label>
+                                                        </div>
+                                                        <div class="col-lg-6">
+                                                            <select class="form-control subject_id" required="required" name="subject_id" id="subject_id">
+                                                                <option value="">Select Subject</option>
+                                                                <t t-foreach="subjects" t-as="subject">
+                                                                    <option t-att-value="subject.subject_id.id">
+                                                                        <t t-esc="subject.subject_id.name" />
+                                                                    </option>
+                                                                </t>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-row mt-4">
+                                                        <div class="col-lg-4 ml-4">
+                                                            <label for="reason_for_leave" class="o_required"><b>Reason For Leave</b></label>
+                                                        </div>
+                                                        <div class="col-lg-6">
+                                                            <input type="text" class="form-control" id="reason_for_leave" name="reason_for_leave" placeholder="Type your reason for leave"/>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-row mt-4">
+                                                        <div class="col-6 offset-3">
+                                                            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                                                            <span style="margin-left:6rem;" />
+                                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            </t>
+	</template>
+
+</odoo>

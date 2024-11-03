@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="BOM_RetailOrderReceiptCustomTemplate"  owl="1">
+        <t t-foreach="line.bom_components" t-as="bco" >
+            <div style="display: flex;width: 100%;">
+                <div style="width:3%;">
+                </div>
+                <div style="width:57%;">
+                    <p  style="margin: 0px 0px;">
+                        <span style="color:white;">---</span>
+                        <span t-if="bco.is_extra and bco.checked">Extra </span>
+                        <span t-if="!bco.is_extra and !bco.checked">No </span>
+                        <t  t-if="receipt_template.is_receipt_product_code">
+                            <t t-esc="bco.full_product_name"/>
+                        </t>
+                        <t t-else="">
+                            <t t-esc="bco.product_only_name" />
+                        </t>
+                    </p>
+                </div>
+                <div class="text-right" style="width:40%;">
+                     <p  t-if="bco.is_extra and bco.checked" style="margin: 0px 0px;"><t t-esc="env.pos.format_currency(bco.additional_cost*line.quantity,false,receipt.currency)"/></p>
+                </div>
+            </div>
+        </t>
+    </t>
+
+    <t t-name="RetailOrderReceiptCustomTemplate" t-inherit="equip3_pos_masterdata.RetailOrderReceiptCustomTemplate" t-inherit-mode="extension" owl="1">
+
+        <xpath expr="//p[hasclass('prct_line_break_s_top')]" position="after">
+            <div style="margin-top:0px;" t-if="receipt_template.is_table_guest_info">
+                <p style="margin: 3px 0;" t-if="receipt.table">Table : <t t-esc="receipt.table"/></p>
+                <p style="margin: 3px 0;" t-if="receipt.customer_count">Guest : <t t-esc="receipt.customer_count"/></p>
+                <p t-if="receipt.table or receipt.customer_count" style="white-space: nowrap; overflow: hidden; text-overflow: unset;margin-bottom:0px;margin: 3px 0;margin-bottom: 10px;" class="prct_line_break_s_top_fnb">--------------------------------------------------------------------------------------</p>
+            </div>
+        </xpath>
+        <xpath expr="//p[hasclass('receipt_cashier')]" position="before">
+            <p style="margin: 3px 0;" t-if="receipt_template.is_table_guest_info">Server : <t t-esc="receipt.cashier"/></p>
+        </xpath>
+        <xpath expr="//div[hasclass('prct_line_price_core')]" position="after">
+            <t t-if="receipt_template.is_receipt_combo_info and line.pos_combo_options">
+                <t t-foreach="line.pos_combo_options" t-as="pco" >
+                    <p  style="margin: 0px 0px;">
+                        <span style="color:white;">---</span>
+                        <t  t-if="receipt_template.is_receipt_product_code">
+                            <t t-esc="pco.full_product_name"/>
+                        </t>
+                        <t t-else="">
+                            <t t-esc="pco.product_only_name" />
+                        </t>
+                    </p>
+                    <div style="display: flex;width: 100%;">
+                        <div style="width:3%;">
+                        </div>
+                        <div style="width:57%;">
+                            <p  style="margin: 0px 0px;"><span style="color:white;">---</span><t t-esc="line.quantity"/> <t t-esc="pco.uom_id[1]" /> x <t t-esc="env.pos.format_currency(pco.extra_price,false,receipt.currency)"/></p>
+                        </div>
+                        <div class="text-right" style="width:40%;">
+                             <p  style="margin: 0px 0px;"><t t-esc="env.pos.format_currency(pco.extra_price*line.quantity,false,receipt.currency)"/></p>
+                        </div>
+                    </div>
+                    <t t-if="receipt_template.is_receipt_bom_info and pco.bom_components">
+                        <t t-call="BOM_RetailOrderReceiptCustomTemplate">
+                            <t t-set="line" t-value="pco" />
+                        </t>
+                    </t>
+                </t>
+            </t>
+            <t t-if="receipt_template.is_receipt_bom_info and line.bom_components">
+                <t t-call="BOM_RetailOrderReceiptCustomTemplate">
+                    <t t-set="line" t-value="line" />
+                </t>
+            </t>
+        </xpath>
+    <!--     <xpath expr="//div[hasclass('prct_custom_footer')]" position="before">
+            <div t-if="receipt_template.is_display_barcode_ean13 and receipt.ean13" class="text-center" style="margin-top: 10px; margin-bottom: -15px;">
+                <img  t-att-src="'/report/barcode/?type=EAN13&amp;value='+receipt.ean13+'&amp;width=150&amp;height=50'" alt="Barcode"/>
+            </div>
+            <div t-if="receipt_template.is_qrcode_link and receipt.qrcodelink" class="text-center receipt_template_custom_qrcode" style="margin-top: 10px; margin-bottom: -15px;" >
+                <img  t-att-src="'/report/barcode/?type=QR&amp;value='+receipt.qrcodelink+'&amp;width=80&amp;height=80'" />
+            </div>
+        </xpath> -->
+    </t>
+
+</templates>

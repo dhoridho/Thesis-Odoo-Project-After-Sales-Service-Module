@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="RetailClientLine" owl="1">
+        <t t-set="partner" t-value="props.partner"/>
+        <tr t-attf-class="receipt-line {{highlight}} tr_child_line"
+            t-att-class="addClass"
+            t-att-data-id="partner.id"
+            t-on-mouseover.stop="_autoSyncBackend"
+            t-on-click="trigger('set-customer-to-cart', {client: props.partner})">
+            <td class="row-body-number">
+                
+                <i t-on-click.stop="changePricelist"
+                   t-if="env.pos.config.update_client"
+                   class="oe_link_icon fa fa-list oe_icon line-lot-icon"
+                   aria-label="Modifiers Pricelist"
+                   role="img"
+                   title="Modifiers Pricelist"
+                />
+                <i t-on-click.stop="editCustomer"
+                   t-if="env.pos.config.update_client"
+                   class="oe_link_icon fa fa-user oe_icon line-lot-icon"
+                   aria-label="Modifiers Customer"
+                   role="img"
+                   title="Modifiers Customer"
+                />
+
+                <span style="margin-left: 20px;"><t t-esc="props.number"/></span>
+                
+            </td>
+            <td class="row-body-name">
+                <span class="product-line-name">
+                    <t t-esc="partner.name"/>
+                </span>
+                <a t-if="highlight"
+                   t-on-click.stop="showMore"
+                   style="color: blue">
+                    <i class="fa fa-link"/>
+                </a>
+            </td>
+            <td class="row-body-address">
+                <t t-esc="partner.address"/>
+            </td>
+            <td class="row-body-phone">
+                <t t-esc="partner.phone || partner.mobile"/>
+                <i t-on-click.stop="sendMessage(partner)"
+                   t-if="(partner.mobile || partner.phone) and env.pos.config.whatsapp_api and env.pos.config.whatsapp_token"
+                   class="oe_link_icon fa fa-whatsapp oe_icon line-lot-icon"
+                   aria-label="Send Message"
+                   role="img"
+                   title="Send Message"
+                />
+            </td>
+            <td class="row-body-barcode" style="text-align:center;">
+                <t t-esc="partner.barcode or 'N/A'"/>
+                <t t-if="partner.barcode">
+                  <!--   <i t-on-click.stop="printBarcode"
+                       class="oe_link_icon fa fa-print oe_icon line-lot-icon"
+                       aria-label="Print Barcode"
+                       role="img"
+                       title="Print Barcode"
+                    /> -->
+                </t>
+                <t t-else="">
+                    <i t-on-click.stop="addBarcode"
+                       class="oe_link_icon fa fa-plus oe_icon line-lot-icon"
+                       aria-label="Add Barcode"
+                       role="img"
+                       title="Add Barcode"
+                    />
+                </t>
+            </td>
+            <td class="row-body-parent_id">
+                <t t-if="partner.parent_id">
+                    <t t-esc="partner.parent_id[1]"/>
+                </t>
+            </td>
+            <td class="row-body-type">
+                <t t-if="partner.type">
+                    <t t-esc="partner.type"/>
+                </t>
+                <i t-on-click.stop="trigger('show-reference-contact')"
+                   t-if="env.pos.db.partners_by_parent_id[partner.id] and env.pos.db.partners_by_parent_id[partner.id].length != 0"
+                   class="oe_link_icon fa fa-site-map oe_icon line-lot-icon"
+                   aria-label="Reference of Customer"
+                   role="img"
+                   title="Reference of Customer"
+                />
+                <i t-on-click.stop="trigger('activate-edit-mode', { isNewClient: true, parent_id: partner.id })"
+                   class="oe_link_icon fa fa-plus oe_icon line-lot-icon"
+                   aria-label="Add child Contact"
+                   role="img"
+                   title="Add child Contact"
+                />
+            </td>
+            <td class="row-body-company_type">
+                <t t-if="partner.company_type">
+                    <t t-esc="partner.company_type"/>
+                </t>
+            </td>
+            <td class="row-body-balance">
+                <t t-esc="env.pos.format_currency(partner.balance)"/>
+            </td>
+            <td class="row-body-pos_order_count">
+                <t t-esc="env.pos.format_currency_no_symbol(partner.pos_order_count)"/>
+            </td>
+            <td class="row-body-pos_total_amount">
+                <t t-esc="env.pos.format_currency(partner.pos_total_amount)"/>
+                <i t-on-click.stop="showPurchasedHistories"
+                   t-if="env.pos.config.pos_orders_management and countOrdersByClient > 0"
+                   class="oe_link_icon fa fa-shopping-cart oe_icon line-lot-icon"
+                   aria-label="Purchased Orders"
+                   role="img"
+                   title="Purchased Orders"
+                />
+                 <t t-if="env.pos.config.archive_client">
+                    <i t-on-click.stop="archiveClient"
+                       class="oe_link_icon fa fa-trash oe_icon line-lot-icon"
+                       aria-label="Archive Customer"
+                       role="img"
+                       title="Archive Customer"
+                    />
+                </t>
+            </td>
+        </tr>
+    </t>
+
+</templates>

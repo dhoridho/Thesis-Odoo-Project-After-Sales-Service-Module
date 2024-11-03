@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="stock_picking_view_form" model="ir.ui.view">
+        <field name="name">stock.picking.form.view.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="equip3_inventory_operation.inherit_stock_picking_form_view_operation"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_transfer_out']" position="after">
+                <field name="is_expired_tranfer" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='product_id']" position="before">
+                <field name="package_barcode" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="equip3_inventory_operation.action_delivery_order">
+        <field name="domain">[('picking_type_code', '=', 'outgoing')]</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="equip3_inventory_operation.action_internal_transfer_notes">
+        <field name="domain">[('picking_type_code', '=', 'internal'), ('is_transfer_in', '=', False), ('is_transfer_out', '=', False), ('is_expired_tranfer', '=', False)]</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="equip3_inventory_operation.stock_picking_receiving_note">
+        <field name="domain">[('picking_type_code', '=', 'incoming')]</field>
+    </record>
+
+    <record id="action_expired_product_notes" model="ir.actions.act_window">
+        <field name="name">Expired Product Notes</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">stock.picking</field>
+        <field name="domain">[('is__expired_tranfer', '=', True)]</field>
+        <field name="context">{'create': False}</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_views_nocontent_create">
+                Click to add a new test object.
+            </p>
+        </field>
+    </record>
+
+</odoo>

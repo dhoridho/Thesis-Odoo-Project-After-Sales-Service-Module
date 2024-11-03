@@ -1,0 +1,26 @@
+# -*- coding: utf-8 -*-
+{
+    'name': "Property Management Operation",
+    'summary': "Property Management Operation",
+    'description': "Property Management Operation",
+    'author': "My Company",
+    'website': "https://www.hashmicro.com/",
+    'category': 'Sales',
+    'version': '1.1.1',
+    'depends': ['base','account', 'product', 'property_rental_mgt_app','equip3_property_masterdata','web_domain_field', 'agreement_legal'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/recurring_maintenance_schedule.xml',
+        'data/recurring_invoice_schedule.xml',
+        'wizards/property_rent_contract_wizard.xml',
+        'wizards/property_buy_contract_wizard.xml',
+        'wizards/create_agreement_wizard.xml',
+        'views/view_property_maintenance.xml',
+        'views/property_transaction.xml',
+        'views/agreement.xml',
+        'views/assets.xml',
+    ],
+    'installable' : True,
+    'auto_install' : False,
+    'application' : True,
+}

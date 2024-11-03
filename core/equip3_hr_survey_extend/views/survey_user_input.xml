@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="survey_user_input_form_inherit" model="ir.ui.view">
+            <field name="name">equip3_survey_extend.survey_user_input.form</field>
+            <field name="model">survey.user_input</field>
+            <field name="inherit_id" ref="survey.survey_user_input_view_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_print_answers']" position="after">
+                    <button 
+                            name="action_print_test_result"
+                            string="Print Test Result"
+                            type="object"
+                            attrs="{'invisible':[('state', '=', 'done'),('survey_type','not in', ['DISC', 'EPPS', 'PAPIKOSTICK', 'IST', 'MBTI', 'KRAEPELIN', 'VAK'])]}"
+                            class="oe_highlight"/>
+                    
+                    <button 
+                            name="action_print_certificates"
+                            string="Print Certificate"
+                            type="object"
+                            attrs="{'invisible':[('state', '=', 'done'),('survey_type','in', ['DISC', 'EPPS', 'PAPIKOSTICK', 'IST', 'MBTI', 'KRAEPELIN', 'VAK'])]}"
+                            class="oe_highlight"/>
+                    
+                    <button
+                            class="btn btn-primary"
+                            name="generate"
+                            type="object"
+                            string="Generate"
+                            attrs="{'invisible':['|',('is_hide_generate','=',True),('survey_type','!=','DISC')]}"/>
+
+                    <button
+                            class="btn btn-primary"
+                            name="generate_score2"
+                            type="object"
+                            string="Generate Score 2"
+                            attrs="{'invisible':['|',('is_hide_generate_score2','=',True),('survey_type','!=','DISC')]}"/>
+                    <button
+                            class="btn btn-primary"
+                            name="generate_score3"
+                            type="object"
+                            string="Generate Score 3"
+                            attrs="{'invisible':['|',('is_hide_generate_score3','=',True),('survey_type','!=','DISC')]}"/>
+                    <button
+                            class="btn btn-primary"
+                            name="generate_final_score"
+                            type="object"
+                            string="Generate Final Score"
+                            attrs="{'invisible':['|',('is_hide_generate_final_score','=',True),('survey_type','!=','DISC')]}"/>
+                </xpath>
+
+                <xpath expr="//button[@name='action_print_answers']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>                
+
+                <xpath expr="//field[@name='user_input_line_ids']" position="replace">
+                    <notebook>
+                       
+                        <page string="DISC Result" name="disc_result"
+                              attrs="{'invisible':[('survey_type','!=','DISC')]}">
+                            <group string="DISC Score" invisible="0">
+                                <field name="disc_result_ids" mode="tree" attrs="{'readonly': True}" nolabel="1">
+                                    <tree>
+                                        <field name="line"/>
+                                        <field name="d_field" string="D"/>
+                                        <field name="i_field" string="I"/>
+                                        <field name="s_field" string="S"/>
+                                        <field name="c_field" string="C"/>
+                                        <field name="star_field" string="*"/>
+                                        <field name="total_field" string="Total"/>
+
+                                    </tree>
+                                </field>
+                            </group>
+
+                            <group name="disc_result_score2_chart" col="12" string="Line Chart" >
+                                <group colspan="4">
+                                  <group colspan="4">
+                                    <h4 class="text-center">Graph 1 Most<br/>Mask Public Self</h4>
+                                  </group>
+                                  <group colspan="4">
+                                    <field name="chart_disc_result_score21" widget="plotly_chart" nolabel="1" class="oe_read_only"/>
+                                  </group>
+                                </group>
+                               <group colspan="4">
+                                  <group colspan="4">
+                                    <h4 class="text-center">Graph 2 Least<br/>Core Private Self</h4>
+                                  </group>
+                                  <group colspan="4">
+                                    <field name="chart_disc_result_score22" widget="plotly_chart" nolabel="1" class="oe_read_only"/>
+                                  </group>
+                                </group>
+                                <group colspan="4">
+                                  <group colspan="4">
+                                    <h4 class="text-center">Graph 3 Change<br/>Mirror Perceived Self</h4>
+                                  </group>
+                                  <group colspan="4">
+                                    <field name="chart_disc_result_score23" widget="plotly_chart" nolabel="1" class="oe_read_only"/>
+                                  </group>
+                                </group>
+
+                            </group>
+
+                            <group string="DISC Score 2" invisible="1">
+                                <field name="disc_result_score2_ids" mode="tree" attrs="{'readonly': True}" nolabel="1">
+                                    <tree>
+                                        <field name="line"/>
+                                        <field name="d_field" string="D"/>
+                                        <field name="i_field" string="I"/>
+                                        <field name="s_field" string="S"/>
+                                        <field name="c_field" string="C"/>
+                                    </tree>
+                                </field>
+                            </group>
+
+
+                            <group string="DISC Score 3" invisible="1" >
+
+                                <field name="disc_result_score3_ids" mode="tree" attrs="{'readonly': True}" nolabel="1">
+                                    <tree>
+                                        <field name="line"/>
+                                        <field name="c_fields" string="C"/>
+                                        <field name="d_fields" string="D"/>
+                                        <field name="c_d_fields" string="C-D"/>
+                                        <field name="i_d_fields" string="I-D"/>
+                                        <field name="i_d_c_fields" string="I-D-C"/>
+                                        <field name="i_d_s_fields" string="I-D-S" optional="show"/>
+                                        <field name="i_s_d_fields" string="I-S-D" optional="show"/>
+                                        <field name="s_d_c_fields" string="S-D-C" optional="show"/>
+                                        <field name="d_i_fields" string="D-I" optional="show"/>
+                                        <field name="d_i_s_fields" string="D-I-S" optional="hide"/>
+                                        <field name="d_s_fields" string="D-S" optional="hide"/>
+                                        <field name="c_i_s_fields" string="C-I-S" optional="hide"/>
+                                        <field name="c_s_i_fields" string="C-S-I" optional="hide"/>
+                                        <field name="i_s_c_i_c_s_fields" string="I-S-C / I-C-S" optional="hide"/>
+                                        <field name="s_fields" string="S" optional="hide"/>
+                                        <field name="c_s_fields" string="C-S" optional="hide"/>
+                                        <field name="s_c_fieds" string="S-C" optional="hide"/>
+                                        <field name="d_c_fields" string="D-C" optional="hide"/>
+                                        <field name="d_i_c_fields" string="D-I-C" optional="hide"/>
+                                        <field name="d_s_i_fields" string="D-S-I" optional="hide"/>
+                                        <field name="d_s_c_fields" string="D-S-C" optional="hide"/>
+                                        <field name="d_c_i_fields" string="D-C-I" optional="hide"/>
+                                        <field name="d_c_s_fields" string="D-C-S" optional="hide"/>
+                                        <field name="i_fields" string="I" optional="hide"/>
+                                        <field name="i_s_fields" string="I-S" optional="hide"/>
+                                        <field name="i_c_fields" string="I-C" optional="hide"/>
+                                        <field name="i_c_d_fields" string="I-C-D" optional="hide"/>
+                                        <field name="i_c_s_fields" string="I-C-S" optional="hide"/>
+                                        <field name="s_d_fields" string="S-D" optional="hide"/>
+                                        <field name="s_i_fields" string="S-I" optional="hide"/>
+                                        <field name="s_d_i_fields" string="S-D-I" optional="hide"/>
+                                        <field name="s_i_d_fields" string="S-I-D" optional="hide"/>
+                                        <field name="s_i_c_fields" string="S-I-C" optional="hide"/>
+                                        <field name="s_c_d_fields" string="S-C-D" optional="hide"/>
+                                        <field name="s_c_i_fields" string="S-C-I" optional="hide"/>
+                                        <field name="c_i_fields" string="C-I" optional="hide"/>
+                                        <field name="c_d_i_fields" string="C-D-I" optional="hide"/>
+                                        <field name="c_d_s_fields" string="C-D-S" optional="hide"/>
+                                        <field name="c_i_d_fields" string="C-I-D" optional="hide"/>
+                                        <field name="c_s_d_fields" string="C-S-D" optional="hide"/>
+                                        <field name="match_score" string="Match Score"/>
+                                    </tree>
+                                </field>
+                            </group>
+
+
+                            <group string="DISC Personality">
+
+                                <notebook>
+                                    <page string="Mask Public Self">
+                                        <group>
+                                            <field name="mask_public_self_code" string="Code:"/>
+                                            <field name="mask_public_self" string="Personality:" readonly="1" force_save="1"/>
+                                        </group>
+
+                                        <field name="mask_public_self_ids" nolabel="1" force_save="True">
+                                            <tree editable="bottom" create="0" edit="0" delete="0">
+                                                <field name="personality" string="Mask Public Self"/>
+                                                <field name="personality_en" nolabel="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    <page string="Core Private Self">
+                                        <group>
+                                            <field name="core_private_self_code" string="Code:"/>
+                                            <field name="core_private_self" string="Personality:" readonly="1" force_save="1"/>
+                                        </group>
+
+                                        <field name="core_private_self_ids" nolabel="1">
+                                            <tree editable="bottom" create="0" edit="0" delete="0">
+                                                <field name="personality" string="Core Private Self"/>
+                                                <field name="personality_en" nolabel="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+
+                                    <page string="Mirror Perceived Self">
+                                        <group>
+                                            <field name="mirror_perceived_self_code" string="Code:"/>
+                                            <field name="mirror_perceived_self" string="Personality:" readonly="1" force_save="1"/>
+                                        </group>
+
+                                        <field name="mirror_perceived_self_ids">
+                                            <tree editable="bottom" create="0" edit="0"
+                                                  delete="0">
+                                                <field name="personality" string="Mirror Perceived Self"/>
+                                                <field name="personality_en" nolabel="1"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </group>
+                            <group string="DISC Match Score">
+
+                                <notebook>
+                                    <page string="DISC Match Score">
+                                        <field name="disc_match_score_ids" nolabel="1" force_save="True">
+                                            <tree editable="bottom" create="0" edit="1" delete="0">
+                                                <field name="name" string="DISC Personality" readonly="1" force_save="True"/>
+                                                <field name="match_score" string="Match Score"/>
+                                            </tree>
+                                        </field>
+                                    </page>
+                                    
+                                </notebook>
+                            </group>
+                            <group string="Personality Description">
+
+                                <field name="personal_description" nolabel="1" readonly="1" force_save="1"/>
+
+                            </group>
+
+                            <group>
+                                <field name="personal_description_en" nolabel="1" readonly="1" force_save="1"/>
+                            </group>
+
+                            <group string="Job Match">
+
+                                <field name="job_match" nolabel="1" readonly="1" force_save="1"/>
+                            </group>
+
+                            <group string="Job Suggestion">
+
+                                <field name="job_suggestion" nolabel="1" widget="many2many_tags" readonly="1"
+                                       force_save="1"/>
+                            </group>
+
+
+                        </page>
+
+
+
+                        <page string="EPPS Result" name="epps_result" attrs="{'invisible':[('survey_type','!=','EPPS')]}" invisible="0" >
+
+                                
+                                    <group name="epps_result" string="CONSISTENCY SCORE" >
+
+                                        <field name="epps_result_score_ids"  attrs="{'readonly': True}" nolabel="1" >
+                                            <tree>
+                                                <field name="factor"/>
+                                                <field name="c1" string="C1" optional="hide"/>
+                                                <field name="c2" string="C2" optional="hide"/>
+                                                <field name="c3" string="C3" optional="hide"/>
+                                                <field name="c4" string="C4" optional="hide"/>
+                                                <field name="c5" string="C5" optional="hide"/>
+                                                <field name="c6" string="C6" optional="hide"/>
+                                                <field name="c7" string="C7" optional="hide"/>
+                                                <field name="c8" string="C8" optional="hide"/>
+                                                <field name="c9" string="C9" optional="hide"/>
+                                                <field name="c10" string="C10" optional="hide"/>
+                                                <field name="c11" string="C11" optional="hide"/>
+                                                <field name="c12" string="C12" optional="hide"/> 
+                                                <field name="c13" string="C13" optional="hide"/> 
+                                                <field name="c14" string="C14" optional="hide"/>
+                                                <field name="c15" string="C15" optional="hide"/> 
+                                                <field name="score" string="Score"/>
+                                                <field name="percentile" string="Percentile"/>
+                                                <field name="category" string="Category"/>
+        
+                                            </tree>
+                                        </field>
+                                    </group>
+
+                                    
+                                   
+                        
+
+                                    <group name="epps_result_chart" string="PERSONALITY CHART" >
+                                         <group colspan="12">
+                                          <h3 class="text-center">Grafik Percentile</h3>
+                                        </group>
+                                        <group colspan="12">
+                                            <div class="oe_read_only">
+                                                <field name="chart_epps_result_score" widget="plotly_chart" nolabel="1"/>
+                                            </div>
+                                        </group>
+                                    </group>
+
+                               
+                                    <group name="epps_result" string="PERSONALITY SCORE" >
+                                        <field name="epps_peronality_result_score_ids"  attrs="{'readonly': True}" nolabel="1">
+                                            <tree>
+                                                <field name="factor" style="white-space: pre-wrap;word-wrap: break-word;width: 40%;" />
+                                                <field name="description" string="Description" style="white-space: pre-wrap;word-wrap: break-word;width: 40%;max-width: 450px;"/>
+                                                <field name="r1" string="r1" optional="hide"/>
+                                                <field name="r2" string="r2" optional="hide"/>
+                                                <field name="r3" string="r3" optional="hide"/>
+                                                <field name="r4" string="r4" optional="hide"/>
+                                                <field name="r5" string="r5" optional="hide"/>
+                                                <field name="r6" string="r6" optional="hide" />
+                                                <field name="r7" string="r7" optional="hide" />
+                                                <field name="r8" string="r8" optional="hide" />
+                                                <field name="r9" string="r9" optional="hide" />
+                                                <field name="r10" string="r10" optional="hide"/>
+                                                <field name="r11" string="r11" optional="hide"/>
+                                                <field name="r12" string="r12" optional="hide"/> 
+                                                <field name="r13" string="r13" optional="hide"/> 
+                                                <field name="r14" string="r14" optional="hide" />
+                                                <field name="r" string="r" />
+    
+                                                <field name="c1" string="C1" optional="hide"/>
+                                                <field name="c2" string="C2" optional="hide"/>
+                                                <field name="c3" string="C3" optional="hide"/>
+                                                <field name="c4" string="C4" optional="hide"/>
+                                                <field name="c5" string="C5" optional="hide"/>
+                                                <field name="c6" string="C6" optional="hide"/>
+                                                <field name="c7" string="C7" optional="hide"/>
+                                                <field name="c8" string="C8"  optional="hide"/>
+                                                <field name="c9" string="C9"  optional="hide"/>
+                                                <field name="c10" string="C10" optional="hide"/>
+                                                <field name="c11" string="C11" optional="hide" />
+                                                <field name="c12" string="C12" optional="hide"/> 
+                                                <field name="c13" string="C13" optional="hide" /> 
+                                                <field name="c14" string="C14" optional="hide" />
+                                                <field name="c" string="C" />
+                                                <field name="rs" string="RS" />
+                                               
+                                                <field name="percentile" string="Percentile"/>
+                                                <field name="category" string="Category"/>
+        
+                                            </tree>
+                                        </field>                                        
+                                    </group>
+
+                                    
+
+                
+                            
+
+                        </page>
+                        <page string="Interview Result" name="interview_result" attrs="{'invisible':[('survey_type','!=','INTERVIEW')]}" invisible="0" >
+                                    <group name="interview_final_result" string="Final Score" >
+                                        <group>
+                                            <field name="skill_score" />
+                                            <field name="personality_score" />
+                                        </group>
+                                    </group>
+
+                                    <group name="interview_skill_result" string="Skill Score" >
+                                        <field name="interview_result_skill_ids"  attrs="{'readonly': True}" nolabel="1" >
+                                            <tree editable="bottom">
+                                                <field name="question" string="Question"/>
+                                                <field name="score" string="Score" widget="priority" />
+                                                <field name="comment" string="Comment" />
+                                            </tree>
+                                        </field>
+                                    </group>
+
+                                    <group name="interview_personality_result" string="Personality Score" >
+                                        <field name="interview_result_personality_ids"  attrs="{'readonly': True}" nolabel="1" >
+                                            <tree editable="bottom">
+                                                <field name="question" string="Question"/>
+                                                <field name="score" string="Score" widget="priority" />
+                                                <field name="comment" string="Comment" />
+                                            </tree>
+                                        </field>
+                                    </group>
+                        </page>
+
+                        <page string="Papikostick Result" name="papikostick_result" attrs="{'invisible':[('survey_type','!=','PAPIKOSTICK')]}" invisible="0" >
+
+                            <group name="papikostick_result" string="Papikostick Score" invisible="1">
+                                <field name="papikostick_result_ids"  attrs="{'readonly': True}" nolabel="1" >
+                                    <tree editable="bottom">
+                                        <field name="g_field" string="G"/>
+                                        <field name="l_field" string="L"/>
+                                        <field name="i_field" string="I"/>
+                                        <field name="t_field" string="T"/>
+                                        <field name="v_field" string="V"/>
+                                        <field name="s_field" string="S"/>
+                                        <field name="r_field" string="R"/>
+                                        <field name="d_field" string="D"/>
+                                        <field name="c_field" string="C"/>
+                                        <field name="e_field" string="E"/>
+                                        <field name="n_field" string="N"/>
+                                        <field name="a_field" string="A"/>
+                                        <field name="p_field" string="P"/>
+                                        <field name="x_field" string="X"/>
+                                        <field name="b_field" string="B"/>
+                                        <field name="o_field" string="O"/>
+                                        <field name="z_field" string="Z"/>
+                                        <field name="k_field" string="K"/>
+                                        <field name="f_field" string="F"/>
+                                        <field name="w_field" string="W"/>
+                                    </tree>
+                                </field>
+                            </group>
+
+                            <group name="papikostick_parameter_result" string="Papikostick Score">
+                                <field name="papikostick_parameter_result_ids"  attrs="{'readonly': True}" nolabel="1" >
+                                    <tree editable="bottom">
+                                        <field name="parameter"/>
+                                        <field name="description_code" string="Sub Parameter"/>
+                                        <!-- <field name="description"/> -->
+                                        <field name="code_pl" string="Code" />
+                                        <field name="score_code" string="Score" />
+                                        <field name="analysis" string="Score Category"/>
+                                        <field name="score" string="Final Score"/>
+                                    </tree>
+                                </field>
+                            </group>
+
+
+                            <group name="papikostick_chart" string="Papikostick Chart">
+                                <group colspan="12">
+                                    <h3 class="text-center">Grafik Papikostick Score</h3>
+                                </group>
+                                <group colspan="12">
+                                    <div class="oe_read_only">
+                                        <field name="chart_papikostick_result_score" widget="plotly_chart" nolabel="1"/>
+                                    </div>
+                                </group>
+                            </group>
+
+                        </page>
+
+                        <page string="IST Result" name="ist_result" attrs="{'invisible':[('survey_type','!=','IST')]}">
+                            <group name="ist_score" string="IST Score">
+                                <field name="ist_scoring_result_ids" nolabel="1">
+                                    <tree editable="bottom" delete="0">
+                                        <field name="parameter" readonly="1"/>
+                                        <field name="code" string="CODE" readonly="1"/>
+                                        <field name="rw" string="Row Score" readonly="1"/>
+                                        <field name="sw" string="Final Score" readonly="1"/>
+                                        <field name="description" readonly="1"/>
+                                        <field name="category" string="Category" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </group>
+
+                            <group name="ist_chart" string="IST Chart">
+                                <group colspan="12">
+                                    <h3 class="text-center">Grafik IST Score</h3>
+                                </group>
+                                <group colspan="12">
+                                    <div class="oe_read_only">
+                                        <field name="chart_ist_result_score" widget="plotly_chart" nolabel="1"/>
+                                    </div>
+                                </group>
+                            </group>
+
+                            <group name="iq_score" string="IQ Score">
+                                <field name="ist_scoring_final_result_ids" nolabel="1">
+                                    <tree editable="bottom" delete="0">
+                                        <field name="total_rw" string="Totoal Row Score" readonly="1"/>
+                                        <field name="gesamt_score" string="Gesamt Score" readonly="1"/>
+                                        <field name="iq_score" string="IQ Score" readonly="1"/>
+                                        <field name="iq_category" string="Category" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </group>
+
+                            <group name="mindset_profile" string="Mindset Profile">
+                                <field name="ist_mindset_profile_final_result_ids" nolabel="1">
+                                    <tree editable="bottom" delete="0">
+                                        <field name="category" readonly="1"/>
+                                        <field name="result" readonly="1"/>
+                                        <field name="description" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+
+                        <page string="MBTI Result" name="mbti_result" attrs="{'invisible':[('survey_type','!=','MBTI')]}">
+                            <group name="dimensional_score" string="MBTI Dimensional Score">
+                                <field name="dimensional_score_ids" nolabel="1">
+                                    <tree create="0" delete="0">
+                                        <field name="name" readonly="1"/>
+                                        <field name="score" string="Score (%)" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </group>
+                            <group name="mbti_final_result" string="MBTI Final Result">
+                                <field name="mbti_final_result_ids" nolabel="1">
+                                    <tree create="0" delete="0">
+                                        <field name="name" readonly="1"/>
+                                        <field name="description" readonly="1"/>
+                                        <field name="advice_and_self_development" readonly="1"/>
+                                        <field name="suitable_profession" readonly="1"/>
+                                        <field name="famous_figure" readonly="1"/>
+                                        <field name="population" readonly="1" invisible="1"/>
+                                        <field name="job_position" widget="many2many_tags" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </group>
+                            <group name="mbti_personality_result" string="Personality Result">
+                                <field name="mbti_personality_result_ids" nolabel="1">
+                                    <tree create="0" delete="0">
+                                        <field name="name" readonly="1"/>
+                                        <field name="code" string="Code" readonly="1"/>
+                                        <field name="description" string="Description" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+
+                        
+                        
+
+                        <page string="Kraepelin Results" name="kraepelin_results" attrs="{'invisible':[('survey_type','!=','KRAEPELIN')]}">
+                            <group name="kraepelin_result">
+                                <field name="kraepelin_test_result_ids"
+                                       attrs="{'readonly':[('survey_type','=', True)]}" nolabel="1">
+                                    <tree editable="bottom" delete="0">
+                                        <field name="name" readonly="1"/>
+                                        <field name="means" string="Label" readonly="1"/>
+                                        <field name="score" readonly="1"/>
+                                        <field name="label" string="Analysis Result" readonly="1"/>
+                                        <field name="results" readonly="1"/>
+                                        <field name="description" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </group>
+
+                            <group name="kraepelin_chart" string="Kraepelin Chart">
+                                <group colspan="12">
+                                    <h3 class="text-center">Grafik Hanker</h3>
+                                </group>
+                                <group colspan="12">
+                                    <div class="oe_read_only">
+                                        <field name="chart_kraepelin_result_score" widget="plotly_chart" nolabel="1"/>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Detailed Answers" name="detailed_answer" attrs="{'invisible':[('survey_type','=','INTERVIEW')]}">
+                            <field name="user_input_line_ids" attrs="{'readonly':[('survey_type','=','PEER_REVIEW')]}">
+                                <tree editable="bottom" delete="0">
+                                    <field name="question_sequence" readonly="1" invisible="1"/>
+                                    <field name="filename" readonly="1" invisible="1"/>
+                                    <field name="question_id" readonly="1"/>
+                                    <field name="file" readonly="1" widget="binary" filename="filename" />
+                                    <field name="page_id" readonly="1"/>
+                                    <field name="answer_type" readonly="1"/>
+                                    <field name="suggested_answer_id" readonly="1"/>
+                                    <field name="value_char_box"
+                                           attrs="{'column_invisible':[('parent.survey_type','!=','IST')]}" readonly="1"/>
+                                    <field name="value_numerical_box"
+                                           attrs="{'column_invisible':[('parent.survey_type','!=','IST')]}" readonly="1"/>
+                                    <field name="code"
+                                           attrs="{'column_invisible':[('parent.survey_type','!=','DISC')]}" readonly="1"/>
+                                    <field name="create_date"
+                                           readonly="1"
+                                           attrs="{'column_invisible': [('parent.survey_type', '=', 'MBTI')]}"/>
+                                    <field name="is_score_editable" readonly="1" invisible="1"/>
+                                    <field name="answer_score"
+                                           attrs="{'readonly': [('is_score_editable','==', False)],
+                                                   'column_invisible': [('parent.survey_type', 'in', ('MBTI','VAK'))]}"/>
+                                    <field name="mbti_code"
+                                           attrs="{'column_invisible': [('parent.survey_type', '!=', 'MBTI')]}"
+                                           readonly="1"/>
+                                    <field name="vak_selection"
+                                           attrs="{'column_invisible': [('parent.survey_type', '!=', 'VAK')]}"
+                                           readonly="1"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page string="VAK Test Result" name="vak_result_test" attrs="{'invisible':[('survey_type','!=','VAK')]}">
+                        <group name="vak_score" string="VAK Score">
+                            <field name="vak_score_ids" nolabel="1">
+                                    <tree>
+                                        <field name="vak_code" />
+                                        <field name="total" />
+                                        <field name="percentage" string="Percentage %" />
+                                        <field name="interpretation" />
+                                    </tree>
+                                </field>
+                            
+                        </group>
+                        <group name="vak_result" string="VAK Result">
+                             <field name="vak_parameter_ids" nolabel="1">
+                                    <tree>
+                                        <field name="name" />
+                                        <field name="description" />
+                                        <field name="strengths" />
+                                        <field name="learning_preferences" />
+                                        <field name="challenges" />
+                                    </tree>
+                                </field>
+
+                            
+                        </group>
+                           
+                            
+                        </page>
+                    </notebook>
+                </xpath>
+
+                <xpath expr="//field[@name='survey_id']" position="after">
+                    <field name="survey_type"/>
+                    <field name="is_hide_generate" invisible="1"/>
+                    <field name="is_hide_generate_score2" invisible="1"/>
+                    <field name="is_hide_generate_score3" invisible="1"/>
+                    <field name="is_hide_generate_final_score" invisible="1"/>
+                    <field name="shadow_field_mask_public_self" invisible="1"/>
+                    <field name="shadow_field_core_private_self" invisible="1"/>
+                    <field name="shadow_field_mirror_perceived_self" invisible="1"/>
+                    <field name="kraepelin_question_array" invisible="1" />
+                    <field name="kraepelin_answer_array" invisible="1" />
+                </xpath>
+                <!-- <xpath expr="//field[@name='score_by_amount']" position="attributes">
+                    <attribute name="attrs" >{'invisible':[('survey_type','=','INTERVIEW')]}</attribute>
+                   
+                </xpath> -->
+                <xpath expr="//field[@name='scoring_success']" position="attributes">
+                        <attribute name="attrs">{'invisible': [('survey_type', 'in', ['INTERVIEW', 'PEER_REVIEW', 'MBTI'])]}</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='deadline']" position="attributes">
+                    <attribute name="attrs" >{'readonly':[('survey_type','=','PEER_REVIEW')]}</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='test_entry']" position="attributes">
+                    <attribute name="attrs" >{'invisible':[('survey_type','=','PEER_REVIEW')]}</attribute>
+                </xpath>
+
+
+            </field>
+        </record>
+    </data>
+</odoo>

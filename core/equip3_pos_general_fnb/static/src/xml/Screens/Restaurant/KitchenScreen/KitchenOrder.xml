@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="KitchenOrderExt" t-inherit="equip3_pos_masterdata.KitchenOrder" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('order-item-detail')]" position="replace">
+            <div class="order-item order-item-detail order-detail-fnb">
+                <table width="100%">
+                    <t t-foreach="props.order['cancelled'] || []" t-as="line" t-key="line.uid + count">
+                        <KitchenOrderLineDetail t-if="pos_categ_names.includes(line.category)" 
+                            line="line" 
+                            order="props.order"/>
+
+                        <t t-if="line.pos_combo_options">
+                            <t t-foreach="line.pos_combo_options" t-as="option">
+                                <KitchenOrderLineComboDetail 
+                                    t-if="pos_categ_names.includes(line.category) and line.pos_combo_options" 
+                                    option="option"
+                                    line="line" 
+                                    order="props.order"/>
+                            </t>
+                        </t>
+                    </t>
+                    <t t-foreach="props.order['new'] || []" t-as="line" t-key="line.uid + count">
+                        <KitchenOrderLineDetail 
+                            t-if="pos_categ_names.includes(line.category)" 
+                            line="line" 
+                            order="props.order"/>
+
+                        <t t-if="pos_categ_names.includes(line.category) and line.pos_combo_options">
+                            <t t-set="pos_combo_options" t-value="get_pos_combo_options_values(line.pos_combo_options)"/>
+                            <t t-foreach="pos_combo_options" t-as="key">
+                                <t t-set="options" t-value="pos_combo_options[key]"/>
+                                <t t-set="option_count" t-value="1"/>
+                                <t t-foreach="options" t-as="option">
+                                    <KitchenOrderLineComboDetail  
+                                        option="option"
+                                        last_option="line.pos_combo_options.length == option_count"
+                                        line="line" 
+                                        order="props.order"/>
+                                    <t t-set="option_count" t-value="option_count + 1"/>
+                                </t>
+                                <tr class="receipt-line receipt-line-option-separator"/>
+                            </t>
+                        </t>
+                    </t>
+                </table>
+            </div>
+        </xpath>
+    </t>
+
+</templates>

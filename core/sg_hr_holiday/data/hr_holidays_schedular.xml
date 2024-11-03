@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <!-- create a scheduler for assigning carry forward leave  -->
+    <record id="ir_cron_assign_def_carry_forward_leave" model="ir.cron">
+        <field name="name">Leave: Auto Carry Forward Leave</field>
+        <field name="model_id" ref="hr_holidays.model_hr_leave_allocation"/>
+        <field name="state">code</field>
+        <field name="code">model.assign_carry_forward_leave()</field>
+        <field name="interval_number">12</field>
+        <field name="interval_type">months</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+        <field name="nextcall" eval="time.strftime('%Y-12-31 23:59:59')"/>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- create a scheduler for assigning default leave -->
+    <record id="ir_cron_assign_default_leave" model="ir.cron">
+        <field name="name">Leave : Assign All Other Annual Leaves</field>
+        <field name="model_id" ref="hr_holidays.model_hr_leave_allocation"/>
+        <field name="state">code</field>
+        <field name="code">model.assign_annual_other_leaves()</field>
+        <field name="interval_number">12</field>
+        <field name="interval_type">months</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+        <field name="nextcall" eval="time.strftime('%Y-12-31 22:59:59')"/>
+    </record>
+
+    <!-- create a scheduler for Reminder to HR Manager if any Allocation Status in Draft(New) -->
+    <record id="ir_cron_reminder_hr_manager" model="ir.cron">
+        <field name="name">Leave : Reminder to HR manager to Approve Auto and Carry Forward Leaves</field>
+        <field name="model_id" ref="hr_holidays.model_hr_leave_allocation"/>
+        <field name="state">code</field>
+        <field name="code">model.reminder_to_hr_manager()</field>
+        <field name="interval_number">12</field>
+        <field name="interval_type">months</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+        <field name="nextcall" eval="time.strftime('%Y-01-07 00:01:01')"/>
+        <field name="active" eval="True"/>
+    </record>
+
+    <function model="ir.cron" name="change_scheduler_time" eval="(ref('ir_cron_assign_def_carry_forward_leave'),
+                                                                  ref('ir_cron_assign_default_leave'),
+                                                                  ref('ir_cron_reminder_hr_manager'))"/>
+
+</odoo>

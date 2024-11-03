@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_product_pricelist_request_ttrtee" model="ir.ui.view">
+        <field name="name">view.product.pricelist.request.tree</field>
+        <field name="model">product.pricelist.request</field>
+        <field name="inherit_id" ref="equip3_sale_masterdata.product_pricelist_view_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <attribute name="js_class"></attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="request_type"/>
+            </xpath>
+            <xpath expr="//tree" position="inside">
+                <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-info="state == 'approval'" decoration-danger="state == 'rejected'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_pricelist_request_form" model="ir.ui.view">
+        <field name="name">view.product.pricelist.request.form</field>
+        <field name="model">product.pricelist.request</field>
+        <field name="inherit_id" ref="equip3_sale_masterdata.product_pricelist_view_form_inherit_new"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">pricelist_request_form</attribute>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <field name="user_is_approver" invisible="1"/>
+                    <button string="Request For Approval" name="action_approval" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button string="Approve" name="action_approve" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'approval'), ('user_is_approver', '=', False)]}"/>
+                    <button string="Reject" name="action_reject" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'approval'), ('user_is_approver', '=', False)]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approval,approved"/>
+                </header>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="replace">
+                <field name="name" readonly="1" force_save="1"/>
+            </xpath>
+            <xpath expr="//field[@name='currency_id']" position="before">
+                <field name="request_type" string="Pricelist" widget="radio"/>
+                <field name="pricelist_name" string="Pricelist Name" attrs="{'invisible': [('request_type', '!=', 'create')], 'required': [('request_type', '=', 'create')]}"/>
+                <field name="pricelist_id" string="Pricelist" attrs="{'invisible': [('request_type', '!=', 'write')], 'required': [('request_type', '=', 'write')]}"/>
+            </xpath>
+            <xpath expr="//group[@name='pricelist_settings']" position="after">
+                <group>
+                    <field name="company_id" readonly="1" force_save="1"/>
+                    <field name="branch_id"/>
+                    <field name="create_date" readonly="1" force_save="1"/>
+                    <field name="create_uid" readonly="1" force_save="1"/>
+                    <field name="next_approver_ids" widget="many2many_tags" invisible="0"/>
+                    <field name="approval_matrix_id" readonly="1" force_save="1"/>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='item_ids']" position="attributes">
+                <attribute name="name">item_request_ids</attribute>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Approval Matrix Lines" name="approval_matrix_lines">
+                    <field name="approval_matrix_line_ids" context="{
+                        'tree_view_ref': 'equip3_sale_masterdata.view_product_pricelist_approval_entry_tree',
+                        'form_view_ref': 'equip3_sale_masterdata.view_product_pricelist_approval_entry_form',
+                    }"/>
+                </page>
+            </xpath>
+            <xpath expr="//page[@name='pricelist_history']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='item_request_ids']//tree" position="inside">
+                <field name="pricelist_item_id" invisible="1"/>
+
+                <field name="pricelist_id" invisible="1"/>
+
+                <field name="categ_id" invisible="1"/>
+                <field name="product_tmpl_id" invisible="1"/>
+                <field name="pricelist_uom_id" invisible="1"/>
+                <field name="product_id" invisible="1"/>
+                
+                <field name="compute_price" invisible="1"/>
+                <field name="fixed_price" invisible="1"/>
+                <field name="percent_price" invisible="1"/>
+                <field name="base_price_info" invisible="1"/>
+                <field name="type_surcharge" invisible="1"/>
+                <field name="price_surcharge" invisible="1"/>
+                <field name="price_discount" invisible="1"/>
+                <field name="price_min_margin" invisible="1"/>
+                <field name="price_max_margin" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_pricelist_request_item_form" model="ir.ui.view">
+        <field name="name">view.product.pricelist.request.item.form</field>
+        <field name="model">product.pricelist.request.item</field>
+        <field name="inherit_id" ref="equip3_sale_masterdata.product_pricelist_item_form_view"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='pricelist_id']" position="replace">
+                <field name="pricelist_request_id" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_view_product_pricelist_request" model="ir.actions.act_window">
+        <field name="name">Pricelists Request</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">product.pricelist.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+           Create a new Pricelist Request
+          </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_action_view_product_pricelist_request" name="Pricelists Request" parent="sale.product_menu_catalog" action="action_view_product_pricelist_request" sequence="4" groups="equip3_sale_accessright_setting.group_sale_pricelist_approval"/>
+
+</odoo>

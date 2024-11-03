@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_mrp_workcenter_form" model="ir.ui.view">
+        <field name="name">view.mrp.workcenter.form</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="equip3_manuf_masterdata.workcenter_location_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet" position="before">
+                <header>
+                    <field name="state" widget="statusbar" class="oe_workcenter_state" id="workcenter_statusbar" statusbar_visible="available,waiting,running,blocked"/>
+                    <field name="running_workorders_count" invisible="1"/>
+                    <field name="waiting_workorders_count" invisible="1"/>
+                </header>
+            </xpath>
+            <!--<xpath expr="//form" position="inside">
+                <field name="state" invisible="1"/>
+                <field name="running_workorders_count" invisible="1"/>
+                <field name="waiting_workorders_count" invisible="1"/>
+            </xpath>-->
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">mrp_workcenter_state</attribute>
+            </xpath>
+
+            <xpath expr="//form/sheet/group/group"  position="inside">
+                <field name="loss_id" attrs="{'invisible': [('state', '!=', 'blocked')]}" readonly="1"/>
+                <field name="description" attrs="{'invisible': [('state', '!=', 'blocked')]}" readonly="1"/>
+            </xpath>
+
+            <xpath expr="//div[hasclass('oe_button_box')]"  position="after">
+                <div class="tab">
+                    <button name="%(mrp.act_mrp_block_workcenter_wo)d" type="action" string="Block" class="btn-danger"  attrs="{'invisible': [('state', '=', 'blocked')]}" context="{'default_workcenter_id': active_id}"/>
+                    <button name="unblock" type="object" string="Unblock"  class="btn-danger" attrs="{'invisible': [('state', '!=', 'blocked')]}"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page name="labor" string="Labor Cost">
+                    <field name="labor_ids">
+                        <tree string="Labor" editable="bottom">
+                            <field name="user_id"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp_workcenter_tree_view_inherit" model="ir.ui.view">
+        <field name="name">mrp.workcenter.tree.view.inherit</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="equip3_manuf_masterdata.mrp_workcenter_tree_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="inside">
+                <field name="state" widget="badge" 
+                    decoration-success="state == 'available'" 
+                    decoration-danger="state == 'blocked'"
+                    decoration-info="state == 'waiting'"
+                    decoration-warning="state == 'running'"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

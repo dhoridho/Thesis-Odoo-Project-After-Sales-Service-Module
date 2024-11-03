@@ -1,0 +1,90 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <!-- employee.asset.transfer tree view -->
+    <record id="employee_asset_transfer_view_tree" model="ir.ui.view">
+        <field name="name">employee.asset.transfer.view.tree</field>
+        <field name="model">employee.asset.transfer</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="branch_id"/>
+                <field name="create_uid"/>
+                <field name="create_date"/>
+                <field name="due_date"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-info="state in ('draft')" decoration-danger="state in ('expired', 'cancelled')" decoration-warning="state == 'waiting'"/>
+            </tree>
+        </field>
+    </record>
+    <!-- employee.asset.transfer form view -->
+    <record id="employee_asset_transfer_view_form" model="ir.ui.view">
+        <field name="name">employee.asset.transfer.view.form</field>
+        <field name="model">employee.asset.transfer</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <header>
+					<button type="object" name="action_waiting" states="draft" string="Mark as Todo" class="oe_highlight"/>
+					<button type="object" name="action_done" string="Done" class="oe_highlight" attrs="{'invisible': [('state', 'not in', ['waiting', 'expired'])]}"/>
+					<button type="object" name="action_cancel" string="Cancelled" class="oe_highlight" attrs="{'invisible': [('state', 'not in', ['draft', 'waiting'])]}"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,waiting,done,expired,cancelled" />
+				</header>
+				<sheet>
+                    <div class="oe_button_box" name="smart_buttons">
+                        <button name="action_view_employee_asset_return" type="object" class="oe_stat_button" icon="fa-list" attrs="{'invisible': [('employee_asset_return_count', '=', 0)]}">
+                            <field string="Return" name="employee_asset_return_count" widget="statinfo"/>
+                        </button>
+                    </div>
+					<div class="oe_title">
+						<h1>
+							<field name="name" readonly="1" />
+						</h1>
+					</div>
+					<group>
+						<group>
+							<field name="create_uid" readonly="1" />
+                            <field name="create_date" readonly="1" />
+                            <field name="branch_id" attrs="{'readonly': [('state', 'not in', ['draft'])]}"/>
+						</group>
+						<group>
+                            <field name="due_date" attrs="{'readonly': [('state', 'not in', ['draft'])]}"/>
+                            <field name="description" attrs="{'readonly': [('state', 'not in', ['draft'])]}"/>
+							<field name="employee_asset_request_id" readonly="1"/>
+						</group>
+					</group>
+					<notebook>
+						<page string="Asset">
+							<field name="assets_line" attrs="{'readonly': [('state', 'not in', ['draft'])]}">
+								<tree string="Asset" editable="bottom">
+									<field name="asset_id" readonly="0" domain="asset_id_domain"/>
+									<field name="asset_id_domain" invisible="1"/>
+									<field name="asset_category_id"/>
+									<field name="held_by_id" force_save="1" readonly="1"/>
+									<field name="employee_id"/>
+									<field name="notes"/>
+								</tree>
+							</field>
+						</page>
+					</notebook>
+				</sheet>
+				<div class="oe_chatter">
+					<field name="message_follower_ids" widget="mail_followers" />
+					<field name="activity_ids" widget="mail_activity" />
+					<field name="message_ids" widget="mail_thread" />
+				</div>
+            </form>
+        </field>
+    </record>
+
+    <record id="employee_asset_transfer_action" model="ir.actions.act_window">
+		<field name="name">Employee Asset Transfer</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">employee.asset.transfer</field>
+		<field name="view_mode">tree,form</field>
+	</record>
+
+	<menuitem
+        id="employee_asset_transfer_menu"
+        name="Employee Asset Transfer"
+        parent="equip3_asset_fms_operation.employee_asset_menu"
+        sequence="15"
+        action="employee_asset_transfer_action"/>
+</odoo>

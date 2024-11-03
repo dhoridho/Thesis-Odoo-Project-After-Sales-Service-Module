@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_generalledger">
+        <t t-call="web.html_container">
+            <t t-set="data_report_margin_top" t-value="14"/>
+            <t t-set="data_report_header_spacing" t-value="11"/>
+            <t t-set="data_report_dpi" t-value="110"/>
+            <t t-call="web.internal_layout">
+                <div class="page">
+                    <h4><span t-esc="res_company.name"/>: General ledger</h4>
+                    <table style="margin-top:10px;" width="100%">
+                        <tr>
+                            <td width="40%">
+                                <strong style="font-size:14px;">Journals:</strong>
+                                <p style="font-size:12px;" t-esc="', '.join([ lt or '' for lt in print_journal ])"/>
+                            </td>
+                            <td width="30%">
+                                <strong style="font-size:14px;">Display Account:</strong>
+                                <p style="font-size:12px;">
+                                    <span t-if="data['display_account'] == 'all'">All accounts</span>
+                                    <span t-if="data['display_account'] == 'movement'">With movements</span>
+                                    <span t-if="data['display_account'] == 'not_zero'">With balance not equal to zero</span>
+                                </p>
+                            </td>
+                            <td width="30%">
+                                <strong style="font-size:14px;">Target Moves:</strong>
+                                <p style="font-size:12px;" t-if="data['target_move'] == 'all'">All Entries</p>
+                                <p style="font-size:12px;" t-if="data['target_move'] == 'posted'">All Posted Entries</p>
+                            </td>
+                        </tr>
+                    </table>
+    
+                    <table style="margin-top:8px;" width="100%">
+                        <tr>
+                            <td width="40%">
+                              <strong style="font-size:14px;">Sorted By:</strong>
+                              <p style="font-size:12px;" t-if="data['sortby'] == 'sort_date'">Date</p>
+                              <p style="font-size:12px;" t-if="data['sortby'] == 'sort_journal_partner'">Journal and Partner</p>
+                            </td>
+                            <td width="60%">
+                              <t t-if="data['date_from']"><strong style="font-size:14px;">Date from :</strong> <span style="font-size:12px;" t-esc="data['date_from']"/><br/></t>
+                              <t t-if="data['date_to']"><strong style="font-size:14px;">Date to :</strong> <span style="font-size:12px;" t-esc="data['date_to']"/></t>
+                            </td>
+                        </tr>
+                    </table>
+                    <br/>
+                    <table class="table table-sm" width="100%">
+                        <thead>
+                            <tr style="font-size:14px;" class="text-center" >
+                                <th width="7%" class="text-left">Date</th>
+                                <th width="5%" class="text-left">JRNL</th>
+                                <th width="10%" class="text-left">Partner</th>
+                                <th width="12%" class="text-left">Ref</th>
+                                <th width="10%" class="text-left">Move</th>
+                                <th width="16%" class="text-left">Entry Label</th>
+                                <th width="10%">Debit</th>
+                                <th width="10%">Credit</th>
+                                <th width="10%">Balance</th>
+                                <th width="10%" groups="base.group_multi_currency">Currency</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-size:13px;">
+                            <t t-foreach="Accounts" t-as="account">
+                                <tr style="font-size:13px; font-weight: bold;">
+                                    <td class="text-left" colspan="6" width="60%">
+                                        <span style="color: white;" t-esc="'..'"/>
+                                        <span t-esc="account['code']"/>
+                                        <span t-esc="account['name']"/>
+                                    </td>
+                                    <td class="text-right" width="10%">
+                                        <span t-esc="account['debit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td class="text-right" width="10%">
+                                        <span t-esc="account['credit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td class="text-right" width="10%">
+                                        <span t-esc="account['balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td width="10%" groups="base.group_multi_currency"/>
+                                </tr>
+                                <tr style="font-size:13px;" t-foreach="account['move_lines']" t-as="line">
+                                    <td width="7%" class="text-left"><span t-esc="line['ldate']"/></td>
+                                    <td width="5%" class="text-left"><span t-esc="line['lcode']"/></td>
+                                    <td width="10%" class="text-left"><span t-esc="line['partner_name']"/></td>
+                                    <td width="12%" class="text-left"><span t-if="line['lref']" t-esc="line['lref']"/></td>
+                                    <td width="10%" class="text-left"><span t-esc="line['move_name']"/></td>
+                                    <td width="16%" class="text-left"><span t-esc="line['lname']"/></td>
+                                    <td width="10%" class="text-right">
+                                        <span t-esc="line['debit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td width="10%" class="text-right">
+                                        <span t-esc="line['credit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td width="10%" class="text-right">
+                                        <span t-esc="line['balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                                    </td>
+                                    <td width="10%" class="text-right" groups="base.group_multi_currency">
+                                        <span t-esc="line['amount_currency'] if line['amount_currency'] > 0.00 else ''"/>
+                                        <span t-esc="line['currency_code'] if line['amount_currency'] > 0.00 else ''"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

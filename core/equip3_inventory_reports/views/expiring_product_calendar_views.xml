@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="expiring_product_calendar_document">
+        <t t-call="web.internal_layout">
+            <div class="page">
+
+                <div class="oe_structure"/>
+
+                <div class="o_expiring_report">
+                    <h3 class="o_report_title">Expiring Product Calendar</h3>
+
+                    <t t-set="data" t-value="loads(doc.data)"/>
+
+                    <div class="o_calendar_header">
+                        <t t-foreach="data['filters']" t-as="ofilter">
+                            <div class="o_calendar_filter" t-if="len(ofilter['active']) > 0">
+                                <h4><t t-esc="ofilter['label']"/></h4>
+                                <ul>
+                                    <t t-foreach="ofilter['active']" t-as="filter_active">
+                                        <li>- <t t-esc="filter_active['name']"/></li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </t>
+                    </div>
+
+                    <h3 class="o_calendar_title"><t t-esc="data['title']"/></h3>
+
+                    <div class="o_calendar_content">
+                        <table t-attf-class="table o_table_calendar {{ 'o_calendar_' + data['type'] if data['type'] != 'month' else '' }}">
+                            <thead>
+                                <tr>
+                                    <t t-foreach="data['header']" t-as="head">
+                                        <th><t t-esc="head"/></th>
+                                    </t>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="data['data']" t-as="row">
+                                    <tr t-att-data-row="row['id']">
+                                        <td t-att-class="row['class_name']" t-att-data-col="row['id']">
+                                            <div class="o_value" t-if="row['show_value']"><t t-esc="row['value']"/></div>
+                                        </td>
+                                        <t t-foreach="row['cols']" t-as="col">
+                                            <td t-att-class="col['class_name']" t-att-data-col="col['id']">
+                                                <div class="o_strip_container" t-if="col['has_lines']">
+                                                    <div class="o_strip o_expire" t-if="col['has_expired']"></div>
+                                                    <div class="o_strip o_notify" t-if="col['has_notify']"></div>
+                                                </div>
+                                                <div class="o_value" t-if="col['show_value']"><t t-esc="col['value']"/></div>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="oe_structure"/>
+        </t>
+    </template>
+
+    <template id="expiring_product_calendar">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="equip3_inventory_reports.expiring_product_calendar_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="paperformat_expiring_product_calendar_report" model="report.paperformat">
+        <field name="name">Expiring Product Calendar Paper</field>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">20</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">10</field>
+        <field name="dpi">110</field>
+    </record>
+
+    <record id="action_print_expiring_product_calendar_report" model="ir.actions.report">
+        <field name="name">Expiring Product Calendar</field>
+        <field name="model">expiring.product.calendar</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">equip3_inventory_reports.expiring_product_calendar</field>
+        <field name="report_file">equip3_inventory_reports.expiring_product_calendar</field>
+        <field name="print_report_name">'Expiring Product Calendar'</field>
+        <field name="binding_model_id" ref="model_expiring_product_calendar"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="equip3_inventory_reports.paperformat_expiring_product_calendar_report"/>
+    </record>
+
+    <record id="action_view_expiring_product_calendar" model="ir.actions.client">
+        <field name="name">Expiring Product Calendar</field>
+        <field name="tag">expiring_product_calendar</field>
+    </record>
+
+    <menuitem id="menu_action_view_expiring_product_calendar" 
+              action="action_view_expiring_product_calendar"
+              name="Expiring Product Calendar"
+              parent="equip3_inventory_tracking.menu_expired_product"
+              sequence="1"/>
+
+</odoo>

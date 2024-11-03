@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="report.paperformat" id="in_depth_tenancy_report_template">
+        <field name="name">In Depth Tenancy Report</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_width">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">30</field>
+        <field name="margin_right">5</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">20</field>
+        <field name="dpi">90</field>
+    </record>
+    
+    <report id="in_depth_tenancy_report_print_action"
+            model="depth.tenancy"
+            string="In Depth Tenancy Report"
+            report_type="qweb-pdf"
+            name="equip3_property_report.template_report"
+            paperformat="in_depth_tenancy_report_template"
+            menu="False"/>
+    
+    <template id="template_report">
+         <t t-call="web.html_container">
+         <div class="header" style="border-bottom: 2px solid black">
+            <h4 class="text-center"><strong>In Depth Tenancy Report</strong></h4><br/>
+            <h5 class="text-center">
+                <span>Date :</span>
+                <t t-esc="data"/>
+            </h5>
+        </div> 
+        <div class="article">
+          <t t-foreach="rental_ids" t-as="rental">   
+            <div class="row">
+                <div class="col-6">
+                    <span t-esc="rental.name"/><br/>
+                    <span t-esc="rental.partner_type"/><br/>
+                    <span t-esc="rental.type"/><br/>
+                    <span t-esc="rental.street"/><br/>
+                    <span t-esc="rental.country_id.name"/><br/>
+                    <span t-esc="rental.phone"/><br/>
+                    <span t-esc="rental.mobile"/><br/>
+                    <span t-esc="rental.email"/><br/>
+                </div>
+            </div>
+          
+            <div class="row">
+            <br/>
+            <div class="col-4">
+            </div>
+            <div class="col-4">
+            <h4 class="text-center" style="text-align:center;"><strong>In Depth Tenancy Report</strong></h4><br/>
+            </div>
+            <div class="col-4">
+            </div>
+            </div>
+            <div class="row">
+            <div class="col-4">
+            </div>
+            <div class="col-4">
+            <h5 class="text-center" style="align:center;">
+                <t t-esc="from_date"/>
+                <span>to</span>
+                <t t-esc="to_date"/>
+            </h5>
+            </div>
+            <div class="col-4">
+            </div>
+            <br/>
+            </div>
+            <div class="row">
+            <div class="col-4">
+                Contracts
+            </div>
+            </div>
+            <table class="table table-condensed table-bordered" style="width: 100%">
+                <thead>
+                    <th class="text-center" style="width: 11%">Property Name</th>
+                    <th class="text-center" style="width: 11%">Rent Price</th>
+                    <th class="text-center" style="width: 11%,color:gray">Monthly Rent</th>
+                    <th class="text-center" style="width: 11%,color:gray">Owner</th>
+                    <th class="text-center" style="width: 11%">Contract Type</th>
+                    <th class="text-center" style="width: 11%">From Date</th>
+                    <th class="text-center" style="width: 11%">Expired Date</th>
+                </thead>
+                <tbody>
+                     <t t-foreach="renter_ids.search([('renter_id','=',rental.user_id.id)])" t-as="doc">  
+                         <tr>
+                            <td>
+                                <span t-esc="doc.sudo().property_id.name"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.rent_price"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.deposite"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.owner_id.name"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.sudo().property_id.property_type.name"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.from_date"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.to_date"/>
+                            </td>
+
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+            <br/>
+            <div class="row">
+            <div class="col-4">
+                Invoice
+            </div>
+            </div>
+            <table class="table table-condensed table-bordered" style="width: 100%">
+                <thead>
+                    <th class="text-center" style="width: 11%">Number</th>
+                    <th class="text-center" style="width: 11%">Customer</th>
+                    <th class="text-center" style="width: 11%,color:gray">Invoice Date</th>
+                    <th class="text-center" style="width: 11%,color:gray">Due Date</th>
+                    <th class="text-center" style="width: 11%">Companay</th>
+                    <th class="text-center" style="width: 11%">Total</th>
+                    <th class="text-center" style="width: 11%">Status</th>
+                    <th class="text-center" style="width: 11%">Payment Status</th>
+                </thead>
+                <tbody>
+                     <t t-foreach="invoice_ids.search([('partner_id','=',rental.id)])" t-as="doc">  
+                         <tr>
+                            <td>
+                                <span t-esc="doc.name"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.partner_id.name"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.invoice_date"/>
+                            </td>
+                              <td>
+                                <span t-esc="doc.invoice_date_due"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.company_id.name"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.amount_total"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.state"/>
+                            </td>
+                            <td>
+                                <span t-esc="doc.payment_state"/>
+                            </td>
+
+                        </tr>
+                    </t>
+                </tbody>
+            </table>'
+             <p style="page-break-before:always;"> </p>
+            </t>
+        </div>
+        <div class="footer">
+            <div class="row text-center" style="border-top: 1px solid black;">
+                <div class="col-xs-3 col-xs-offset-9 text-right">
+                    <ul class="list-inline" style="margin-top:10px;">
+                        <li>Page:</li>
+                        <li>
+                            <span class="page"/>
+                        </li>
+                        <li>/</li>
+                        <li>
+                            <span class="topage"/>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+       </t>
+    </template>
+</odoo>

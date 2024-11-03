@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="ComboOptionPopUps" owl="1">
+        <div role="dialog" class="modal-dialog combo_option_popups">
+            <Draggable>
+                <div class="popup popup-textarea">
+                    <header class="title drag-handle">
+                        <t t-esc="props.title" />
+                    </header>
+                    <div class="combo" style="max-height: 552px;overflow: scroll;">
+                        <t t-foreach="props.combo" t-as="combo">
+                            <div class="combo-group" t-att-data-required="combo.required?'1':'0'" t-att-data-maximum_pick="combo.maximum_pick">
+                                <div class="combo-name">
+                                    <span><t t-esc="combo.name"/></span>
+                                    <span class="combo-required" t-if="combo.required">*</span>
+                                    <span class="combo-maximum_pick">(Please select Max. <t t-esc="combo.maximum_pick?combo.maximum_pick:'1'"/>)</span>
+                                </div>
+                                <div class="combo-error-msg">
+                                    <span>please select one option, it's required.</span>
+                                </div>
+                                <t t-foreach="combo.options" t-as="option">
+                                    <div class="combo-option">
+                                        <label t-att-for="'combo-option' + option.id">
+                                            <t t-esc="display_name(option)"/>
+                                        </label>
+                                        <div t-att-class="'combo-option-form option'+option.id" t-att-data-bom_components="get_bom_components(option)">
+                                            <t t-if="option.pos_bom_line_ids.length">
+                                                <t t-if="option.is_configure_components and env.pos.config.customize_bom">
+                                                    <div class="edit-bom-components" t-on-click="on_change_bom_components(option)">
+                                                        <i class="fa fa-edit"></i>
+                                                    </div>
+                                                </t>
+                                            </t>
+                                            <t t-if="option.extra_price">
+                                                <span class="extra_price" style="float:right;">
+                                                    <span>+<t t-esc="env.pos.format_currency(covertCurrency(option))"/></span>
+                                                </span>
+                                            </t>
+                                            <t t-if="option.extra_price == 0">
+                                                <span class="extra_price" style="float:right;">
+                                                    <span>Free</span>
+                                                </span>
+                                            </t>
+                                            <t t-if="combo.maximum_pick > 1">
+                                                <input type="checkbox"
+                                                    class="combo-input"
+                                                    t-att-id="'combo-option' + option.id" 
+                                                    t-att-name="'combo-option' + option.id" 
+                                                    t-on-click="onClickOption"
+                                                    t-att-data-id="option.id"/>
+                                            </t>
+                                            <t t-else="">
+                                                <input type="radio"
+                                                    class="combo-input"
+                                                    t-att-id="'combo-option' + combo.id" 
+                                                    t-att-name="'combo-option' + combo.id" 
+                                                    t-att-data-id="option.id"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                    <footer class="footer">
+                        <div class="button cancel" t-on-click="cancel">
+                            <t t-esc="props.cancelText" />
+                        </div>
+                        <div class="button confirm" t-on-click="confirm">
+                            <t t-esc="props.confirmText" />
+                        </div>
+                    </footer>
+                </div>
+            </Draggable>
+        </div>
+    </t>
+
+</templates>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="fresh_foods_assets" inherit_id="website.assets_frontend" name="Website Assets">
+            <xpath expr="//link[last()]" position="after">
+                <!--<link rel="stylesheet" href="/tis_fresh_foods_theme/static/src/css/bootstrap.min.css"/>-->
+                <link rel="stylesheet" href="/tis_fresh_foods_theme/static/src/css/font-awesome.min.css"/>
+                <link rel="stylesheet" href="/tis_fresh_foods_theme/static/src/css/owl.carousel.min.css"/>
+                <link rel="stylesheet" href="/tis_fresh_foods_theme/static/src/css/style.css"/>
+            </xpath>
+            <xpath expr="//script[last()]" position="after">
+                <!--<script src="/tis_fresh_foods_theme/static/src/js/bootstrap.min.js"></script>-->
+                <script src="/tis_fresh_foods_theme/static/src/js/owl.carousel.min.js"></script>
+                <script src="/tis_fresh_foods_theme/static/src/js/script.js"></script>
+            </xpath>
+        </template>
+        <template id="website_fresh_foods_header" inherit_id="portal.frontend_layout"
+                  name="Website Fresh Food Header">
+            <xpath expr="//header" position="replace">
+                <header>
+                    <div class="headnav">
+                        <div class="container-fluid wrap">
+                            <nav class="navbar navbar-expand-lg navbar-light py-4">
+                                <a class="navbar-brand  h1 ">
+                                    <span t-field="res_company.logo" t-options="{'widget': 'image'}"
+                                          t-att-alt="'Logo of %s' % res_company.name"
+                                          t-att-title="res_company.name"/>
+                                </a>
+                                <button class="navbar-toggler" type="button" data-toggle="collapse"
+                                        data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01"
+                                        aria-expanded="false" aria-label="Toggle navigation">
+                                    <span class="navbar-toggler-icon"></span>
+                                </button>
+                                <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+                                    <ul class="navbar-nav ml-auto my-2 my-lg-0">
+                                        <t t-foreach="website.menu_id.child_id" t-as="submenu">
+                                            <t t-call="website.submenu">
+                                                <t t-set="item_class" t-value="'nav-item'"/>
+                                                <t t-set="link_class" t-value="'nav-link'"/>
+                                            </t>
+                                        </t>
+                                        <li class="nav-item p-1">
+                                            <t t-if="request.website.viewref('website_sale_wishlist.add_to_wishlist').active">
+                                                <t t-set='wishcount'
+                                                   t-value="len(request.env['product.wishlist'].current())"/>
+                                                <li class="nav-item o_wsale_my_wish" style="display: inline-block;"
+                                                    t-att-style="not wishcount">
+                                                    <a href="/shop/wishlist" class="nav-link">
+                                                        <img src="/tis_fresh_foods_theme/static/src/image/wishlist.png"/>
+                                                        <sup t-attf-class="my_wish_quantity o_animate_blink badge badge-primary count">
+                                                            <t t-esc='wishcount'/>
+                                                        </sup>
+                                                    </a>
+                                                </li>
+                                            </t>
+                                        </li>
+                                        <li class="nav-item">
+                                            <t t-set="website_sale_order" t-value="website.sale_get_order()"/>
+                                            <li class="nav-item divider d-none"/>
+                                            <li t-attf-class="nav-item o_wsale_my_cart #{'' if website_sale_order and website_sale_order.cart_quantity else 'd-none'}">
+                                                <a href="/shop/cart" class="nav-link">
+                                                    <button class="btnhead py-1">My Cart</button>
+                                                    <sup t-attf-class="my_cart_quantity badge badge-primary count"
+                                                         t-esc="website_sale_order and website_sale_order.cart_quantity or ''"/>
+                                                </a>
+                                            </li>
+                                        </li>
+                                        <li class="nav-item language">
+                                            <ul class="js_language_selector mb0 list-inline lang_sel"
+                                                t-if="(request and request.is_frontend_multilang and len(languages) &gt; 1) or (website and (editable or translatable))">
+                                                <li class="list-inline-item">
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-sm dropdown-toggle language_btn "
+                                                                style="color: #fff !important;"
+                                                                type="button"
+                                                                data-toggle="dropdown" aria-haspopup="true"
+                                                                aria-expanded="true">
+                                                            <span t-esc="list(filter(lambda lg : lg[0] == lang, languages))[0][2].split('/').pop()"/>
+                                                            <span class="caret ml4"/>
+                                                        </button>
+                                                        <div class="dropdown-menu" role="menu"
+                                                             style="background-color:rgb(255, 255, 255);">
+                                                            <t t-foreach="languages" t-as="lg">
+                                                                <a t-att-href="url_for(request.httprequest.path + '?' + keep_query(), lang_code=lg[0])"
+                                                                   class="dropdown-item js_change_lang"
+                                                                   t-att-data-url_code="lg[1]">
+                                                                    <t t-esc="lg[2].split('/').pop()"/>
+                                                                </a>
+                                                            </t>
+                                                            <t t-set="url_return"
+                                                               t-value="quote_plus(url_for('', '[lang]') + '?' + keep_query())"/>
+                                                            <a class="language_drop" style="color:#1f1515;"
+                                                               t-attf-href="/web#action=base.action_view_base_language_install&amp;website_id=#{website.id if website else ''}&amp;url_return=#{url_return}">
+                                                                <i class="fa fa-plus-circle"/>
+                                                                Add a language...
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li class="user nav-item d-flex align-items-center">
+                                            <div class="authorization-link sign_in" data-label="or"
+                                                 t-if="user_id._is_public()">
+                                                <button class="btnhead py-1">
+                                                    <a class="nav-link" href="/web/login"
+                                                       style="padding: 0 !important;">Sign
+                                                        in
+                                                    </a>
+                                                </button>
+                                            </div>
+                                            <div class="dropdown" t-ignore="true"
+                                                 t-if="not user_id._is_public()">
+                                                <a href="#" class="dropdown-toggle nav-link py-0"
+                                                   data-toggle="dropdown">
+                                                    <button class="btnhead py-1">
+                                                        <span t-esc="user_id.name[:23] + '...' if user_id.name and len(user_id.name) &gt; 25 else user_id.name"
+                                                              class="d-sm-inline"/>
+                                                        <span class="caret"></span>
+                                                    </button>
+                                                </a>
+                                                <ul class="dropdown-menu js_usermenu" role="menu">
+                                                    <li class="dropdown-item">
+                                                        <a href="/my/home" role="menuitem">My Account</a>
+                                                    </li>
+                                                    <li class="dropdown-item" id="o_logout">
+                                                        <a t-attf-href="/web/session/logout?redirect=/"
+                                                           role="menuitem">
+                                                            Logout
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </nav>
+                        </div>
+                    </div>
+                </header>
+            </xpath>
+        </template>
+
+
+        <template id="theme_footer_fresh_foods" inherit_id="website.footer_custom"
+                  name="Fresh Food Footer">
+            <xpath expr="//div[@id='footer']" position="replace">
+                <footer class="foot mx-2 mb-4">
+                    <div class="container-fluid">
+                        <div class="footrow mx-auto">
+                            <div class="container">
+                                <button class="btn" id="arrow-top">
+                                    <i class="fa fa-chevron-up"></i>
+                                </button>
+                                <ul class="list-unstyled">
+                                    <t t-foreach="website.menu_id.child_id" t-as="submenu">
+                                        <t t-call="website.submenu">
+                                            <t t-set="item_class" t-value="'nav-item'"/>
+                                            <t t-set="link_class" t-value="'nav-link'"/>
+                                        </t>
+                                    </t>
+                                </ul>
+                                <p class="thin-p">Lorem ipsum dolor sit amet consectetur adipisicing elit. Neque facere
+                                    laudantium magnam voluptatum autem. Amet aliquid nesciunt veritatis aliquam.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="subfooter ">
+                            Copyright ©2022 Access All rights reserved.
+                        </div>
+                    </div>
+
+                </footer>
+            </xpath>
+        </template>
+
+        <template id="footer_copyright_fresh_foods" inherit_id="website.layout"
+                  name="Fresh Food Copyright">
+            <xpath expr="//div[hasclass('o_footer_copyright')]" position="replace">
+
+            </xpath>
+        </template>
+
+
+    </data>
+</odoo>

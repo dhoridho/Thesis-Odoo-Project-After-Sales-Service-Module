@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="sh_mrp_production_tree_inherit" model="ir.ui.view">
+        <field name="name">sh.mrp.production.tree.inherit</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="sh_inventory_mrp_qc.sh_mrp_production_tree_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='qc_fail']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='qc_pass']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='pending_qc']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='need_qc']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp_production_form_views_custom" model="ir.ui.view">
+        <field name="name">mrp.production.form.view.custom</field>
+        <field name="model">mrp.production</field>
+        <field name="type">form</field>
+        <field name="inherit_id" ref="sh_inventory_mrp_qc.mrp_production_form_views_custom"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='qc_fail']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='qc_pass']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='pending_qc']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='need_qc']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            
+            <xpath expr="//field[@name='move_raw_ids']/tree" position="inside">
+                <field name="qc_point_ids" widget="many2many_tags" invisible="1"/>
+                <field name="qc_check_ids" widget="many2many_tags" invisible="1"/>
+                <field name="qc_alert_ids" widget="many2many_tags" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='move_finished_ids']/tree" position="inside">
+                <field name="qc_point_ids" widget="many2many_tags" invisible="1"/>
+                <field name="qc_check_ids" widget="many2many_tags" invisible="1"/>
+                <field name="qc_alert_ids" widget="many2many_tags" invisible="1"/>
+            </xpath>
+
+            <!-- REPLACE QUALITY CHECK & QUALITY ALERT BUTTON -->
+            <xpath expr="//button[@name='quality_point']" position="replace"/>
+            <xpath expr="//button[@name='action_quality_alert']" position="replace"/>
+            <xpath expr="//header" position="inside">
+                <button name="button_quality_check" string="Self Check" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('need_qc', '=', False), ('show_check_button', '=', False), ('state', '!=', 'confirmed')]}"/>
+                <button name="button_quality_alert" string="Send Alert" type="object" class="oe_highlight" attrs="{'invisible': ['|', '|', ('need_qc', '=', False), ('show_alert_button', '=', False), ('state', '!=', 'confirmed')]}"/>
+            </xpath>
+
+            <!-- CHANGE QUALITY CHECK & QUALITY ALERT SMART BUTTON VISIBILITY -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <field name="need_alert" invisible="1"/>
+                <field name="show_check_button" invisible="1"/>
+                <field name="show_alert_button" invisible="1"/>
+                <field name="any_qc_mandatory_left" invisible="1"/>
+            </xpath>
+            <xpath expr="//button[@name='open_quality_check']" position="replace">
+                <button name="action_view_quality_check" class="oe_stat_button" icon="fa-check" type="object" attrs="{'invisible': ['|', ('need_qc', '=', False), ('state', 'not in', ('confirmed', 'progress', 'to_close', 'done'))]}">
+                    <field name="qc_count" widget="statinfo" string="Quality Checks"/>
+                </button>
+            </xpath>
+            <xpath expr="//button[@name='open_quality_alert']" position="replace">
+                <button name="action_view_quality_alert" class="oe_stat_button" icon="fa-warning" type="object" attrs="{'invisible': ['|', '|', ('need_qc', '=', False), ('show_alert_button', '=', False), ('state', 'not in', ('confirmed', 'progress', 'to_close', 'done'))]}">
+                    <field name="qc_alert_count" widget="statinfo" string="Quality Alerts" />
+                </button>
+            </xpath>
+
+            <!-- REVERT BUTTON MARK DONE VISIBILITY -->
+            <xpath expr="//button[@name='button_mark_done'][1]" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('state', 'in', ('draft', 'cancel', 'done', 'to_close')), ('qty_producing', '=', 0)]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_mark_done'][2]" position="attributes">
+                <attribute name="attrs">{'invisible': ['&amp;', '|', ('state', 'not in', ('confirmed', 'progress')), ('qty_producing', '!=', 0), ('state', '!=', 'to_close')]}</attribute>
+            </xpath>
+
+            <!-- HIDE QUALITY ALERT MESSAGE -->
+            <xpath expr="//div[@role='alert'][1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//div[@role='alert'][2]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//div[@role='alert'][3]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- MOVE & CHANGE QUALITY CHECK & QUALITY ALERT TAB -->
+            <xpath expr="//page[@name='miscellaneous']" position="before">
+                <xpath expr="//field[@name='sh_mrp_quality_check_ids']/parent::page" position="move"/>
+                <xpath expr="//field[@name='sh_mrp_quality_alert_ids']/parent::page" position="move"/>
+            </xpath>
+
+            <xpath expr="//field[@name='sh_mrp_quality_check_ids']/parent::page" position="replace">
+                <page name="sh_mrp_quality_check_ids" string="Quality Checks" groups="sh_inventory_mrp_qc.sh_quality_control_user" attrs="{'invisible': ['|', ('need_qc', '=', False), ('state', 'not in', ('confirmed', 'progress', 'to_close', 'done'))]}" readonly="1">
+                    <field name="sh_mrp_quality_check_ids">
+                        <tree string="Quality Checks">
+                            <field name="sh_control_point" string="Reference" invisible="1"/>
+                            <field name="control_point_id" string="Name"/>
+                            <field name="product_id"/>
+                            <field name="product_type"/>
+                            <field name="type_of_qc" string="QC Type"/>
+                            <field name="state" widget="badge" decoration-danger="state == 'fail'" decoration-success="state == 'pass'"/>
+                        </tree>
+                    </field>
+                    <group>
+                        <group>
+                            <lable for="attachment_ids" />
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//field[@name='sh_mrp_quality_alert_ids']/parent::page" position="replace">
+                <page name="sh_mrp_quality_alert_ids" string="Quality Alerts" groups="sh_inventory_mrp_qc.sh_quality_control_user" attrs="{'invisible': ['|', '|', ('need_qc', '=', False), ('show_alert_button', '=', False), ('state', 'not in', ('confirmed', 'progress', 'to_close', 'done'))]}">
+                    <field name="sh_mrp_quality_alert_ids">
+                        <tree string="Quality Alerts">
+                            <field name="name" string="Reference"/>
+                            <field name="control_point_id" string="Name"/>
+                            <field name="product_id"/>
+                            <field name="team_id"/>
+                            <field name="user_id"/>
+                            <field name="tag_ids" widget="many2many_tags"/>
+                            <field name="stage_name" invisible="1"/>
+                            <field name="stage_id" widget="badge" decoration-info="stage_name == 'WAITING'" decoration-success="stage_name == 'DONE'"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page name="move_point" string="Move Points" invisible="1">
+                    <field name="move_point_ids">
+                        <tree string="Move Points">
+                            <field name="plan_id" invisible="1"/>
+                            <field name="production_id" invisible="1"/>
+                            <field name="workorder_id" optional="hide"/>
+                            <field name="consumption_id" optional="hide"/>
+                            <field name="move_type"/>
+                            <field name="move_id"/>
+                            <field name="point_id"/>
+                            <field name="remaining_check"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_mrp_production_form" model="ir.ui.view">
+        <field name="name">view.mrp.production.form</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="equip3_manuf_operations_contd.equip3_mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <field name="qc_state" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_mrp_production_search" model="ir.ui.view">
+        <field name="name">view.mrp.production.search</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="equip3_manuf_operations.view_mrp_production_filter_inherited"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[last()]" position="after">
+                <field name="qc_state"/>
+            </xpath>
+
+            <xpath expr="//filter[last()]" position="after">
+                <separator/>
+                <filter name="qc_state_pending" string="QC Pending" domain="[('qc_state', '=', 'pending')]"/>
+                <filter name="qc_state_passed" string="QC Passed" domain="[('qc_state', '=', 'passed')]"/>
+                <filter name="qc_state_failed" string="QC Failed" domain="[('qc_state', '=', 'failed')]"/>
+            </xpath>
+
+            <xpath expr="//group" position="inside">
+                <filter string="QC Status" name="groupby_qc_state" domain="[]" context="{'group_by': 'qc_state'}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

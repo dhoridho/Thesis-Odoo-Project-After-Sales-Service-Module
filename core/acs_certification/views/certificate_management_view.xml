@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Partner -->
+    <record model="ir.ui.view" id="view_partner_form">
+        <field name="name">res.partner.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <div name='button_box' position="inside">
+                <button name="action_open_certificate" groups="acs_certification.group_certificate_manager" string="Certificates" type="object" class="oe_stat_button" icon="fa-certificate"/>
+            </div>
+        </field>
+    </record>
+
+    <!--Certificate -->
+    <record id="view_certificate_management_tree" model="ir.ui.view">
+        <field name="name">Certificate Management</field>
+        <field name="model">certificate.management</field>
+        <field name="arch" type="xml">
+            <tree string="Certificate Management">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_certificate_management_search" model="ir.ui.view">
+        <field name="name">Certificate Management</field>
+        <field name="model">certificate.management</field>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">            
+            <search string="Certificate Management">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="user_id"/>
+                <field name="date"/>
+                <field name="state"/>
+                <field name="tag_ids" string="Tag" filter_domain="[('tag_ids', 'ilike', self)]"/>
+                <newline/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_certificate_management_form" model="ir.ui.view">
+        <field name="name">Certificate Management</field>
+        <field name="model">certificate.management</field>
+        <field name="arch" type="xml">
+            <form string="Certificate">
+                <header>
+                    <button name="action_done" string="Done" class="oe_highlight"
+                        type="object" states="draft"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id" required="True"/>
+                            <field name="user_id" required="True"/>
+                            <field name="tag_ids" widget="many2many_tags"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="date" required="True"/>
+                            <field name="template_id"/>
+                            <field name="print_header_in_report"/>
+                        </group>
+                    </group>
+                    <field name="certificate_content" nolabel="1" placeholder="Certificate Content"/>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+
+            </form>
+        </field>
+    </record>
+
+    <record id="action_certificate_management" model="ir.actions.act_window">
+        <field name="name">Certificates</field>
+        <field name="res_model">certificate.management</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_certificate_management_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add a Certificate.
+            </p>
+        </field>
+    </record>
+
+    <!--Certificate Template-->
+    <record id="view_certificate_template_tree" model="ir.ui.view">
+        <field name="name">Certificate Template</field>
+        <field name="model">certificate.template</field>
+        <field name="arch" type="xml">
+            <tree string="Certificate Template">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_certificate_template_search" model="ir.ui.view">
+        <field name="name">Certificate Template</field>
+        <field name="model">certificate.template</field>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <search string="Certificate Template">
+                <field name="name"/>
+                <newline/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_certificate_template_form" model="ir.ui.view">
+        <field name="name">Certificate Template</field>
+        <field name="model">certificate.template</field>
+        <field name="arch" type="xml">
+            <form string="Certificate Template">
+                <sheet>
+                    <group colspan="2" cols="2"> 
+                        <field name="name" required="True"/>
+                    </group>
+                    <div>
+                        <label for="certificate_content"/>
+                        <field name="certificate_content" placeholder="Content"/>
+                    </div>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+
+            </form>
+        </field>
+    </record>
+
+    <record id="action_certificate_template_view" model="ir.actions.act_window">
+        <field name="name">Certificate Template</field>
+        <field name="res_model">certificate.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_certificate_template_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Click to add Certificate Template.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_certificate_management" name="Certificate" sequence="45" groups="group_certificate_manager" web_icon="acs_certification,static/description/icon.png"/>
+
+    <menuitem id="menu_certificate" name="Certificate" sequence="0"
+        parent="menu_certificate_management" action="action_certificate_management"/>
+
+    <menuitem id="menu_certificate_configuration" name="Configuration" sequence="1"
+        parent="menu_certificate_management"/>
+    <menuitem id="menu_certificate_template" name="Certificate Template"
+        sequence="1" parent="menu_certificate_configuration" action="action_certificate_template_view"/>
+
+</odoo>

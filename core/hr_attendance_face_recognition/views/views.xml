@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+    <record id="view_tree_face_recognition" model="ir.ui.view">
+        <field name="name">tree.face_recognition</field>
+        <field name="model">res.users.image</field>
+        <field name="arch" type="xml">
+          <tree string="Face table">
+             <field name="res_user_id"/>
+             <field name="name"/>
+             <field name="image"/>
+             <field name="descriptor"/>
+          </tree>
+        </field>
+    </record>
+<!--     <record id="view_form_face_recognition" model="ir.ui.view">
+        <field name="name">form.face_recognition</field>
+        <field name="model">res.users.image</field>
+        <field name="arch" type="xml">
+          <form string="Face table">
+            <sheet>
+                <field name="image_detection" class="card-img-top only-descriptor face-recognition-detectors" 
+                  widget="image_recognition"  readonly="0"/>
+                <field name="image" class="card-img-top face-recognition-origin" 
+                  widget="image_recognition"  readonly="0"/>
+              <group>
+                <field name="res_user_id"/>
+                <field name="name"/>
+                <field name="descriptor"/>
+              </group>
+            </sheet>
+          </form>
+        </field>
+    </record> -->
+
+    <record id="hr_attendance_action_face_recognition" model="ir.actions.act_window">
+        <field name="name">Faces</field>
+        <field name="res_model">res.users.image</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+              No faces addresses found
+            </p>
+            <p>
+              The faces addresses of your company will be displayed here.
+            </p>
+        </field>
+    </record>
+
+        <menuitem id="menu_hr_attendance_view_face_recognition_table" 
+              name="Face table" 
+              parent="hr_attendance.menu_hr_attendance_manage_attendances" 
+              sequence="55" 
+              groups="hr_attendance.group_hr_attendance_manager" 
+              action="hr_attendance_action_face_recognition"/>
+
+    <!-- inherit attendance-->
+    <record id="view_attendance_tree_face_recognition" model="ir.ui.view">
+      <field name="name">hr.attendance.tree.face.recognition</field>
+      <field name="model">hr.attendance</field>
+      <field name="priority" eval="99"/>
+      <field name="inherit_id" ref="hr_attendance.view_attendance_tree"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='check_out']" position="after">
+          <field name="face_recognition_access_check_in" class="hr-attendance-base-width"/>
+          <field name="face_recognition_access_check_out" class="hr-attendance-base-width"/>
+        </xpath>
+      </field>
+    </record>
+    <record id="hr_attendance_view_form_face_recognition" model="ir.ui.view">
+      <field name="name">hr.attendance.form.face_recognition</field>
+      <field name="model">hr.attendance</field>
+      <field name="priority" eval="99"/>
+      <field name="inherit_id" ref="hr_attendance.hr_attendance_view_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//group[3]/group[1]/group[1]" position="inside">
+            <field name="face_recognition_access_check_in"/>
+          </xpath>
+          <xpath expr="//group[3]/group[2]/group[1]" position="inside">
+            <field name="face_recognition_access_check_out"/>
+          </xpath>
+        <xpath expr="//field[@name='employee_id_image']" position="after">
+              <div colspan="2" attrs="{'invisible': [('face_recognition_image_check_in', '=', False),('webcam_check_in', '=', False)]}">
+                
+              <div class="o_squared_image">
+                <field name="face_recognition_image_check_out" class="card-img-top only-descriptor face-recognition-detectors" 
+                  widget="image_recognition"  readonly="0"/>
+                <field name="webcam_check_out" class="card-img-top face-recognition-origin" 
+                  widget="image_recognition"  readonly="0"/>
+              </div>
+              </div>
+        </xpath>
+        <xpath expr="//field[@name='employee_id_image']" position="after">
+              <span colspan="6" class="o_form_label" attrs="{'invisible': ['|',('face_recognition_image_check_in', '!=', False),('webcam_check_in', '!=', False)]}">Disable Face recognition store image</span>
+                <div class="text-muted" attrs="{'invisible': ['|',('face_recognition_image_check_in', '!=', False),('webcam_check_in', '!=', False)]}">
+                    To store snapshot and descriptor of employee enable setting face recognition store
+                </div>
+
+              <div colspan="2" attrs="{'invisible': [('face_recognition_image_check_in', '=', False),('webcam_check_in', '=', False)]}">
+
+              <div class="o_squared_image">
+                <field name="face_recognition_image_check_in" class="card-img-top only-descriptor face-recognition-detectors" 
+                  widget="image_recognition"  readonly="0"/>
+                <field name="webcam_check_in" class="card-img-top face-recognition-origin" 
+                  widget="image_recognition"  readonly="0"/>
+              </div>
+              </div>
+        </xpath>
+      </field>
+    </record>
+  </data>
+</odoo>

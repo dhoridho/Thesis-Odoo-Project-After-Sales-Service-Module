@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_acs_hms_surgery_document">
+        <t t-call="web.html_container">
+            <t t-call="web.internal_layout">
+                <t t-set="doc"/>
+                <div class="page">
+                    <center>
+                        <h2>Surgery List</h2>
+                    </center>
+
+                    <div class="row mt32 mb32">
+                        <div class="col-3">
+                            <strong>Operation Theater: </strong><br/> 
+                            <span t-esc="data['ot_id'][1]"/>
+                        </div>
+                        <div class="col-3">
+                            <strong>Start Date: </strong><br/>
+                            <span t-esc="data['start_date']"/>
+                        </div>
+                        <div class="col-3">
+                            <strong>End Date: </strong><br/>
+                            <span t-esc="data['end_date']"/>
+                        </div>
+                        <div class="col-3">
+                            <strong>Print date: </strong><br/>
+                            <t t-esc="datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')"/>
+                        </div>
+                    </div>
+
+                    <table class="table table-condensed">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <strong>#</strong>
+                                </th>
+                                <th>
+                                    <strong>Code</strong>
+                                </th>
+                                <th>
+                                    <strong>Date &amp; Time</strong>
+                                </th>
+                                <th>
+                                    <strong>Patient Name</strong>
+                                </th>
+                                <th>
+                                    <strong>Surgery Name</strong>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="data['surgeries'].sorted(key=lambda x: x.start_date)" t-as="surgery">
+                                <tr>
+                                    <td>
+                                        <span t-esc="surgery_index + 1"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="surgery.name"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="surgery.start_date"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="surgery.patient_id.name"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="surgery.surgery_name"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_acs_hms_surgery">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_hms_operation_theater.report_acs_hms_surgery_document"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_acs_hms_surgery" model="ir.actions.report">
+        <field name="name">Operation Theater Report</field>
+        <field name="model">hms.surgery</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms_operation_theater.report_acs_hms_surgery</field>
+        <field name="report_file">acs_hms_operation_theater.report_acs_hms_surgery</field>
+        <field name="print_report_name">(object.name or 'LabPrescription').replace('/','_') + '_LabPrescription'</field>
+        <field name="binding_model_id" ref="acs_hms_surgery.model_hms_surgery"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

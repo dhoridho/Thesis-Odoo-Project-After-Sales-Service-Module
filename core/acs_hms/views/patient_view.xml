@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_acs_family_member_form" model="ir.ui.view">
+        <field name="name">acs.family.member.form</field>
+        <field name="model">acs.family.member</field>
+        <field name="arch" type="xml">
+            <form string="Family Member">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="related_patient_id"/>
+                            <field name="relation_id"/>
+                        </group>
+                        <group>
+                            <field name="patient_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Patient View -->
+    <record id="view_patient_form" model="ir.ui.view">
+        <field name="name">patient.form</field>
+        <field name="model">hms.patient</field>
+        <field name="inherit_id" ref="acs_hms_base.view_patient_form"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <button name="create_invoice" string="Create Invoice" type="object" class="oe_highlight" attrs="{'invisible': [('invoice_id','!=',False)]}" groups="acs_hms.group_patient_registartion_invoicing"/>
+                <field name="invoice_id" invisible="1"/>
+            </header>
+
+            <div name="button_box" position="inside">
+                <button name="action_treatment" type="object" class="oe_stat_button" groups="acs_hms.group_hms_receptionist" icon="fa-user-md">
+                    <field string="Treatments" name="treatment_count" widget="statinfo"/>
+                </button>
+                <button name="action_appointment" type="object" class="oe_stat_button" groups="acs_hms.group_hms_receptionist" icon="fa-stethoscope">
+                    <field string="Appointments" name="appointment_count" widget="statinfo"/>
+                </button>
+                <button name="action_evaluation" type="object" class="oe_stat_button" groups="acs_hms.group_hms_receptionist" icon="fa-stethoscope">
+                    <field string="Evaluations" name="evaluation_count" widget="statinfo"/>
+                </button>
+                <button name="action_prescription" groups="acs_hms.group_hms_jr_doctor" type="object" class="oe_stat_button" icon="fa-wpforms">
+                    <field string="Prescriptions" name="prescription_count" widget="statinfo"/>
+                </button>
+            </div>
+
+            <field name="age" position="after">
+                <field name="department_ids" widget="many2many_tags" groups="acs_hms.group_allow_multi_department"/>
+            </field>
+
+            <field name="caste" position="after">
+                <field name="ethnic_group_id" groups="acs_hms_base.group_manage_ethnic_religion_tribe"/>
+            </field>
+             <field name="company_id" position="attributes">
+                <attribute name="string">Hospital</attribute>
+            </field>
+            <group name="ref_doc_details" position="inside">
+                <field name="ref_doctor_ids" widget="many2many_tags"/>
+                <field name="registration_product_id" groups="acs_hms.group_patient_registartion_invoicing"/>
+            </group>
+
+            <page name="hospital_info" position="after">
+                <page name="clinical_ass" string="Clinical Assesment" groups="acs_hms.group_hms_nurse">
+                    <div>NOTE: Details are shown based on last Completed Patient Evaluation. <t attrs="{'invisible': [('last_evaluation_id','=',False)]}">Last Appointment: <field name="last_evaluation_id" nolabel="1" class="oe_link"/></t> <button class="oe_inline oe_stat_button btn-link" type="object" name="show_weight_chart" title="Show Evaluation Charts" icon="fa-area-chart"  string="Show Evaluation Charts" widget="statinfo"/></div>
+
+                    <group>
+                        <group>
+                            <label for="weight"/>
+                            <div class="o_row">
+                                <field name="weight"/>
+                                <span><field name="acs_weight_name"/></span>
+                            </div>
+                            <label for="height"/>
+                            <div class="o_row">
+                                <field name="height"/>
+                                <span><field name="acs_height_name"/></span>
+                            </div>
+                            <label for="temp"/>
+                            <div class="o_row">
+                                <field name="temp"/>
+                                <span><field name="acs_temp_name"/></span>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="rr"/>
+                            <label string="Systolic/Diastolic BP" for="systolic_bp"/>
+                            <div name="systolic_bp">
+                                <div class="oe_inline" style="display: inline;" >
+                                    <field name="systolic_bp" class="oe_inline"/>/<field name="diastolic_bp" class="oe_inline"/>
+                                </div>
+                            </div>
+                            <label for="spo2"/>
+                            <div class="o_row">
+                                <field name="spo2"/>
+                                <span><field name="acs_spo2_name"/></span>
+                            </div>
+                            <label for="rbs"/>
+                            <div class="o_row">
+                                <field name="rbs"/>
+                                <span><field name="acs_rbs_name"/></span>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="bmi"/>
+                        </group>
+                        <group>
+                            <field name="bmi_state"/>
+                        </group>
+                    </group>
+                </page>
+
+                <page name='diseases' string="Diseases" groups="acs_hms.group_hms_jr_doctor">
+                    <separator string="Medical Alert" colspan="4"/>
+                    <group>
+                        <field name="medical_alert_ids" widget="many2many_tags"/>
+                    </group>
+                    <separator string="Past Medical History" colspan="4"/>
+                    <field name="medical_history"/>
+                    <separator string="Diseases History" colspan="4"/>
+                    <field name="patient_diseases_ids"  nolabel="1" colspan="4"/>
+                    <separator string="Family Disease History"/>
+                    <field name="family_history_ids" />
+                    <separator string="Genetic Risk" />
+                    <field name="genetic_risks_ids"/>
+                </page>
+                <page string="Family" name="family_note">
+                    <field name="family_member_ids">
+                        <tree editable="bottom">
+                            <field name="related_patient_id"/>
+                            <field name="relation_id" required="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </page>
+         </field>
+    </record>
+
+    <!-- Graph -->
+    <record id="patient_evalution_kanban_view" model="ir.ui.view">
+        <field name="name">Evaluation</field>
+        <field name="model">hms.patient</field>
+        <field name="type">kanban</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <kanban create="false">
+                <field name="grpah_data_filter"/>
+                <field name="patient_weight_line_graph"/>
+                <field name="patient_height_line_graph"/>
+                <field name="patient_temp_line_graph"/>
+                <field name="patient_hr_line_graph"/>
+                <field name="patient_rr_line_graph"/>
+                <field name="patient_systolic_bp_line_graph"/>
+                <field name="patient_diastolic_bp_line_graph"/>
+                <field name="patient_spo2_line_graph"/>
+
+                <templates> 
+                    <t t-name="kanban-box">
+                        <div id="acs_hms_dashboard" class="o_kanban_view o_kanban_record">
+                            <div class="row">
+                                <span t-field="grpah_data_filter"/>
+                                <div class="btn-group col-4 mt8 mb8" role="group" aria-label="Filters">
+                                    <button t-attf-class="btn #{record.grpah_data_filter.raw_value=='today' ? 'btn-primary' : 'btn-secondary'}" type="object" name="today_data">Today</button>
+                                    <button t-attf-class="btn #{record.grpah_data_filter.raw_value=='week' ? 'btn-primary' : 'btn-secondary'}" type="object" name="week_data">This Week</button>
+                                    <button t-attf-class="btn #{record.grpah_data_filter.raw_value=='month' ? 'btn-primary' : 'btn-secondary'}" type="object" name="month_data">This Month</button>
+                                    <button t-attf-class="btn #{record.grpah_data_filter.raw_value=='all' ? 'btn-primary' : 'btn-secondary'}" type="object" name="all_data">Till Now</button>
+
+                                </div>
+                            </div>
+
+                            <div class="row mb8">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div t-attf-class="card acs-card card-">
+                                        <div class="card-heading">
+                                            <i class="fa fa-area-chart" aria-label="Info" title="Weight Chart"></i> Weight Chart
+                                        </div>
+                                        <div class="card-body o_acs_AcsDashboardGraph">
+                                            <t t-name="WightChart">
+                                                <field name="patient_weight_line_graph" ylabel="Weight (kg)" xlabel="Date" widget="AcsDashboardGraph"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb8">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div t-attf-class="card acs-card card-">
+                                        <div class="card-heading">
+                                            <i class="fa fa-area-chart" aria-label="Info" title="Height Chart"></i> Height Chart
+                                        </div>
+                                        <div class="card-body o_acs_AcsDashboardGraph">
+                                            <t t-name="WightChart">
+                                                <field name="patient_height_line_graph" ylabel="Height" xlabel="Date" widget="AcsDashboardGraph"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb8">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div t-attf-class="card acs-card card-">
+                                        <div class="card-heading">
+                                            <i class="fa fa-area-chart" aria-label="Info" title="Weight Chart"></i> Temprature
+                                        </div>
+                                        <div class="card-body o_acs_AcsDashboardGraph">
+                                            <t t-name="WightChart">
+                                                <field name="patient_temp_line_graph" ylabel="Temprature" xlabel="Date" widget="AcsDashboardGraph"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb8">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div t-attf-class="card acs-card card-">
+                                        <div class="card-heading">
+                                            <i class="fa fa-area-chart" aria-label="Info" title="Hear Rate Chart"></i> Hear Rate Chart
+                                        </div>
+                                        <div class="card-body o_acs_AcsDashboardGraph">
+                                            <t t-name="WightChart">
+                                                <field name="patient_hr_line_graph" ylabel="Hear Rate" xlabel="Date" widget="AcsDashboardGraph"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb8">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div t-attf-class="card acs-card card-">
+                                        <div class="card-heading">
+                                            <i class="fa fa-area-chart" aria-label="Info" title="RR Chart"></i> RR Chart
+                                        </div>
+                                        <div class="card-body o_acs_AcsDashboardGraph">
+                                            <t t-name="WightChart">
+                                                <field name="patient_rr_line_graph" ylabel="RR" xlabel="Date" widget="AcsDashboardGraph"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb8">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div t-attf-class="card acs-card card-">
+                                        <div class="card-heading">
+                                            <i class="fa fa-area-chart" aria-label="Info" title="Systolic BP Chart"></i> Systolic BP Chart
+                                        </div>
+                                        <div class="card-body o_acs_AcsDashboardGraph">
+                                            <t t-name="WightChart">
+                                                <field name="patient_systolic_bp_line_graph" ylabel="Systolic BP" xlabel="Date" widget="AcsDashboardGraph"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb8">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div t-attf-class="card acs-card card-">
+                                        <div class="card-heading">
+                                            <i class="fa fa-area-chart" aria-label="Info" title="Diastolic BP Chart"></i> Diastolic BP Chart
+                                        </div>
+                                        <div class="card-body o_acs_AcsDashboardGraph">
+                                            <t t-name="WightChart">
+                                                <field name="patient_diastolic_bp_line_graph" ylabel="Diastolic BP" xlabel="Date" widget="AcsDashboardGraph"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb8">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div t-attf-class="card acs-card card-">
+                                        <div class="card-heading">
+                                            <i class="fa fa-area-chart" aria-label="Info" title="SpO2 Chart"></i> SpO2 Chart
+                                        </div>
+                                        <div class="card-body o_acs_AcsDashboardGraph">
+                                            <t t-name="WightChart">
+                                                <field name="patient_spo2_line_graph" ylabel="SpO2" xlabel="Date" widget="AcsDashboardGraph"/>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="action_patient_evaluation_graph_1" model="ir.actions.act_window">
+        <field name="name">Patient Evalution Graph</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">hms.patient</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="patient_evalution_kanban_view"/>
+    </record>
+
+</odoo>

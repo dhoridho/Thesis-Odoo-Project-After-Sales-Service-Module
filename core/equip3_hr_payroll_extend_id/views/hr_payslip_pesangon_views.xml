@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_hr_payslip_pesangon_tree" model="ir.ui.view">
+        <field name="name">hr.payslip.pesangon.tree</field>
+        <field name="model">hr.payslip</field>
+        <field name="priority" eval="50"/>
+        <field name="arch" type="xml">
+            <tree decoration-info="state in ('confirm','hr_check','accont_check')" decoration-muted="state == 'cancel'" string="Payslips">
+                <field name="number"/>
+                <field name="employee_id"/>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                <field name="payslip_run_id" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hr_payslip_pesangon_form" model="ir.ui.view">
+        <field name="name">hr.payslip.pesangon.form</field>
+        <field name="model">hr.payslip</field>
+        <field name="priority" eval="50"/>
+        <field name="arch" type="xml">
+            <form string="Payslip">
+            <header>
+                <button string="Confirm" name="action_payslip_done" type="object" states="draft" class="oe_highlight"/>
+                <button string="Refund" name="refund_sheet" states="confirm,done" type='object' />
+                <button string="Set to Draft" name="action_payslip_draft" type="object" states="cancel"/>
+                <button string="Compute Sheet" name="compute_sheet" type="object" states="draft" class="oe_highlight"/>
+                <button string="Cancel Payslip" name="action_payslip_cancel" type="object" states="draft,hr_check,confirm,verify"/>
+                <field name="state" widget="statusbar" statusbar_visible="draft,confirm"/>
+            </header>
+            <sheet>
+                <div class="oe_button_box" name="button_box">
+                    <button name="%(hr_payroll_community.act_payslip_lines)d"
+                        class="oe_stat_button"
+                        icon="fa-money"
+                        type="action">
+                        <field name="payslip_count" widget="statinfo" string="Payslip" help="Payslip Computation Details"/>
+                    </button>
+                </div>
+                <group>
+                    <group>
+                        <field name="allowed_employee_ids" invisible="1"/>
+                        <field name="payslip_pesangon" invisible="1"/>
+                        <field name="employee_id"/>
+                        <field name="contract_id" domain="[('employee_id','=',employee_id)]" context="{'default_employee_id': employee_id}"/>
+                        <field name="date_of_joining" force_save="1"/>
+                        <field name="termination_date" force_save="1"/>
+                        <label for="years_of_service" string="Years of Service"/>
+                        <div class="o_row" name="years_of_service">
+                            <field name="years_of_service" readonly="1"/>
+                            <span>Year(s) - </span>
+                            <field name="months_of_service" readonly="1"/>
+                            <span>Month(s) - </span>
+                            <field name="days_of_service" readonly="1"/>
+                            <span>Day(s) - </span>
+                        </div>
+                    </group>
+                    <group>
+                        <field name="number"/>
+                        <field name="name"/>
+                        <field name="payment_type"/>
+                        <field name="currency_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True, 'no_create_edit': True}" attrs="{'readonly':[('state','=','done')]}"/>
+                        <field name="struct_id" attrs="{'required':[('contract_id','!=',False)]}"/>
+                    </group>
+                </group>
+                <notebook>
+                    <page string="Salary Computation" >
+                        <field name="line_ids" colspan="4" nolabel="1">
+                            <tree string="Salary Structure" editable="bottom" decoration-info="total == 0">
+                                <field name="name"/>
+                                <field name="code"/>
+                                <field name="category_id"/>
+                                <field name="sequence" invisible="1"/>
+                                <field name="quantity" invisible="1"/>
+                                <field name="rate" invisible="1"/>
+                                <field name="salary_rule_id"/>
+                                <field name="amount" invisible="1"/>
+                                <field name="total"/>
+                            </tree>
+                            <form string="Payslip Line">
+                                <group col="4">
+                                    <field name="name"/>
+                                    <field name="code"/>
+                                    <field name="category_id"/>
+                                    <field name="sequence"/>
+                                    <field name="quantity" invisible="1"/>
+                                    <field name="rate" invisible="1"/>
+                                    <field name="amount" invisible="1"/>
+                                    <field name="total"/>
+                                    <field name="salary_rule_id"/>
+                                </group>
+                            </form>
+                        </field>
+                    </page>
+                   <page string="Accounting Information">
+                        <group>
+                            <group string="Miscellaneous">
+                                <field name="company_id" groups="base.group_multi_company"/>
+                                <field name="payslip_run_id" domain="[('state','=','draft')]"/>
+                            </group>
+                            <group name="accounting" string="Accounting">
+                                <field name="paid" readonly="1"/>
+                                <field name="date"/>
+                                <field name="journal_id" required="1"/>
+                                <field name="move_id" readonly="1"/>
+                            </group>
+                        </group>
+                        <div colspan="4">
+                            <field name="note" placeholder="Add an internal note..."/>
+                        </div>
+                    </page>
+                    <page string="Tax Calculation">
+                        <separator string="Tax Bracket Pesangon"/>
+                        <field name="income_reguler_ids" invisible="1">
+                            <tree string="Income Reguler" decoration-info="amount == 0">
+                                <field name="name"/>
+                                <field name="code"/>
+                                <field name="category_id"/>
+                                <field name="employee_id" invisible="1"/>
+                                <field name="amount"/>
+                                <field name="sequence" invisible="1"/>
+                                <field name="tax_calculation_method" invisible="1"/>
+                                <field name="tax_category"/>
+                            </tree>
+                        </field>
+                        <field name="pph21_pesangon_ids">
+                            <tree decoration-info="pph21_amount == 0">
+                                <field name="sequence" invisible="1"/>
+                                <field name="name"/>
+                                <field name="tax_income_from"/>
+                                <field name="tax_income_to"/>
+                                <field name="tax_rate"/>
+                                <field name="bruto_pesangon"/>
+                                <field name="pph21_amount"/>
+                            </tree>
+                        </field>
+                        <group>
+                            <group>
+                                <field name="pesangon" readonly="1" force_save="1"/>
+                                <field name="upmk" readonly="1" force_save="1"/>
+                            </group>
+                            <group>
+                                <field name="bruto_pesangon" readonly="1" force_save="1"/>
+                                <field name="pph21_pesangon" readonly="1" force_save="1"/>
+                            </group>
+                        </group>
+                   </page>
+                </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_view_hr_payslip_pesangon_form" model="ir.actions.act_window">
+        <field name="name">Pesangon Payslip</field>
+        <field name="res_model">hr.payslip</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_hr_payslip_pesangon_tree" />
+        <field name="search_view_id" ref="hr_payroll_community.view_hr_payslip_filter"/>
+        <field name="domain">[('payslip_pesangon', '=', True)]</field>
+        <field name="context">{'default_payslip_pesangon': True}</field>
+    </record>
+
+    <record id="action_view_hr_payslip_pesangon_tree_view" model="ir.actions.act_window.view">
+        <field eval="1" name="sequence" />
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_hr_payslip_pesangon_tree" />
+        <field name="act_window_id" ref="action_view_hr_payslip_pesangon_form" />
+    </record>
+
+    <record id="action_view_hr_payslip_pesangon_form_view" model="ir.actions.act_window.view">
+        <field eval="2" name="sequence" />
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_hr_payslip_pesangon_form" />
+        <field name="act_window_id" ref="action_view_hr_payslip_pesangon_form" />
+    </record>
+
+    <menuitem action="action_view_hr_payslip_pesangon_form"
+              id="menu_hr_payslip_pesangon"
+              parent="hr_payroll_community.menu_hr_payroll_community_root"
+              groups="hr_payroll_community.group_hr_payroll_community_manager"
+              sequence="6"/>
+
+</odoo>

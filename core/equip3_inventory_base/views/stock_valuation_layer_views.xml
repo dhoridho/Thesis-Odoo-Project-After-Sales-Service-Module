@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="stock_valuation_layer_tree" model="ir.ui.view">
+        <field name="name">stock.valuation.layer.tree</field>
+        <field name="model">stock.valuation.layer</field>
+        <field name="inherit_id" ref="stock_account.stock_valuation_layer_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="lot_ids" widget="many2many_tags"/>
+                <field name="warehouse_id"/>
+                <field name="location_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_valuation_layer_form" model="ir.ui.view">
+        <field name="name">stock.valuation.layer.form</field>
+        <field name="model">stock.valuation.layer</field>
+        <field name="inherit_id" ref="stock_account.stock_valuation_layer_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="lot_ids" widget="many2many_tags" attrs="{'invisible': [('lot_ids', '=', [])]}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='remaining_qty']" position="after">
+                <field name="remaining_value"/>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Lines" name="lines">
+                    <field name="line_ids">
+                        <tree string="Lines">
+                            <field name="company_id" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="product_id" invisible="1"/>
+                            <field name="lot_id"/>
+                            <field name="quantity" sum="Total Quantity"/>
+                            <field name="uom_id"/>
+                            <field name="unit_cost"/>
+                            <field name="value" sum="Total Value"/>
+                            <field name="remaining_qty" optional="hide"/>
+                            <field name="remaining_value" optional="hide"/>
+                            <field name="stock_move_line_id" optional="hide"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_valuation_layer_line_form" model="ir.ui.view">
+        <field name="name">stock.valuation.layer.line.form</field>
+        <field name="model">stock.valuation.layer.line</field>
+        <field name="inherit_id" ref="equip3_inventory_base.stock_valuation_layer_form"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="string">Valuation Lines</attribute>
+            </xpath>
+
+            <xpath expr="//form" position="inside">
+                <field name="svl_id" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='lot_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='lot_ids']" position="after">
+                <field name="lot_id" attrs="{'invisible': [('lot_id', '=', False)]}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='stock_move_id']" position="after">
+                <field name="stock_move_line_id" attrs="{'invisible': [('stock_move_line_id', '=', False)]}" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_inventory_valuation_search" model="ir.ui.view">
+        <field name="name">stock.valuation.layer.tree</field>
+        <field name="model">stock.valuation.layer</field>
+        <field name="inherit_id" ref="stock_account.view_inventory_valuation_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='group_by_product_id']" position="after">
+                <filter string="Warehouse" name="group_by_warehouse_id" context="{'group_by': 'warehouse_id'}"/>
+                <filter string="Location" name="group_by_location_id" context="{'group_by': 'location_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_repair_valuation_lines" model="ir.actions.server">
+        <field name="name">Repair Lines (Selected)</field>
+        <field name="model_id" ref="stock_account.model_stock_valuation_layer"/>
+        <field name="binding_model_id" ref="stock_account.model_stock_valuation_layer"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+            records._repair_valuation_lines()
+        </field>
+    </record>
+
+    <record id="action_repair_valuation_lines_all" model="ir.actions.server">
+        <field name="name">Repair Lines (All)</field>
+        <field name="model_id" ref="stock_account.model_stock_valuation_layer"/>
+        <field name="binding_model_id" ref="stock_account.model_stock_valuation_layer"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+            model._create_repair_cron()
+        </field>
+    </record>
+
+</odoo>

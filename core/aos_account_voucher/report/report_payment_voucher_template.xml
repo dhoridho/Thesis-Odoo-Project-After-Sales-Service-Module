@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    	<template id="external_layout_standard_account_voucher_payment">
+		    <div class="header">
+	            <div class="row">
+	                <div class="col-3 mb4">
+	                    <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="max-height: 45px;" alt="Logo"/>
+	                </div>
+	                <div class="col-9 text-right" style="margin-top:22px;" t-field="company.report_header" name="moto"/>
+	            </div>
+	            <div t-if="company.logo or company.report_header" class="row zero_min_height">
+	                <div class="col-12">
+	                    <div style="border-bottom: 1px solid black;"/>
+	                </div>
+	            </div>
+	        </div>
+		
+			<div class="article" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+		        <t t-call="web.address_layout"/>
+		        <t t-raw="0"/>
+		    </div>
+		
+		    <div class="footer o_background_footer">
+			   <div class="text-left">
+		           <div class="last-page">
+		              <table class="table table-sm" style="border:1px solid black; width: 100%;" name="form_ceklist">
+		                  <thead>
+		                      <tr style="text-align:center; margin: auto;">
+		                          <th style="border:1px solid black; width: 31%;">Created by :</th>
+		                          <th style="border:1px solid black; width: 31%;">Received by :</th>
+		                          <th style="border:1px solid black; width: 31%;">Approved by :</th>
+		                      </tr>
+		                  </thead>
+		                  <tbody>
+		                      <tr style="height: 80px;">
+		                          <td style="border:1px solid black;"></td>
+		                          <td style="border:1px solid black;"></td>
+		                          <td style="border:1px solid black;"></td>
+		                      </tr>
+		                  </tbody>
+		              </table>
+		           </div>
+	           </div>
+		    </div>
+		</template>
+		
+		
+		<template id="external_layout_account_voucher">
+		    <t t-if="not o" t-set="o" t-value="docs"/>
+		
+		    <t t-if="not company">
+		        <t t-if="company_id">
+		            <t t-set="company" t-value="company_id"/>
+		        </t>
+		        <t t-elif="o and 'company_id' in o">
+		            <t t-set="company" t-value="o.company_id.sudo()"/>
+		        </t>
+		        <t t-else="else">
+		            <t t-set="company" t-value="res_company"/>
+		        </t>
+		    </t>
+		    <t t-call="aos_account_voucher.external_layout_standard_account_voucher_payment"><t t-raw="0"/></t>
+		
+		</template>
+    	
+        <template id="aos_account_voucher.report_account_voucher">
+            <t t-call="web.html_container">
+            	<t t-call="aos_account_voucher.external_layout_account_voucher">
+			        <div style="margin-top:18px;">
+				        <table style="border:0;">
+                			<tr style="border:0;">
+				        		<td>Number</td> 
+				        		<td style="padding-left: 5px; padding-right: 5px"> : </td>
+				        		<td style="width:320px;"><span t-field="o.number" /></td>
+				        		<td>Account ID</td> 
+				        		<td style="padding-left: 5px; padding-right: 5px"> : </td> 
+				        		<td><span t-field="o.account_id.name" /></td>
+				        	</tr>
+				        	<tr>
+				        		<td>Date</td> 
+				        		<td style="padding-left: 5px; padding-right: 5px"> : </td>
+				        		<td style="width:320px;"><span t-field="o.account_date" /></td>
+				        		<td>Account Code</td>
+				        		<td style="padding-left: 5px; padding-right: 5px"> : </td> 
+				        		<td><span t-field="o.account_id.code" /></td>
+				        	</tr>
+				        	<tr>
+				        		<td>Cash In/Out</td> 
+				        		<td style="padding-left: 5px; padding-right: 5px"> : </td>
+				        		<td style="width:320px;"><span t-field="o.voucher_type" /></td>
+				        		<td>Responsible</td> 
+				        		<td style="padding-left: 5px; padding-right: 5px"> : </td>
+				        		<td><span t-field="o.user_id.name" /></td>
+				        	</tr>
+				        	<tr style="border:0;">
+				        		<td>Status</td> 
+				        		<td style="padding-left: 5px; padding-right: 5px"> : </td>
+				        		<td style="width:320px;"><span t-field="o.paid" /></td>
+				        		<td>Hal</td> 
+				        		<td style="padding-left: 5px; padding-right: 5px"> : </td>
+				        		<td><span t-field="o.name" /></td>
+				        	</tr>
+			            </table>
+			   		</div>
+                    <div class="page" style="margin-top:10px;">
+                        <table class="table">
+                            <thead>
+                                <tr style="text-align:center; margin: auto;">
+                                	<th>Number</th>
+                                	<th>Code</th>
+                                	<th>Account</th>
+                                    <th>SubTotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.line_ids" t-as="line_id">
+									<td style="text-align:center;">
+							            <span t-esc="line_id_index+1"/>
+									</td>
+									<td style="text-align:center;">
+										<t t-if="line_id.account_id.name">
+									        <span t-esc="line_id.account_id.name"/>
+									    </t>
+									</td>
+									<td style="text-align:center;">
+										<t t-if="line_id.name">
+									        <span t-esc="line_id.name"/>
+									    </t>
+									</td>
+									<td style="text-align:center;" class="text-right">
+										<t t-if="line_id.price_subtotal">
+									        <span t-field="line_id.price_subtotal"/>
+									    </t>
+									</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                            
+                     	<div class="clearfix">
+		                   <div id="total" class="row">
+		                       <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
+		                           <table class="table table-sm">
+		                               <tr class="border-black o_total">
+		                                   <td><strong>Total</strong></td>
+		                                   <td class="text-right">
+		                                       <span style="padding-right:7px;" t-field="o.amount"/>
+		                                   </td>
+		                               </tr>
+		                           </table>
+		                       </div>
+		                   </div>
+		               </div>
+                  </div>
+            	</t>
+            </t>
+        </template>
+        
+        <template id="report_payment_account_voucher">
+		    <t t-foreach="docs" t-as="o">
+		        <t t-call="aos_account_voucher.report_account_voucher" t-lang="o.partner_id.lang"/>
+		    </t>
+		</template>
+    </data>
+</odoo>

@@ -1,0 +1,839 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="emenu_page_404" name="E-Menu 404">
+        <t t-call="equip3_pos_emenu.emenu_layout">
+            <t t-set="title">Page not Found</t>
+            <t t-set="no_footer" t-value="1"/>
+            <t t-set="pageName" t-value="'page_404'"/>
+
+            <div id="wrap" class="h-100 d-flex align-items-center">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12 text-center mb-5">
+                            <img class="img img-fluid" src="/http_routing/static/src/img/404.svg"/>
+                        </div>
+                        <div class="col-md-12 text-center">
+                            <h1 class="sr-only">Error 404</h1>
+                            <h2 class="mb16">We couldn't find the page you're looking for!</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+    
+    <template id="redirect_home" name="Redirect Home">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title>Order - loading...</title>
+                <style>
+                    .loader_wrapper {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        height: 100%;
+                        width: 100%;
+                    }
+                    .loader_wrapper .loader {
+                        width: 60px;
+                        padding: 8px;
+                        aspect-ratio: 1;
+                        border-radius: 50%;
+                        background: #008f8b;
+                          --____: conic-gradient(#0000 10%,#000),
+                            linear-gradient(#000 0 0) content-box;
+                          -webkit-mask: var(--____);
+                              mask: var(--____);
+                          -webkit-mask-composite: source-out;
+                              mask-composite: subtract;
+                          animation: rotate 1s infinite linear;
+                    }
+                    @keyframes rotate {to{transform: rotate(1turn)}}
+                </style>
+
+            </head>
+            <body>
+                <div class="redirect_home">
+                    <div class="loader_wrapper"><div class="loader"></div></div>
+                    <script>
+                        function Redirect() {  
+                            window.location = '<t t-esc="redirect_url"/>'; 
+                        } 
+                        setTimeout('Redirect()', 1000); 
+                    </script>
+                </div>
+            </body>
+        </html>
+    </template>
+
+    <template id="emenu_assets_js">
+        <script type="text/javascript" src="/equip3_pos_emenu/static/src/js/emenu.js"/>
+    </template>
+
+    <template id="emenu_layout" name="Web layout">&lt;!DOCTYPE html&gt;
+        <html t-att="html_data or {}">
+            <head>
+                <meta charset="utf-8"/>
+                <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+
+                <!-- Block Search indexing by google -->
+                <meta name="robots" content="noindex"/>
+                <meta name="googlebot" content="noindex"/>
+
+                <title t-esc="title or 'E-Menu'"/>
+                <link type="image/x-icon" rel="shortcut icon" t-att-href="x_icon or '/web/static/src/img/favicon.ico'"/>
+
+                <link rel="preload" href="/web/static/lib/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0" as="font" crossorigin=""/>
+
+                <link rel="preconnect" href="https://fonts.googleapis.com"/>
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="true"/>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&amp;display=swap" rel="stylesheet"/>
+
+                <!-- <t t-call-assets="web.assets_common" t-js="false"/> -->
+                <t t-call-assets="web.assets_frontend" t-js="false"/>
+
+                <script id="web.layout.odooscript" type="text/javascript">
+                    var odoo = {
+                        csrf_token: "<t t-esc="request.csrf_token(None)"/>",
+                        debug: "<t t-esc="debug"/>",
+                    };
+                </script>
+                <script type="text/javascript">
+                    odoo.session_info = <t t-raw="json.dumps(request.env['ir.http'].get_frontend_session_info())"/>;
+                    if (!/(^|;\s)tz=/.test(document.cookie)) {
+                        const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        document.cookie = `tz=${userTZ}; path=/`;
+                    }
+                </script>
+
+                <t t-call-assets="web.assets_common_minimal_js" t-css="false" defer_load="True"/>
+                <t t-call-assets="web.assets_frontend_minimal_js" t-css="false" defer_load="True"/>
+                <!-- <t t-call="web.conditional_assets_tests"/> -->
+                <t t-call-assets="web.assets_common_lazy" t-css="false" lazy_load="True"/>
+                <t t-call-assets="web.assets_frontend_lazy" t-css="false" lazy_load="True"/>
+
+                <t t-set="no_cache" t-value="datetime.datetime.now().strftime('%Y%m%d%H%M%S')"/>
+                <link rel="stylesheet" type="text/css" 
+                    t-attf-href="/equip3_pos_emenu/static/src/css/emenu.css?nocache=#{no_cache}"/>
+
+                <t t-call-assets="equip3_pos_emenu.emenu_assets_js" t-css="false" lazy_load="True"/>
+
+                <t t-raw="head or ''"/>
+            </head>
+            <body t-att-class="body_classname">
+                <div id="emenu" t-attf-class="emenu #{pageName or ''}">
+                    <header></header>
+                    <main>
+                        <t t-raw="0"/>
+                    </main>
+                </div>
+            </body>
+        </html>
+    </template>
+
+    <template id="emenu_home" name="E-Menu Home">
+        <t t-call="equip3_pos_emenu.emenu_layout">
+            <t t-set="additional_title">Home</t>
+            <t t-set="no_footer" t-value="1"/>
+
+            <div id="home" class="home" t-att-data-access_token="access_token">
+                <div class="container">
+                    <div class="emenu-header">
+                        <div class="emenu-title">
+                            <a t-att-href="url"><t t-esc="outlet_name"/></a>
+                        </div>
+                        <div class="emenu-sub-title">
+                            <div class="emenu-table">
+                                <span><t t-esc="table_name"/></span>
+                            </div>
+                        </div>
+                        <div class="emenu-buttons" t-att-data-emenu_order_id="emenu_order_id" t-if="has_orders">
+                            <div class="emenu-btn-order">
+                                Orders
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="emenu-search-bar">
+                        <form action="#" method="get" class="emenu-search-form">
+                            <input name="search" placeholder="Search your menu here" t-att-value="search"/>
+                            <button type="submit"><i class="fa fa-search">Search</i></button>
+                            <t t-if="search">
+                                <div class="search-clear"><i class="fa fa-times"></i></div>
+                            </t>
+                        </form>
+                    </div>
+
+                    <div class="emenu-banner" t-if="not search">
+                        <t t-if="banner_images">
+                            <t t-foreach="banner_images" t-as="url">
+                                <div class="emenu-banner-img">
+                                    <img t-att-src="url"/>
+                                </div>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <div class="emenu-banner-img">
+                                <img src="/equip3_pos_emenu/static/src/img/banner.png" alt="Banner Image"/>
+                            </div>
+                        </t>
+                    </div>
+
+                    <div class="emenu-categories">
+                        <div class="wrapper">
+                            <div class="inner">
+                                <div class="item active" value="all" t-if="not search">
+                                    <span>All</span>
+                                </div>
+                                <t t-foreach="categories" t-as="cat">
+                                    <div class="item" t-att-value="cat.id" t-att-target="'category_' + str(cat.id)">
+                                        <span><t t-esc="cat.name"/></span>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="emenu-products-list">
+                        <t t-foreach="products_by_categories" t-as="data">
+                            <t t-set="products" t-value="data['products']"/>
+                            <div class="emenu-products" t-if="products" t-att-id="'category_' + str(data['category_id'])">
+                                <div class="categ-name">
+                                    <span><t t-esc="data['category_name']"/></span>
+                                </div>
+                                <t t-foreach="products" t-as="product">
+                                    <t t-call="equip3_pos_emenu.emenu_product_item">
+                                        <t t-set="product" t-value="product"/>
+                                        <t t-set="emenu_order_id" t-value="emenu_order_id"/>
+                                        <t t-set="emenu_order" t-value="emenu_order"/>
+                                    </t>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-if="search and not categories">
+                            <div class="text-center" style="font-size: 25px;min-height: 485px;display: block;">
+                                <span>There are no Products results. You can click (x) to Clear Search</span>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+
+                <t t-call="equip3_pos_emenu.emenu_cart_info">
+                    <t t-set="cart_info" t-value="cart_info"/>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="emenu_product_item" name="E-Menu Product Item">
+
+        <t t-set="combination" t-value="product._get_first_possible_combination()"/>
+        <t t-set="combination_info" t-value="product._get_emenu_combination_info(
+            combination, 
+            pricelist=emenu_order.pos_config_id.pricelist_id, 
+            pos_config=emenu_order.pos_config_id)"/>
+
+        <div class="product" 
+            data-model="product.template" 
+            t-att-data-emenu_order_id="emenu_order_id"
+            t-att-data-product_tmpl_id="product.id">
+            <div class="product-content">
+                <div class="product-img">
+                    <img t-att-src="'/emenu/content/product/%s/image_256/%s' % 
+                        ( str(product.id), str(product.name)[:10].replace('/', '') )"/>
+                </div>
+                <div class="product-detail">
+                    <div class="product-name">
+                        <t t-if="product.name">
+                            <span t-att-title="product.name">
+                                <t t-esc="str(product.name)[:64]"/>
+                                <t t-if="len(product.name) &gt; 64">
+                                    ...
+                                </t>
+                            </span>
+                        </t>
+                    </div>
+                    <div class="product-desc">
+                        <t t-if="product.emenu_description">
+                            <span t-att-title="product.emenu_description">
+                                <t t-esc="str(product.emenu_description)[:180]"/>
+                                <t t-if="len(product.emenu_description) &gt; 180">
+                                    ...
+                                </t>
+                            </span>
+                        </t>
+                    </div>
+                    <div class="product-action">
+                        <div class="product-price">
+                            <span t-esc="combination_info['price_formated']"/>
+                        </div>
+                        <div class="product-add-qty">
+                            <div class="spinner-border" role="status" style="display: none;">
+                              <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+
+    <template id="emenu_cart_info" name="E-Menu Cart Info">
+        <div class="emenu_cart_info" t-att-data-item-count="cart_info['item_count']" >
+            <div class="cart_info_button">
+                <div class="left">
+                    <div class="total-item">
+                        <div class="total-item-label">
+                            Total Item (s)
+                        </div>
+                        <div class="total-item-value">
+                            <span><t t-esc="cart_info['item_count']"/></span> Item (s)
+                        </div>
+                    </div>
+                </div>
+                <div class="right">
+                    <div class="price-info">
+                        <span><t t-esc="cart_info['format_amount_total']"/></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+
+    <template id="emenu_product" name="E-Menu Product Detail">
+        <t t-set="product_type" t-value="'single'"/>
+        <t t-if="len(product.product_variant_ids) &gt; 1">
+            <t t-set="product_type" t-value="'variant'"/>
+        </t>
+
+        <div id="product" class="emenu-product-detail" 
+            t-att-data-emenu_order_id="emenu_order_id" 
+            t-att-data-product_type="product_type" 
+            t-att-data-variant_count="len(product.product_variant_ids)"
+            t-att-data-currency_symbol="product.currency_id.symbol"
+            t-att-data-pos_categ_id="product.pos_categ_id.id"
+            t-att-data-pos_categ_name="product.pos_categ_id.name"
+            t-att-data-product_tmpl_id="product.id"
+            t-att-data-product_price="combination_info['price']"
+            t-att-data-product_name="product.name"
+            t-att-data-product_qty="1"
+            t-att-data-product_id="product.product_variant_ids[0].id">
+            <div class="product-image">
+                <img t-att-src="'/emenu/content/product/%s/image_256/%s' % 
+                        ( str(product.id), str(product.name)[:10].replace('/', '') )"/>
+            </div>
+            <div class="container">
+                <div class="product-content">
+                    <div class="product-name">
+                        <span t-att-title="product.name">
+                            <t t-esc="str(product.name)"/>
+                        </span>
+                    </div>
+                    <div class="product-price">
+                        <span t-esc="combination_info['price_formated']"/>
+                    </div>
+                    <div class="product-description">
+                        <span t-att-title="product.emenu_description" t-if="product.emenu_description">
+                            <t t-esc="str(product.emenu_description)"/>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="custom-order">
+                    <div class="title">
+                        <span>Custom Order</span>
+                    </div>
+
+                    <t t-if="product_type == 'single'">
+                        <t t-call="equip3_pos_emenu.emenu_product_custom_order"/>
+                    </t>
+                    <t t-if="product_type == 'variant'">
+                        <t t-call="equip3_pos_emenu.emenu_product_custom_order_variant"/>
+                    </t>
+
+                    <div class="c-form-control c-add-notes">
+                        <div class="c-label">
+                            <div class="c-title">Add Notes</div>
+                            <div class="c-optional">(Optional)</div>
+                        </div>
+                        <div class="c-input">
+                            <textarea name="notes" placeholder="Add your note here"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="product-add-cart" >
+                <div class="add-cart-content">
+                    <div class="left-content">
+                        <div class="add-quantity">
+                            <div class="add-quantity-text">
+                                Order Quantity
+                            </div>
+                            <div class="add-quantity-action">
+                                <div class="add-quantity-button" type="minus">minus</div>
+                                <input class="add-quantity-input" name="product_qty" value="1"/>
+                                <div class="add-quantity-button" type="plus">plus</div>
+                            </div>
+                        </div>
+                        <div class="total-payment">
+                            <div class="total-payment-text">Total Payment</div>
+                            <div class="total-payment-price">
+                                <span t-esc="combination_info['price_formated']"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right-content">
+                        <button class="add-cart">
+                            <div class="spinner-border" role="status" style="display: none;">
+                              <span class="sr-only">Loading...</span>
+                            </div>
+                            Add To Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="emenu_product_custom_order" name="E-Menu Product Custom Order">
+        <div></div>
+    </template>
+
+    <template id="emenu_product_custom_order_variant" name="E-Menu Product Custom Order Variants">
+        <div class="c-option-variants">
+
+            <t t-set="combination" t-value="product._get_first_possible_combination()"/>
+            <t t-set="attribute_exclusions" t-value="product._get_attribute_exclusions(parent_combination, parent_name)"/>
+
+            <ul t-attf-class="list-unstyled js_add_cart_variants #{ul_class}" t-att-data-attribute_exclusions="json.dumps(attribute_exclusions)">
+                <t t-foreach="product.valid_product_template_attribute_line_ids" t-as="ptal">
+                    <!-- Attributes selection is hidden if there is only one value available and it's not a custom value -->
+                    <li t-att-data-attribute_id="ptal.attribute_id.id" t-att-data-attribute_name="ptal.attribute_id.name" t-attf-class="variant_attribute #{'d-none' if len(ptal.product_template_value_ids._only_active()) == 1 and not ptal.product_template_value_ids._only_active()[0].is_custom else ''}">
+
+                        <t t-set="single" t-value="len(ptal.product_template_value_ids._only_active()) == 1"/>
+                        <t t-set="single_and_custom" t-value="single and ptal.product_template_value_ids._only_active()[0].is_custom"/>
+                        <strong t-field="ptal.attribute_id.name" class="attribute_name"/>
+                        <ul t-att-data-attribute_id="ptal.attribute_id.id" t-attf-class="list-unstyled #{'d-none' if single_and_custom else ''}">
+                            <t t-foreach="ptal.product_template_value_ids._only_active()" t-as="ptav">
+                                <li class="form-group js_attribute_value" style="margin: 0;">
+                                    <div class="col-form-label">
+                                        <div class="radio_input_value">
+                                            <span t-field="ptav.name"/>
+                                            <span class="badge badge-pill badge-secondary hidden" t-if="ptav.price_extra">
+                                                <!-- see note above about price_extra -->
+                                                <t t-esc="ptav.price_extra &gt; 0 and '+' or '-'"/>
+                                                <span t-esc="abs(ptav.price_extra)" class="variant_price_extra" style="white-space: nowrap;" t-options="{                                                             &quot;widget&quot;: &quot;monetary&quot;,                                                             &quot;from_currency&quot;: product.currency_id,                                                             &quot;display_currency&quot;: (pricelist or product).currency_id                                                         }"/>
+                                            </span>
+                                        </div>
+
+                                        <input type="radio" 
+                                            t-attf-class="js_variant_change radio_input #{ptal.attribute_id.create_variant}" 
+                                            t-att-checked="ptav in combination" 
+                                            t-att-name="'ptal-%s' % ptal.id" 
+                                            t-att-value="ptav.id" 
+                                            t-att-data-value_id="ptav.id" 
+                                            t-att-data-value_name="ptav.name" 
+                                            t-att-data-attribute_name="ptav.attribute_id.name" 
+                                            t-att-data-is_custom="ptav.is_custom" 
+                                            t-att-data-is_single="single" t-att-data-is_single_and_custom="single_and_custom"/>
+                                    </div>
+                                </li>
+                            </t>
+                        </ul>
+
+                    </li>
+                </t>
+            </ul>
+        </div>
+    </template>
+
+    <template id="emenu_cart" name="E-Menu Cart">
+        <div id="cart" class="cart">
+            <div class="container">
+                <div class="emenu-header">
+                    <!-- <a t-att-href="home_url" class="back-button"></a> -->
+                    <div class="emenu-title text-center">
+                        Cart
+                    </div>
+                </div>
+
+                <div class="cart-lines" t-att-data-emenu_order_id="emenu_order.id">
+                    <t t-if="not lines_by_categories">
+                        <p class="text-center mt16 mb16">Your Cart is empty</p>
+                    </t>
+                    <t t-foreach="lines_by_categories" t-as="data">
+                        <t t-set="categ" t-value="data['pos_categ']"/>
+                        <t t-set="lines" t-value="data['lines']"/>
+                        <div class="cart-line">
+                            <div class="categ-name">
+                                <span><t t-esc="categ.name"/></span>
+                                <div class="item-count">
+                                    <span><t t-esc="len(lines)"/> item (s)</span>
+                                </div>
+                            </div>
+                            <t t-foreach="lines" t-as="line">
+                                <div class="product order-line" t-att-data-order_line_id="line.id">
+                                    <div class="product-content">
+                                        <div class="product-img">
+                                            <img t-att-src="'/emenu/content/product/%s/image_256/%s' % 
+                                                ( str(line.product_id.product_tmpl_id.id), str(line.product_id.name)[:10].replace('/', '') )"/>
+                                        </div>
+                                        <div class="product-detail">
+                                            <div class="product-name">
+                                                <t t-esc="line.product_id.display_name"/>
+                                            </div>
+                                            <div class="product-price line-subtotal">
+                                                <span t-esc="pos_config.emenu_format_currency(line.subtotal_incl)"/>
+                                            </div>
+
+                                            <div class="change-qty">
+                                                <div class="add-quantity-text">
+                                                    Order Quantity
+                                                </div>
+                                                <div class="add-quantity-action">
+                                                    <div class="add-quantity-button" type="minus">minus</div>
+                                                    <input class="add-quantity-input" name="product_qty" 
+                                                        t-att-old_value="str(line.qty)"
+                                                        t-att-value="str(line.qty)"/>
+                                                    <div class="add-quantity-button" type="plus">plus</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+                </div>
+
+                <a class="add-item" t-att-href="home_url">
+                    <div class="icon"></div>
+                    <span>Add Item</span>
+                </a>
+
+            </div>
+
+            
+            <t t-call="equip3_pos_emenu.emenu_payment_detail">
+                <t t-set="page" t-value="'cart'"/>
+                <t t-set="empty_cart" t-value="len(lines_by_categories)"/>
+                <t t-set="access_token" t-value="access_token"/>
+            </t>
+
+
+        </div>
+    </template>
+
+    <template id="emenu_payment_detail" name="E-Menu Payment Details">
+        <div class="payment-details">
+            <t  t-if="page == 'cart'">
+                <t t-set="amount_total" t-value="emenu_order.with_context(ctx_state='created').amount_total"/>
+            </t>
+            <t  t-if="page == 'bill'">
+                <t t-set="amount_total" t-value="emenu_order.with_context(ctx_state='received').amount_total"/>
+            </t>
+            <div class="wrapper">
+                <div class="payment-content">
+                    <div class="payment-title">Payment Details</div>
+                    <div class="payment-lines">
+                        <div class="payment-line">
+                            <div class="payment-line-label">Subtotal</div>
+                            <div class="payment-line-amount line-subtotal">
+                                <span>
+                                    <span t-esc="amount_total" t-att-data-amount_total="amount_total"
+                                        t-options='{"widget": "monetary", "display_currency": emenu_order.currency_id, }'/>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="payment-line">
+                            <div class="payment-line-label">Sc</div>
+                            <div class="payment-line-amount line-sc">
+                                <span>Rp 0</span>
+                            </div>
+                        </div>
+                        <div class="payment-line">
+                            <div class="payment-line-label">PBI</div>
+                            <div class="payment-line-amount line-pbi">
+                                <span>Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="payment-addition">
+                        <div class="payment-line-label">Total Addition</div>
+                        <div class="payment-line-amount line-addition">
+                            <span>
+                                <span t-esc="amount_total" t-att-data-amount_total="amount_total"
+                                    t-options='{"widget": "monetary", "display_currency": emenu_order.currency_id, }'/>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="payment-action">
+                    <t  t-if="page == 'bill'">
+                        <a t-attf-class="payment-order #{empty_cart==0 and 'block'}" t-att-data-access_token="access_token">
+                            <span>Payment</span>
+                        </a>
+                    </t>
+                    <t  t-if="page == 'cart'">
+                        <a t-attf-class="submit-order #{empty_cart==0 and 'block'}" t-att-data-access_token="access_token">
+                            <span>Submit Order</span>
+                        </a>
+                    </t>
+                </div>
+                <div class="payment-warning-message" t-if="page == 'cart'">
+                     <span class="icon-danger"></span> Order cannot be cancelled once submited
+                </div>
+            </div>
+        </div>
+    </template>
+
+
+    <template id="emenu_process_order" name="E-Menu Process Order">
+        <t t-call="equip3_pos_emenu.emenu_layout">
+            <t t-set="no_footer" t-value="1"/>
+
+            <div id="process_order" class="process_order" 
+                t-att-data-lines="lines"
+                t-att-data-access_token="access_token">
+                <div class="container"> 
+
+                    <div class="process-order-content">
+                        <div class="wrapper">
+                            <div class="process-order-icon">
+                                <img src="/equip3_pos_emenu/static/src/img/icon-process-order.svg"/>
+                            </div>
+                            <div class="process-order-message">
+                                 <div class="message-title">
+                                     <t t-esc="message_title"/>
+                                 </div>
+                                 <div class="message-subtitle">
+                                     <t t-esc="message_subtitle"/>
+                                 </div>
+                            </div>
+                            <div class="process-order-loading">
+                                <div class="dots-waiting"></div>
+                            </div>
+                        </div>
+                    </div>
+ 
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="emenu_bill" name="E-Menu Bill">
+        <t t-call="equip3_pos_emenu.emenu_layout">
+            <t t-set="no_footer" t-value="1"/>
+
+            <div id="bill" class="bill">
+                <div class="container">
+                    <div class="emenu-header">
+                        <div class="emenu-title text-center">
+                            Order Overview
+                        </div>
+                        <a t-att-href="url" class="refresh-button">
+                            <img src="/equip3_pos_emenu/static/src/img/icon-refresh.svg"/>
+                        </a>
+                    </div>
+                    <div class="bill-transaction copy_clipboard" 
+                        t-att-data-copy_clipboard="emenu_order.order_session_uid">
+                        <div class="bill-transaction-label">Transaction ID</div>
+                        <div class="bill-transaction-number">
+                            <span><t t-esc="emenu_order.order_session_uid"/></span>
+                            <div class="btn-copy">
+                                <img src="/equip3_pos_emenu/static/src/img/icon-copy.svg"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bill-info">
+                        <div class="bill-info-left">
+                            <div class="bill-info-label">No. Table</div>
+                            <div class="bill-info-value">
+                                <span><t t-esc="emenu_order.table_id.name"/></span>
+                            </div>
+                        </div>
+                        <div class="bill-info-right">
+                            <div class="bill-info-label">No. of Pax</div>
+                            <div class="bill-info-value">
+                                <span><t t-esc="emenu_order.order_count"/></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bill-lines" t-att-data-emenu_order_id="emenu_order.id">
+                        <t t-if="not lines_by_order_numbers">
+                            <p class="text-center mt16 mb16">Your Order is empty</p>
+                        </t>
+                        <t t-foreach="lines_by_order_numbers" t-as="data">
+                            <t t-set="order_number" t-value="data['order_number']"/>
+                            <t t-set="lines" t-value="data['lines']"/>
+                            <div class="bill-line">
+                                <div class="categ-name">
+                                    <span>
+                                        <span>Order <t t-esc="order_number"/></span>
+                                        <t t-if="data['created_from'] == 'pos'">
+                                            <span class="created_from">(by cashier)</span>
+                                        </t>
+                                    </span>
+                                    <div class="item-count">
+                                        <span><t t-esc="len(lines)"/> item (s)</span>
+                                    </div>
+                                </div>
+                                <t t-foreach="lines" t-as="line">
+                                    <div class="product order-line" t-att-data-order_line_id="line.id">
+                                        <div class="product-content">
+                                            <div class="product-detail">
+                                                <div class="product-name">
+                                                    <span><t t-esc="line.qty"/>x</span>
+                                                    <span> </span>
+                                                    <span><t t-esc="line.product_id.display_name"/></span>
+                                                </div>
+                                                <div class="product-price">
+                                                    <span t-esc="pos_config.emenu_format_currency(line.subtotal_incl)"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+
+                    <a class="new-order" t-att-href="home_url">
+                        <div class="icon"></div>
+                        <span>New Order</span>
+                    </a>
+
+                </div>
+
+                
+                <t t-call="equip3_pos_emenu.emenu_payment_detail">
+                    <t t-set="page" t-value="'bill'"/>
+                    <t t-set="empty_cart" t-value="len(lines_by_order_numbers)"/>
+                    <t t-set="access_token" t-value="access_token"/>
+                </t>
+
+
+            </div>
+        </t>
+    </template>
+    
+    <template id="emenu_payment" name="E-Menu Payment">
+        <t t-call="equip3_pos_emenu.emenu_layout">
+            <t t-set="no_footer" t-value="1"/>
+
+            <div id="payment" class="payment" t-att-data-access_token="access_token">
+                <div class="container">
+                    <div class="emenu-header">
+                        <a t-att-href="bill_url" class="back-button" t-if="status != 'done'"></a>
+                        <div class="emenu-title text-center">
+                            Payment
+                        </div>
+                    </div>
+                
+                    <div class="payment-payment-details">
+                        <div class="payment-content">
+                            <div class="payment-title">Payment Details</div>
+                            <div class="payment-lines">
+                                <div class="payment-line">
+                                    <div class="payment-line-label">Subtotal</div>
+                                    <div class="payment-line-amount line-subtotal">
+                                        <span>
+                                            <span t-field="emenu_order.with_context(ctx_state='payment').amount_total"
+                                                t-options='{
+                                                   "widget": "monetary",
+                                                   "display_currency": emenu_order.currency_id,
+                                                }'/>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="payment-line">
+                                    <div class="payment-line-label">Sc</div>
+                                    <div class="payment-line-amount line-sc">
+                                        <span>Rp 0</span>
+                                    </div>
+                                </div>
+                                <div class="payment-line">
+                                    <div class="payment-line-label">PBI</div>
+                                    <div class="payment-line-amount line-pbi">
+                                        <span>Rp 0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="payment-addition">
+                                <div class="payment-line-label">Total Addition</div>
+                                <div class="payment-line-amount line-addition">
+                                    <span>
+                                        <span t-field="emenu_order.with_context(ctx_state='payment').amount_total"
+                                            t-options='{
+                                               "widget": "monetary",
+                                               "display_currency": emenu_order.currency_id,
+                                            }'/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="payment-at-cashier">
+                        <div class="pay-at-cashier">
+                            <div class="pay-at-cashier-img">
+                                <img src="/equip3_pos_emenu/static/src/img/icon-payatcashier.svg"/>
+                            </div>
+                            <div class="pay-at-cahier-title">Pay at Cashier</div>
+                            <div class="pay-at-cahier-msg">Make your payment at the cashier immediately</div>
+                        </div>
+                    </div>
+
+                    <div t-attf-class="payment-cashier-button #{status}" t-att-data-access_token="access_token">
+                        <span>Proceed - Cashier Payment</span>
+                    </div>
+
+                </div>
+
+            </div>
+        </t>
+    </template>
+
+
+    <template id="emenu_payment_paid" name="E-Menu Payment Paid">
+        <t t-call="equip3_pos_emenu.emenu_layout">
+            <t t-set="no_footer" t-value="1"/>
+
+            <div id="payment" class="payment state-is-paid">
+                <div class="container">
+                    <div class="emenu-header">
+                        <div class="emenu-title text-center">
+                            Payment Success
+                        </div>
+                    </div>
+
+                    <div class="payment-paid">
+                        <div class="payment-paid-content">
+                            <div class="payment-paid-img">
+                                <img src="/equip3_pos_emenu/static/src/img/icon-success.svg"/>
+                            </div>
+                            <div class="payment-paid-title">Thank You!</div>
+                            <div class="payment-paid-msg">
+                                You've bought big smile to our business.
+                                <br/>Come again soon!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+
+</odoo>

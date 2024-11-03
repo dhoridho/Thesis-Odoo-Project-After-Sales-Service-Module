@@ -1,0 +1,261 @@
+<odoo>
+  <data>
+    <record id="view_picking_form" model="ir.ui.view">
+      <field name="name">stock.picking.form</field>
+      <field name="model">stock.picking</field>
+      <field name="inherit_id" ref="stock.view_picking_form" />
+      <field name="arch" type="xml">
+        <xpath expr="//page[@name='operations']/field[@name='move_ids_without_package']/form/group/field[@name='product_id']" position="after">
+          <field name="package_id" readonly="1"/>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="sh_stock_picking_form_view" model="ir.ui.view">
+      <field name="name">sh.stock.picking.form.view</field>
+      <field name="model">stock.picking</field>
+      <field name="inherit_id" ref="stock.view_picking_form" />
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='product_id']" position="after">
+          <field name="package_id" string='Package' readonly="1"/>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="catering_order_tree" model="ir.ui.view">
+      <field name="name">catering.order.tree</field>
+      <field name="model">catering.order</field>
+      <field name="arch" type="xml">
+        <tree default_order='create_date desc'>
+          <field name="name"/>
+          <field name="branch_id"/>
+          <field name="creation_date"/>
+          <field name="customer_id"/>
+          <field name="start_date"/>
+          <field name="expected_date"/>
+        </tree>
+      </field>
+    </record>
+
+    <data>
+        <record id="action_report_catering_order" model="ir.actions.report">
+            <field name="name">Catering Order</field>
+            <field name="model">catering.order</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">equip3_catering_operation.action_report_catering_operation</field>
+            <field name="report_file">equip3_catering_operation.action_report_catering_operation</field>
+            <field name="print_report_name">'Catering Order - %s' % (object.name)</field>
+            <field name="binding_model_id" ref="model_catering_order"/>
+            <field name="binding_type">report</field>
+        </record>
+
+    </data>    
+
+    <record id="catering_order_form" model="ir.ui.view">
+      <field name="name">catering.order.form</field>
+      <field name="model">catering.order</field>
+      <field name="arch" type="xml">
+        <form >
+          <header>
+            <button name="action_confirm"
+                    string="Confirm" type="object" class="oe_highlight"
+                    attrs="{'invisible': [('state', 'not in', ['draft'])]}"/>
+            <button name="action_cancel" type="object" string="Cancel" attrs="{'invisible': ['|', ('state', 'not in', ['draft', 'order']), ('id', '=', False)]}"/>
+            <button name="action_draft" states="cancel" type="object" string="Set to Quotation" class="oe_highlight"/>
+            <button name="action_print" type="object" string="Print" class="oe_highlight"/>
+            <field name="state" widget="statusbar" statusbar_visible="draft,sent,order"/>
+            
+          </header>
+          <sheet>
+            <div class="oe_button_box" name="button_box">
+                <field name="picking_ids" invisible="1"/>
+                <button type="object" name="action_view_delivery" class="oe_stat_button" icon="fa-truck" attrs="{'invisible': ['|',('delivery_count', '=', 0),('state','!=','order')]}" groups="base.group_user">
+                    <field name="delivery_count" widget="statinfo" string="Delivery"/>
+                </button>
+                <button name="action_view_invoice" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible': ['|',('invoice_count', '=', 0),('state','!=','order')]}">
+                    <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                </button>
+            </div>
+            <div class="oe_title">
+              <h1>
+                <field name="name" readonly="1"/>
+              </h1>
+            </div>
+            <group>
+              <group>
+                <field name="is_external_link" invisible="1"/>
+                <field name="customer_id" domain="[('is_customer', '=', True)]" required="True" options="{'no_create':True}" context="{'default_is_external_link': True}"/>
+                <field name="partner_invoice_id" domain="[('parent_id', '=', customer_id), ('type', '=', 'invoice')]" options="{'no_create':True}" context="{'default_type':'invoice', 'default_is_external_link': True}" readonly="False"/>
+                <field name="partner_shipping_id" domain="[('parent_id', '=', customer_id), ('type', '=', 'delivery')]" options="{'no_create':True}" context="{'default_type':'delivery', 'default_is_external_link': True}" readonly="False"/>
+                <field name="account_tag_ids" widget="many2many_tags" options="{'no_create':True}" required="0"/>
+                <field name="start_date"/>
+                <field name="expected_date"/>
+                <field name="company_id" invisible="1"/>
+                <field name="branch_id" options="{'no_create':True}" context="{'default_is_external_link': True}"/>
+              </group>
+              <group>
+                <field name="creation_date" force_save="1"/>
+                <field name="order_date"/>
+                <field name="pricelist_id" invisible="1"/>
+                <field name="currency_id" options="{'no_create':True}" context="{'default_is_external_link': True}"/>
+                <field name="warehouse_id" options="{'no_create':True}" context="{'default_is_external_link': True}" domain="[('branch_id', '=', branch_id),('company_id', '=', company_id)]"/>
+                <field name="reference"/>
+              </group>
+            </group>
+            <notebook>
+              <page string="Order Lines">
+                <field name="order_line">
+                  <tree editable="bottom">
+                    <field name="package_id" options="{'no_create':True}" context="{'default_is_external_link': True}" domain="[('is_catering', '=', True), ('catering_type', '=', 'package')]" required="1"/>
+                    <field name="product_tmpl_id" invisible="1"/>
+                    <field name="subscription_id" options="{'no_create':True}" context="{'default_is_external_link': True}" domain="[('product_id', '=', product_tmpl_id)]"  required="1"/>
+                    <field name="qty_delivered" attrs="{'column_invisible': [('parent.state', '!=', 'order')]}"/>
+                    <field name="qty_remaining" attrs="{'column_invisible': [('parent.state', '!=', 'order')]}"/>
+                    <field name="taxes_id" options="{'no_create':True}" widget='many2many_tags'/>
+                    <field name="disc"/>
+                    <field name="subtotal"/>
+                  </tree>
+                  <form string="Order Lines">
+                      <group>
+                        <group>
+                            <field name="order_id"/>
+                            <field name="product_tmpl_id"/>
+                            <field name="qty_order"/>
+                            <field name="qty_remaining"/>
+                        </group>
+                        <group>
+                            <field name="package_id"/>
+                            <field name="unit_price"/>
+                            <field name="qty_delivered"/>
+                            <!-- <field name="product_uom"/> HIDE -->
+                        </group>
+                        <group colspan="12">
+                        <notebook>
+                            <page string="Taxes">
+                                <field name="taxes_id">
+                                  <tree>
+                                    <field name="display_name"/>
+                                    <field name="description"/>
+                                  </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                        </group>
+                      </group>
+                      <group>
+                        <group>
+                            <field name="disc"/>
+                            <field name="company_id"/>
+                            <field name="margin_percent"/>
+                            <field name="currency_id"/>
+                            <field name="price_total"/>
+                        </group>
+                        <group>
+                            <field name="subtotal"/>
+                            <field name="margin"/>
+                            <field name="purchase_price"/>
+                            <field name="price_tax"/>
+                            <field name="disc_total"/>
+                        </group>
+                        <group colspan="12">
+                        <notebook>
+                            <page string="Transfers">
+                                <field name="picking_ids" widget="section_and_note_one2many" mode="tree">
+                                  <tree>
+                                    <field name="name"/>
+                                    <field name="location_id"/>
+                                    <field name="location_dest_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="scheduled_date"/>
+                                    <field name="origin"/>
+                                    <field name="batch_id"/>
+                                    <field name="company_id"/>
+                                    <field name="mp_invoice_number"/>
+                                    <field name="mp_awb_number"/>
+                                    <field name="state"/>
+                                  </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                        </group>
+                      </group>
+                      <group>
+                        <group>
+                            <field name="subscription_id"/>
+                            <field name="qty_to_invoice"/>
+                            <field name="untaxed_amount_to_invoice"/>
+                            <field name="creation_date"/>
+                            <field name="branch_id"/>
+                        </group>
+                        <group>
+                            <field name="qty_invoiced"/>
+                            <field name="untaxed_amount_invoiced"/>
+                            <field name="untaxed_total"/>
+                            <field name="warehouse_id"/>
+                            <field name="is_external_link"/>
+                        </group>
+                      </group>
+                  </form>
+                </field>
+                <group name="note_group" col="6" class="mt-2 mt-md-0">
+                  <group colspan="4">
+                    <label for="terms_conditions_id"/>
+                    <div>
+                      <field name="terms_conditions_id" context="{'default_is_external_link': True}" class="oe_inline" attrs="{'readonly': [('state', 'in', ('quotation_approved', 'sale'))]}"/>
+                    </div>
+                    <div colspan="4">
+                      <field name="note" widget="html"/>
+                    </div>
+                  </group>
+                  <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                    <field name="amount_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="discount_amt" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="amount_tax" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <div class="oe_subtotal_footer_separator oe_inline o_td_label">
+                      <label for="amount_total"/>
+                    </div>
+                    <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                    <field name="margin" widget='monetary'/>
+                  </group>
+                  <div class="oe_clear"/>
+                </group>
+              </page>
+            </notebook>
+          </sheet>
+          <div class="oe_chatter">
+            <field name="message_follower_ids" groups="base.group_user"/>
+            <field name="activity_ids"/>
+            <field name="message_ids"/>
+          </div>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_catering_order" model="ir.actions.act_window">
+      <field name="name">Catering Order</field>
+      <field name="type">ir.actions.act_window</field>
+      <field name="res_model">catering.order</field>
+      <field name="view_mode">tree,form</field>
+      <field name="help" type="html">
+        <p class="o_view_nocontent_smiling_face">
+          No order found. Let's create one!
+      </p>
+      </field>
+    </record>
+
+    <menuitem id="equip3_catering_masterdata.catering_menu_root"
+              name="Catering"
+              web_icon="equip3_catering_operation,static/description/Catering.svg"/>
+
+    <menuitem id="menu_operation"
+              name="Operation"
+              parent="equip3_catering_masterdata.catering_menu_root"
+              sequence="0"/>
+
+    <menuitem id="menu_order"
+              name="Catering Order"
+              parent="menu_operation"
+              action="action_catering_order"
+              sequence="1"/>
+  </data>
+</odoo>

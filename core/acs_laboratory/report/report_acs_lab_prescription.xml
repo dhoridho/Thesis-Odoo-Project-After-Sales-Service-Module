@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="report_acs_lab_prescription_document">
+        <t t-call="web.external_layout">
+            <t t-set="doc" t-value="doc.with_context({'lang':doc.patient_id.lang})"/>
+            <div class="page">
+                <div class="oe_structure"/>
+                <h2 class="text-center mt32">Lab Request: <span t-field="doc.name"/></h2>
+
+                <div class="row mt32 mb32" id="informations">
+                    <div t-if="doc.patient_id" class="col-3 mb-2">
+                        <strong>Patient</strong>
+                        <p class="m-0" t-field="doc.patient_id"/>
+                    </div>
+                    <div t-if="doc.physician_id" class="col-3 mb-2" name="physician_div">
+                        <strong>Prescribing Doctor</strong>
+                        <p class="m-0" t-field="doc.physician_id"/>
+                    </div>
+                    <div t-if="doc.collection_center_id" class="col-3 mb-2" name="physician_div">
+                        <strong>Lab Collection Center</strong>
+                        <p class="m-0" t-field="doc.collection_center_id"/>
+                    </div>
+                    <div t-if="doc.date" class="col-3 mb-2">
+                        <strong>Date</strong>
+                        <p class="m-0" t-field="doc.date"/>
+                    </div>
+                </div>
+                
+                <p><strong>Patient Details</strong></p>
+                <t t-if="not doc.is_group_request">
+                    <div class="row mt8 mt8" id="patient_details">
+                        <div class="col-6">
+                            <ul>
+                                <li id="patient_dob">Date Of Birth: <span t-field="doc.patient_id.birthday"/></li>
+                            </ul>
+                        </div>
+                        <div class="col-6">
+                            <ul>
+                                <li id="patient_gov_id">Government ID: <span t-field="doc.patient_id.gov_code"/></li>
+                            </ul>
+                        </div>
+                    </div>
+                </t>
+                <t t-if="doc.is_group_request">
+                    <table class="table table-condensed mt16" id="group_patient_details">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Date Of Birth</th>
+                                <th>Government ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span t-esc="doc.patient_id.name"/>
+                                </td>
+                                <td>
+                                    <span t-esc="doc.patient_id.birthday"/>
+                                </td>
+                                <td>
+                                    <span t-esc="doc.patient_id.gov_code"/>
+                                </td>
+                            </tr>
+                            <t t-foreach="doc.group_patient_ids" t-as="patient">
+                                <tr>
+                                    <td>
+                                        <span t-esc="patient.name"/>
+                                    </td>
+                                    <td>
+                                        <span t-esc="patient.birthday"/>
+                                    </td>
+                                    <td>
+                                        <span t-esc="patient.gov_code"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+
+                <table class="table table-condensed mt16">
+                    <thead>
+                        <tr>
+                            <th>Test Name</th>
+                            <th>Test Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="doc.line_ids" t-as="line">
+                            <tr>
+                                <td>
+                                    <span t-esc="line.test_id.name"/>
+                                </td>
+                                <td>
+                                    <span t-esc="line.instruction"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                <p class="mt64">
+                    <b>Comment(If Any):</b>
+                    <br/>
+                    <span t-esc="doc.notes"/>
+                </p>
+                <p class="mt16">
+                    <b>Doctor’s Stamp/Signature</b>
+                    <br/>
+                    <t t-if="doc.physician_id and doc.physician_id.signature">
+                        <span t-field="doc.physician_id.signature" t-options="{'widget': 'image', 'class': 'img-rounded', 'style':'max-height: 100px !important'}"/>
+                    </t>
+                </p>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_acs_lab_prescription">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="acs_laboratory.report_acs_lab_prescription_document" t-lang="doc.patient_id.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_acs_lab_prescription" model="ir.actions.report">
+        <field name="name">Lab Prescription</field>
+        <field name="model">acs.laboratory.request</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_laboratory.report_acs_lab_prescription</field>
+        <field name="report_file">acs_laboratory.report_acs_lab_prescription</field>
+        <field name="print_report_name">(object.name or 'LabPrescription').replace('/','_') + '_LabPrescription'</field>
+        <field name="binding_model_id" ref="model_acs_laboratory_request"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

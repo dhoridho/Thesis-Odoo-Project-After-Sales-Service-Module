@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="mrp_bom_form_view" model="ir.ui.view">
+        <field name="name">bills.of.materials.form.inherit</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="equip3_manuf_masterdata.mrp_bom_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='finished_ids']//field[@name='product_uom_id']" position="after">
+                <field name="allocated_cost"/>
+            </xpath>
+
+            <xpath expr="//field[@name='byproduct_ids']/tree" position="inside">
+                <field name="allocated_cost" attrs="{'column_invisible': [('parent.equip_bom_type', '!=', 'mrp')]}"/>
+                <field name="cost" readonly="1" attrs="{'column_invisible': [('parent.equip_bom_type', '!=', 'mrp')]}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='bom_line_ids']/tree" position="inside">
+                <field name="cost" readonly="1" attrs="{'column_invisible': [('parent.equip_bom_type', '!=', 'mrp')]}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='company_id']" position="before">
+                <field name="forecast_cost" readonly="1" attrs="{'invisible': [('equip_bom_type', '!=', 'mrp')]}"/>
+            </xpath>
+
+            <xpath expr="//header" position="inside">
+                <button name="%(mrp.action_report_mrp_bom)d" string="Show Forecast Cost" type="action"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_repair_single_finished_goods_bom" model="ir.actions.server">
+        <field name="name">Repair Allocated Cost</field>
+        <field name="model_id" ref="mrp.model_mrp_bom"/>
+        <field name="binding_model_id" ref="mrp.model_mrp_bom"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+for rec in records.filtered(lambda o: o.finished_type == 'single'):
+    if not rec.finished_ids:
+        rec.write({
+            'finished_ids': [(0, 0, {
+                'product_tmpl_id': rec.product_tmpl_id.id,
+                'product_id': rec.product_id.id,
+                'product_qty': rec.product_qty,
+                'product_uom_id': rec.product_uom_id.id,
+                'allocated_cost': 100
+            })]
+        })
+    else:
+        for finished in rec.finished_ids:
+            if finished.allocated_cost &lt;= 0.0:
+                finished.write({'allocated_cost': 100})
+        </field>
+    </record>
+
+</odoo>

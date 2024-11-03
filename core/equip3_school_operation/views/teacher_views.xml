@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="school_teacher_kanban_view" model="ir.ui.view">
+        <field name="name">Teacher Kanban</field>
+        <field name="model">school.teacher</field>
+        <field name="type">kanban</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="program_id" nocreate="1" create="false" records_draggable="0">
+                <field name="color"/>
+                <field name="id"/>
+                <field name="name"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <t t-set="color" t-value="kanban_color(record.color.raw_value || record.name.raw_value)" />
+                        <div t-att-class="color + (record.color.raw_value == 1 ? ' oe_kanban_color_alert' : '')">
+                            <div class="oe_kanban_box oe_kanban_color_border">
+                                <div class="oe_kanban_box_header oe_kanban_color_bgdark oe_kanban_color_border oe_kanban_draghandle">
+                                    <table class="oe_kanban_table">
+                                        <tr>
+                                            <td class="oe_kanban_title1" align="left" valign="middle" style="padding-left:10px;">
+                                                <h4>
+                                                    <a type="open">
+                                                        <field name="name" />
+                                                    </a>
+                                                </h4>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="oe_kanban_box_content oe_kanban_color_bglight oe_kanban_box_show_onclick_trigger oe_kanban_color_border">
+                                    <table class="oe_kanban_table">
+                                        <tr width="450">
+                                            <td valign="top" width="64" align="left">
+                                                <a type="open">
+                                                    <img heigh="75" width="75" t-att-src="kanban_image('school.teacher', 'photo', record.id.raw_value)" alt="image"/>
+                                                </a>
+                                            </td>
+                                            <td valign="top" align="left" style="padding-left:10px; font-size:13px">
+                                                <table>
+                                                    <!-- <tr>
+                                                        <td>Employee ID :</td>
+                                                        <td style="padding-left:10px;">
+                                                            <b>
+                                                                <field name="employee_id" />
+                                                            </b>
+                                                        </td>
+                                                    </tr> -->
+                                                    <tr>
+                                                        <td>Standard : </td>
+                                                        <td style="padding-left:10px;">
+                                                            <b>
+                                                                <field name="standard_id" />
+                                                            </b>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Branch : </td>
+                                                        <td style="padding-left:10px;">
+                                                            <b>
+                                                                <field name="school_id" />
+                                                            </b>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="oe_kanban_buttons_set oe_kanban_color_border oe_kanban_color_bglight oe_kanban_box_show_onclick">
+                                    <div class="oe_kanban_left">
+                                        <a role="button" string="Edit" title="Edit" class="btn btn-sm btn-default fa fa-pencil" type="edit" groups="school.group_school_administration"/>
+                                        <a role="button" string="Change Color" icon="color-picker" type="color" name="color" />
+                                    </div>
+                                    <br class="oe_kanban_clear" />
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="action_school_teacher_form" model="ir.actions.act_window">
+        <field name="name">Teacher Profile</field>
+        <field name="res_model">school.teacher</field>
+        <field name="view_mode">kanban,tree,form</field>
+    </record>
+
+    <record id="action_school_teacher_kanban_view" model="ir.actions.act_window.view">
+        <field name="view_mode">kanban</field>
+        <field eval="10" name="sequence" />
+        <field name="view_id" ref="school_teacher_kanban_view" />
+        <field name="act_window_id" ref="school.action_school_teacher_form" />
+    </record>
+
+    <record id="view_school_teacher_form" model="ir.ui.view">
+        <field name="name">school.teacher.form</field>
+        <field name="model">school.teacher</field>
+        <field name="inherit_id" ref="school.view_school_teacher_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet" position="before">
+                <header>
+                    <button string="Print Class Schedule" name="action_print_class_schedule" type="object" class="oe_highlight"/>
+                </header>
+            </xpath>
+            <xpath expr="//form/sheet//field[@name='name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//form/sheet//div[@class='oe_title']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//form/sheet//field[@name='category_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <field name="school_id" position="attributes">
+                <attribute name="required">1</attribute>
+            </field>
+            <xpath expr="//notebook" position="inside">
+                <page name='class_schedule' string="Class Schedule">
+                    <field name="ems_classes_ids" readonly="1">
+                        <tree>
+                            <field name="program_id" />
+                            <field name="intake_id" />
+                            <field name="year_id" />
+                            <field name="term_id" />
+                            <field name="subject_id" />
+                            <field name="class_date" widget="date"/>
+                            <field name="study_day" />
+                            <field name="start_time" widget="float_time"/>
+                            <field name="end_time" widget="float_time"/>
+                            <field name="classroom_id" />
+                        </tree>
+                    </field>
+                </page>
+                <page name='subject_page' string="Subject">
+                    <field name="subject_id" readonly="1">
+                        <tree>
+                            <field name="name" string="SUBJECT NAME"/>
+                            <field name="code"/>
+                            <field name="credits"/>
+                        </tree>
+                    </field>
+                </page>
+                <page name='group_class_page' string="Group Class">
+                    <field name="teacher_group_class_ids" readonly="1">
+                        <tree>
+                            <field name="intake_id"/>
+                            <field name="group_class_id"/>
+                            <field name="subject_id"/>
+                        </tree>
+                    </field>
+                </page>
+                <page name="responsibility_page" string="Responsibility">
+                    <group string="Responsibility">
+                        <group>
+                            <field name="standard_id" widget="selection" required="1"/>
+                            <field name="subject_id" required="1" widget="many2many_tags" options="{'no_create': True}"/>
+                            <field name="school_id" widget="selection" placeholder="School"/>
+                        </group>
+                        <group>
+                            <field name="branch_id" />
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//group[1]" position="before">
+                <field name="photo" widget="image" class="oe_avatar oe_left" style="max-width:100px;max-height:117px;"/>
+            </xpath>
+            <xpath expr="//group[1]" position="replace">
+                <group>
+                    <group string="Personal Information">
+                        <field name="id_teacher"/>
+                        <field name="employee_type" required="1"/>
+                        <field name="name" required="1" string="Teacher Name"/>
+                        <field name="birthday" required="1"/>
+                        <field name="gender" required="1"/>
+                        <field name="marital"/>
+                        <field name="is_parent" widget="boolean_toggle"/>
+                        <field name='stu_parent_id' attrs="{'invisible':[('is_parent','=',False)],'required': [('is_parent','!=',False)]}"/>
+                    </group>
+                    <group string="Address">
+                        <label for="street" string="Address" />
+                        <div class="o_address_format">
+                            <field name="street" placeholder="Street..." class="o_address_street" required="1"/>
+                            <field name="street2" placeholder="Street2..." class="o_address_street"/>
+                            <field name="country_id" placeholder="Country....." class="o_address_country" required="1" options="{&quot;no_open&quot;: True}" />
+                            <field name="city" placeholder="City" class="o_address_city" />
+                            <field name="state_id" class="o_address_state" domain="[('country_id','=',country_id)]" placeholder="State" options="{&quot;no_open&quot;: True}"/>
+                            <field name="zip" placeholder="ZIP" class="o_address_zip" />
+                        </div>
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//sheet/group[2]" position="replace">
+            </xpath>
+            <xpath expr="//notebook/page[2]" position="replace">
+                <page string="Citizenship" groups="hr.group_hr_user">
+                    <group>
+                        <group string="Citizenship &amp; Other Information">
+                            <field name="country_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}"/>
+                            <field name="identification_id" groups="hr.group_hr_user"/>
+                            <field name="passport_id" groups="hr.group_hr_user"/>
+                            <field name="bank_account_id"/>
+                            <field name="address_home_id" context="{'show_address': 1}" options="{&quot;always_reload&quot;: True, &quot;highlight_first_line&quot;: True}" invisible="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//field[@name='job_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+        </field>
+    </record>
+
+
+</odoo>

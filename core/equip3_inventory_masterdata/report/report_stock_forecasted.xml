@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="report_product_product_forecast_action" model="ir.actions.report">
+        <field name="name">Product Forecast</field>
+        <field name="model">product.product</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">equip3_inventory_masterdata.report_product_forecast</field>
+    </record>
+
+    <record id="report_product_template_forecast_action" model="ir.actions.report">
+        <field name="name">Product Forecast</field>
+        <field name="model">product.template</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">equip3_inventory_masterdata.report_product_tmpl_forecast</field>
+    </record>
+
+    <template id="report_product_forecast_header1" inherit_id="stock.report_replenishment_header" primary="True">
+        <xpath expr="//t[@t-foreach=&quot;docs['product_templates']&quot;]" position="replace">
+            <t t-foreach="docs['product_templates']" t-as="product_template">
+                <div>
+                    <a href="#" res-model="product.template" view-type="form" t-att-res-id="product_template.id">
+                        <t t-esc="product_template.display_name"/>
+                    </a>
+                </div>
+            </t>
+        </xpath>
+
+        <xpath expr="//t[@t-foreach=&quot;docs['product_variants']&quot;]" position="replace">
+            <div>
+                <t t-foreach="docs['product_variants']" t-as="product_variant">
+                    <a href="#" res-model="product.product" view-type="form" t-att-res-id="product_variant.id">
+                        <t t-esc="product_variant.display_name"/>
+                    </a>
+                </t>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="report_product_forecast" inherit_id="stock.report_product_product_replenishment" primary="True">
+        <xpath expr="//t[@t-call='stock.report_replenishment_header']" position="replace">
+            <t t-call="equip3_inventory_masterdata.report_product_forecast_header1"/>
+        </xpath>
+        <xpath expr="//table[hasclass('o_report_replenishment')]" position="after">
+            <div class="o_report_bar_forecast"/>
+        </xpath>
+    </template>
+
+    <template id="report_product_tmpl_forecast">
+        <t t-call="equip3_inventory_masterdata.report_product_forecast"/>
+    </template>
+
+    <record id="action_product_forecast" model="ir.actions.client">
+        <field name="name">Stock Forecast</field>
+        <field name="tag">product_forecast</field>
+    </record>
+
+    <menuitem id="menu_action_product_forecast"
+              name="Stock Forecast"
+              action="action_product_forecast"
+              parent="stock.menu_stock_root"
+              sequence="-2"/>
+
+    <record id="equip3_inventory_masterdata.menu_action_product_forecast" model="ir.ui.menu">
+        <field name="equip_icon_class">o-hm-sidebar-parent-inventory-reporting</field> 
+    </record>
+
+</odoo>

@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <!-- crm.lead inherit form view -->
+    <record id="crm_opportunity_view_inherit" model="ir.ui.view">
+        <field name="name">crm.lead.inherit.view.form</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Hide -->
+            <xpath expr="//field[@name='branch_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>   
+            <!-- Add your xpath here -->
+            <xpath expr="//group" position="replace">
+                <group name="opportunity_project">
+                    <field name="project_id" class="font-weight-bold"/>
+                    <field name="is_project" invisible='1'/>
+                    <field name="project_short_name" attrs="{'required': [('is_project', '=', True)], 'invisible': [('is_project', '=', False)]}"/>
+                    <field name="branch_id"/>
+                </group>
+                <group name="customer_crm">
+                    <field name="partner_id" 
+                        readonly="False"
+                        attrs="{'required': [('is_project', '=', True)]}"
+                        force_save="1"
+                        widget="res_partner_many2one"
+                        domain="['|',('is_leads', '=', True),('is_customer', '=', True)]"
+                        string="Customer"
+                        context="{'res_partner_search_mode': type == 'opportunity' and 'customer' or False,
+                            'default_name': contact_name or partner_name,
+                            'default_street': street,
+                            'default_is_company': type == 'opportunity' and contact_name == False,
+                            'default_company_name': type == 'opportunity' and partner_name,
+                            'default_street2': street2,
+                            'default_city': city,
+                            'default_title': title,
+                            'default_state_id': state_id,
+                            'default_zip': zip,
+                            'default_country_id': country_id,
+                            'default_function': function,
+                            'default_phone': phone,
+                            'default_mobile': mobile,
+                            'default_email': email_from,
+                            'default_user_id': user_id,
+                            'default_team_id': team_id,
+                            'default_website': website,
+                            'show_vat': True,
+                        }"
+                    />
+                    <field name="partner_name" string="Company Name"/>
+                    <field name="website" string="Website" widget="url" placeholder="e.g. https://www.hashmicro.com"/>
+                    <field name="scale" string="Company Scale"/>
+                    <label for="street_page_lead" string="Address"/>
+                    <div class="o_address_format">
+                        <field name="street" id="street_page_lead" placeholder="Street..." class="o_address_street"/>
+                        <field name="street2" placeholder="Street 2..." class="o_address_street"/>
+                        <field name="city" placeholder="City" style="width:32%%;margin-right: 2%%" invisible="1"/>
+                        <field name="city_id" style="width:32%%;margin-right: 2%%" placeholder="City" options='{"no_open": True}'/>
+                        <field name="state_id" style="width:32%%;margin-right: 2%%" placeholder="State" options='{"no_open": True}'/>
+                        <field name="zip" placeholder="ZIP" style="width:32%%"/>
+                        <field name="country_id" placeholder="Country"  options='{"no_open": True, "no_create": True}'/>
+                        <field name="one_metting" invisible="1"/>
+                        <field name="multiple_metting" invisible="1"/>
+                    </div>
+                    <field name="scale"/>
+                </group>
+                <field name="project_scope_ids" widget="one2many_list" string="Project Scope" attrs="{'invisible': [('is_project', '=', False)]}">
+                    <tree string="Project Scope" editable="bottom">
+                        <control>
+                            <create name="add_product_control" string="Add a scope"/>
+                        </control>
+                        <field name="sequence" widget="handle"/>
+                        <field name="name" invisible='1'/>
+                        <field name="project_scope" required='1' options="{'no_quick_create':True}"/>
+                        <field name="scope_description" string="Description"/>
+                    </tree>
+                </field> 
+            </xpath>
+        </field>
+    </record>
+
+    <record id="crm_lead_view_form_inherit_cons_new" model="ir.ui.view">
+        <field name="name">crm.lead.view.form.inherit.cons.new</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="equip3_crm_operation.crm_lead_view_form_inherit" />
+        <field name="arch" type="xml">
+            <xpath expr="//page[2]" position="attributes">
+                <attribute name="attrs">{'invisible': [('is_project', '!=', False)]}</attribute>
+            </xpath>   
+        </field>
+    </record>
+
+    <!-- <record id="crm_case_form_view_oppor_inherit_product_inherit_cons" model="ir.ui.view">
+		<field name="name">crm.lead.oppor.inherited.cons1</field>
+		<field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm_opportunity_product.crm_case_form_view_oppor_inherit_product" />
+		<field name="arch" type="xml">
+			<xpath expr="//page[5]" position="attributes">
+                <attribute name="attrs">{'invisible': [('is_project', '!=', False)]}</attribute>
+			</xpath>
+		</field>
+	</record> -->
+    
+	<record id="inherit_crm_case_form_view_oppor_crm_opportunity_product_inherit_cons" model="ir.ui.view">
+		<field name="name">crm.lead.oppor.inherited.cons2</field>
+		<field name="model">crm.lead</field>
+		<field name="inherit_id" ref="crm_opportunity_product.inherit_crm_case_form_view_oppor_crm_opportunity_product" />
+		<field name="arch" type="xml">
+			<xpath expr="//button[@name='action_create_quotation']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('is_project', '!=', False), ('active', '=', False)]}</attribute>
+			</xpath>
+		</field>
+	</record>
+
+</odoo>

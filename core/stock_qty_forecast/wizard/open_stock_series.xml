@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="open_stock_series_wizard_form_view"  model="ir.ui.view">
+        <field name="name">open.stock.series.form.view</field>
+        <field name="model">open.stock.series</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="stats_for" required="1"/>
+                        <field name="product_id"
+                               attrs="{'invisible': [('stats_for', '!=', 'product')], 'required': [('stats_for', '=', 'product')]}"
+                               options="{'no_quick_create': 1, 'no_create_edit': 1}"
+                               domain="[('type', '=', 'product')]"
+                        />
+                        <field name="template_id"
+                               attrs="{'invisible': [('stats_for', '!=', 'template')], 'required': [('stats_for', '=', 'template')]}"
+                               options="{'no_quick_create': 1, 'no_create_edit': 1}"
+                               domain="[('type', '=', 'product')]"
+                        />
+                        <field name="stats_type" required="1"/>
+                        <field name="location_id"
+                               options="{'no_quick_create': 1, 'no_create_edit': 1}"
+                               domain="[('usage', '=', 'internal')]"
+                               attrs="{'invisible': [('stats_type', '!=', 'location')], 'required': [('stats_type', '=', 'location')]}"
+                        />
+                        <field name="include_children" attrs="{'invisible': [('location_id', '=', False)]}"/>
+                    </group>
+                    <notebook>
+                        <page string="Time frames">
+                            <group>
+                                <div class="oe_inline">
+                                    <field name="date_start" class="oe_inline"/> -
+                                    <field name="date_end" class="oe_inline" required="1"/>
+                                </div>
+                            </group>
+                        </page>
+                        <page string="Advanced">
+                            <group>
+                                <field name="forecast_method" required="1"/>
+                                <field name="interval" required="1"/>
+                                <field name="predicted_periods" required="1"/>
+                                <field name="p_coefficient"
+                                       attrs="{'invisible': [('forecast_method', 'not in', ['_ma_method', '_arima_method', '_sarima_method'])]}"
+                                />
+                                <field name="d_coefficient"
+                                       attrs="{'invisible': [('forecast_method', 'not in', ['_ma_method', '_arima_method', '_sarima_method'])]}"
+                                />
+                                <field name="q_coefficient"
+                                       attrs="{'invisible': [('forecast_method', 'not in', ['_arima_method', '_sarima_method'])]}"
+                                />
+                                <field name="seasons"
+                                       attrs="{'invisible': [('forecast_method', '!=', '_sarima_method')]}"
+                                />
+                                <field name="seasonal_p_coefficient"
+                                       attrs="{'invisible': [('forecast_method', '!=', '_sarima_method')]}"
+                                />
+                                <field name="seasonal_d_coefficient"
+                                       attrs="{'invisible': [('forecast_method', '!=', '_sarima_method')]}"
+                                />
+                                <field name="seasonal_q_coefficient"
+                                       attrs="{'invisible': [('forecast_method', '!=', '_sarima_method')]}"
+                                />
+                            </group>
+                        </page>
+                    </notebook>
+                    <footer>
+                        <button name="action_calculate"
+                                type="object"
+                                string="Calculate"
+                                class="oe_highlight"
+                        />
+                        or
+                        <button name="action_export_to_xlsx"
+                                type="object"
+                                string="Export to xlsx"
+                                class="oe_highlight"
+                        />
+                        or
+                        <button name="cancel"
+                                string="Cancel"
+                                special="cancel"
+                                class="oe_link"
+                        />
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="open_stock_series_action" model="ir.actions.act_window">
+        <field name="name">Calculate trend and forecast</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">open.stock.series</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="stock_qty_forecast.open_stock_series_wizard_form_view"/>
+    </record>
+
+</odoo>

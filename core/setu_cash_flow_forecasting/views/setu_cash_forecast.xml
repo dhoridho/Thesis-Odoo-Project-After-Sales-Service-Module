@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data>
+        <record id="form_setu_cash_forecast" model="ir.ui.view">
+            <field name="name">setu.cash.forecast.form</field>
+            <field name="model">setu.cash.forecast</field>
+            <field name="arch" type="xml">
+                <form string="Cash Forecast">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Name" required="1"/>
+                            </h1>
+                            <group>
+                                <field name="company_id" required="1"/>
+<!--                                <field name="parent_forecast_id"/>-->
+                            </group>
+                        </div>
+                        <group>
+                            <group string="Cash Forecast Category">
+                                <field name="forecast_type" string="Group" required="1"/>
+                                <field name="cash_forecast_category_id" required="1"/>
+                                <field name="forecast_type_id" required="1"/>
+                            </group>
+<!--                            <group string="Cash Forecast Calculation" attrs="{'invisible':[('forecast_type','in',['closing','opening'])]}">-->
+<!--                                <field name="auto_calculate"/>-->
+
+<!--                                <field name="fixed_value" attrs="{'invisible':[('auto_calculate','=',True)]}"/>-->
+<!--                                <field name="calculation_type_id" attrs="{'invisible':[('auto_calculate','=',False)]}" />-->
+<!--                            </group>-->
+                        </group>
+                        <group>
+                            <group string="Cash Flow Value">
+                                <field name="forecast_value"/>
+                                <field name="real_value"/>
+                                <field name="difference_value"/>
+                                <field name="forecast_property"
+                                       attrs="{'invisible':[('forecast_property','=',False)]}"/>
+                            </group>
+                            <group string="Cash Forecast Date">
+<!--                                <field name="auto_calculate"/>-->
+<!--                                <field name="forecast_calculation_id"/>-->
+                                <field name="forecast_period_id" invisible="1"/>
+                                <field name="acc_forecast_period_id" required="1"/>
+                                <field name="forecast_date"/>
+                            </group>
+                        </group>
+<!--                        <group  string="Auto Calculation formula" attrs="{'invisible':['|',('auto_calculate','=',False),-->
+<!--                                                                                   ('forecast_type','in',['opening','closing'])]}">-->
+<!--                                <group>-->
+<!--                                    <field name="calculate_from" attrs="{'required':[('auto_calculate', '=', True)]}"/>-->
+<!--                                    <field name="calculation_pattern"-->
+<!--                                           attrs="{'invisible':['|',('calculate_from','=',False),-->
+<!--                                           ('calculate_from','not in',['past_sales','past_account_entries'])],-->
+<!--                                           'required':[('calculate_from','in',['past_sales','past_account_entries'])]}"/>-->
+<!--                                </group>-->
+<!--                                <group>-->
+<!--                                    <field name="multiply_by" attrs="{'invisible':['|',('calculate_from','=','pending'),-->
+<!--                                                                                        ('calculate_from','=',False)]}"/>-->
+<!--                                    <field name="average_value_of_days"-->
+<!--                                           attrs="{'invisible':['|','|',('calculate_from','not in',['past_sales','past_account_entries']),-->
+<!--                                                                    ('calculation_pattern','=',False),('calculation_pattern','!=','average')],-->
+<!--                                                   'required':[('calculation_pattern','=','average')]}"/>-->
+<!--                                    <field name="number_of_period_months"-->
+<!--                                           attrs="{'invisible':[('calculate_from','!=','past_period_forecasting_entries')],-->
+<!--                                                   'required':[('calculate_from','=','past_period_forecasting_entries')]}"/>-->
+<!--                                </group>-->
+<!--                            </group>-->
+                        <notebook>
+<!--                            <page string ="Child Forecast Type" name="child_forecast_type">-->
+<!--                                <field name="child_forecast_ids" nolabel="1"/>-->
+<!--                            </page>-->
+                            <page string="Accounts">
+                                <field name="account_ids" readonly="1">
+                                    <tree>
+                                        <field name="code"/>
+                                        <field name="name"/>
+                                        <field name="user_type_id"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Dependant Forecast Type">
+                                <field name="dep_forecast_ids" readonly="1" domain="[('company_id','=',company_id),
+                                                                        ('type','not in',['closing','opening'])]">
+                                    <tree>
+<!--                                         <field name="sequence"/>-->
+                                        <field name="name"/>
+<!--                                        <field name="parent_forecast_type_id"/>-->
+                                        <field name="type"/>
+                                        <field name="company_id"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="tree_setu_cash_forecast" model="ir.ui.view">
+            <field name="name">setu.cash.forecast.tree</field>
+            <field name="model">setu.cash.forecast</field>
+            <field name="arch" type="xml">
+                <tree decoration-muted="forecast_property == 'true'" decoration-danger="forecast_property == 'over'"
+                      decoration-success ="forecast_property == 'under'">
+                    <field name="name"/>
+                    <field name="forecast_type" string="Group"/>
+                    <field name="acc_forecast_period_id"/>
+                    <field name="company_id"/>
+                    <field name="forecast_property"/>
+                    <field name="forecast_value"/>
+                    <!-- Unused -->
+                    <field name="forecast_period_id" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="setu_cash_forecast_search" model="ir.ui.view">
+            <field name="name">setu.cash.forecast.search</field>
+            <field name="model">setu.cash.forecast</field>
+            <field name="arch" type="xml">
+                <search string="Cash Forecast">
+                    <field name="name"/>
+                    <field name="forecast_type"/>
+                    <field name="forecast_type_id"/>
+                    <field name="cash_forecast_category_id"/>
+                    <field name="company_id"/>
+                    <field name="account_ids"/>
+                    <field name="forecast_date"/>
+                    <separator/>
+                    <filter string="Cash IN" name="cash_in" domain="[('forecast_type','=','income')]"/>
+                    <filter string="Cash OUT"  name="cash_out" domain="[('forecast_type','=','expense')]"/>
+                    <filter string="Opening Forecast"  name="opening" domain="[('forecast_type','=','opening')]"/>
+                    <filter string="Closing Forecast" name="closing" domain="[('forecast_type','=','closing')]"/>
+                    <separator/>
+                    <filter string="Auto Calculate" name="auto_calc" domain="[('auto_calculate','=',True)]"/>
+                    <filter string="Manual Calculate" name="manual_calc" domain="[('auto_calculate','=',False)]"/>
+                    <separator/>
+                    <filter string="Past Period Forecast" name="past_period" domain="[('acc_forecast_period_id.date_end','&lt;=', datetime.date.today().strftime('%Y-%m-%d'))]"/>
+                    <filter string="Future Period Forecast" name="future_period" domain="[('acc_forecast_period_id.date_end','&gt;=', datetime.date.today().strftime('%Y-%m-%d'))]"/>
+                    <separator/>
+                    <group expand="0" string="Group By">
+                        <filter string="Group" name="forecast_type" context="{'group_by':'forecast_type'}"/>
+                        <filter string="Forecast Category" name="cash_forecast_category_id" context="{'group_by':'cash_forecast_category_id'}"/>
+                        <filter string="Forecast Type" name="forecast_type_id" context="{'group_by':'forecast_type_id'}"/>
+                        <filter string="Company" name="company_id" context="{'group_by':'company_id'}"/>
+                        <filter string="Forecast Period" name="forecast_period" context="{'group_by':'acc_forecast_period_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="setu_cash_forecast_pivot_view" model="ir.ui.view">
+            <field name="name">setu.cash.forecast.pivot.view</field>
+            <field name="model">setu.cash.forecast</field>
+            <field name="arch" type="xml">
+                <pivot disable_linking="True" string="Cash Forecast">
+                    <field name="cash_forecast_category_id" type="row"/>
+                    <field name="acc_forecast_period_id" type="col"/>
+                    <field name="name" type="row"/>
+                    <field name="forecast_value" type="measure"/>
+                    <field name="forecast_period_id" type="col" invisible="1"/>
+                </pivot>
+            </field>
+        </record>
+
+        <record id="actions_setu_cash_forecast" model="ir.actions.act_window">
+            <field name="name">Cash Forecast</field>
+            <field name="res_model">setu.cash.forecast</field>
+            <field name="view_mode">tree,form,pivot</field>
+            <field name="search_view_id" ref="setu_cash_forecast_search"/>
+            <field name="context">{}</field>
+            <field name="view_ids"
+                   eval="[(5, 0, 0),
+                   (0, 0, {'view_mode': 'pivot', 'view_id': ref('setu_cash_forecast_pivot_view')}),
+                   (0, 0, {'view_mode': 'tree', 'view_id': ref('tree_setu_cash_forecast')}),
+                   (0, 0, {'view_mode': 'form', 'view_id': ref('form_setu_cash_forecast')}),
+                         ]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your Cash Forecast
+                </p>
+            </field>
+        </record>
+
+        <record id="setu_cash_forecast_graph_view" model="ir.ui.view">
+            <field name="name">Cash Forecast Income Report Graph</field>
+            <field name="model">setu.cash.forecast</field>
+            <field name="arch" type="xml">
+                <graph string="Income Graph">
+                    <field name="forecast_value" type="measure"/>
+                    <field name="acc_forecast_period_id"/>
+                    <field name="forecast_period_id" invisible="1"/>
+                </graph>
+            </field>
+        </record>
+
+        <menuitem id="menu_setu_cash_forecast" name="Cash Forecast"
+                  parent="setu_cash_flow_forecasting.menu_sub_setu_cash_forecast" sequence="6"
+                  groups="setu_cash_flow_forecasting.group_setu_cash_flow_forecasting_user"
+                  action="setu_cash_flow_forecasting.actions_setu_cash_forecast"/>
+
+
+    </data>
+</odoo>

@@ -1,0 +1,1098 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+
+        <record id="edit_project" model="ir.ui.view">
+            <field name="name">project.project.form</field>
+            <field name="model">project.project</field>
+            <field name="arch" type="xml">
+                <form string="Project" delete="0">
+                    <header>
+                        <button name="%(portal.portal_share_action)d" string="Share" type="action" class="oe_highlight oe_read_only" invisible="1" />
+                        <field name="primary_states" widget="statusbar" statusbar_visible="draft,progress"/>
+                    </header>
+                <sheet string="Project">
+                    <div class="oe_button_box" name="button_box" groups="base.group_user" invisible="0">
+                        <button  class="oe_stat_button" name="attachment_tree_view" type="object" icon="fa-file-text-o" invisible="0">
+                            <field string="Documents" name="doc_count" widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" type="action"
+                        invisible="1"
+                            name="%(project.act_project_project_2_project_task_all)d" icon="fa-tasks">
+                            <field string="Tasks In Progress" name="task_count" widget="statinfo" options="{'label_field': 'label_tasks'}"/>
+                        </button>
+                        <button name="action_view_all_rating" 
+                        invisible="1"
+                        type="object" attrs="{'invisible': ['|', ('rating_active', '=', False), ('rating_percentage_satisfaction', '=', -1)]}" class="oe_stat_button oe_percent oe_read_only" icon="fa-smile-o" groups="project.group_project_rating">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value">
+                                    <field name="rating_percentage_satisfaction" nolabel="1"/>
+                                    %
+                                </span>
+                                <span class="o_stat_text">
+                                    Customer Satisfaction
+                                </span>
+                            </div>
+                        </button>                            
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Project Name" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                        </h1>
+                    </div>
+                    <notebook>
+                        <page name="description_page" string="Description">
+                            <field name="description" nolabel="1" placeholder="Describe your project..." type="html"/>
+                            <div class="d-none oe_clear"/>
+                        </page>
+                        <page name="scope_and_section" string="Scope And Section">
+                            <notebook>
+                                <page name="project_scope" string="Project Scope">
+                                    <field name="project_scope_ids" widget="one2many_list" class="o_project_scope">
+                                        <tree editable="bottom">
+                                            <control>
+                                                <create name="add_product_control" string="Add a scope"/>
+                                            </control>
+                                            <field name="sequence" widget="handle"/>
+                                            <field name="sr_no" />
+                                            <field name="project_scope" required='1' options="{'no_quick_create':True}"/>
+                                            <field name="description" />
+                                        </tree>
+                                    </field>
+                                </page>
+
+                                <page name="section" string="Section">
+                                    <field name="project_scope_computed" invisible="1" widget="many2many_tags"/>
+                                    <field name="project_section_ids" widget="one2many_list" class="o_section_line">
+                                        <tree editable="bottom">
+                                            <control>
+                                                <create name="add_product_control" string="Add a section"/>
+                                            </control>
+                                            <field name="sequence" widget="handle"/>
+                                            <field name="sr_no" />
+                                            <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]"
+                                                   options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                   required='1'/>
+                                            <field name="section" attrs="{'readonly': [('project_scope', '=', False)]}"
+                                                   required='1' options="{'no_quick_create':True}"/>
+                                            <field name="description" attrs="{'readonly': [('section', '=', False)]}"/>
+                                            <field name="quantity" attrs="{'readonly': [('section', '=', False)]}"/>
+                                            <field name="uom_id" attrs="{'readonly': [('section', '=', False)]}"/>
+                                        </tree>
+                                    </field>
+                                </page>
+                            </notebook>
+                        </page>
+                        <page name="settings" string="Settings" invisible="1">
+                            <group>
+                                <group>
+                                    <field name="active" invisible="1"/>
+                                    <field name="user_id" string="Project Manager" widget="many2one_avatar_user" attrs="{'readonly':[('active','=',False)]}" domain="[('share', '=', False)]"/>
+                                    <field name="partner_id" string="Customer" widget="res_partner_many2one"/>
+                                    <field name="partner_phone" widget="phone"
+                                           attrs="{'invisible': [('partner_id', '=', False)]}"/>
+                                    <field name="partner_email" widget="email"
+                                           attrs="{'invisible': [('partner_id', '=', False)]}"/>
+                                    <div name="alias_def" colspan="2" attrs="{'invisible': [('alias_domain', '=', False)]}">
+                                        <!-- Always display the whole alias in edit mode. It depends in read only -->
+                                        <label for="alias_enabled" class="font-weight-bold" string="Create tasks by sending an email"/>
+                                        <field name="alias_enabled" invisible="1"/>
+                                        <span>
+                                            <span class="font-weight-bold oe_read_only" attrs="{'invisible':  [('alias_name', '=', False)]}">to </span>
+                                            <span class="font-weight-bold oe_edit_only">to </span>
+                                            <field name="alias_name" class="oe_inline"/>
+                                            <span class="oe_read_only" attrs="{'invisible':  [('alias_name', '=', False)]}">@</span>
+                                            <span class="oe_edit_only">@</span>
+                                            <field name="alias_domain"
+                                                   attrs="{'invisible':  [('alias_name', '=', False)]}"
+                                                   class="oe_inline oe_read_only"
+                                                   readonly="1"/>
+                                            <field name="alias_domain"
+                                                   class="oe_inline oe_edit_only"
+                                                   readonly="1"/>
+                                        </span>
+                                    </div>
+                                    <!-- the alias contact must appear when the user start typing and it must disappear
+                                        when the string is deleted. -->
+                                    <field name="alias_contact" class="oe_inline oe_edit_only" string="Accept Emails From"
+                                           attrs="{'invisible': ['|', ('alias_name', '=', ''), ('alias_name', '=', False)]}"/>
+                                </group>
+                                <group>
+                                    <field name="analytic_account_id" domain="['|', ('company_id', '=', company_id), ('company_id', '=', False)]" context="{'default_partner_id': partner_id}" groups="analytic.group_analytic_accounting"/>
+                                    <field name="privacy_visibility" widget="radio"/>
+                                    <field name="allowed_internal_user_ids" widget="many2many_tags" attrs="{'invisible': [('privacy_visibility', '!=', 'followers')]}"/>
+                                    <field name="allowed_portal_user_ids" widget="many2many_tags" options="{'no_create': True}" attrs="{'invisible': [('privacy_visibility', '!=', 'portal')]}"/>
+
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                </group>
+                                <group name="extra_settings">
+                                </group>
+                            </group>
+                            <div class="row mt16 o_settings_container">
+                                <div id="rating_settings" class="col-lg-6 o_setting_box" groups="project.group_project_rating">
+                                    <div class="o_setting_left_pane">
+                                        <field name="rating_active"/>
+                                    </div>
+                                    <div class="o_setting_right_pane">
+                                        <label for="rating_active" />
+                                        <div class="text-muted">
+                                            Get customer feedback
+                                        </div>
+                                        <div class="mt16" attrs="{'invisible':[('rating_active','==',False)]}">
+                                            <field name="rating_status" widget="radio" />
+                                            <div  attrs="{'required': [('rating_status','=','periodic')], 'invisible': [('rating_status','!=','periodic')]}">
+                                                <label for="rating_status_period"/>
+                                                <field name="rating_status_period"/>
+                                            </div>
+                                            <div class="content-group">
+                                                    <div class="mt8">
+                                                        <button name="%(project.open_task_type_form_domain)d" context="{'project_id':id}" icon="fa-arrow-right" type="action" string="Set a Rating Email Template on Stages" class="btn-link"/>
+                                                    </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 o_setting_box"  id="subtask_settings" groups="project.group_subtask_project">
+                                    <div class="o_setting_left_pane">
+                                        <field name="allow_subtasks" />
+                                    </div>
+                                    <div class="o_setting_right_pane">
+                                        <label for="allow_subtasks" />
+                                        <div class="text-muted">
+                                            Split your tasks to organize your work into sub-milestones
+                                        </div>
+                                        <div class="mt8" attrs="{'invisible': [('allow_subtasks', '=', False)]}">
+                                            <label for="subtask_project_id" />
+                                            <field name="subtask_project_id" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 o_setting_box"  id="recurring_tasks_setting" groups="project.group_project_recurring_tasks">
+                                    <div class="o_setting_left_pane">
+                                        <field name="allow_recurring_tasks" />
+                                    </div>
+                                    <div class="o_setting_right_pane">
+                                        <label for="allow_recurring_tasks" />
+                                        <div class="text-muted">
+                                            Auto-generate tasks for regular activities
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
+                    </notebook>
+
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" options="{'post_refresh':True}" help="Follow this project to automatically track the events associated to tasks and issues of this project." groups="base.group_user"/>
+                    </div>
+                </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="custom_wo_website_job_workorder_project_code_form_inherit" model="ir.ui.view">
+            <field name="name">edit.button.custom.wo.job.work.order</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="website_job_workorder_request.custom_wo_website_job_workorder_project_code_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='custome_code']" position="before">
+                    <field name="sales_person_id" widget="many2many_tags" readonly="1" force_save="1"/>
+                </xpath>
+            </field>
+        </record>
+
+        
+        <record id="project_form_view_inherit_construction" model="ir.ui.view">
+            <field name="name">Project Form View Inherit Construction</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="/form/header" position="inside">
+                    <button string="Verify" class="oe_highlight" attrs="{'invisible':[('primary_states','!=','draft')]}"
+                            name="button_verify" type="object" invisible='1'/>
+                    <button string="Complete" class="oe_highlight"
+                            attrs="{'invisible':[('primary_states','!=','progress')]}" name="button_complete"
+                            type="object" confirm="Are you sure you want to complete the project?"/>
+                    <button string="Continue Project" class="oe_highlight"
+                            attrs="{'invisible':[('primary_states','!=','suspended')]}" name="button_continue"
+                            type="object"/>
+                    <button string="Suspend" class="btn-secondary"
+                            attrs="{'invisible':[('primary_states','!=','progress')]}" name="button_suspend"
+                            type="object"/>
+                    <button string="Cancel Project" class="btn-secondary"
+                            attrs="{'invisible':['|','|',('primary_states','=','draft'),('primary_states','=','cancelled'),('primary_states','=','completed')]}"
+                            name="button_cancel" type="object"/>
+                    <button string="Reset to Draft" class="oe_highlight"
+                            attrs="{'invisible':[('primary_states','!=','cancelled')]}" name="button_rest_draft"
+                            type="object" invisible='1'/>
+                    <field name="primary_states" widget="statusbar" statusbar_visible="draft,progress"/>
+                </xpath>
+                
+                <xpath expr="//div[@name='button_box']/button[@name='action_view_cost_sheet']" position = 'attributes'>
+                    <attribute name="groups">equip3_construction_accessright_setting.group_construction_engineer</attribute>
+                </xpath>
+
+                <xpath expr="//header/button[@name='%(portal.portal_share_action)d']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//div[@name='button_box']//button[2]" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='name']" position="attributes">
+                    <attribute name="attrs">{'readonly': [('primary_states', '=', 'progress')]}</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='analytic_account_id']" position="before">
+                    <field name="analytic_idz" domain="['|', ('company_id', '=', company_id), ('company_id', '=', False)]" widget="many2many_tags" />
+
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='settings']/group[1]/group[2]/field[@name='company_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='partner_id']" position="replace"/>
+                <xpath expr="//field[@name='partner_phone']" position="replace"/>
+                <xpath expr="//field[@name='partner_email']" position="replace"/>
+                <xpath expr="//field[@name='analytic_account_id']" position="replace"/>
+                <xpath expr="//field[@name='privacy_visibility']" position="replace"/>
+                <xpath expr="//field[@name='allowed_internal_user_ids']" position="replace"/>
+                <xpath expr="//field[@name='allowed_portal_user_ids']" position="replace"/>
+                <xpath expr="//field[@name='company_id']" position="replace"/>
+                <xpath expr="//page[@name='settings']//group//group//field[@name='alias_contact']" position="before">
+                    <field name="analytic_account_id" invisible="1" domain="['|', ('company_id', '=', company_id), ('company_id', '=', False)]" context="{'default_partner_id': partner_id}" groups="analytic.group_analytic_accounting"/>
+                    <field name="privacy_visibility" widget="radio"/>
+                    <field name="allowed_internal_user_ids" widget="many2many_tags" attrs="{'invisible': [('privacy_visibility', '!=', 'followers')]}"/>
+                    <field name="allowed_portal_user_ids" widget="many2many_tags" options="{'no_create': True}" attrs="{'invisible': [('privacy_visibility', '!=', 'portal')]}"/>
+                </xpath>
+                <xpath expr="//notebook[1]" position="before">
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="partner_id" string="Customer" widget="res_partner_many2one" domain="[('is_customer', '=', True),('company_id','=',company_id)]" attrs="{'readonly':[('primary_states', '!=', 'draft')], 'required':[('department_type', '=', 'project')], 'invisible': [('department_type', '=', 'department')]}"/>
+                            <field name="start_date" required='1' attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            <field name="end_date" required='1' attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            <field name="duration" readonly="1" force_save="1"/>
+                            <field name="department_type" required="1" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            <field name="customer_ref" invisible='1'/>
+                            <field name="full_stage_weightage" invisible='1'/>
+                        </group>
+                        <group>
+                            <label for="street" string="Construction Location"/>
+                            <div class="o_address_format">
+                                <field name="street" placeholder="Street..." class="o_address_street"/>
+                                <field name="street_2" placeholder="Street 2..." class="o_address_street"/>
+                                <field name="city" placeholder="City" class="o_address_city"/>
+                                <field name="state_id" class="o_address_state" placeholder="State" options="{&quot;no_open&quot;: True}"/>
+                                <field name="zip_code" placeholder="ZIP" class="o_address_zip"/>
+                                <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True}"/>
+                            </div>
+                            <field name="payment_states" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="branch_id" required="1" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            <field name="create_uid" string='Created By'/>
+                            <field name="create_date" string='Creation Date'/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="project_director" widget="many2one_avatar_user" string='Project Manager' required="1" domain="[('company_id','=',company_id)]" />
+                        </group>
+                    </group>            
+                </xpath>
+                <xpath expr="//field[@name='name']" position="attributes">
+                    <attribute name="force_save">1</attribute>
+                </xpath>
+                <xpath expr="//sheet/div[2]/h1" position="after">
+                    <group>
+                        <field name="project_short_name" force_save="1" required='1' attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                    </group>
+                </xpath>
+                <xpath expr="//field[@name='user_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//page[@name='settings']" position="attributes">
+                    <attribute name="groups">abs_construction_management.group_construction_manager</attribute>
+                </xpath> 
+
+                <xpath expr="//page[@name='costing']" position="attributes">
+                    <attribute name="groups">abs_construction_management.group_construction_manager</attribute>
+                </xpath>  
+                
+                <xpath expr="//page[@name='costing']" position="after">
+                    <page name="scope_section" string="Scope and Section">
+                        <notebook>
+                            <page name="project_scope" string="Project Scope">
+                                <field name="project_scope_ids" widget="one2many_list" class="o_project_scope">
+                                    <tree editable="bottom">
+                                        <control>
+                                            <create name="add_product_control" string="Add a scope"/>
+                                        </control>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="sr_no" />
+                                        <field name="project_scope" required='1' options="{'no_quick_create':True}"/>
+                                        <field name="description" />
+                                    </tree>
+                                </field>
+                            </page>
+
+                            <page name="section" string="Section">
+                                <field name="project_scope_computed" invisible="1" widget="many2many_tags"/>
+                                <field name="project_section_ids" widget="one2many_list" class="o_section_line">
+                                    <tree editable="bottom">
+                                        <control>
+                                            <create name="add_product_control" string="Add a section"/>
+                                        </control>
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="sr_no" />
+                                        <field name="project_scope" domain="[('id','in',parent.project_scope_computed)]"
+                                                options="{'no_create': True, 'no_quick_create':True, 'no_create_edit':True}"
+                                                required='1'/>
+                                        <field name="section" attrs="{'readonly': [('project_scope', '=', False)]}"
+                                                required='1' options="{'no_quick_create':True}"/>
+                                        <field name="description" attrs="{'readonly': [('section', '=', False)]}"/>
+                                        <field name="quantity" attrs="{'readonly': [('section', '=', False)]}"/>
+                                        <field name="uom_id" attrs="{'readonly': [('section', '=', False)]}"/>
+                                    </tree>
+                                </field>
+                            </page>
+    
+                        </notebook>
+                    </page>
+                    <page name="stage" string="Stage Details" invisible="1">
+                        <field name="stage_ids" widget="one2many_list" class="o_project_stage">
+                            <tree editable="bottom">
+                                <control>
+                                    <create name="add_product_control" string="Add a stage"/>
+                                </control>
+                                <field name="sequence" widget="handle"/>
+                                <field name="sr_no" />
+                                <field name="name" required="1"/>
+                                <field name="stage_weightage" required="1"/>
+                                <field name="project_id" invisible="1"/> 
+                            </tree>
+                        </field>
+                    </page>
+                    <page name="project_milestone" string="Contract Customer" groups="abs_construction_management.group_construction_manager">
+                        <group >
+                            <group name="other_info_left" string="Main Contract">
+                                <field name="main_contract_amount" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <label for="main_down_payment" string="Down Payment" attrs = "{'invisible':[('department_type','=', 'department')]}"/>
+                                <div class="d-flex" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}">
+                                    <field name="main_dp_method" force_save="1" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"
+                                        placeholder="Method"/>
+                                    <span class="oe_inline o_form_label mx-3 oe_read_only"> Amount </span>
+                                    <span class="oe_inline o_form_label mx-3 oe_edit_only"> Amount </span>
+                                    <field name="main_down_payment" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"
+                                        placeholder="Amount"/>
+                                    <label for="main_down_payment" string="%%"  class="oe_inline"
+                                        attrs="{'invisible': [('main_dp_method', '!=', 'per')]}"/>
+                                </div>
+                                <field name="main_dp_amount"  invisible="1"/>
+                                <field name="main_retention1" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_retention1_amount"  invisible="1"/>
+                                <field name="main_retention1_date" invisible="1" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_retention_term_1" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_retention2" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_retention2_amount"  invisible="1"/>
+                                <field name="main_retention2_date" invisible="1" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_retention_term_2" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_tax_id" widget="many2many_tags" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_payment_term" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            </group>
+                            <group string="Total All Contract">
+                                <field name="contract_amount"/>
+                                <field name="dp_amount" invisible="1"/>
+                                <field name="retention1_amount" invisible="1"/>
+                                <field name="retention2_amount" invisible="1"/>
+                                <field name="outstanding_limit" invisible="1"/>
+                                <field name="status_progress" invisible="1"/>
+                            </group >
+                        </group>
+                    </page>
+                    <page name="project_completion" string="Completion Stage">
+                        <group name="completion" invisible='1'>
+                            <group >
+                                <field name="project_completion" widget='progressbar'/>
+                            </group>
+                        </group>
+                        <field name="project_completion_ids" widget="one2many_list">
+                            <tree string="Progress Completion">
+                                <control>
+                                    <create name="add_product_control" string="Add a contract completion"/>
+                                </control>
+                                <field name="sequence" widget="handle"/>
+                                <field name="sr_no" />
+                                <field name="project_id" invisible="1"/>
+                                <field name="completion_id" invisible="1"/>
+                                <field name="contract_percentage"/>
+                                <field name="project_completion" widget="progressbar"/>
+                            </tree>
+                        </field>
+                    </page>
+                    
+                    <!--   Asset Page  -->
+                    <page name="project_asset" string="Asset">
+                        <notebook>
+                            <page name="project_internal_asset" string="Asset">
+                                <field name="project_asset_ids" widget="one2many_list" readonly='1' force_save='1'>
+                                    <tree string="Asset">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="sr_no" invisible='1'/>
+                                        <field name="equipment_name"/>
+                                        <field name="asset_category_id"/>
+                                        <field name="facilities_area_id"/>
+                                        <field name="serial_no"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="project_internal_vehicle" string="Vehicle">
+                                <field name="project_vehicle_ids" widget="one2many_list" readonly='1' force_save='1'>
+                                    <tree string="Vehicle">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="sr_no" invisible='1'/>
+                                        <field name="equipment_name"/>
+                                        <field name="asset_category_id"/>
+                                        <field name="facilities_area_id"/>
+                                        <field name="serial_no"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </page>
+                    <!--  till here  -->
+                    <page name="warehouse" string="Warehouse" widget="one2many_list" >
+                        <group colspan="4">
+                            <field name="warehouse_address" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+
+                            <field name="warehouse_location_ids" widget="one2many_list">
+                                <tree string="Warehouse Location" editable="bottom" create="0" readonly="1">
+                                    <field name="complete_name" string="Location"/>
+                                </tree>
+                            </field>
+
+                            <field name="warehouse_location_table_ids" widget="one2many_list" class="o_internal_location" invisible="1">
+                                <tree editable="bottom">
+                                    <control>
+                                        <create name="add_product_control" string="Add a location"/>
+                                    </control>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="sr_no" />
+                                    <field name="internal_location" domain="[('warehouse_id.id', '=', parent.warehouse_address)]" required="1"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+
+        <record id="project_form_view_inherit_construction_sales" model="ir.ui.view">
+            <field name="name">Project Form View Inherit Construction</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="equip3_construction_masterdata.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="/form/header" position="inside">
+                    <button string="Cancel Project" class="btn-secondary"
+                            name="button_cancel" type="object"
+                            invisible='1'/>
+                    
+                </xpath>
+
+                <xpath expr="//div[@name='button_box']//button[2]" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='name']" position="attributes">
+                    <attribute name="attrs">{'readonly': [('primary_states', '=', 'progress')]}</attribute>
+                </xpath>
+
+                <xpath expr="//notebook/page[@name='settings']/group[1]/group[2]/field[@name='company_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='partner_id']" position="replace"/>
+                <xpath expr="//field[@name='partner_phone']" position="replace"/>
+                <xpath expr="//field[@name='partner_email']" position="replace"/>
+                <xpath expr="//field[@name='analytic_account_id']" position="replace"/>
+                <xpath expr="//field[@name='privacy_visibility']" position="replace"/>
+                <xpath expr="//field[@name='allowed_internal_user_ids']" position="replace"/>
+                <xpath expr="//field[@name='allowed_portal_user_ids']" position="replace"/>
+                <xpath expr="//field[@name='company_id']" position="replace"/>
+                <xpath expr="//page[@name='settings']//group//group//field[@name='alias_contact']" position="before">
+                    <field name="analytic_account_id" domain="['|', ('company_id', '=', company_id), ('company_id', '=', False)]" context="{'default_partner_id': partner_id}" groups="analytic.group_analytic_accounting"/>
+                    <field name="privacy_visibility" widget="radio"/>
+                    <field name="allowed_internal_user_ids" widget="many2many_tags" attrs="{'invisible': [('privacy_visibility', '!=', 'followers')]}"/>
+                    <field name="allowed_portal_user_ids" widget="many2many_tags" options="{'no_create': True}" attrs="{'invisible': [('privacy_visibility', '!=', 'portal')]}"/>
+                </xpath>
+                <xpath expr="//notebook[1]" position="before">
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="partner_id" string="Customer" widget="res_partner_many2one" domain="[('is_customer', '=', True),('company_id','=',company_id)]" attrs="{'readonly':[('primary_states', '!=', 'draft')], 'required':[('department_type', '=', 'project')], 'invisible': [('department_type', '=', 'department')]}"/>
+                            <field name="start_date" required='1' attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            <field name="end_date" required='1' attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            <field name="duration" readonly="1" force_save="1"/>
+                            <field name="department_type" required="1" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            <field name="sales_person_id" widget="many2many_tags" readonly="1" force_save="1"/>
+                            <field name="custome_code"  attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            <field name="customer_ref" invisible='1'/>
+                            <field name="full_stage_weightage" invisible='1'/>
+                        </group>
+                        <group>
+                            <label for="street" string="Construction Location"/>
+                            <div class="o_address_format">
+                                <field name="street" placeholder="Street..." class="o_address_street"/>
+                                <field name="street_2" placeholder="Street 2..." class="o_address_street"/>
+                                <field name="city" placeholder="City" class="o_address_city"/>
+                                <field name="state_id" class="o_address_state" placeholder="State" options="{&quot;no_open&quot;: True}"/>
+                                <field name="zip_code" placeholder="ZIP" class="o_address_zip"/>
+                                <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True}"/>
+                            </div>
+                            <field name="analytic_idz" domain="['|', ('company_id', '=', company_id), ('company_id', '=', False)]" widget="many2many_tags" />   
+                            <field name="analytic_account_id" invisible="1" domain="['|', ('company_id', '=', company_id), ('company_id', '=', False)]" context="{'default_partner_id': partner_id}" groups="analytic.group_analytic_accounting"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="branch_id" required="1" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            <field name="create_uid" string='Created By'/>
+                            <field name="create_date" string='Creation Date'/>
+                        </group>
+                    </group>
+                </xpath>
+                <xpath expr="//field[@name='name']" position="attributes">
+                    <attribute name="force_save">1</attribute>
+                </xpath>
+                <xpath expr="//sheet/div[2]/h1" position="after">
+                    <group>
+                        <field name="project_short_name" force_save="1" required='1' attrs="{'readonly':[('primary_states', '!=', 'draft')]}"/>
+                    </group>
+                </xpath>
+                <xpath expr="//sheet/div[@name='button_box']" position="after">
+                    <widget name="web_ribbon" title="Lost" bg_color="bg-danger" attrs="{'invisible': [('primary_states', '!=', 'lost')]}"/>
+                </xpath>
+                <xpath expr="//field[@name='user_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//page[@name='scope_and_section']" position="after">
+                         
+                    <page name="project_milestone" string="Contract Customer">
+                        <group >
+                            <group name="other_info_left" string="Main Contract">
+                                <field name="main_contract_amount" readonly="1"/>
+                                <label for="main_down_payment" string="Down Payment" attrs = "{'invisible':[('department_type','=', 'department')]}"/>
+                                <div class="d-flex" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}">
+                                    <field name="main_dp_method" force_save="1" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"
+                                        placeholder="Method"/>
+                                    <span class="oe_inline o_form_label mx-3 oe_read_only"> Amount </span>
+                                    <span class="oe_inline o_form_label mx-3 oe_edit_only"> Amount </span>
+                                    <field name="main_down_payment" attrs="{'readonly':[('primary_states', '!=', 'draft')]}"
+                                        placeholder="Amount"/>
+                                    <label for="main_down_payment" string="%%"  class="oe_inline"
+                                        attrs="{'invisible': [('main_dp_method', '!=', 'per')]}"/>
+                                </div>
+                                <field name="main_dp_amount"  invisible="1"/>
+                                <field name="main_retention1" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_retention1_amount"  invisible="1"/>
+                                <field name="main_retention1_date" invisible="1" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_retention_term_1" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_retention2" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_retention2_amount"  invisible="1"/>
+                                <field name="main_retention2_date" invisible="1" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_retention_term_2" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_tax_id" widget="many2many_tags" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                                <field name="main_payment_term" attrs="{'invisible':[('department_type','=', 'department')], 'readonly':[('primary_states', '!=', 'draft')]}"/>
+                            </group>
+                            <group string="Total All Contract">
+                                <field name="contract_amount"/>
+                                <field name="dp_amount" invisible="1"/>
+                                <field name="retention1_amount" invisible="1"/>
+                                <field name="retention2_amount" invisible="1"/>
+                                <field name="outstanding_limit" invisible="1"/>
+                                <field name="status_progress" invisible="1"/>
+                            </group >
+                        </group>
+                    </page>
+    
+                </xpath>
+            </field>
+        </record>
+
+        <record id="project.view_project" model="ir.ui.view">
+            <field name="name">project.project.tree</field>
+            <field name="model">project.project</field>
+            <field name="arch" type="xml">
+                <tree decoration-muted="active == False" string="Projects" delete="0" multi_edit="1" sample="1">
+                    <field name="sequence" string="Handle" optional="show" widget="handle"/>
+                    <field name="message_needaction" invisible="1"/>
+                    <field name="active" invisible="1"/>
+                    <field name="name" string="Project" class="font-weight-bold"/>
+                    <field name="partner_id" optional="show" string="Customer"/>
+                    <field name="project_director" optional="show" string='Project Manager' widget="many2one_avatar_user"/>
+                    <field name="analytic_idz" optional="hide" widget="many2many_tags"/>
+                    <field name="analytic_account_id" optional="hide"/>
+                    <field name="privacy_visibility" optional="hide"/>
+                    <field name="branch_id" optional="hide"/>
+                    <field name="company_id" optional="hide"  groups="base.group_multi_company"/>
+                    <field name="primary_states" optional="show" 
+                            decoration-primary="primary_states == 'draft'"
+                            decoration-primary2="primary_states == 'progress'"
+                            decoration-success="primary_states == 'completed'" 
+                            decoration-secondary="primary_states == 'cancelled'"
+                            decoration-warning="primary_states == 'suspended'"
+                            widget="badge"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_project_kanban_const">
+            <field name="name">project.project.kanban.const</field>
+            <field name="model">project.project</field>
+            <field name="arch" type="xml">
+                <kanban class="oe_background_grey o_kanban_dashboard o_project_kanban o_emphasize_colors" sample="1">
+                    <field name="name"/>
+                    <field name="partner_id"/>
+                    <field name="task_count"/>
+                    <field name="label_tasks"/>
+                    <field name="is_favorite"/>
+
+                    <templates>
+                        <t t-name="kanban-box">
+
+                            <div t-attf-class=" oe_kanban_global_click o_has_icon">
+                                <div class="o_project_kanban_main">
+                                    <div class="o_kanban_card_content">
+                                        <div class="o_kanban_primary_left">
+                                            <div class="o_primary">
+                                                <span>
+                                                    <t t-esc="record.name.value"/>
+                                                </span>
+                                                <span t-if="record.partner_id.value">
+                                                    <strong><t t-esc="record.partner_id.value"/></strong>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="o_kanban_card_manage_pane dropdown-menu" groups="project.group_project_manager" role="menu">
+                                        <div class="o_kanban_card_manage_section o_kanban_manage_reports">
+                                            <div role="menuitem">
+                                                <a type="edit">Edit</a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <a class="o_kanban_manage_toggle_button o_left" href="#" groups="project.group_project_manager"><i class="fa fa-ellipsis-v" role="img" aria-label="Manage" title="Manage"/></a>
+                                    <span class="o_right"><field name="is_favorite" widget="boolean_favorite" nolabel="1" force_save="1" /></span>
+                                </div>
+
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_project_kanban_const_sale">
+            <field name="name">project.project.kanban.const</field>
+            <field name="model">project.project</field>
+            <field name="arch" type="xml">
+                <kanban class="oe_background_grey o_kanban_dashboard o_project_kanban o_emphasize_colors" sample="1">
+                    <field name="name"/>
+                    <field name="partner_id"/>
+                    <field name="task_count"/>
+                    <field name="label_tasks"/>
+                    <field name="is_favorite"/>
+
+                    <templates>
+                        <t t-name="kanban-box">
+
+                            <div t-attf-class=" oe_kanban_global_click o_has_icon">
+                                <div class="o_project_kanban_main">
+                                    <div class="o_kanban_card_content">
+                                        <div class="o_kanban_primary_left">
+                                            <div class="o_primary">
+                                                <span>
+                                                    <t t-esc="record.name.value"/>
+                                                </span>
+                                                <span t-if="record.partner_id.value">
+                                                    <strong><t t-esc="record.partner_id.value"/></strong>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="o_kanban_card_manage_pane dropdown-menu" groups="project.group_project_manager" role="menu">
+                                        <div class="o_kanban_card_manage_section o_kanban_manage_reports">
+                                            <div role="menuitem">
+                                                <a type="edit">Edit</a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <a class="o_kanban_manage_toggle_button o_left" href="#" groups="project.group_project_manager"><i class="fa fa-ellipsis-v" role="img" aria-label="Manage" title="Manage"/></a>
+                                    <span class="o_right"><field name="is_favorite" widget="boolean_favorite" nolabel="1" force_save="1" /></span>
+                                </div>
+
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+        
+        <record id="edit_view_subtask_settings" model="ir.ui.view">
+            <field name="name">edit.view.subtask.settings</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[@name='settings']/div[1]/div[@id='subtask_settings']/div[2]/div[2]" position = 'attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="guarantee_table_view_inherit_construction" model="ir.ui.view">
+            <field name="name">Guarantee Table View Inherit Construction</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='warehouse']" position="before">
+                    <page name="guarantee" string="Guarantee">
+                        <field name="guarantee_table_ids" required="1">
+                            <tree editable="bottom">
+                                <field name="sequence" widget="handle"/>
+                                <field name="guarantee_type" required="1"/>
+                                <field name="amount"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+
+                <!-- Hidden Field Label Task -->
+                <div name="options_active" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </div>
+            </field>
+        </record>
+    
+        <record id="variation_order_view_construction" model="ir.ui.view">
+            <field name="name">variation.order.view.construction</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="equip3_construction_masterdata.project_form_view_inherit_construction"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='project_milestone']/group" position="after">
+                    <notebook name="variation_order_noteboook">
+                        <page name="variation_order_ids" string="Variation Order" attrs = "{'invisible':[('department_type','=', 'department')]}">
+                            <field name="variation_order_ids" class="o_purchase_order_line" readonly="1" >
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle" invisible="1"/>
+                                    <field name="sr_no" />
+                                    <field name="contract_amount" />
+                                    <field name="dp_method" optional="hide"/>
+                                    <field name="down_payment" optional="hide"/>
+                                    <field name="dp_amount" />
+                                    <field name="retention1"/>
+                                    <field name="retention1_amount" optional="hide"/>
+                                    <field name="retention1_date" invisible="1"/>
+                                    <field name="retention_term_1"/>
+                                    <field name="retention2"/>
+                                    <field name="retention2_amount" optional="hide"/>
+                                    <field name="retention2_date" invisible="1"/>
+                                    <field name="retention_term_2"/>
+                                    <field name="tax_id" widget="many2many_tags"/>
+                                    <field name="payment_term" />
+                                    <field name="vo_payment_type" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="variation_order_internal_ids" string="Variation Order" attrs = "{'invisible':[('department_type','=', 'project')]}">
+                            <field name="variation_order_internal_ids" class="o_purchase_order_line" attrs="{'readonly':[('primary_states', '!=', 'draft')]}">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle" invisible="1"/>
+                                    <field name="sr_no" />
+                                    <field name="approved_date" />
+                                    <field name="contract_amount" />
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="penalty" string="Penalty" attrs="{'invisible': [('department_type', '=', 'department')]}">
+                            <group name='group_1'>
+                                <group name='group_1_1'>
+                                    <field name="responsible" readonly="1" force_save="1" attrs="{'invisible': ['|', ('department_type', '=', 'department'), ('primary_states', '!=', 'cancelled')]}"/>
+                                    <field name="reason" readonly="1" force_save="1" attrs="{'invisible': ['|', ('department_type', '=', 'department'), ('primary_states', '!=', 'cancelled')]}"/>
+                                </group>
+                            </group>
+                            <br/>
+                            <div width="100%">
+                                <div>
+                                    <h3>
+                                        <b>Penalty Details</b>
+                                    </h3>
+                                    <hr/>
+                                </div>
+                            </div>
+                            <br/>
+                            <div>
+                                <field name="diff_penalty" attrs="{'readonly': [('primary_states', 'in', ('progress','suspended','cancelled','completed'))]}"/>
+                                <label for="diff_penalty"/>
+                            </div>
+                            <group>
+                                <group>                                            
+                                    <div width="100%" attrs="{'invisible': [('diff_penalty', '=', False)]}">
+                                        <div>
+                                            <h3>
+                                                <b>Contractor</b>
+                                            </h3>
+                                            <hr/>
+                                        </div>
+                                    </div>
+                                    <field name="method" attrs="{'readonly': [('primary_states', 'in', ('progress','suspended','cancelled','completed'))]}"/>
+                                    <label for="amount"/>
+                                    <div name="amount_div" class="o_row">
+                                        <field name="amount" attrs="{'readonly': [('primary_states', 'in', ('progress','suspended','cancelled','completed'))]}"/>
+                                        <label for="amount" string="%" attrs="{'invisible': [('method', '=', 'fix')]}"/>
+                                    </div>                                            
+                                </group>
+                                <group name="pd_right" attrs="{'invisible': [('diff_penalty', '=', False)]}">                                            
+                                    <div width="100%">
+                                        <div>
+                                            <h3>
+                                                <b>Client</b>
+                                            </h3>
+                                            <hr/>
+                                        </div>
+                                    </div>
+                                    <field name="method_client" attrs="{'readonly': [('primary_states', 'in', ('progress','suspended','cancelled','completed'))]}"/>
+                                    <label for="amount_client"/>
+                                    <div name="amount_div" class="o_row">
+                                        <field name="amount_client" attrs="{'readonly': [('primary_states', 'in', ('progress','suspended','cancelled','completed'))]}"/>
+                                        <label for="amount_client" string="%" attrs="{'invisible': [('method_client', '=', 'fix')]}"/>
+                                    </div>                                            
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="variation_order_view_construction_2" model="ir.ui.view">
+            <field name="name">variation.order.view.construction.2</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="equip3_construction_masterdata.project_form_view_inherit_construction_sales"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='project_milestone']/group" position="after">
+                    <notebook name="variation_order_noteboook">
+                        <page name="variation_order_ids" string="Variation Order" attrs = "{'invisible':[('department_type','=', 'department')]}">
+                            <field name="variation_order_ids" class="o_purchase_order_line" readonly="1" >
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle" invisible="1"/>
+                                    <field name="sr_no" />
+                                    <field name="contract_amount" />
+                                    <field name="dp_method" optional="hide"/>
+                                    <field name="down_payment" optional="hide"/>
+                                    <field name="dp_amount" />
+                                    <field name="retention1"/>
+                                    <field name="retention1_amount" optional="hide"/>
+                                    <field name="retention1_date" invisible="1"/>
+                                    <field name="retention_term_1"/>
+                                    <field name="retention2"/>
+                                    <field name="retention2_amount" optional="hide"/>
+                                    <field name="retention2_date" invisible="1"/>
+                                    <field name="retention_term_2"/>
+                                    <field name="tax_id" widget="many2many_tags"/>
+                                    <field name="payment_term" />
+                                    <field name="vo_payment_type" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="variation_order_internal_ids" string="Variation Order" attrs = "{'invisible':[('department_type','=', 'project')]}">
+                            <field name="variation_order_internal_ids" class="o_purchase_order_line" attrs="{'readonly':[('primary_states', '!=', 'draft')]}">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle" invisible="1"/>
+                                    <field name="sr_no" />
+                                    <field name="approved_date" />
+                                    <field name="contract_amount" />
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="penalty" string="Penalty" attrs="{'invisible': [('department_type', '=', 'department')]}">
+                            <group name='group_1'>
+                                <group name='group_1_1'>
+                                    <field name="responsible" readonly="1" force_save="1" attrs="{'invisible': ['|', ('department_type', '=', 'department'), ('primary_states', '!=', 'cancelled')]}"/>
+                                    <field name="reason" readonly="1" force_save="1" attrs="{'invisible': ['|', ('department_type', '=', 'department'), ('primary_states', '!=', 'cancelled')]}"/>
+                                </group>
+                            </group>
+                            <br/>
+                            <div width="100%">
+                                <div>
+                                    <h3>
+                                        <b>Penalty Details</b>
+                                    </h3>
+                                    <hr/>
+                                </div>
+                            </div>
+                            <br/>
+                            <div>
+                                <field name="diff_penalty" attrs="{'readonly': [('primary_states', 'in', ('progress','suspended','cancelled','completed'))]}"/>
+                                <label for="diff_penalty"/>
+                            </div>
+                            <group>
+                                <group>                                            
+                                    <div width="100%" attrs="{'invisible': [('diff_penalty', '=', False)]}">
+                                        <div>
+                                            <h3>
+                                                <b>Contractor</b>
+                                            </h3>
+                                            <hr/>
+                                        </div>
+                                    </div>
+                                    <field name="method" attrs="{'readonly': [('primary_states', 'in', ('progress','suspended','cancelled','completed'))]}"/>
+                                    <label for="amount"/>
+                                    <div name="amount_div" class="o_row">
+                                        <field name="amount" attrs="{'readonly': [('primary_states', 'in', ('progress','suspended','cancelled','completed'))]}"/>
+                                        <label for="amount" string="%" attrs="{'invisible': [('method', '=', 'fix')]}"/>
+                                    </div>                                            
+                                </group>
+                                <group name="pd_right" attrs="{'invisible': [('diff_penalty', '=', False)]}">                                            
+                                    <div width="100%">
+                                        <div>
+                                            <h3>
+                                                <b>Client</b>
+                                            </h3>
+                                            <hr/>
+                                        </div>
+                                    </div>
+                                    <field name="method_client" attrs="{'readonly': [('primary_states', 'in', ('progress','suspended','cancelled','completed'))]}"/>
+                                    <label for="amount_client"/>
+                                    <div name="amount_div" class="o_row">
+                                        <field name="amount_client" attrs="{'readonly': [('primary_states', 'in', ('progress','suspended','cancelled','completed'))]}"/>
+                                        <label for="amount_client" string="%" attrs="{'invisible': [('method_client', '=', 'fix')]}"/>
+                                    </div>                                            
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- TODO : nedd to rm (not used) -->
+        <record id="project_scope_ids_view" model="ir.ui.view">
+            <field name="name">project.scope.ids.view</field>
+            <field name="model">project.scope.project</field>
+            <field name="arch" type="xml">
+                <form string="Project Scope">
+                    <sheet>
+                        <gorup>
+                            <group>
+                                <field name="scope_id" readonly="1"/>
+                            </group>
+                        </gorup>
+                        <gorup>
+                            <group>
+                                <field name="project_scope" required="1"/>
+                                <field name="description"/> 
+                            </group>
+                        </gorup>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- TODO : nedd to rm (not used) -->
+        <record id="section_line_ids_view" model="ir.ui.view">
+            <field name="name">section.line.ids.view</field>
+            <field name="model">section.project</field>
+            <field name="arch" type="xml">
+                <form string="Section">
+                    <sheet>
+                        <gorup>
+                            <group>
+                                <field name="section_id" readonly="1"/>
+                                <field name="project_scope" required="1" readonly="1"/>
+                            </group>
+                        </gorup>
+                        <gorup>
+                            <group>
+                                <field name="section" required="1"/>
+                                <field name="description" />
+                                <field name="quantity" />
+                                <field name="uom_id" />
+                            </group>    
+                        </gorup>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="abs_construction_management.action_view_project" model="ir.actions.act_window">
+            <field name="name">Projects</field>
+            <field name="res_model">project.project</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_ids" eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_project_kanban_const')}),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('project.view_project')}),]"/>
+            <field name="search_view_id" ref="project.view_project_project_filter"/>
+            <field name="domain">[('department_type', '=', 'project'),('primary_states', '!=', 'draft')]</field>
+            <field name="context">{'default_department_type': 'project'}</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Create a new project.
+                </p><p>
+                    Organize your activities (plan tasks, track issues, invoice timesheets) for internal, personal or customer projects.
+                </p>
+            </field>
+        </record>
+
+        <record id="project.act_project_project_2_project_task_all" model="ir.actions.act_window">
+            <field name="name">Job Orders</field>
+            <field name="res_model">project.task</field>
+            <field name="view_mode">tree,form,calendar,pivot,graph,activity,ks_gantt</field>
+            <field name="domain">[('project_id', '=', active_id)]</field>
+            <field name="context">{
+                'pivot_row_groupby': ['user_id'],
+                'default_project_id': active_id,
+            }</field>
+            <field name="search_view_id" ref="project.view_task_search_form"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No tasks found. Let's create one!
+                </p><p>
+                    To get things done, use activities and status on tasks.<br/>
+                    Chat in real time or by email to collaborate efficiently.
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="menu_tags"
+                  name = "Tags"
+                  parent = "abs_construction_management.menu_configuration"
+                  action = "project.project_tags_action"
+                  sequence="3"
+                  />
+        
+        <record model='ir.ui.menu' id='menu_tags'>
+            <field name="groups_id" eval="[(6, 0, [ref('equip3_construction_accessright_setting.group_construction_engineer')])]"/>
+        </record>
+
+        <menuitem id="menu_activity_types"
+                  name = "Activity Types"
+                  parent = "abs_construction_management.menu_configuration"
+                  action = "project.mail_activity_type_action_config_project_types"
+                  sequence="5"/>
+
+
+        <record model='ir.ui.menu' id='menu_activity_types'>
+            <field name="groups_id" eval="[(6, 0, [ref('equip3_construction_accessright_setting.group_construction_engineer')])]"/>
+        </record>
+
+    </data>
+</odoo>

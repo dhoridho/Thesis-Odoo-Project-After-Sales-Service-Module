@@ -1,0 +1,105 @@
+<odoo>
+
+    <record id="dynamic_barcode_labels.barcodelabels" model="ir.actions.report">
+        <field name="name">Product Barcode Labels</field>
+<!--        <field name="model">product.product</field>-->
+<!--        <field name="report_type">qweb-pdf</field>-->
+<!--        <field name="report_name">equip3_inventory_masterdata.report_barcode_labels</field>-->
+<!--        <field name="report_file">equip3_inventory_masterdata.report_barcode_labels</field>-->
+<!--         field name="binding_model_id" ref="product.model_product_product"/-->
+<!--        <field name="binding_type">report</field>-->
+    </record>
+
+    <template id="report_barcode_labels1" inherit_id="dynamic_barcode_labels.report_barcode_labels">
+        <xpath expr="//t[@t-call='dynamic_barcode_labels.dynamic_barcode_labels_layout']/t[1]" position="replace">
+            <div class="page" align="center">
+                <t t-foreach="docs" t-as="product">
+                    <t t-if="product[0].multi_barcode">
+                        <t t-set="labels_barcode" t-value="product[0].get_barcode_details()"/>
+                        <div class="page" align="center" style="display: inline-block;">
+                            <!-- Product Name -->
+                            <div t-if="config.product_name" align="center" t-attf-style="color:black;font-weight: bold;font-size:{{config.product_name_size or '7'}}px">
+                                <span t-esc="get_product_name(product[0])" />
+                                <t t-if="product[0].is_consignment">
+                                    <span>(Consignment Product)</span>
+                                </t>
+                            </div>
+
+                            <!-- Product Attributes -->
+                            <div t-if="config.product_variant" align="center" t-attf-style="color:black;font-weight: bold;font-size:{{config.product_variant_size or '7'}}px">
+                                <span t-esc="', '.join(map(lambda x: x.name, product[0].product_template_attribute_value_ids))" />
+                            </div>
+
+                            <!-- Product Lot -->
+                            <div t-if="config.lot" align="center" style="color:black;font-size:10px;">
+                                <span t-raw="product[1]" />
+                            </div>
+
+                            <!-- Product Default Code -->
+                            <div t-if="config.product_code" align="center" t-attf-style="color:black;font-weight: bold;font-size:{{config.product_code_size or '7'}}px">
+                                <span t-field="product[0].default_code" />
+                            </div>
+
+                            <!-- Barcode -->
+                            <t t-if="config.barcode">
+                                <span t-raw="get_barcode_string(labels_barcode, data)" />
+                            </t>
+
+                            <!-- Product Barcode Number -->
+                            <div t-if="config.product_barcode_no" align="center" t-attf-style="color:black;font-size:{{config.product_barcode_no_size or '7'}}px">
+                                <span t-esc="labels_barcode" />
+                            </div>
+
+                            <!-- Price -->
+                            <div t-if="config.price_display" align="center" t-attf-style="color:black;font-weight: bold;font-size:{{config.price_display_size or '14'}}px">
+                                <span t-esc="product[0].lst_price" t-options="{'widget': 'monetary', 'display_currency': (company_id or res_company).currency_id}" />
+                            </div>
+                        </div>
+                    </t>
+                    <t t-if=" not product[0].multi_barcode">
+                        <div class="page" align="center" style="display: inline-block;">
+                            <!-- Product Name -->
+                            <div t-if="config.product_name" align="center" t-attf-style="color:black;font-weight: bold;font-size:{{config.product_name_size or '7'}}px">
+                                <span t-esc="get_product_name(product[0])" />
+                                <t t-if="product[0].is_consignment">
+                                    <span>(Consignment Product)</span>
+                                </t>
+                            </div>
+
+                            <!-- Product Attributes -->
+                            <div t-if="config.product_variant" align="center" t-attf-style="color:black;font-weight: bold;font-size:{{config.product_variant_size or '7'}}px">
+                                <span t-esc="', '.join(map(lambda x: x.name, product[0].product_template_attribute_value_ids))" />
+                            </div>
+
+                            <!-- Product Lot -->
+                            <div t-if="config.lot" align="center" style="color:black;font-size:10px;">
+                                <span t-raw="product[1]" />
+                            </div>
+
+                            <!-- Product Default Code -->
+                            <div t-if="config.product_code" align="center" t-attf-style="color:black;font-weight: bold;font-size:{{config.product_code_size or '7'}}px">
+                                <span t-field="product[0].default_code" />
+                            </div>
+
+                            <!-- Barcode -->
+                            <t t-if="config.barcode">
+                                <span t-raw="get_barcode_string(product[0].barcode, data)" />
+                            </t>
+
+                            <!-- Product Barcode Number -->
+                            <div t-if="config.product_barcode_no" align="center" t-attf-style="color:black;font-size:{{config.product_barcode_no_size or '7'}}px">
+                                <span t-field="product[0].barcode" />
+                            </div>
+
+                            <!-- Price -->
+                            <div t-if="config.price_display" align="center" t-attf-style="color:black;font-weight: bold;font-size:{{config.price_display_size or '14'}}px">
+                                <span t-esc="product[0].lst_price" t-options="{'widget': 'monetary', 'display_currency': (company_id or res_company).currency_id}" />
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

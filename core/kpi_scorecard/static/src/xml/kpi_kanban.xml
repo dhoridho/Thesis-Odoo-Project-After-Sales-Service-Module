@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <div t-name="KPIkanban.buttons">
+        <button type="button" 
+                t-attf-class="btn btn-primary kpi-kanban-set-targets-button kpi-kanban-button kpi-kanban-conditional"
+                kpi-required="period,open"
+        >
+            <i class="fa fa-crosshairs"></i> Set Target
+        </button>
+        <button type="button" 
+                t-attf-class="btn btn-secondary kpi-kanban-replace-targets-button kpi-kanban-button kpi-kanban-conditional"
+                kpi-required="admin,period,open"
+        >
+            <i class="fa fa-exchange"></i> Substitute Targets
+        </button>
+        <button type="button" 
+                t-attf-class="btn btn-secondary kpi-kanban-export-targets-button kpi-kanban-button kpi-kanban-conditional"
+                kpi-required="period"
+        >
+            <i class="fa fa-download"></i> Export Scorecard
+        </button>
+    </div>
+    <t t-name="KPINavigationPanel">
+        <div class="kpi-kanban-navigation">
+            <div class="kpi-kanban-navigation-content">
+                <div class="kpi-kanban-navigation-header" id="kpi_periods"/>
+                <hr class="kpi-kanban-hr"/>
+                <div class="kpi-kanban-navigation-header">
+                    <span>
+                        Categories <i id="clear_kpi_categories" class="fa fa-ban kpi-kanban-button kpi-kanban-clear-icon"></i>
+                    </span>
+                </div>
+                <div class="kpi-kanban-navigation-panel">
+                    <div id="kpi_kanban_categories" >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+    <t t-name="KPINavigationPeriods">
+        <div class="kpi-kanban-selection-div">
+            <t t-if="all_periods">
+                <select id="kpi_period" class="kpi-kanban-selection-input">
+                    <option></option>
+                    <t t-foreach="all_periods" t-as="period_choice">
+                        <option t-attf-selected="#{period_choice[0] == this_period and 'selected' or null}"
+                                t-attf-value="#{period_choice[0]}"
+                                t-attf-kpi_state="#{period_choice[2]}"
+                        >
+                            <t t-esc="period_choice[1]" />
+                        </option>
+                    </t>
+                </select>
+            </t>
+            <div class="kpi-kanban-flex">
+                <button class="btn kpi-kanban-calculate-period fa fa-calculator kpi-kanban-button kpi-kanban-navigation-button kpi-kanban-conditional"
+                        kpi-required="period,open"
+                >
+                    Calculate
+                </button>
+                <button class="btn fa fa-stop kpi-kanban-close-period kpi-kanban-button kpi-kanban-navigation-button kpi-kanban-conditional"
+                        title="if closed, KPI actual values would not be re-calculated any more"
+                        kpi-required="period,admin,open"
+                >
+                    Close Period
+                </button>
+                <button class="btn fa fa-refresh kpi-kanban-re-open-period kpi-kanban-button kpi-kanban-navigation-button kpi-kanban-conditional"
+                        kpi-required="period,admin,closed"
+                >
+                    Re-Open Period
+                </button>
+                <button class="btn fa fa-play kpi-kanban-open-period kpi-kanban-button kpi-kanban-navigation-button kpi-kanban-conditional"
+                        kpi-required="admin"
+                >
+                    New Period
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="KPIHistoryDialog">
+        <div>
+            <div>
+                <h3>History by similar periods</h3>
+                <canvas id="kpi_history_chart"/>
+            </div>
+            <div t-if="widget.all_similar_targets" class="mt16">
+                <h3>Targets by all periods</h3>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr class="active">
+                            <th name="th_kpi">Period</th>
+                            <th name="th_target" class="text-center">Target</th>
+                            <th name="th_actual" class="text-center">Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="widget.all_similar_targets" t-as="el">
+                            <tr t-attf-class="o_data_row text-#{el.result == 'success' and 'success' or el.result == 'failure' and 'danger' or 'muted'}">
+                                <td name="td_kpi"
+                                    class="o_data_cell"
+                                >
+                                    <span class="ml4">
+                                        <t t-esc="el.period_id"/>
+                                    </span>
+                                </td>
+                                <td name="td_target" class="text-center">
+                                    <strong t-esc="el.formatted_target_value"/>
+                                </td>
+                                <td name="td_actual" class="text-center">
+                                    <strong t-esc="el.formatted_actual_value"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </t>
+
+
+</templates>

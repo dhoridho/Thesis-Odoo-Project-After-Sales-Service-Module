@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="ExpiringFilter">
+        <div class="o_expiration_filter">
+            <div class="o_box_cp">
+                <div class="o_box_title"><t t-esc="widget.label"/></div>
+                <div class="o_search">
+                    <span class="fa fa-search o_search_icon"></span>
+                    <input class="o_search_input"/>
+                    <span class="fa fa-remove o_remove_icon"></span>
+                </div>
+            </div>
+
+            <div class="o_filter">
+                <t t-foreach="widget.records" t-as="record">
+                    <div class="custom-control custom-checkbox o_record" t-attf-data-name="{{ widget.name }}_{{ record.id }}">
+                        <input type="checkbox" t-attf-data-id="{{ widget.name }}_{{ record.id }}" class="custom-control-input o_checkbox"/>
+                        <label t-attf-for="{{ widget.name }}_{{ record.id }}" class="custom-control-label o_label"><t t-esc="record.name"/></label>
+                        <div class="o_flag o_expire" t-if="record.expired"><t t-esc="record.expired"/> EXPIRED</div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ExpiringNearlyExpire">
+        <div class="o_expiration_nearly_expire">
+            <div class="o_box_title"><t t-esc="widget.label"/></div>
+            <div class="o_nearly_controller">
+                <div class="o_nearly_date">
+                    <button class="btn btn-sm o_button_date">
+                        <span class="fa fa-calendar"></span>
+                    </button>
+                    <div class="o_input_date">
+                        <t t-esc="widget._formatDate(widget.startDate)"/> - <t t-esc="widget._formatDate(widget.endDate)"/>
+                    </div>
+                    <ul class="o_nearly_dropdown d-none">
+                        <li class="o_item" data-value="today">Today</li>
+                        <li class="o_item" data-value="tommorow">Tommorow</li>
+                        <li class="o_item" data-value="next_7_days">Next 7 Days</li>
+                        <li class="o_item" data-value="this_month">This Month</li>
+                        <li class="o_item" data-value="next_month">Next Month</li>
+                        <li class="o_item" data-value="this_year">This Year</li>
+                        <li class="o_item" data-value="next_year">Next Year</li>
+                        <li class="dropdown-divider"/>
+                        <li class="o_item o_custom_range">
+                            <span>Custom Range</span>
+                            <div class="o_item_custom d-none">
+                                <button class="btn btn-primary o_button_apply_custom" disabled="disabled">Apply</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="btn-group btn-group-toggle o_button_chart" data-toggle="buttons">
+                    <label class="btn btn-sm active">
+                        <input type="radio" name="chart_options" data-name="horizontalBar" autocomplete="off" checked="checked"/> 
+                        <span class="fa fa-bar-chart"/>
+                    </label>
+                    <label class="btn btn-sm">
+                        <input type="radio" name="chart_options" data-name="pie" autocomplete="off"/> 
+                        <span class="fa fa-pie-chart"/>
+                    </label>
+                </div>
+            </div>
+            <canvas id="o_nearly_expired_chart" height="200px"/>
+        </div>
+    </t>
+
+    <t t-name="ExpiringInfo">
+        <div class="o_expiration_info">
+            <h2><t t-esc="widget.label"/></h2>
+            <div class="o_count" t-if="widget.data.count !== undefined"><t t-esc="widget.data.count"/></div>
+            <span t-attf-class="fa {{ widget.icon }} o_info_icon"></span>
+        </div>
+    </t>
+
+    <t t-name="ExpiringExpirationForecast">
+        <div class="o_expiration_forecast">
+            <div class="o_box_title"><t t-esc="widget.label"/></div>
+            <table class="table table-sm o_forecast_table">
+                <thead>
+                    <tr>
+                        <t t-foreach="widget.header" t-as="head">
+                            <th><t t-esc="head"/></th>
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="widget.data" t-as="year">
+                        <tr>
+                            <td class="o_year" t-att-data-lots="year.lot_ids">
+                                <t t-esc="year.year"/>
+                            </td>
+                            <t t-foreach="year.months" t-as="month">
+                                <td t-att-data-lots="month.lot_ids">
+                                    <t t-if="month.count" t-esc="month.count"/>
+                                </td>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </t>
+
+    <t t-name="ExpiringStatus">
+        <div class="o_expiration_status">
+            <div class="o_box_title"><t  t-esc="widget.label"/></div>
+            <t t-foreach="widget.data" t-as="data">
+                <div t-attf-class="o_status_container o_{{ data.name }}">
+                    <div class="o_status_label_container">
+                        <div class="o_status_label"><t t-esc="data.label"/></div>
+                        <div t-attf-class="o_status_percentage o_{{ data.name }}"><t t-esc="data.percentage"/>%</div>
+                    </div>
+                    <div t-attf-class="o_status_progressbar o_{{ data.name }}" t-attf-style="width: {{ data.percentage }}%;"/>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="ExpiringRecentEvents">
+        <div class="o_expiration_recent_events">
+            <div class="o_box_title"><t t-esc="widget.label"/></div>
+            <div class="o_recent_events_container">
+                <t t-foreach="widget.data" t-as="data">
+                    <div class="o_event" t-att-data-lot="data.lot_id">
+                        <span t-attf-class="o_event_type o_{{ widget.event_type }}">
+                            <t t-if="widget.event_type === 'notify'">NOTIFICATION</t>
+                            <t t-else="">EXPIRED</t>
+                        </span>
+                        <span>
+                            <t t-if="widget.event_type === 'notify'">
+                                <b><t t-esc="data.product_name"/>, <t t-esc="data.lot_name"/></b> will expire on <b><t t-esc="data.event_date.format('DD/MM/YYYY HH:mm:ss')"/></b>.
+                            </t>
+                            <t t-else="">
+                                <b><t t-esc="data.product_name"/>, <t t-esc="data.lot_name"/></b> expired on <b><t t-esc="data.event_date.format('DD/MM/YYYY HH:mm:ss')"/></b> and will be removed on <b><t t-esc="data.removal_date ? data.removal_date.format('DD/MM/YYYY HH:mm:ss') : 'False'"/></b>.
+                            </t>
+                        </span>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ExpiringTooltip">
+        <div class="o_expiring_tooltip_inner" t-att-data-tooltip="tooltipId">
+            <div class="o_expiring_tooltip">
+                <div class="o_content">
+                    <div class="o_tooltip_top">
+                        <div class="o_tooltip_title"><span t-attf-class="fa {{ title.icon }} mr-2" t-if="title.icon"/><t t-esc="title.label"/></div>
+                        <div class="o_tooltip_subtitle"><span t-attf-class="fa {{ subtitle.icon }} mr-2" t-if="subtitle.icon"/><t t-esc="subtitle.label"/></div>
+                    </div>
+
+                    <div class="o_event_container">
+                        <t t-foreach="events" t-as="event">
+                            <div class="o_event">
+                                <span t-attf-class="o_event_type o_{{ event.event_type }}">
+                                    <t t-esc="event.event_type === 'notify' ? 'NOTIFICATION' : 'EXPIRED'"/>
+                                </span>
+                                <span>
+                                    <b><t t-esc="event.product_name"/>, <t t-esc="event.lot_name"/></b>
+                                    <t t-if="event.event_type === 'notify'">
+                                        will expire on <t t-esc="event.expiration_date.format('DD/MM/YYYY HH:mm:ss')"/>.
+                                    </t>
+                                    <t t-else="">
+                                        expired on <t t-esc="event.expiration_date.format('DD/MM/YYYY HH:mm:ss')"/> and will be removed on <t t-esc="event.removal_date.format('DD/MM/YYYY HH:mm:ss')"/>.
+                                    </t>
+                                </span>
+                            </div>
+                        </t>
+                        <t t-if="!events.length">
+                            <div class="o_view_nocontent">
+                                <div class="o_nocontent_help">
+                                    <p class="o_view_nocontent_empty_folder">
+                                        There are no events on this date.
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ExpiringCalendarContent">
+        <table t-attf-class="table o_table_calendar {{ widget.type !== 'month' ? 'o_calendar_' + widget.type : '' }}">
+            <thead>
+                <tr>
+                    <t t-foreach="widget._header()" t-as="head">
+                        <th><t t-esc="head"/></th>
+                    </t>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-foreach="widget.data" t-as="row">
+                    <tr t-att-data-row="row.id">
+                        <td t-att-class="row.class_name" t-att-data-col="row.id">
+                            <div class="o_value" t-if="row.show_value"><t t-esc="row.value"/></div>
+                        </td>
+                        <t t-foreach="row.cols" t-as="col">
+                            <td t-att-class="col.class_name" t-att-data-col="col.id">
+                                <div class="o_strip_container" t-if="col.has_lines">
+                                    <div class="o_strip o_expire" t-if="col.has_expired"></div>
+                                    <div class="o_strip o_notify" t-if="col.has_notify"></div>
+                                </div>
+                                <div class="o_value" t-if="col.show_value"><t t-esc="col.value"/></div>
+                            </td>
+                        </t>
+                    </tr>
+                </t>
+            </tbody>
+        </table>
+    </t>
+
+    <t t-name="ExpiringCalendar">
+        <div class="o_calendar">
+            <div class="o_calendar_controller">
+                <div class="o_calendar_buttons">
+                    <div class="o_button_nextprev">
+                        <div class="btn-group">
+                            <button class="btn btn-secondary o_button_prev btn-sm">
+                                <span class="fa fa-chevron-left"/>
+                            </button>
+                            <button class="btn btn-secondary o_button_next btn-sm">
+                                <span class="fa fa-chevron-right"/>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="o_button_selector_container"></div>
+                    <div class="o_button_print_container">
+                        <button class="btn btn-secondary o_button_print btn-sm">
+                            Print
+                        </button>
+                    </div>
+                    <div class="o_button_type">
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-secondary btn-sm active">
+                                <input type="radio" name="calendar_type" data-name="month" autocomplete="off" t-attf-checked="{{ widget.type === 'month' ? 'checked' : ''}}"/> Month
+                            </label>
+                            <label class="btn btn-secondary btn-sm">
+                                <input type="radio" name="calendar_type" data-name="week" autocomplete="off" t-attf-checked="{{ widget.type === 'week' ? 'checked' : ''}}"/> Week
+                            </label>
+                            <label class="btn btn-secondary btn-sm">
+                                <input type="radio" name="calendar_type" data-name="day" autocomplete="off" t-attf-checked="{{ widget.type === 'day' ? 'checked' : ''}}"/> Day
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="o_calendar_content"></div>
+        </div>
+    </t>
+
+    <t t-name="ExpiringProductCalendar">
+        <div class="o_expiring_product_calendar">
+            <div class="o_section o_w25">
+                <div class="o_box_container o_h25">
+                    <div class="o_box o_categories_box"></div>
+                </div>
+                <div class="o_box_container o_h25">
+                    <div class="o_box o_locations_box"></div>
+                </div>
+                <div class="o_box_container o_h50">
+                    <div class="o_box o_nearly_expire_box"></div>
+                </div>
+            </div>
+            <div class="o_section o_w50">
+                <div class="o_box_container o_box_group o_h15">
+                    <div class="o_box_sub">
+                        <div class="o_box o_info_box o_expired"></div>
+                    </div>
+                    <div class="o_box_sub">
+                        <div class="o_box o_info_box o_notify"></div>
+                    </div>
+                    <div class="o_box_sub">
+                        <div class="o_box o_info_box o_current"></div>
+                    </div>
+                </div>
+                <div class="o_box_container o_h25">
+                    <div class="o_box o_expiration_forecast_box"></div>
+                </div>
+                <div class="o_box_container o_h60">
+                    <div class="o_box o_calendar_box"></div>
+                </div>
+            </div>
+            <div class="o_section o_w25">
+                <div class="o_box_container o_h40">
+                    <div class="o_box o_status_box"></div>
+                </div>
+                <div class="o_box_container o_h30">
+                    <div class="o_box o_recent_events_expired_box"></div>
+                </div>
+                <div class="o_box_container o_h30">
+                    <div class="o_box o_recent_events_notify_box"></div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

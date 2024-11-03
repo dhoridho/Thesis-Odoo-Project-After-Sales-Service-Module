@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="hr_key_result_tree_view" model="ir.ui.view">
+            <field name="name">hr.key.result.tree</field>
+            <field name="model">hr.key.result</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name" string="Key Result"/>
+                    <field name="key_result_type"/>
+                    <field name="key_result_target" string="Target"/>
+                    <field name="actual"/>
+                    <field name="achievement"/>
+                    <field name="priority"/>
+                    <field name="state"/>
+                    <field name="is_childs" invisible="1"/>
+                    <button name="button_checkin" type="object" string="Checkin" class="btn-success" attrs="{'invisible':[('is_childs','=',False)]}"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="hr_key_result_form_view" model="ir.ui.view">
+            <field name="name">hr.key.result.form</field>
+            <field name="model">hr.key.result</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <field name="is_childs" invisible="1"/>
+                        <button name="button_checkin" type="object" string="Checkin" attrs="{'invisible':[('is_childs','=',False)]}"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" required="1" attrs="{'readonly':[('create_date','!=',False)]}"/>
+                                <field name="allowed_goal_title_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="goal_title_id" options="{'no_create': True}" required="1" attrs="{'readonly':[('create_date','!=',False)]}"/>
+                                <field name="key_result_type" required="1" attrs="{'readonly':[('create_date','!=',False)]}"/>
+                                <field name="key_result_area_id" options="{'no_create': True}" attrs="{'invisible':[('key_result_type','!=','kpi_based')],'readonly':[('create_date','!=',False)]}"/>
+                                <field name="milestone_template_id" attrs="{'invisible':[('key_result_type','!=','milestone')],'required':[('key_result_type','=','milestone')],'readonly':[('create_date','!=',False)]}"/>
+                                <field name="check_in_requency" widget="radio" options="{'horizontal': true}" attrs="{'readonly':[('create_date','!=',False)]}"/>
+                                <field name="weekly" attrs="{'invisible':[('check_in_requency','!=','weekly')],'readonly':[('create_date','!=',False)]}"/>
+                                <field name="monthly" attrs="{'invisible':[('check_in_requency','!=','monthly')],'readonly':[('create_date','!=',False)]}"/>
+                                <field name="date" attrs="{'invisible':['|',('monthly','!=','specific_days'),('check_in_requency','!=','monthly')],'required':[('monthly','=','specific_days')],'readonly':[('create_date','!=',False)]}"/>
+                                <field name="add_member_ids" widget="many2many_tags" options="{'no_create': True}" invisible="1"/>
+                            </group>
+                            <group>
+                                <label for="start_date" string="Period"/>
+                                <div>
+                                    <field name="start_date" class="oe_inline" required="1" attrs="{'readonly':[('create_date','!=',False)]}"/> - <field name="end_date" class="oe_inline" required="1" attrs="{'readonly':[('create_date','!=',False)]}"/>
+                                </div>
+                                <field name="key_result_target" required="1" attrs="{'readonly':['|',('key_result_type','=','milestone'),('create_date','!=',False)]}"/>
+                                <field name="actual" attrs="{'readonly':[('create_date','!=',False)]}"/>
+                                <field name="achievement"/>
+                                <field name="priority" attrs="{'readonly':[('create_date','!=',False)]}"/>
+                                <field name="state" attrs="{'readonly':[('create_date','!=',False)]}"/>
+                                <field name="create_date" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="logbook" string="Logbook">
+                                <field name="logbook_ids" nolabel="1">
+                                    <tree editable="bottom" create="false" delete="false">
+                                        <field name="history"/>
+                                        <field name="timestamp"/>
+                                        <field name="comment"/>
+                                        <field name="attachment_file" filename="attachment_name" widget="binary"/>
+                                        <field name="attachment_name" invisible="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="logbook_projection" string="Logbook Projection">
+                                <div class="oe_button_box" name="button_box">
+                                    <button name="action_projection_planning" type="object" class="oe_stat_button" icon="fa-pencil-square-o">
+                                        <span>Projection Planning</span>
+                                    </button>
+                                </div>
+                                <div>
+                                    <field name="plotly_chart" widget="plotly_chart" nolabel="1"/>
+                                </div>
+                            </page>
+                            <page name="milestone_area" string="Milestone Area" attrs="{'invisible':[('key_result_type','!=','milestone')]}">
+                                <field name="key_result_milestone_ids" nolabel="1">
+                                    <tree editable="bottom" create="false" delete="false">
+                                        <field name="name" readonly="1"/>
+                                        <field name="start_date" readonly="1"/>
+                                        <field name="end_date" readonly="1"/>
+                                        <field name="weightage" readonly="1"/>
+                                        <field name="actual" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids" widget="mail_activity"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="hr_key_result_search" model="ir.ui.view">
+            <field name="name">hr.key.result.search</field>
+            <field name="model">hr.key.result</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="goal_title_id"/>
+                    <field name="key_result_type"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Goal Title" name="group_goal_title" domain="[]" context="{'group_by': 'goal_title_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="hr_key_result_act_window" model="ir.actions.act_window">
+            <field name="name">Key Result Area</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hr.key.result</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_group_goal_title':1}</field>
+            <field name="domain">[('create_uid','=',uid),('source_id','=',False)]</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no data. Click here to add new Key Result Area.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Key Result Area" id="hr_key_result_menu"
+                  parent="menu_okr_root"
+                  action="hr_key_result_act_window"
+                  sequence="50"/>
+        
+        <record id="hr_key_result_projection_planning_tree_view" model="ir.ui.view">
+            <field name="name">hr.key.result.projection.planning.tree</field>
+            <field name="model">hr.key.result.projection.planning</field>
+            <field name="arch" type="xml">
+                <tree create="0" editable="top">
+                    <field name="date" readonly="1"/>
+                    <field name="value" attrs="{'readonly':[('is_today','=',False)]}"/>
+                    <field name="is_today" readonly="1" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+    </data>
+</odoo>

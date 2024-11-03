@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_partner_inherit_form_view" model="ir.ui.view">
+        <field name="name">res.partner.inherit.form.view</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//h1" position="after">
+                <field name="is_leads" invisible="1"/>
+                <div class='d-flex' attrs="{'invisible': [('is_leads', '=', False)]}">
+                    <span>Lead Partner ID : </span>
+                    <field name="lead_sequence" />
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='sales_purchases']/group/group/field[@name='team_id']" position="before">
+                <field name="filter_team_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//page[@name='sales_purchases']/group/group/field[@name='team_id']" position="attributes">
+                <attribute name="domain">filter_team_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="equip_res_partner_kanban_view" model="ir.ui.view">
+        <field name="name">equip.res.partner.kanban.view</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="equip3_kanban_view.equip_res_partner_kanban_view"/>
+        <field name="mode">primary</field>
+        <field name="priority" eval="1000"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="js_class">res_partner_kanban_no_salesperson</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_customer_form" model="ir.actions.act_window">
+        <field name="name">Customers</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{
+            'res_partner_search_mode': 'customer', 
+            'default_is_customer': True,
+            'default_is_leads': True,
+            'default_customer_rank':1
+        }</field>
+        <field name="domain">[('is_leads', '=', True), ('is_customer', '=', True)]</field>
+        <field name="search_view_id" ref="base.view_res_partner_filter"/>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_smiling_face">
+            Create a new customer in your address book
+          </p><p>
+            Odoo helps you easily track all activities related to a customer.
+          </p>
+        </field>
+    </record>
+
+    <record id="res_partner_search_inherit_customer" model="ir.ui.view">
+        <field name="name">res.partner.search.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <searchpanel view_types="tree,kanban,pivot,graph">
+                    <field name="team_id" string="Sales Team" />
+                    <field name="user_id" string="Salesperson" filter_domain="[('is_customer','=', True)]"/>
+                </searchpanel>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_customer_kanban_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="0"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="equip_res_partner_kanban_view"/>
+        <field name="act_window_id" ref="action_customer_form"/>
+    </record>
+
+    <record id="action_customer_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="base.view_partner_tree"/>
+        <field name="act_window_id" ref="action_customer_form"/>
+    </record>
+
+    <record id="action_customer_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="base.view_partner_form"/>
+        <field name="act_window_id" ref="action_customer_form"/>
+    </record>
+
+    <record id="crm.res_partner_menu_customer" model="ir.ui.menu">
+        <field name="action" ref="equip3_crm_operation.action_customer_form"/>
+    </record>
+
+</odoo>

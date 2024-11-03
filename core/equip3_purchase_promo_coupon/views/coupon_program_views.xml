@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="coupon_program_view_form_common" model="ir.ui.view">
+        <field name="name">coupon.program.common.form</field>
+        <field name="model">coupon.program</field>
+        <field name="arch" type="xml">
+            <form string="Coupon Program" modifiers="{}">
+                <sheet modifiers="{}">
+                    <div class="oe_button_box" name="button_box" modifiers="{}">
+                        <button class="oe_stat_button" type="object" icon="o-hm-smart-all-purchased" name="action_view_purchase_orders" modifiers="{}" options="{}" attrs="{'invisible': [('is_vendor_promotion', '!=', True)]}">
+                            <field name="purchase_order_count" string="Purchases" widget="statinfo" modifiers="{'readonly':true}" id="purchase_order_count"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}" modifiers="{'invisible':[['active','=',true]]}"/>
+                    <div name="title" class="oe_left" modifiers="{}">
+                        <label class="oe_edit_only" for="name" string="Promotion Program Name" modifiers="{}"/>
+                        <h1 modifiers="{}">
+                            <field name="name" class="oe_title" placeholder="Promotion Program Name..." height="20px" modifiers="{'required':true}" id="name"/>
+                        </h1>
+                    </div>
+                    <group modifiers="{}">
+                        <group name="conditions" string="Conditions" modifiers="{}">
+                            <field name="is_vendor_promotion" invisible="1"/>
+                            <field name="active" invisible="1" modifiers="{'invisible':true}" id="active"/>
+                            <field name="program_type" invisible="1" modifiers="{'invisible':true}" id="program_type"/>
+                            <field name="rule_vendors_domain" invisible="1" placeholder="Select vendor" widget="domain" options="{'model': 'res.partner', 'in_dialog': true}" on_change="1" modifiers="{}" id="rule_vendors_domain" string="Based on vendors"/>
+                            <field name="rule_purchase_product_domain" invisible="1" placeholder="Select product" widget="domain" options="{'model': 'product.product', 'in_dialog': true}" on_change="1" modifiers="{}" id="rule_purchase_product_domain"/>
+                            <group>
+                                <field name="vendors_selection" widget="radio" style="width:200px"/>
+                                <field name="purchase_selected_customers_ids" string="Selected Vendors" domain="[('is_vendor','=',True)]" widget="many2many_tags" attrs="{'invisible': [('vendors_selection','!=','selected_vendors')], 'required' : [('vendors_selection','=','selected_vendors')]}"/>
+                                <!-- <field name="selected_vendors_ids" domain="[('is_vendor','=',True)]" widget="many2many_tags" attrs="{'invisible': [('vendors_selection','!=','selected_vendors')], 'required' : [('vendors_selection','=','selected_vendors')]}"/> -->
+                            </group>
+                            <group>
+                                <field name="purchase_products_selection" widget="radio" style="width:200px"/>
+                                <field name="purchase_product_category_ids" widget="many2many_tags" attrs="{'invisible': [('purchase_products_selection','!=','product_category')], 'required' : [('purchase_products_selection','=','product_category')]}"/>
+                                <field name="purchase_selected_products_ids" widget="many2many_tags" attrs="{'invisible': [('purchase_products_selection','!=','selected_products')], 'required' : [('purchase_products_selection','=','selected_products')]}"/>
+                            </group>
+                            <label string="Quantity" for="rule_min_quantity" attrs="{'invisible': [('rule_purchase_product_domain', '=', False)]}" modifiers="{'invisible':[['rule_purchase_product_domain','=',false]]}"/>
+                            <div attrs="{'invisible': [('rule_purchase_product_domain', '=',False)]}" modifiers="{'invisible':[['rule_purchase_product_domain','=',false]]}">
+                                <field name="rule_min_quantity" class="oe_inline" on_change="1" modifiers="{}" id="rule_min_quantity"/>
+                            </div>
+                            <label string="Minimum Purchase Of" for="rule_minimum_amount" modifiers="{}"/>
+                            <div name="rule_minimum_amount" modifiers="{}">
+                                <field name="currency_id" invisible="1" can_create="true" can_write="true" modifiers="{'invisible':true,'readonly':true}" id="currency_id"/>
+                                <field name="rule_minimum_amount" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="1" modifiers="{}" id="rule_minimum_amount"/>
+                                <field name="rule_minimum_amount_tax_inclusion" required="1" on_change="1" modifiers="{'required':true}" id="rule_minimum_amount_tax_inclusion"/>
+                            </div>
+                            <field name="promo_code_usage" widget="radio" on_change="1" modifiers="{}" id="promo_code_usage"/>
+                            <field name="promo_code" attrs="{'required': [('promo_code_usage', '=', 'code_needed')], 'invisible': [('promo_code_usage', '=', 'no_code_needed')]}" modifiers="{'invisible':[['promo_code_usage','=','no_code_needed']],'required':[['promo_code_usage','=','code_needed']]}" id="promo_code"/>
+                            <field name="company_id" placeholder="Select company" required="1" on_change="1" can_create="true" can_write="true" modifiers="{'required':true}" id="company_id"/>
+                        </group>
+                        <group name="validity" string="Validity" modifiers="{}">
+                            <label for="website_id" modifiers="{}"/>
+                            <div modifiers="{}">
+                                <field name="website_id" options="{'no_create': True}" can_create="true" can_write="true" modifiers="{}" id="website_id"/>
+                            </div>
+                            <label string="Apply on First" for="maximum_use_number" class="oe_inline" modifiers="{}"/>
+                            <div modifiers="{}">
+                                <field name="maximum_use_number" class="oe_inline" modifiers="{}" id="maximum_use_number"/>
+                                <span modifiers="{}">
+                                     Orders
+                                </span>
+                                <span class="oe_grey" modifiers="{}">
+                                     if 0, infinite use
+                                </span>
+                            </div>
+                            <field name="rule_date_from" class="oe_inline" on_change="1" modifiers="{}" id="rule_date_from"/>
+                            <field name="rule_date_to" class="oe_inline" on_change="1" modifiers="{}" id="rule_date_to"/>
+                        </group>
+                    </group>
+                    <group string="Rewards" modifiers="{}">
+                        <field name="sequence" invisible="1" modifiers="{'invisible':true}" id="sequence"/>
+                        <group modifiers="{}">
+                            <field name="promo_applicability" widget="radio" modifiers="{}" id="promo_applicability"/>
+                        </group>
+                        <group name="reward" modifiers="{}">
+                            <field name="reward_type" string="Reward" widget="radio" on_change="1" modifiers="{}" id="reward_type"/>
+                            <field name="discount_line_product_id" attrs="{'invisible': [('discount_line_product_id', '=', False)]}" readonly="True" on_change="1" can_create="true" can_write="true" modifiers="{'invisible':[['discount_line_product_id','=',false]],'readonly':true}" id="discount_line_product_id"/>
+                        </group>
+                        <group modifiers="{}">
+                            <field name="reward_product_id" attrs="{'invisible': [('reward_type', 'in', ('discount', 'free_shipping'))], 'required': [('reward_type', '=', 'product')]}" placeholder="Select reward product" on_change="1" can_create="true" can_write="true" modifiers="{'invisible':[['reward_type','in',['discount','free_shipping']]],'required':[['reward_type','=','product']]}" id="reward_product_id"/>
+                            <label string="Quantity" for="reward_product_quantity" attrs="{'invisible': ['|', ('reward_type', 'in', ('discount', 'free_shipping')), ('reward_product_id', '=',False)]}" modifiers="{'invisible':['|',['reward_type','in',['discount','free_shipping']],['reward_product_id','=',false]]}"/>
+                            <div attrs="{'invisible': ['|', ('reward_type', 'in', ('discount', 'free_shipping')),('reward_product_id', '=',False)]}" modifiers="{'invisible':['|',['reward_type','in',['discount','free_shipping']],['reward_product_id','=',false]]}">
+                                <field name="reward_product_quantity" class="oe_inline" on_change="1" modifiers="{}" id="reward_product_quantity"/>
+                                <field name="reward_product_uom_id" class="oe_inline" on_change="1" can_create="true" can_write="true" modifiers="{'readonly':true}" id="reward_product_uom_id"/>
+                            </div>
+                            <label string="Apply Discount" for="discount_type" attrs="{'invisible': [('reward_type', 'in', ('product', 'free_shipping'))]}" modifiers="{'invisible':[['reward_type','in',['product','free_shipping']]]}"/>
+                            <div attrs="{'invisible': [('reward_type', 'in', ('product', 'free_shipping'))]}" modifiers="{'invisible':[['reward_type','in',['product','free_shipping']]]}">
+                                <field name="discount_type" class="oe_inline" attrs="{'required': [('reward_type','=','discount')]}" on_change="1" modifiers="{'required':[['reward_type','=','discount']]}" id="discount_type"/>
+                                <field name="discount_percentage" attrs="{'invisible': [('discount_type', '!=', 'percentage')],'required': [('discount_type', '=', 'percentage')]}" class="oe_inline" on_change="1" modifiers="{'invisible':[['discount_type','!=','percentage']],'required':[['discount_type','=','percentage']]}" id="discount_percentage"/>
+                                <span attrs="{'invisible': [('discount_type', '!=', 'percentage')],'required': [('discount_type', '=', 'percentage')]}" class="oe_inline" modifiers="{'invisible':[['discount_type','!=','percentage']],'required':[['discount_type','=','percentage']]}">
+                                    %
+                                </span>
+                            </div>
+                            <label string="Fixed Amount" for="discount_fixed_amount" attrs="{'invisible': ['|',('discount_type', '!=', 'fixed_amount'), ('reward_type', '!=', 'discount')]}" modifiers="{'invisible':['|',['discount_type','!=','fixed_amount'],['reward_type','!=','discount']]}"/>
+                            <div attrs="{'invisible': ['|',('discount_type', '!=', 'fixed_amount'), ('reward_type', '!=', 'discount')]}" modifiers="{'invisible':['|',['discount_type','!=','fixed_amount'],['reward_type','!=','discount']]}">
+                                <field name="discount_fixed_amount" class="oe_inline" attrs="{'required':[('discount_type', '=', 'fixed_amount')]}" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="1" modifiers="{'required':[['discount_type','=','fixed_amount']]}" id="discount_fixed_amount"/>
+                            </div>
+                            <field name="discount_apply_on" attrs="{'invisible':                             ['|', ('reward_type', 'in', ('product', 'free_shipping')), ('discount_type', '!=', 'percentage')]}" widget="radio" on_change="1" modifiers="{'invisible':['|',['reward_type','in',['product','free_shipping']],['discount_type','!=','percentage']]}" id="discount_apply_on"/>
+                            <field name="discount_specific_product_ids" widget="many2many_tags" attrs="{'invisible': ['|', '|', ('discount_apply_on', '!=', 'specific_products'),('discount_type', '!=', 'percentage'), ('reward_type', 'in', ('product', 'free_shipping'))], 'required': [('reward_type', '=', 'discount'),('discount_apply_on', '=', 'specific_products'),('discount_type', '=', 'percentage')]}" placeholder="Select products" on_change="1" can_create="true" can_write="true" modifiers="{'invisible':['|','|',['discount_apply_on','!=','specific_products'],['discount_type','!=','percentage'],['reward_type','in',['product','free_shipping']]],'required':[['reward_type','=','discount'],['discount_apply_on','=','specific_products'],['discount_type','=','percentage']]}" id="discount_specific_product_ids"/>
+                            <label for="discount_max_amount" string="Max Discount Amount" attrs="{'invisible': ['|', ('reward_type', 'in', ('product', 'free_shipping')), ('discount_type', '!=', 'percentage')]}" modifiers="{'invisible':['|',['reward_type','in',['product','free_shipping']],['discount_type','!=','percentage']]}"/>
+                            <div attrs="{'invisible': ['|', ('reward_type', 'in', ('product', 'free_shipping')), ('discount_type', '!=', 'percentage')]}" modifiers="{'invisible':['|',['reward_type','in',['product','free_shipping']],['discount_type','!=','percentage']]}">
+                                <field name="discount_max_amount" class="oe_inline" widget="monetary" options="{'currency_field': 'currency_id'}" on_change="1" modifiers="{}" id="discount_max_amount"/>
+                                <span class="oe_grey" modifiers="{}">
+                                    if 0, no limit
+                                </span>
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="coupon_program_view_tree" model="ir.ui.view">
+        <field name="name">coupon.program.tree</field>
+        <field name="model">coupon.program</field>
+        <field name="arch" type="xml">
+            <tree sample="1">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="website_id"/>
+                <field name="active"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_vendor_promotion_program" model="ir.actions.act_window">
+        <field name="name">Vendor Promotion Program</field>
+        <field name="res_model">coupon.program</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_vendor_promotion', '=', True), ('program_type', '=', 'promotion_program')]</field>
+        <field name="context">{'default_is_vendor_promotion': True, 'default_program_type': 'promotion_program'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new Vendor Promotion Program.
+            </p>
+        </field>
+    </record>
+
+
+    <record id="coupon.coupon_program_action_coupon_program" model="ir.actions.act_window">
+        <field name="domain">[('program_type','=', 'coupon_program'), ('is_vendor_promotion', '=', False)]</field>
+        <field name="context">{
+            'default_program_type': 'coupon_program',
+            'promo_code_usage': 'code_needed',
+            'search_default_opened': 1,
+            'default_is_vendor_promotion': False,
+            }
+        </field>
+    </record>
+
+    <record id="coupon.coupon_program_action_promo_program" model="ir.actions.act_window">
+        <field name="domain">[('program_type', '=', 'promotion_program'), ('is_vendor_promotion', '=', False)]</field>
+        <field name="context">{
+            'default_program_type': 'promotion_program',
+            'default_promo_code_usage': 'no_code_needed',
+            'default_validity_duration': 0,
+            'search_default_opened': 1,
+            'default_is_vendor_promotion': False,
+            }
+        </field>
+    </record>
+
+    <record id="vendor_promotion_program_action_tree" model="ir.actions.act_window.view">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">tree</field>
+        <field name="act_window_id" ref="action_vendor_promotion_program"/>
+        <field name="view_id" ref="equip3_purchase_promo_coupon.coupon_program_view_tree"/>
+    </record>
+
+    <record id="vendor_promotion_program_action" model="ir.actions.act_window.view">
+        <field name="sequence" eval="10"/>
+        <field name="view_mode">form</field>
+        <field name="act_window_id" ref="action_vendor_promotion_program"/>
+        <field name="view_id" ref="equip3_purchase_promo_coupon.coupon_program_view_form_common"/>
+    </record>
+
+    <menuitem id="vendor_promotion_program_menu" 
+            parent="equip3_purchase_masterdata.menu_procurement_vendor" 
+            action="action_vendor_promotion_program"
+            name="Vendor Promotion Program"
+            />
+</odoo>

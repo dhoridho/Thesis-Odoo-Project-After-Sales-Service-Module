@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="sh_payment_pr_report_doc" inherit_id="sh_purchase_reports.sh_payment_pr_report_doc">
+        <xpath expr="//t" position="replace">
+            <t t-call="web.html_container">
+                <t t-call="equip3_purchase_report.purchase_bill_summary_exclusive_external_layout">
+                    <t t-set="theme_color" t-value="company_id and company_id.theme_color"/>
+                    <t t-set="theme_text_color" t-value="company_id and company_id.theme_text_color"/>
+                    <t t-set="company_color" t-value="company_id and company_id.company_color"/>
+                    <t t-set="company_address_color" t-value="company_id and company_id.company_address_color"/>
+                    <t t-set="customer_color" t-value="company_id and company_id.customer_color"/>
+                    <t t-set="customer_address_color" t-value="company_id and company_id.customer_address_color"/>
+                    <t t-set="text_color" t-value="company_id and company_id.text_color"/>
+                    <div class="page" t-att-style="'font-family:'+company_id.font_id.family+';font-size:'+str(company_id.font_size)+'px;'">
+                        <div class="oe_structure"/>
+                        <t t-call="equip3_purchase_report.purchase_bill_summary_watermark"/>
+                        <br/>
+                        <div width="100%">
+                            <div  style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px;" width="100%">
+                                <div class="row">
+                                    <div class="col-12 mx-auto">
+                                        <div class="text-center">
+                                            <b>
+                                                <h4>Bill Payment Report</h4>
+                                            </b>
+                                            <b>
+                                                <span t-esc="date_start" />
+                                                -
+                                                <span t-esc="date_end" />
+                                            </b>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div align="left"  style="color:#4D4D4F; padding: 0px 0px 15px 0px;" valign="top">
+                                    <table border="0" cellpadding="0" cellspacing="0" t-attf-style="color:#fff; text-transform:capitalize; border: 1px solid #{theme_color or '#000000'};" width="100%">
+                                        <tr t-attf-style="color: #{theme_text_color or '#000000'}; background-color: #{theme_color or '#000000'};">
+                                            <td t-attf-style="padding:9px 15px; font-weight:bold;">
+                                                <span>Printed On</span>
+                                                <br/>
+                                                <span t-esc="print_date"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <br />
+                                <t t-if="user_data_dic">
+                                    <t t-foreach="user_data_dic.keys()" t-as="user">
+                                            <b>
+                                                <span class="text-left">Purchase Representative :</span>
+                                                <span class="text-left" t-esc="user" />
+                                            </b>
+                                        <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-sm o_main_table" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+                                            <thead>
+                                                <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                                    <th style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;" t-foreach="columns" t-as="c">
+                                                        <t t-esc="c" />
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="sale_tbody">
+                                                <t t-if="user_data_dic.get(user,False)">
+                                                    <t t-set="pay_list" t-value="user_data_dic.get(user).get('pay',[])" />
+                                                    <t t-if="pay_list">
+                                                        <tr t-foreach="pay_list" t-as="p">
+                                                            <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'" t-foreach="columns" t-as="c">
+                                                                <t t-if="c in ['Bill','Bill Date','Purchase Representative','Vendor']">
+                                                                    <span t-esc="p[1].get(c,0)" />
+                                                                </t>
+                
+                                                                <t t-if="c not in ['Bill','Bill Date','Purchase Representative','Vendor']">
+                                                                    <span t-esc="p[1].get(c,0)" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                                                                </t>
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                </t>
+                                                <t t-if="user_data_dic.get(user,False)">
+                                                    <t t-set="grand_total" t-value="user_data_dic.get(user).get('grand_total',{})" />
+                                                    <t t-if="grand_total">
+                                                        <tr t-if="grand_total">
+                                                            <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'" t-foreach="columns" t-as="c">
+                                                                <t t-if="c not in ['Bill','Bill Date','Purchase Representative','Vendor']">
+                                                                    <span t-esc="grand_total.get(c,0)" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                                                                </t>
+                                                            </td>
+                                                        </tr>
+                                                    </t>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </t>
+                                </t>
+                                <!-- grand journal total -->
+                                <br />
+                                <br />
+                
+                                <t t-if="grand_journal_dic">
+                                    <h3>Payment Method</h3>
+                                    <table BORDERCOLOR="#{theme_color or '#000000'}" border="1" cellpadding="0" cellspacing="0" class="table table-sm o_main_table" style="border:0.5px solid #ccc;  border-collapse: collapse; text-transform:capitalize; padding:15px;border-bottom:1px solid #ccc;" width="100%">
+                                        <thead>
+                                            <tr t-attf-style="page-break-inside: avoid !important;background-color: #{theme_color or '#000000'}; color: #{theme_text_color or '#000000'};">
+                                                <th style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Name</th>
+                                                <th style="padding:5px 10px; color: #{theme_text_color or '#000000'}; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid #{theme_color or '#000000'} !important; font-weight:bold;">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="columns" t-as="c">
+                                                <t t-if="c not in ['Bill','Bill Date','Purchase Representative','Vendor','Total']">
+                                                    <tr t-if="grand_journal_dic.get(c,False)">
+                                                        <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <t t-esc="c" />
+                                                        </td>
+                                                        <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                            <span t-esc="grand_journal_dic.get(c,0.0)" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </t>
+                                            <tr t-if="grand_journal_dic.get('Total',False)">
+                                                <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">Total</td>
+                                                <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                    <span t-esc="grand_journal_dic.get('Total',0.0)" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                                                </td>
+                                            </tr>
+                                            <tr t-if="grand_journal_dic.get('Refund',False)">
+                                                <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">Refund</td>
+                                                <td t-att-style="'padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important;'">
+                                                    <span t-esc="grand_journal_dic.get('Refund',0.0)" t-options='{"widget": "monetary", "display_currency": currency}'/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </xpath>
+    </template>
+
+</odoo>

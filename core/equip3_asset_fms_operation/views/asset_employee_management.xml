@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <!-- asset.employee.management tree view -->
+    <record id="asset_employee_management_view_tree" model="ir.ui.view">
+        <field name="name">asset.employee.management.view.tree</field>
+        <field name="model">asset.employee.management</field>
+        <field name="arch" type="xml">
+            <tree>
+                <!-- Add your fields here -->
+                <field name="name"/>
+                <field name="branch_id"/>
+                <field name="create_uid"/>
+                <field name="create_date"/>
+                <field name="due_date"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-info="state in ('draft')" decoration-danger="state in ('expired', 'cancelled')" decoration-warning="state == 'waiting_approval'"/>
+            </tree>
+        </field>
+    </record>
+    <record id="asset_employee_management_view_form" model="ir.ui.view">
+		<field name="name">Asset Employee Management</field>
+		<field name="model">asset.employee.management</field>
+		<field name="arch" type="xml">
+			<form string="">
+				<header>
+					<button type="object" name="action_waiting_approval" states="draft" string="Request for Approval" class="oe_highlight"/>
+					<button type="object" name="action_approved" states="waiting_approval" string="Approve" class="oe_highlight"/>
+					<button type="object" name="action_expired" states="approved" string="Expired" class="oe_highlight"/>
+					<button type="object" name="action_cancel" string="Cancel" class="oe_highlight" attrs="{'invisible': [('state', 'in', ['draft', 'cancelled'])]}"/>
+					<field name="state" widget="statusbar" statusbar_visible="draft,waiting_approval,approved,expired,cancelled" />
+				</header>
+				<sheet>
+					<div class="oe_title">
+						<h1>
+							<field name="name" readonly="1" />
+						</h1>
+					</div>
+					<group>
+						<group>
+							<field name="create_uid" readonly="1" />
+                            <field name="create_date" readonly="1" />
+                            <field name="branch_id" attrs="{'readonly': [('state', 'in', ['approved','expired'])]}"/>
+						</group>
+						<group>
+                            <field name="due_date" attrs="{'readonly': [('state', 'in', ['approved','expired'])]}"/>
+                            <field name="description"/>
+						</group>
+					</group>
+					<notebook>
+						<page string="Asset">
+							<field name="assets_line" attrs="{'readonly': [('state', 'in', ['approved','expired'])]}">
+								<tree string="Asset" editable="bottom">
+									<field name="asset_id"/>
+									<field name="employee_id"/>
+									<field name="notes"/>
+								</tree>
+							</field>
+						</page>
+					</notebook>
+				</sheet>
+				<div class="oe_chatter">
+					<field name="message_follower_ids" widget="mail_followers" />
+					<field name="activity_ids" widget="mail_activity" />
+					<field name="message_ids" widget="mail_thread" />
+				</div>
+			</form>
+		</field>
+	</record>
+    <record id="asset_employee_management_action" model="ir.actions.act_window">
+		<field name="name">Asset Employee Management</field>
+		<field name="type">ir.actions.act_window</field>
+		<field name="res_model">asset.employee.management</field>
+		<field name="view_mode">tree,form</field>
+	</record>
+	<menuitem id="asset_employee_management_menu" name="Asset Employee Management" action="asset_employee_management_action" parent="maintenance.menu_m_request" sequence="17"/>
+	
+</odoo>

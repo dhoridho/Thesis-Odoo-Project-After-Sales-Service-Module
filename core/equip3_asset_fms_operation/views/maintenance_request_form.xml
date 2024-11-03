@@ -1,0 +1,364 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+    <record id="maintenance_work_order_inherit_in_maintenance_request" model="ir.ui.view">
+        <field name="name">maintenance.work.order.inherit.in.maintenance.request</field>
+        <field name="model">maintenance.work.order</field>
+        <field name="inherit_id" ref="equip3_asset_fms_operation.maintenance_work_order_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_create_repair_order']" position="after">
+                <button string="Approve" name="mwo_approving" type="object" class="oe_highlight" attrs="{'invisible':['|', ('is_approve_button','=', False),('state_id', 'in', ['draft','to_approve_cancel','to_approve_done','approved_done','approved','in_progress','pending','done','cancel'])]}"/>
+                <button string="Reject" name="mwo_reject_in_progress" type="object" class="oe_highlight" attrs="{'invisible':['|', ('is_approve_button','=', False),('state_id', 'in', ['draft','to_approve_cancel','to_approve_done','approved_done','approved','in_progress','pending','done','cancel'])]}"/>
+            </xpath>
+
+            <xpath expr="//button[@name='action_create_repair_order']" position="after">
+                <button string="Approve" name="mwo_approving_done" type="object" class="oe_highlight" attrs="{'invisible':['|', ('is_approve_button_done','=', False),('state_id', 'in', ['draft','to_approve_cancel','to_approve_post','to_approve','approved','approved','in_progress','pending','done','cancel'])]}"/>
+                <button string="Reject" name="mwo_reject_done" type="object" class="oe_highlight" attrs="{'invisible':['|', ('is_approve_button_done','=', False),('state_id', 'in', ['draft','to_approve_cancel','to_approve_post','to_approve','approved','approved','in_progress','pending','done','cancel'])]}"/>
+            </xpath>
+
+            <xpath expr="//button[@name='action_create_repair_order']" position="after">
+                <button string="Approve" name="mwo_approving_post" type="object" class="oe_highlight" attrs="{'invisible':['|', ('is_approve_button_post','=', False),('state_id', 'in', ['draft','to_approve_cancel','to_approve_done','to_approve','approved','approved','in_progress','pending','done','cancel'])]}"/>
+                <button string="Reject" name="mwo_reject_post" type="object" class="oe_highlight" attrs="{'invisible':['|', ('is_approve_button_post','=', False),('state_id', 'in', ['draft','to_approve_cancel','to_approve_done','to_approve','approved','approved','in_progress','pending','done','cancel'])]}"/>
+            </xpath>
+
+            <xpath expr="//button[@name='action_create_repair_order']" position="after">
+                <button string="Approve" name="mwo_approving_cancel" type="object" class="oe_highlight" attrs="{'invisible':['|', ('is_approve_button_cancel','=', False),('state_id', '!=', 'to_approve_cancel')]}"/>
+                <button string="Reject" name="mwo_reject_cancel" type="object" class="oe_highlight" attrs="{'invisible':['|', ('is_approve_button_cancel','=', False),('state_id', '!=', 'to_approve_cancel')]}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='approvalmatrix']" position="after">
+                <field name="approvalmatrix2" invisible="1"/>
+                <field name="approvalmatrix3" invisible="1"/>
+                <field name="approvalmatrix4" invisible="1"/>
+                <field name="in_progress_to_post" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="approval_matrix_line_id" invisible="1"/>
+                <field name="is_approve_button" invisible="1"/>
+                <field name="approval_matrix_line_id_done" invisible="1"/>
+                <field name="is_approve_button_done" invisible="1"/>
+                <field name="approval_matrix_line_id_post" invisible="1"/>
+                <field name="is_approve_button_post" invisible="1"/>
+                <field name="approval_matrix_line_id_cancel" invisible="1"/>
+                <field name="is_approve_button_cancel" invisible="1"/>
+            </xpath>
+            
+        </field>
+    </record>
+
+    <!-- maintenance.request.customsaleorder inherit form view -->
+    <record id="maintenance_request_view_form_inherit_customsaleorder" model="ir.ui.view">
+        <field name="name">maintenance.request.customsaleorder.inherit.view.form</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="equipment_maintenance_sales_order.hr_equipment_request_view_form_inherit_customsaleorder"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='%(equipment_maintenance_sales_order.maintenace_so_cust_wizard_action)d']" position="replace">
+                <button string="Create Sales Quotation" name="%(equipment_maintenance_sales_order.maintenace_so_cust_wizard_action)d" type="action" class="oe_highlight" invisible="1"/>
+            </xpath>
+            <button name="show_quotation" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </button>
+            <page name="quotation_product_lines" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </page>
+        </field>
+    </record>
+
+    <!--    inheriting maintainence plan module -->
+    <record id="maintenance_plan_inheriting_view" model="ir.ui.view">
+        <field name="name">maintenance.plan.inheriting.view</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance_plan.hr_equipment_request_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='maintenance_kind_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+     <!-- Hide Button Print -->
+    <record id="make_invisible" model="res.groups">
+        <field name="name">Invisible</field>
+    </record>
+
+    <record id="asset_mro_maintenance_management.asset_mro_maintenance_equipment_report" model="ir.actions.report">
+        <field name="groups_id" eval="[(6,0,[ref('make_invisible')])]"/>
+    </record>
+
+    <!-- maintenance.request inherit kanban view -->
+    <record id="maintenance_request_kanban_view_inherit" model="ir.ui.view">
+        <field name="name">maintenance.request.inherit.view.kanban</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="records_draggable">0</attribute>
+                <attribute name="quick_create">0</attribute>
+                <attribute name="group_create">0</attribute>
+                <attribute name="group_delete">0</attribute>
+                <attribute name="group_edit">0</attribute>
+                <attribute name="archivable">0</attribute>
+            </xpath>
+            <xpath expr="//div[1]/div[2]/div[2]" position="replace">
+                <div class="o_kanban_record_body">
+                    <span name="owner_user_id" t-if="record.owner_user_id.raw_value">Requested by : <field name="owner_user_id"/><br/></span>
+                    <span class="oe_grey" t-if="record.facility_area.raw_value"><field name="facility_area"/><br/></span>
+                    <span class="oe_grey" t-if="record.equipment_id.raw_value"><field name="equipment_id"/><br/></span>
+                    <span t-if="record.category_id.raw_value"><field name="category_id"/></span>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!--maintenance inherit asset mro -->
+    <record id="maintenance_request_view_form_inherit_assetmro" model="ir.ui.view">
+        <field name="name">maintenance.request.view.form.inherit.assetmro</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="asset_mro_maintenance_management.asset_mro_maintenance_request_materila"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/sheet/div[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button class="oe_stat_button" type="object" name="action_view_work_order" icon="fa-list-ul" attrs="{'invisible': [('work_order_count', '=' , 0)]}">
+                        <div class="o_stat_info">
+                            <field name="work_order_count" class="o_stat_value"/>
+                            <span class="o_stat_text">Work Orders</span>
+                        </div>
+                    </button>
+                </div>
+            </xpath>
+
+
+            <xpath expr="//button[@name='create_task']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='create_task']" position="after">
+                <field name="is_create_work_order" invisible="1"/>
+                <button string="Create Work Order" name="create_work_order" type="object" class="oe_highlight" attrs="{'invisible': [('is_create_work_order', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//button[@name='create_purchase_requisition']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='dest_location_id']" position="replace">
+                <field name='dest_location_id' invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='requisition_employee_id']" position="replace">
+                <field name='requisition_employee_id' invisible="True"/>
+            </xpath>
+            
+            <xpath expr="//notebook/page[1]" position="attributes"> <!-- Maintenance Plan Materials Page-->
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//notebook/page[2]" position="attributes"> <!-- Maintenance Equipment Checklists Page-->
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="maintenance_request_view_form_inherit_hr" model="ir.ui.view">
+        <field name="name">maintenance.request.view.form.inherit.hr</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="after">
+                <header>
+                    <button name="button_confirm" string="Confirm" type="object" class="oe_highlight" attrs="{'invisible':[('extra_state', '!=', 'new')]}"/>
+                    <button name="button_approve" string="Approve" type="object" class="oe_highlight" attrs="{'invisible':['|',('extra_state', '!=', 'waiting'),('is_user_approve', '=', False)]}"/>
+                    <button name="button_reject" string="Reject" type="object" attrs="{'invisible':['|',('extra_state', '!=', 'waiting'),('is_user_approve', '=', False)]}"/>
+                    <button name="create_work_order_new" string="Create Work Order" type="object" class="oe_highlight" attrs="{'invisible': [('extra_state', 'not in', ('progress','approved'))]}"/>
+                    <button name="button_progress" string="Set to In Progress" type="object" class="oe_highlight" attrs="{'invisible':[('extra_state', '!=', 'approved')]}"/>
+                    <button name="button_done" string="Set as Done" type="object" class="oe_highlight" attrs="{'invisible':[('extra_state', 'not in', ('progress','approved'))]}"/>
+                    <button name="button_cancel" string="Cancel" type="object" attrs="{'invisible':[('extra_state', 'not in', ('new','waiting','approved','progress'))]}"/>
+                    <button name="reset_equipment_request" string="Reopen Request" type="object" attrs="{'invisible':[('extra_state', '!=', 'cancel')]}"/>
+                    <field name="is_user_approve" invisible="1"/>
+                    <field name="extra_state" widget="statusbar" statusbar_visible="new,progress,done"/>
+                </header>
+            </xpath>
+            <xpath expr="//header" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//button[@name='archive_equipment_request']" position="after">
+                <button name="button_approve" string="Approve" type="object" class="oe_highlight" attrs="{'invisible':[('is_need_approval', '=', False)]}"/>
+                <field name="is_need_approval" invisible="0"/>
+            </xpath>
+            <xpath expr="//label[@for='duration']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//span[hasclass('ml8')]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_title')]" position="replace">
+                <div class="oe_title">
+                    <h1>
+                        <field name="name" required="0" readonly="1"/>
+                    </h1>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='category_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='employee_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='request_date']" position="after">
+                <field name="create_uid" string="Requested By"/>
+                <field name="last_wo" invisible="1" attrs="{'invisible': [('work_order_count', '=', 0)]}"/>
+                <field name="last_wo_date" string="Latest MWO" readonly="1" attrs="{'invisible': [('work_order_count', '=', 0)]}"/>
+                <field name="last_wo_state" string="Latest Status" readonly="1" attrs="{'invisible': [('work_order_count', '=', 0)]}"/>
+            </xpath>
+
+            <xpath expr="//field[@name='equipment_id']" position="replace">
+            </xpath>
+
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="approval_matrix_id" force_save="1" readonly="1" attrs="{'invisible':[('is_need_approval', '=', False)]}" groups="base.group_no_one"/>
+                <field name="facility_area"/>
+                <field name="equipment_id" string="Asset" required="True"/>
+                <field name="analytic_group_ids" required="1" widget="many2many_tags"/>
+            </xpath>
+            <xpath expr="//field[@name='maintenance_team_id']" position="replace">
+                <field name="maintenance_team_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='maintenance_type']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='duration']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='schedule_date']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='email_cc']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//page[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//page[2]" position="replace">
+                <page string="Description" name="description">
+                    <field name="remarks"/>
+                </page>
+                <page string="Approval Matrix" name="description" attrs="{'invisible':[('is_need_approval', '=', False)]}">
+                    <field name="maintenance_request_approval_line" force_save="1" readonly="1">
+                        <tree>
+                            <field name="user_ids" widget="many2many_tags"/>
+                            <field name="approved_user_ids" widget="many2many_tags"/>
+                            <field name="approved_status"/>
+                            <field name="minimum_approval"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="maintenance_request_cal_view_inherit" model="ir.ui.view">
+        <field name="name">maintenance.request.view.cal.inherit</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_calendar"/>
+        <field name="arch" type="xml">
+            <xpath expr="/calendar" position="replace">
+                <calendar string="Maintenance Request" date_start="request_date" mode="month" color="create_uid">
+                    <field name="name"/>
+                </calendar>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="maintenance_request_tree_view_inherit" model="ir.ui.view">
+        <field name="name">maintenance.request.view.tree.inherit</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="replace"></xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="equipment_id"/>
+                <field name="category_id"/>
+                <field name="priority"/>
+                <field name="facility"/>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="replace">
+                <field name="user_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="replace">
+                <field name="company_id" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="maintenance_request_view_tree_inherit_hr_inherit" model="ir.ui.view">
+        <field name="name">maintenance.request.view.tree.inherit.hr</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="hr_maintenance.maintenance_request_view_tree_inherit_hr"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='employee_id']" position="replace">
+                <field name="employee_id" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- maintenance.stage inherit tree view -->
+    <record id="maintenance_stage_view_id" model="ir.ui.view">
+        <field name="name">maintenance.stage.inherit.view.tree</field>
+        <field name="model">maintenance.stage</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_stage_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='fold']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='done']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="create_work_order" />
+            </xpath>
+        </field>
+    </record>
+    <record id="maintenance_stage_view_form" model="ir.ui.view">
+        <field name="name">maintenance.stage.view.form</field>
+        <field name="model">maintenance.stage</field>
+        <field name="arch" type="xml">
+            <form string="">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" />
+                            <field name="create_work_order" />
+                            <field name="fold" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="sequence" />
+                            <field name="done" invisible="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="custom_user_ids">
+                            <tree string="Allow User">
+                                <field name="name"/>
+                                <field name="login"/>
+                                <field name="lang"/>
+                                <field name="login_date"/>
+                                <field name="company_id"/>
+                                <field name="totp_enabled"/>
+                            </tree>
+                        </field>
+                        <field name="custom_mail_template_id" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <menuitem id="maintenance.menu_m_request_calendar" name="Maintenance Calendar" parent="maintenance.menu_m_request" action="maintenance.hr_equipment_request_action_cal" groups="maintenance.group_equipment_manager,base.group_user" sequence="20" active="False"/>
+</odoo>

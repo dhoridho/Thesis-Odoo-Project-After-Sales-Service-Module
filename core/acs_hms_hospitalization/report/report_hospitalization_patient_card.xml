@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <template id="HospitalizationCard">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.internal_layout">
+                    <div class="page" style="font-size:11px;">
+                        <table class="table table-condensed" style="border:none !important;">
+                            <tr>
+                                <td style="height:180px;border: none !important;">
+                                    <div style="width:302px;float:left; border: 1px solid black;">
+                                        <div style="height:20px; border-bottom: 1px solid black">
+                                            <div style="width:75px;text-align:center; float:left; border-right: 1 solid black;">
+                                                <span t-field="o.patient_id.code"/>
+                                            </div>
+                                            <div style="float:left; padding-left:5px">
+                                                <span>PT : </span><span t-field="o.patient_id.name"/>
+                                            </div>
+                                        </div>
+                                        <div style="height:20px">
+                                            <t t-foreach="o.attending_physician_ids" t-as="physician">
+                                                <div style="width:150px;float:left;padding-left:4px"><span t-esc="physician.name"/></div>
+                                            </t>
+                                        </div>
+                                        <div style="height:20px">
+                                            <div style="width:150px;float:left;padding-left:4px">
+                                                <span>M.No : </span><span t-field="o.patient_id.mobile"/>
+                                            </div>
+                                            <div style="float:left;padding-left:4px">
+                                                <span>Inpatient-ID : </span><span t-field="o.name"/>
+                                            </div>
+                                        </div>
+                                        <div style="height:20px">
+                                            <div style="width:150px;float:left;padding-left:4px">
+                                                <span>BED : </span><span t-field="o.bed_id.id"/>
+                                            </div>
+                                            <div style="float:left; padding-left:4px">
+                                                <span>DOA : </span><span t-field="o.hospitalization_date"/>
+                                            </div>
+                                        </div>
+                                        <div style="height:40px;">
+                                            <div>
+                                                <center>
+                                                    <img t-if="o.name" t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' %('Code128',o.name,280,30)" />
+                                                </center>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_hospitalization_card" model="ir.actions.report">
+        <field name="name">Hospitalization Card</field>
+        <field name="model">acs.hospitalization</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">acs_hms_hospitalization.HospitalizationCard</field>
+        <field name="report_file">acs_hms_hospitalization.HospitalizationCard</field>
+        <field name="print_report_name">(object.name or 'Hospitalization').replace('/','_') + '_card'</field>
+        <field name="binding_model_id" ref="model_acs_hospitalization"/>
+        <field name="groups_id" eval="[(4, ref('acs_hms.group_hms_receptionist'))]"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

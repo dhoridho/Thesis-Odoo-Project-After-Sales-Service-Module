@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+	<template id="report_closed_session">
+		<t t-call="web.html_container">
+			<t t-call="web.basic_layout">
+
+				<div class="header" t-att-style="'font-family:'+user_id.company_id.font_id.family+';font-size:'+str(user_id.company_id.font_size)+'px;'">  
+                    <table border="0" cellpadding="0" cellspacing="0" style="line-height: 15px;" width="100%">
+                        <tr>
+                            <td align="left" style="color:#4D4D4F; padding:0px 15px; border-right: 1px solid #D4D1D1; width:40%; vertical-align: middle!important;">
+                                <img style="max-height:40px; display:inline-block; width:100%;" t-att-src="'data:image/png;base64,%s' % to_text(user_id.company_id.logo)"/> 
+                            </td>
+                            <td style="padding:15px; width:60% vertical-align: middle!important;font_size:12px;"> 
+                                <!--<p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Address</p>-->
+                                <!--<t t-call="general_template.templates_company_details"/>-->
+                                <div style="color: #51565b;">
+                                  <div><strong>Address:</strong></div>
+                                  <div t-field="user_id.company_id.partner_id"/>
+                                  <t t-if="user_id.company_id.partner_id.street">
+                                      <div>
+                                          <span t-esc="user_id.company_id.partner_id.street"/>
+                                          <br/>
+                                      </div>
+                                  </t>
+                                  <t t-if="user_id.company_id.partner_id.mobile">
+                                      <strong>Mobile:</strong>
+                                      <span t-field="user_id.company_id.partner_id.mobile"/>
+                                      <br/>
+                                  </t>
+                                  <t t-if="user_id.company_id.partner_id.email">
+                                      <strong>Email:</strong>
+                                      <span t-field="user_id.company_id.partner_id.email"/> 
+                                  </t>
+                                </div>
+                            </td>
+                        </tr>
+                    </table> 
+                </div>
+
+				<div class="page">
+						<div class="text-center container" >
+						<h5><t t-esc="company.name"/></h5>
+					</div>
+					<div style="padding-top:1px;border:1px solid black;color:#ffffff; background-color: #333333;" class='text-center'>
+						<h2>Posted Session Report</h2>
+					</div>
+					<br/>
+					<table class="table table-sm">
+						<tbody>
+							<tr>
+								<td colspan="3" >Report Date:</td>
+								<td style="text-align:right;"><t t-esc="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d')"/></td>
+							</tr>
+							<tr>
+								<td colspan="3" >Report Time :</td>
+								<td style="text-align:right;"><t t-esc="context_timestamp(datetime.datetime.now()).strftime('%H:%M %p')"/></td>
+							</tr>
+							<tr>
+								<td colspan="3" >Session(s) :</td>
+								<td style="text-align:right;"><t t-esc="num_sessions"/></td>
+							</tr>
+							<tr>
+								<td colspan="3" >Status:</td>
+								<td style="text-align:right;">Closed</td>
+							</tr>
+							<tr>
+								<td colspan="3" >Open Bal:</td>
+								<td style="text-align:right;"><t t-esc="opening_balance"/></td>
+							</tr>
+							<tr>
+								<td colspan="3" >Close Bal:</td>
+								<td style="text-align:right;"><t t-esc="clsoing_balance"/></td>
+							</tr>
+							<tr>
+								<td colspan="3" >Difference:</td>
+								<td style="text-align:right;"><t t-esc="control_diff"/></td>
+							</tr>
+							<tr>
+								<td colspan="3" >Sales:</td>
+								<td style="text-align:right;"><t t-esc="total_paid - taxes" t-options="{'widget': 'float', 'precision': currency_precision}"/></td>
+							</tr>
+							<tr>
+								<td colspan="3" >Discount :</td>
+								<td style="text-align:right;"><t t-esc=" total_discount" t-options="{'widget': 'float', 'precision': currency_precision}"/></td>
+							</tr>
+							<tr>
+								<td colspan="3" >Tax :</td>
+								<td style="text-align:right;"><t t-esc=" taxes" t-options="{'widget': 'float', 'precision': currency_precision}"/></td>
+							</tr>
+							<tr>
+								<td colspan="3" >Returns :</td>
+								<td style="text-align:right;"><t t-esc="return_total" t-options="{'widget': 'float', 'precision': currency_precision}"/></td>
+							</tr>
+							<tr>
+								<td colspan="3">Gross Total:</td>
+								<td style="text-align:right;"><t t-esc=" total_paid" t-options="{'widget': 'float', 'precision': currency_precision}"/></td>
+							</tr>
+
+						</tbody>
+					</table>
+					<br/>
+
+					<div style="padding-top:1px;border:1px solid black;color:#ffffff; background-color: #333333;" class='text-center'>
+						<h2>Department Sales</h2>
+					</div>
+					<table class="table table-sm">
+						<tbody>
+						<t t-foreach='categories_data' t-as='line'>
+							<tr>
+								<td colspan="3"><t t-esc="line['name']" /></td>
+								<td style="text-align:right;">
+									<t t-esc="line['total']"  t-options="{'widget': 'float', 'precision': currency_precision}"/>
+								</td>
+							</tr>
+						</t>
+						<tr>
+							<td colspan="3" ></td>
+							<td style="text-align:right;"><t t-esc=" total_paid" t-options="{'widget': 'float', 'precision': currency_precision}"/></td>
+						</tr>
+						</tbody>
+					</table>
+					<br/>
+					<div style="padding-top:1px;border:1px solid black;color:#ffffff; background-color: #333333;" class='text-center'>
+						<h2>Payments</h2>
+					</div>
+					<table  class="table table-sm">
+						<tbody>
+						<tr t-foreach='payments' t-as='payment'>
+							<td colspan="3"><t t-esc="payment['name']" /></td>
+							<td style="text-align:right;"><t t-esc="payment['total']" t-options="{'widget': 'float', 'precision': currency_precision}"/></td>
+						</tr>
+						<tr>
+							<td colspan="3" ></td>
+							<td style="text-align:right;"><t t-esc=" total_paid" t-options="{'widget': 'float', 'precision': currency_precision}"/></td>
+						</tr>
+
+						</tbody>
+					</table>
+					<hr/>
+				</div>
+
+				<div class="footer" t-att-style="'font-family:'+user_id.company_id.font_id.family+';font-size:'+str(user_id.company_id.font_size)+'px;'" t-if="user_id.company_id.report_footer_selection == 'standard'">
+                    <div class="text-center" style="border-top: 1px solid black;">
+                        <ul class="list-inline mb4">
+                            <li t-if="user_id.company_id.phone">Phone: 
+                                <span t-field="user_id.company_id.phone"/></li>
+                            <li t-if="user_id.company_id.email">Email: 
+                                <span t-field="user_id.company_id.email"/></li>
+                            <li t-if="user_id.company_id.website">Web: 
+                                <span t-field="user_id.company_id.website"/></li>
+                            <li t-if="user_id.company_id.vat">
+                                <t t-esc="user_id.company_id.country_id.vat_label or 'TIN'"/>: 
+                                <span t-field="user_id.company_id.vat"/></li>
+                        </ul>
+                        <div name="financial_infos">
+                            <span t-field="user_id.company_id.report_footer"/>
+                        </div>
+                        <div class="text-muted">Page: 
+                            <span class="page"/>
+                            / 
+                            <span class="topage"/></div>
+                    </div>
+                </div>
+			</t>
+		</t>
+	</template>
+
+</odoo>

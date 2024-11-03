@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<template id="report_pos_login_history_report">
+    <t t-call="web.html_container">
+        <t t-call="web.html_container">
+            <t t-call="web.basic_layout">
+
+                 <div class="header" t-att-style="'font-family:'+user_id.company_id.font_id.family+';font-size:'+str(user_id.company_id.font_size)+'px;'">  
+                    <table border="0" cellpadding="0" cellspacing="0" style="line-height: 15px;" width="100%">
+                        <tr>
+                            <td align="left" style="color:#4D4D4F; padding:0px 15px; border-right: 1px solid #D4D1D1; width:30%; vertical-align: middle!important;">
+                                <img style="max-height:50px; display:inline-block; width:auto;" t-att-src="'data:image/png;base64,%s' % to_text(user_id.company_id.logo)"/> 
+                            </td>
+                            <td style="padding:15px; width:70% vertical-align: middle!important;font-size:14px;"> 
+                                <!--<p t-attf-style="text-transform:capitalize; color: #{theme_color or '#ffffff'}; font-weight:bold;margin:0; margin-bottom:5px;">Address</p>-->
+                                <!--<t t-call="general_template.templates_company_details"/>-->
+                                <div style="color: #51565b;">
+                                  <div><strong>Address:</strong></div>
+                                  <div t-field="user_id.company_id.partner_id"/>
+                                  <t t-if="user_id.company_id.partner_id.street">
+                                      <div>
+                                          <span t-esc="user_id.company_id.partner_id.street"/>
+                                          <br/>
+                                      </div>
+                                  </t>
+                                  <t t-if="user_id.company_id.partner_id.mobile">
+                                      <strong>Mobile:</strong>
+                                      <span t-field="user_id.company_id.partner_id.mobile"/>
+                                      <br/>
+                                  </t>
+                                  <t t-if="user_id.company_id.partner_id.email">
+                                      <strong>Email:</strong>
+                                      <span t-field="user_id.company_id.partner_id.email"/> 
+                                  </t>
+                                </div>
+                            </td>
+                        </tr>
+                    </table> 
+                </div>
+
+                <div class="container">
+                    <div style="padding-top:1px;border:1px solid black;color:#ffffff; background-color: #333333;" class='text-center'>
+                        <h3>Cashier Change Report</h3>
+                    </div>
+                    <br/>
+                    <t t-set="set_data" t-value="docs.generate_data_group_by_branch()"/>
+                    <t t-foreach="set_data" t-as="data_rec">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr t-if="data_rec" t-attf-style="page-break-inside: avoid !important;background-color: #333333 ;">
+                                    <td align="center" colspan="4" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid; color: #ffffff; font-weight:bold" ><span t-esc='data_rec.display_name'/></td>
+                                </tr>
+                                <tr t-attf-style="page-break-inside: avoid !important;background-color: #333333 ;">
+                                    <t t-set="colspan" t-value="5"/>
+                                    <td align="center" t-attf-style="padding:5px 10px;border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid; color: #ffffff; font-weight:bold" width="45%">Store Name</td>
+
+                                    <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid; color: #ffffff; font-weight:bold" width="25%">Cashier</td>
+                                    
+                                   
+                                    <td align="center" t-attf-style="padding:5px 10px;border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid; color: #ffffff; font-weight:bold" width="15%">Check In</td>
+                                    <td align="center" t-attf-style="padding:5px 10px; border:1px solid #{theme_color or '#000000'} !important; border-right:0px solid; color: #ffffff; font-weight:bold" width="15%">Check Out</td>
+                                </tr>
+                                <t t-foreach="set_data[data_rec]" t-as="rec_data_line">
+                                    <tr>
+                                        <td t-attf-style="padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; font-weight:bold"> <span t-esc='rec_data_line.pos_config_id.name'/></td>
+                                        <td t-attf-style="padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; font-weight:bold"> <span t-esc='rec_data_line.user_id.name'/></td>
+                                        
+                                      
+                                        <td t-attf-style="padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; font-weight:bold"> <span t-field='rec_data_line.checkin_datetime'/></td>
+                                        <td t-attf-style="padding:5px 10px; border:0.5px solid #ccc !important; border-right:0px solid #ccc !important; font-weight:bold"> <span t-field='rec_data_line.checkout_datetime'/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+                </div>
+
+                <div class="footer" t-att-style="'font-family:'+user_id.company_id.font_id.family+';font-size:'+str(user_id.company_id.font_size)+'px;'" t-if="user_id.company_id.report_footer_selection == 'standard'">
+                    <div class="text-center" style="border-top: 1px solid black;">
+                        <ul class="list-inline mb4">
+                            <li t-if="user_id.company_id.phone">Phone: 
+                                <span t-field="user_id.company_id.phone"/></li>
+                            <li t-if="user_id.company_id.email">Email: 
+                                <span t-field="user_id.company_id.email"/></li>
+                            <li t-if="user_id.company_id.website">Web: 
+                                <span t-field="user_id.company_id.website"/></li>
+                            <li t-if="user_id.company_id.vat">
+                                <t t-esc="user_id.company_id.country_id.vat_label or 'TIN'"/>: 
+                                <span t-field="user_id.company_id.vat"/></li>
+                        </ul>
+                        <div name="financial_infos">
+                            <span t-field="user_id.company_id.report_footer"/>
+                        </div>
+                        <div class="text-muted">Page: 
+                            <span class="page"/>
+                            / 
+                            <span class="topage"/></div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </t>
+</template>
+
+
+    <record id="act_report_pos_login_history_report" model="ir.actions.report">
+            <field name="name">Cashier Change Report</field>
+            <field name="model">pos.login.history</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">equip3_pos_report.report_pos_login_history_report</field>
+            <field name="report_file">equip3_pos_report.report_pos_login_history_report</field>
+            <field name="print_report_name">'Cashier Change Report'</field>
+            <field name="binding_model_id" ref="model_pos_login_history"/>
+            <field name="paperformat_id" ref="equip3_pos_report.pos_payment_format"/>
+            <field name="binding_type">report</field>
+        </record>
+ 
+
+
+</odoo>

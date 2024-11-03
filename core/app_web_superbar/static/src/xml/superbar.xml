@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <!--owl 处理继承继承-->
+    <t t-name="app.Superbar" t-inherit="web.SearchPanel" t-inherit-mode="primary" owl="1">
+        <!--改图标-->
+        <!--All改为标头的 x -->
+        <xpath expr="//div[hasclass('o_search_panel')]" position="attributes">
+            <attribute name="class">o_search_panel o_hidden</attribute>
+        </xpath>
+        <xpath expr="//header[hasclass('o_search_panel_section_header')]" position="replace">
+            <header class="o_search_panel_section_header text-uppercase">
+                <i t-attf-class="fa {{ section.icon }} o_search_panel_section_icon mr-2"
+                    t-att-style="section.color and ('color: ' + section.color)"
+                   t-att-data-origin-icon="section.icon"
+                />
+                <b t-esc="section.description"/>
+                <em t-att-class="'o_search_panel_category_value' + (!section.activeValueId ? ' o_hidden' : '')" t-att-data-category-id="section.id">
+                    <button class="o_search_panel_section_clear btn btn-sm btn-default fa fa-lg fa-times-circle" type="button"
+                            t-att-data-field-name="section.fieldName"
+                            t-att-data-category-id="section.id"
+                            title="Show All Data"
+                            t-on-click="_toggleCategory(section, {childrenIds:[]})"/>
+                </em>
+            </header>
+        </xpath>
+        <xpath expr="//*[@t-call='web.SearchPanel.Category']" position="attributes">
+            <attribute name="t-call">app.Superbar.Category</attribute>
+        </xpath>
+    </t>
+    <!--    原来 All 不显示 -->
+    <!--todo: t-inherit , 在extension不生效，当前重写视图-->
+    <!--注意，继承前要加模块名，如web.-->
+    <t t-name="app.Superbar.Category" owl="1">
+        <t t-foreach="values" t-as="valueId" t-key="valueId">
+            <t t-set="value" t-value="section.values.get(valueId)"/>
+            <li class="o_search_panel_category_value list-group-item border-0">
+                <header class="list-group-item-action"
+                    t-att-class="{ active: state.active[section.id] === valueId and value.bold!==true}"
+                    t-on-click="_toggleCategory(section, value)"
+                    >
+                    <label class="o_search_panel_label mb0" t-att-class="{ o_with_counters: section.enableCounters }">
+                        <div class="o_toggle_fold">
+                            <i t-if="value.childrenIds.length"
+                                t-attf-class="fa fa-chevron-{{ state.expanded[section.id][valueId] ? 'down' : 'right' }}"
+                            />
+                        </div>
+                        <b t-if="value.bold" class="o_search_panel_label_title o_hidden" t-esc="value.display_name"/>
+                        <span t-else="" class="o_search_panel_label_title" t-esc="value.display_name"/>
+                    </label>
+                    <span t-if="section.enableCounters and value.__count gt 0"
+                        class="o_search_panel_counter text-muted ml-2 small"
+                        t-esc="value.__count"
+                    />
+                </header>
+                <ul t-if="value.childrenIds.length and state.expanded[section.id][valueId]" class="list-group d-block">
+                    <t t-call="app.Superbar.Category">
+                        <t t-set="values" t-value="value.childrenIds"/>
+                    </t>
+                </ul>
+            </li>
+        </t>
+    </t>
+    <!--    end处理all-->
+
+    <!--<t t-extend="SearchPanel.CategoryValues">-->
+        <!--&lt;!&ndash;处理 m2m, m2o, select, 转换&ndash;&gt;-->
+        <!--<t t-jquery="t:first" t-operation="before">-->
+            <!--<label t-if="category.widget and category.widget=='many2many_tags'" class="app_search_panel_m2m mb0" t-att-data-category-id="category.id"/>-->
+            <!--<label t-if="category.widget and category.widget=='selection'" class="app_search_panel_selection mb0" t-att-data-category-id="category.id"/>-->
+        <!--</t>-->
+        <!--<t t-jquery=".o_search_panel_label" t-operation="replace">-->
+            <!--<label t-if="value.widget == 'date'" class="o_search_panel_label mb0">-->
+                <!--<span class="o_search_panel_label_title" t-att-title="value.display_name">-->
+                    <!--<t t-esc="value.display_name"/>-->
+                    <!--<span class="app_search_panel_custom app_search_panel_date" t-att-name="value.id"/>-->
+                <!--</span>-->
+            <!--</label>-->
+            <!--<label t-elif="value.widget == 'integer' || value.widget == 'float' || value.widget == 'monetary'" class="o_search_panel_label mb0">-->
+                <!--<span class="o_search_panel_label_title" t-att-title="value.display_name">-->
+                    <!--<t t-esc="value.display_name"/>-->
+                    <!--<span class="app_search_panel_custom app_search_panel_number" t-att-name="value.id"/>-->
+                <!--</span>-->
+            <!--</label>-->
+            <!--<label t-elif="value.widget == 'boolean'" class="o_search_panel_label mb0">-->
+                <!--<span class="o_search_panel_label_title">-->
+                    <!--<span class="app_search_panel_custom app_search_panel_boolean" t-att-name="value.id">-->
+                        <!--<input t-attf-id="{{value.id}}_true" t-att-name="value.id" type="radio" value="true"/>-->
+                        <!--<label t-attf-for="{{value.id}}_true" t-att-name="value.id" type="radio" value="true">Yes</label>-->
+                        <!--<input t-attf-id="{{value.id}}_false" t-att-name="value.id" type="radio" value="false" class="ml4"/>-->
+                        <!--<label t-attf-for="{{value.id}}_false">No</label>-->
+                    <!--</span>-->
+                <!--</span>-->
+            <!--</label>-->
+            <!--&lt;!&ndash;这里处理 lazy 模式下 m2m&ndash;&gt;-->
+            <!--<label t-elif="category.widget == 'many2many_tags' or category.widget == 'selection'" t-att-for="value.display_name" class="o_search_panel_label mb0">-->
+                <!--m2m in lazy mode. hidden.-->
+            <!--</label>-->
+            <!--<label t-elif="value.widget" class="o_search_panel_label mb0">-->
+                <!--<span class="o_search_panel_label_title">-->
+                    <!--<span class="app_search_panel_custom app_search_panel_widget" t-att-name="value.widget"/>-->
+                <!--</span>-->
+            <!--</label>-->
+            <!--&lt;!&ndash; 这里处理所有即时查询的原生 &ndash;&gt;-->
+            <!--<label t-else="" t-att-for="value.display_name" class="o_search_panel_label mb0">-->
+                <!--<i t-if="value.childrenIds.length" t-attf-class="fa fa-fw o_toggle_fold {{value.folded ? 'fa-chevron-right' : 'fa-chevron-down'}}"/>-->
+                <!--<span class="o_search_panel_label_title" t-att-title="value.display_name">-->
+                    <!--<t t-if="category.name_field" t-esc="value[category.name_field]"/>-->
+                    <!--<t t-else="" t-esc="value.display_name"/>-->
+                <!--</span>-->
+            <!--</label>-->
+        <!--</t>-->
+        <!--&lt;!&ndash;begin lazy 模式下原生隐藏&ndash;&gt;-->
+        <!--<t t-jquery=".o_search_panel_category_value"  t-operation="attributes">-->
+            <!--<attribute name="t-attf-style" value="{{category.widget and (category.widget=='many2many_tags' or category.widget=='selection') ? 'display: none' : ''}}"/>-->
+        <!--</t>-->
+        <!--&lt;!&ndash;end lazy&ndash;&gt;-->
+    <!--</t>-->
+    <!--&lt;!&ndash;begin，处理树状图标，改到左边&ndash;&gt;-->
+    <!--&lt;!&ndash;web.SearchPanel.FiltersGroup&ndash;&gt;-->
+    <!--<t t-extend="SearchPanel.FilterGroups">-->
+        <!--<t t-jquery=".o_search_panel_label" t-operation="replace">-->
+            <!--<label t-att-for="inputId" class="o_search_panel_label custom-control-label d-block" t-att-title="group.tooltip">-->
+                <!--<i t-att-class="'fa fa-fw pull-right o_toggle_fold ' + (group.folded ? 'fa-chevron-right' : 'fa-chevron-down')"/>-->
+                <!--<span t-if="group.hex_color" t-att-style="'color: ' + group.hex_color + ';'">●</span>-->
+                <!--<span class="o_search_panel_label_title"><t t-esc="group.name"/></span>-->
+            <!--</label>-->
+        <!--</t>-->
+    <!--</t>-->
+    <!--&lt;!&ndash;    end改图标&ndash;&gt;-->
+
+    <!--&lt;!&ndash;lazy模式下按键&ndash;&gt;-->
+    <!--<div t-name="App.SuperbarButton" class="app_search_panel_topbar">-->
+        <!--<button type="button" class="btn btn-sm btn-secondary fa fa-lg fa-angle-double-down pull-left o_search_panel_button_category_toggle" title="Expand/Collapse"/>-->
+        <!--<button type="button" class="btn btn-sm btn-secondary o_search_panel_button_reset">Reset</button>-->
+        <!--<button type="button" class="btn btn-sm btn-primary o_search_panel_button_search mr8">Search</button>-->
+    <!--</div>-->
+    <!---->
+</templates>

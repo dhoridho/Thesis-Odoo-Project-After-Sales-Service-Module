@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_equip3_kitchen">
+        <div class="container o_mrp_bom_report_page">
+            <t t-if="data.get('components') or data.get('lines')">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 style="display:inline;">Cost Details</h1>
+                        <h3>
+                            <a t-if="data['report_type'] == 'html'" t-att-data-res-id="data['product'].id"
+                               t-att-data-model="data['product']._name">
+                                <t t-esc="data['kitchen_prod_name']"/>
+                            </a>
+                            <t t-else="" t-esc="data['kitchen_prod_name']"/>
+                        </h3>
+                        <h6 t-if="data['kitchen'].name">Reference:
+                            <t t-esc="data['kitchen'].name"/>
+                        </h6>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="mt16">
+                            <table width="100%" class="o_mrp_bom_expandable">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th name="th_mrp_bom_h">Product Quantity</th>
+                                        <th class="text-right">Consumed Quantity</th>
+                                        <th class="text-right">Cost</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-if="data['report_type'] == 'html'"
+                                       t-call="equip3_kitchen_reports.report_kitchen_line"/>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td></td>
+                                        <td>
+                                            <b>Unit Cost</b>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                            <div class="text-right">
+                                                <t t-esc="data['total']"/>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <t t-else="">
+                <h1 class="text-center">No data available.</h1>
+            </t>
+        </div>
+    </template>
+    <template id="report_finished_goods">
+        <t t-foreach="data['finished_goods']" t-as="l">
+            <tr class="o_mrp_bom_report_line" t-att-data-id="l[finished_product_id]"
+                t-att-parent_id="l['finished_product_name']">
+                <td>
+                    <div>
+                        <t t-if="l['finished_product_id']">
+                            <div t-att-data-function="'get_bom'"
+                                 style="display:inline-block;" role="img" aria-label="Unfold" title="Unfold"/>
+                        </t>
+                    </div>
+                </td>
+            </tr>
+        </t>
+    </template>
+    <template id="report_kitchen_line">
+        <t t-foreach="data['finished_goods']" t-as="l1">
+            <t t-set="not_by_product" t-value="True"/>
+            <t t-if="data['kitchen'].product_tmpl_id.id != l1['finished_product'].product_tmpl_id.id">
+                <t t-set="not_by_product" t-value="False"/>
+                <t t-esc="not_by_product" t-value="False"/>
+            </t>
+            <tr class="o_mrp_bom_report_line">
+                <td>
+                    <div>
+                        <t t-if="l1['finished_product_id']">
+                            <div t-att-data-function="'get_bom'"
+                                 style="display:inline-block;" role="img" aria-label="Unfold" title="Unfold"/>
+                        </t>
+                        <t t-esc="l1['finished_product_name']"/>
+                    </div>
+                </td>
+                <td>
+                    <t t-esc="l1['finished_product_qty']"/>
+                </td>
+                <td>
+                </td>
+                <td>
+                    <div class="text-right">
+                        <t t-esc="l1['finished_total_value']"/>
+                    </div>
+                </td>
+            </tr>
+            <t t-if="not_by_product">
+                <t t-foreach="data['components']" t-as="l">
+                    <t t-if="l['product_id']">
+                        <tr class="o_mrp_bom_report_line">
+                            <td>
+                                <div style="margin-left: 24px;">
+                                    <t t-if="l['product_id']">
+                                        <div t-att-data-function="'get_bom'"
+                                             style="display:inline-block;"
+                                             role="img" aria-label="Unfold" title="Unfold"/>
+                                    </t>
+                                    <div t-att-class="none if l['product_id'] else 'o_mrp_bom_no_fold'"
+                                         style="display:inline-block;">
+                                        <a t-att-data-res-id="l['product_id']" t-att-data-model="'product.product'">
+                                            <t t-esc="l['product_name']"/>
+                                        </a>
+                                    </div>
+                                    <t t-if="l['product_name']">
+                                        <div title="This is a BoM of type Kit!" role="img"
+                                             aria-label="This is a BoM of type Kit!"/>
+                                    </t>
+                                </div>
+                            </td>
+
+                            <td></td>
+                            <td>
+                                <div class="text-right">
+                                    <t t-esc="l['product_consumed_qty']"/>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-right">
+                                    <t t-esc="l['total_value']"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </t>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_kitchen_production">
+        <t t-set="data_report_landscape" t-value="True"/>
+        <t t-call="web.basic_layout">
+            <t t-call-assets="mrp.assets_common" t-js="False"/>
+            <t t-foreach="docs" t-as="data">
+                <div class="page">
+                    <t t-call="equip3_kitchen_reports.report_equip3_kitchen"/>
+                </div>
+                <p style="page-break-before:always;"></p>
+            </t>
+        </t>
+    </template>
+</odoo>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_mrp_workcenter_kanban_kiosk" model="ir.ui.view">
+        <field name="name">view.mrp.workcenter.kanban.kiosk</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_workcenter_kanban"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_work_order']" position="attributes">
+                <attribute name="name">action_work_order_kiosk</attribute>
+                <attribute name="context">{'search_default_ready': 1, 'search_default_progress': 1, 'search_default_pending': 1}</attribute>
+            </xpath>
+
+            <xpath expr="//div[@t-if='record.workorder_ready_count.raw_value &gt; 0']//a[@name='action_work_order']" position="attributes">
+                <attribute name="name">action_work_order_kiosk</attribute>
+            </xpath>
+
+            <xpath expr="//div[@t-if='record.workorder_progress_count.raw_value &gt; 0']//a[@name='action_work_order']" position="attributes">
+                <attribute name="name">action_work_order_kiosk</attribute>
+            </xpath>
+
+            <xpath expr="//div[@t-if='record.workorder_late_count.raw_value &gt; 0']//a[@name='action_work_order']" position="attributes">
+                <attribute name="name">action_work_order_kiosk</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_mrp_workorder_kanban_kiosk" model="ir.ui.view">
+        <field name="name">view.mrp.workorder.kanban.kiosk</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.workcenter_line_kanban"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="attributes">
+                <attribute name="js_class">mrp_workorder_kanban_kiosk</attribute>
+                <attribute name="default_order">id desc</attribute>
+            </xpath>
+
+            <xpath expr="//templates" position="before">
+                <field name="workorder_id"/>
+            </xpath>
+            
+            <xpath expr="//t[@t-esc='record.production_id.value']" position="replace">
+                <t t-esc="record.workorder_id.value"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_work_orders_kiosk" model="ir.actions.act_window">
+        <field name="name">Work Orders</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.workorder</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="equip3_manuf_kiosk.view_mrp_workorder_kanban_kiosk"/>
+        <field name="search_view_id" ref="mrp.view_mrp_production_work_order_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No work orders to do!
+            </p><p>
+                Work orders are operations to do as part of a manufacturing order.
+                Operations are defined in the bill of materials or added in the manufacturing order directly.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_view_mrp_workcenter_kiosk" model="ir.actions.act_window">
+        <field name="name">Machine KIOSK Mode</field>
+        <field name="res_model">mrp.workcenter</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="equip3_manuf_kiosk.view_mrp_workcenter_kanban_kiosk"/>
+    </record>
+
+    <menuitem id="menu_kiosk_mode_2"
+        name="KIOSK Mode"
+        parent="mrp.menu_mrp_root"
+        action="action_view_mrp_workcenter_kiosk"
+        sequence="12"/>
+
+    <record id="equip3_manuf_kiosk.menu_kiosk_mode_2" model="ir.ui.menu">
+        <field name="equip_icon_class">o-hm-sidebar-main-manufacturing-kiosk-mode</field> 
+    </record>
+
+</odoo>

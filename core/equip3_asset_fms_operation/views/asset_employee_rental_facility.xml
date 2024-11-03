@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- asset_employe_rental_facility search view -->
+        <record id="asset_employee_rental_facility_view_search" model="ir.ui.view">
+            <field name="name">asset_employe_rental_facility.view.search</field>
+            <field name="model">asset.employee.rental</field>
+            <field name="arch" type="xml">
+                <search string="Asset Employee Rental Facility Search">
+                    <filter string="Running &amp; On Rent" name="ongoing" domain="[('state', 'in', ['running', 'on_rent'])]"/>
+                </search>
+            </field>
+        </record>
+
+        <!-- asset_employee_rental tree view -->
+        <record id="asset_employee_rental_facility_view_tree" model="ir.ui.view">
+            <field name="name">asset_employee_rental.view.tree</field>
+            <field name="model">asset.employee.rental</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name" decoration-bf="1"/>
+                    <field name="create_uid"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="state" widget="badge" decoration-success3="state == 'done'" decoration-warning="state == 'running'" decoration-primary3="state == 'on_rent'"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- asset_employee_rental form view -->
+        <record id="asset_employee_rental_facility_view_form" model="ir.ui.view">
+            <field name="name">asset_employee_rental.view.form</field>
+            <field name="model">asset.employee.rental</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <header>
+                            <button name="button_running" string="Set to Running" type="object" class="oe_highlight" attrs="{'invisible':['|',('state', '!=', 'draft'),('name', '=', 'New')]}"/>
+                            <button name="button_on_rent" string="Set to On Rent" type="object" attrs="{'invisible':[('state', '!=', 'running')]}" class="oe_highlight"/>
+                            <button name="button_done" string="Set to Done" type="object" class="oe_highlight" attrs="{'invisible':[('state', 'not in', ['on_rent'])]}"/>
+                            <button name="button_draft" string="Set to Draft" type="object" attrs="{'invisible':[('state', '!=', 'running')]}"/>
+                            <field name="state" widget="statusbar" statusbar_visible="draft,running,on_rent,done"/>
+                        </header>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="create_uid"/>
+                                <field name="create_date"/>
+                                <field name="branch_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            </group>
+                            <group>
+                            <label for="date_from" string="Due Dates" />
+                            <div>
+                                <field name="date_from" class="oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                -
+                                <field name="date_to" class="oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+						    </div>
+                            <field name="priority" attrs="{'readonly': [('state', '!=', 'draft')]}" widget="priority"/>
+                            <field name="rental_type" force_save="1" readonly="1" invisible="1"/>
+                            <field name="facility_ids" widget="many2many_tags" invisible="1"/>
+                            </group>
+                        </group>
+                        <field name="rental_line" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                            <tree editable="bottom">
+                                <field name="facility_id" required="1" domain="[('rentable_area', '=', True)]"/>
+                                <field name="user_id"/>
+                                <field name="notes"/>
+                            </tree>
+                        </field>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- asset.employee kanban view -->
+        <record id="asset_employee_view_kanban" model="ir.ui.view">
+            <field name="name">asset.employee.view.kanban</field>
+            <field name="model">asset.employee.rental</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state" class="o_kanban_small_column o_opportunity_kanban" nocreate="1" create="false" records_draggable="0">
+                    <field name="name"/>
+                    <field name="priority"/>
+                    <field name="state"/>
+                    <field name="branch_id"/>
+                    <field name="create_uid"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                    <field name="rental_type"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_card oe_kanban_global_click oe_semantic_html_override ">
+                                <div class="o_kanban_record_top mb8">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title"><span>
+                                            <t t-esc="record.name.value or record.name.value"/>
+                                        </span></strong>
+                                    </div>
+                                    <strong>
+                                        <field name="state" widget="label_selection" options="{'classes': {'draft': 'default', 'running': 'warning', 'on_rent': 'warning', 'done': 'success'}}"/>
+                                    </strong>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <span name="name" t-if="record.create_uid.raw_value">Created by : <field name="create_uid"/><br/></span>
+                                    <span class="oe_grey" t-if="record.date_from.raw_value">Date Start : <field name="date_from"/><br/></span>
+                                    <span class="oe_grey" t-if="record.date_to.raw_value">Date End : <field name="date_to"/><br/></span>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">              
+                                        <div>
+                                        <field name="priority" widget="priority" groups="base.group_user"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- asset.employee.rental calendar view -->
+        <record id="asset_employee_rental_facility_view_calendar" model="ir.ui.view">
+            <field name="name">asset.employee.rental.view.calendar</field>
+            <field name="model">asset.employee.rental</field>
+            <field name="arch" type="xml">
+                <calendar string="Asset Employee Calendar" form_view_id="%(asset_employee_rental_facility_view_form)d" event_open_popup="true" date_start="date_from" date_stop="date_to" mode="month" color="id" quick_add="False" event_limit="5">
+                    <field name="name"/>
+                    <field name="create_uid"/>
+                    <field name="state"/>
+                    <field name="priority" widget="priority"/>
+                    <field name="facility_ids" widget="many2many_tags"/>
+                </calendar>
+            </field>
+        </record>
+
+        <!-- asset_employee_rental action window -->
+        <record id="asset_employee_rental_facility_action" model="ir.actions.act_window">
+            <field name="name">Employee Facility Area Rental</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">asset.employee.rental</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="asset_employee_rental_facility_view_search"/>
+            <field name="domain">[('rental_type', '=', 'facility')]</field>
+            <field name="context">{'default_rental_type': 'facility'}</field>
+        </record>
+
+        <record id="asset_employee_rental_facility_act_tree" model="ir.actions.act_window.view">
+            <field name="sequence">1</field>
+            <field name="view_mode">tree</field>
+            <field name="act_window_id" ref="asset_employee_rental_facility_action"/>
+            <field name="view_id" ref="asset_employee_rental_facility_view_tree"/>
+        </record>
+
+        <record id="asset_employee_rental_facility_act_form" model="ir.actions.act_window.view">
+            <field name="sequence">2</field>
+            <field name="view_mode">form</field>
+            <field name="act_window_id" ref="asset_employee_rental_facility_action"/>
+            <field name="view_id" ref="asset_employee_rental_facility_view_form"/>
+        </record>
+
+        <record id="asset_employee_rental_facility_act_kanban" model="ir.actions.act_window.view">
+            <field name="sequence">3</field>
+            <field name="view_mode">kanban</field>
+            <field name="act_window_id" ref="asset_employee_rental_facility_action"/>
+            <field name="view_id" ref="asset_employee_view_kanban"/>
+        </record>
+
+        <!-- Action for menu calendar view -->
+        <record id="asset_employee_rental_facility_calendar_action" model="ir.actions.act_window">
+            <field name="name">Booking Facility Calendar</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">asset.employee.rental</field>
+            <field name="view_mode">calendar</field>
+            <field name="search_view_id" ref="asset_employee_rental_facility_view_search"/>
+            <field name="domain">[('rental_type', '=', 'facility')]</field>
+            <field name="context">{'search_default_ongoing': 1,'default_rental_type': 'facility','create_from_calendar': 1}</field>
+        </record>
+
+        <record id="asset_employee_rental_facility_act_calendar" model="ir.actions.act_window.view">
+            <field name="sequence">1</field>
+            <field name="view_mode">calendar</field>
+            <field name="act_window_id" ref="asset_employee_rental_facility_calendar_action"/>
+            <field name="view_id" ref="asset_employee_rental_facility_view_calendar"/>
+        </record>
+
+    </data>
+</odoo>

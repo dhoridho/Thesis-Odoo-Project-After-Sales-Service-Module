@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <record id="view_my_leave_balance_tree" model="ir.ui.view">
+            <field name="name">view.leave.balance.tree</field>
+            <field name="model">hr.leave.balance</field>
+            <field name="arch" type="xml">
+                <tree string="My Leave Balance">
+                    <field name="employee_id"/>
+                    <field name="holiday_status_id"/>
+                    <field name="code"/>
+                    <field name="set_by"/>
+                    <field name="leave_entitlement"/>
+                    <field name="assigned"/>
+                    <field name="used"/>
+                    <field name="carry_forward"/>
+                    <field name="bring_forward"/>
+                    <field name="extra_leave"/>
+                    <field name="current_period"/>
+                    <field name="balance"/>
+                    <field name="active" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+        <record id="view_my_leave_balance_form" model="ir.ui.view">
+            <field name="name">view.leave.balance.form</field>
+            <field name="model">hr.leave.balance</field>
+            <field name="arch" type="xml">
+                <form string="My Leave Balance" create="false" edit="0">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="active" invisible="1"/>
+                                <field name="employee_id" required="1"/>
+                                <field name="department_id"/>
+                                <field name="job_id"/>
+                                <field name="code"/>
+                                <field name="holiday_status_id" required="1" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True}"/>
+                                <field name="start_date" required="1"/>
+                                <field name="hr_years" invisible="1"/>
+                                <field name="current_period"/>
+                                <field name="leave_entitlement"/>
+                                <field name="assigned" required="1"/>
+                                <field name="used"/>
+                                <field name="bring_forward"/>
+                                <field name="extra_leave"/>
+                                <field name="carry_forward"/>
+                                <field name="remaining"/>
+                                <field name="count_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="hr_years_monthly" invisible="1"/>
+                                <field name="leave_generate_id" invisible="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+        <record id="view_my_leave_balance_pivot" model="ir.ui.view">
+            <field name="name">view.leave.balance.pivot</field>
+            <field name="model">hr.leave.balance</field>
+            <field name="arch" type="xml">
+                <pivot string="My Leave Balance">
+                    <field name="hr_years_id" invisible="1"/>
+                    <field name="carry_forward_value" invisible="1"/>
+                    <field name="current_period" type="col"/>
+                    <field name="employee_id" type="row"/>
+                    <field name="holiday_status_id" type="row"/>
+                    <field name="balance" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+        <record id="view_my_leave_balance_graph" model="ir.ui.view">
+            <field name="name">view.leave.balance.graph</field>
+            <field name="model">hr.leave.balance</field>
+            <field name="arch" type="xml">
+                <graph string="My Leave Balance">
+                    <field name="employee_id"/>
+                    <field name="holiday_status_id"/>
+                </graph>
+            </field>
+        </record>
+        <record id="equip3_view_leave_balance_report_filter" model="ir.ui.view">
+            <field name="name">equip3.view.leave.balance.report.filter</field>
+            <field name="model">hr.leave.balance</field>
+            <field name="arch" type="xml">
+                <search string="Search Leave Balance Report">
+                    <filter string="All Year"
+                            name="active"
+                            domain="['|',('active','=',True),('active','=',False)]"/>
+                </search>
+            </field>
+        </record>
+        <record id="equip3_view_leave_balance_filter" model="ir.ui.view">
+            <field name="name">equip3.view.leave.balance.filter</field>
+            <field name="model">hr.leave.balance</field>
+            <field name="arch" type="xml">
+                <search string="Search Leave Balance">
+                    <field name="employee_id" string="Employee"/>
+                    <field name="department_id" string="Department"/>
+                    <field name="job_id" string="Job Position"/>
+                    <field name="is_dashboard" invisible="1"/>
+                    <filter name="filter_is_dashboard" string="Annual Leave" domain="[('is_dashboard','!=',False)]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_employee_id" string="Employee" context="{'group_by':'employee_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+        <record id="hr_leave_balance_action_my" model="ir.actions.act_window">
+            <field name="name">My Leave Balance</field>
+            <field name="res_model">hr.leave.balance</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('employee_id.user_id', '=', uid)]</field>
+            <field name="search_view_id" ref="view_my_leave_balance_tree"/>
+        </record>
+        <record id="hr_leave_balance_action_department" model="ir.actions.act_window">
+            <field name="name">Leave Balance</field>
+            <field name="res_model">hr.leave.balance</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="equip3_view_leave_balance_filter"/>
+            <field name="context">{'search_default_group_employee_id':1,'search_default_filter_is_dashboard':1}</field>
+        </record>
+        <record id="hr_leave_balance_report_action" model="ir.actions.act_window">
+            <field name="name">Leave Balance Report</field>
+            <field name="res_model">hr.leave.balance</field>
+            <field name="view_mode">pivot,graph</field>
+            <field name="search_view_id" ref="equip3_view_leave_balance_report_filter"/>
+            <field name="context">{'search_default_active':1}</field>
+        </record>
+    </data>
+</odoo>

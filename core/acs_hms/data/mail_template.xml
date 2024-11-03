@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="acs_appointment_email" model="mail.template">
+            <field name="name">Appointment Creation</field>
+            <field name="email_from">${ user.email|safe}</field>
+            <field name="email_to">${object.patient_id.email|safe}</field>
+            <field name="subject">${object.patient_id.name|safe} Your Appointment Have been Scheduled</field>
+            <field name="model_id" ref="acs_hms.model_hms_appointment"/>
+            <field name="report_template" ref="acs_hms.action_appointment_report"/>
+            <field name="report_name">${(object.name or '').replace('/','_')}</field>
+            <field name="lang">${object.patient_id.lang}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div style="margin:auto;background: #FFFFFF;color:#777777">
+    % set appointment_date = format_datetime(object.date, tz=(object.physician_id.tz or "UTC"), dt_format=(object.physician_id.lang.date_format))
+
+    <p>Hello ${object.patient_id.name},</p>
+    <p>Your Appointment Have been Scheduled with following details.</p>
+    <ul>
+        <li>
+            <p>Subject: ${object.purpose_id.name}</p><br/>
+        </li>
+        <li>
+            <p>Reference Number: ${object.name}</p><br/>
+        </li>
+        <li>
+            <p>Physician Name: ${object.physician_id.name}</p><br/>
+        </li>
+        <li>
+            <p>Date &amp; Time: ${appointment_date} (Timezone: ${object.physician_id.tz or "UTC"})</p><br/>
+        </li>
+    </ul>
+    <p>Please feel free to call anytime for further information or any query.</p>
+
+    <p>Best regards.</p><br/>
+</div>
+                
+            </field>
+        </record>
+
+        <record id="acs_prescription_email" model="mail.template">
+            <field name="name">Prescription Creation</field>
+            <field name="email_from">${ user.email|safe}</field>
+            <field name="email_to">${object.patient_id.email|safe}</field>
+            <field name="subject">${object.patient_id.name|safe} Your Prescription</field>
+            <field name="model_id" ref="acs_hms.model_prescription_order"/>
+            <field name="report_template" ref="acs_hms.report_hms_prescription_id"/>
+            <field name="report_name">${(object.name or '').replace('/','_')}</field>
+            <field name="lang">${object.patient_id.lang}</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html" type="html">
+<div style="padding:0px;width:600px;margin:auto;background: #FFFFFF repeat top /100%;color:#777777">
+    <p>Hello ${object.patient_id.name},</p>
+    <p>Your Prescription details. For more details please refer attached PDF report.</p>
+    <ul>
+        <li>
+            <p>Reference Number: ${object.name}</p><br/>
+        </li>
+        % if object.appointment_id:
+        <li>
+            <p>Appointment ID: ${object.appointment_id.name|safe}</p><br/>
+        </li>
+        % endif
+        % if object.physician_id:
+        <li>
+            <p>Physician Name: ${object.physician_id.name|safe}</p><br/>
+        </li>
+        % endif
+        <li>
+            <p>Prescription Date: ${object.prescription_date}</p><br/>
+        </li>
+    </ul>
+    <p>Please feel free to call anytime for further information or any query.</p>
+
+    <p>Best regards.</p><br/>
+</div>
+  
+            </field>
+        </record>
+        
+    </data>
+</odoo>

@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_scrap_request_form_view" model="ir.ui.view">
+        <field name="name">stock.scrap.request.form.view</field>
+        <field name="model">stock.scrap.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_request_confirm" string="Confirm" type="object" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('approval_matrix_id', '!=', False)]}"/>
+                    <button name="action_request_validated" string="Validate" type="object" class="oe_highlight" attrs="{'invisible': [('state', 'not in', ('confirmed', 'approved'))]}" groups="equip3_inventory_accessright_setting.group_allow_validate_product_usage"/>
+                    <button name="action_cancel" string="Cancel" type="object" class="oe_highlight" states="confirmed   "/>
+                    <button name="set_to_draft_scp" string="Set To Draft" type="object" class="btn btn-primary" attrs="{'invisible': [('state', '!=', 'to_approve')]}"/>
+                    <button name="scrap_request_for_approving" string="Request For Approval" type="object" class="btn btn-primary" attrs="{'invisible': ['|', '|', ('approval_matrix_id', '=', False), ('state', '!=', 'draft'), ('scrap_ids', '=', [])]}"/>
+                    <button name="scrap_approving" string="Approve" type="object" class="btn btn-primary" attrs="{'invisible': ['|', '|', ('is_product_usage_approval', '=', False), ('is_approve_button', '=', False), ('state', '!=', 'to_approve')]}"/>
+                    <button name="scrap_reject" string="Reject" attrs="{'invisible': ['|', '|', ('is_product_usage_approval','=', False), ('is_approve_button', '=', False), ('state', '!=', 'to_approve')]}" type="object" class="btn btn-primary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,validated" attrs="{'invisible': [('approval_matrix_id', '!=', False)]}"/>
+                    <field name="scrap_state" widget="statusbar" statusbar_visible="draft,to_approve,approved,validated" attrs="{'invisible': ['|', ('approval_matrix_id', '=', False), ('state', '=', 'rejected')]}"/>
+                    <field name="scrap_state_1" widget="statusbar" statusbar_visible="draft,to_approve,rejected,validated" attrs="{'invisible': ['|', ('approval_matrix_id', '=', False), ('state', '!=', 'rejected')]}"/>
+                 </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_journal_items" type="object" class="oe_stat_button" icon="o-hm-smart-all-vendor-bill" attrs="{'invisible': ['|', ('state', '!=', 'validated'), ('account_move_count', '=', 0)]}">
+                            <field name="account_move_count" widget="statinfo" string="Journal Items"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="scrap_request_name"/>
+                            <field name="warehouse_id" domain="domain_warehouse_id"/>
+                            <field name="responsible_id"/>
+                            <field name="accounting" invisible="1"/>
+                            <field name="pu_barcode_mobile_type" invisible="1"/>
+                            <field name="pu_bm_is_cont_scan" invisible="1"/>
+                            <field name="pu_bm_is_notify_on_success" invisible="1"/>
+                            <field name="pu_bm_is_notify_on_fail" invisible="1"/>
+                            <field name="pu_bm_is_sound_on_success" invisible="1"/>
+                            <field name="pu_bm_is_sound_on_fail" invisible="1"/>
+                            <field name="pu_bm_is_add_product" invisible="1"/>
+                            <field name="domain_warehouse_id" invisible="1"/>
+
+                            <field name="scrap_type" string="Usage Type" attrs="{'invisible': [('accounting', '=', False)]}" required="1"/>
+                            <field name="is_mbs_on_product_usage" invisible="1"/>
+                            <field name="is_product_usage" invisible="1"/>
+                            <!-- <field name="payment_method_id" attrs="{'invisible': [('is_payment_method', '=', False)], 'required': [('is_payment_method', '=', True)]}" domain="[('type', 'in', ('cash', 'bank'))]" /> -->
+                            <field name="payment_method_id" invisible="1"/>
+                            <field name="is_payment_method" invisible="1"/>
+                            <field name="is_group_analytic_tags" invisible="1"/>
+                            <field name="analytic_tag_ids" widget="many2many_tags" domain="[('company_id', '=', company_id)]" attrs="{'invisible': [('is_group_analytic_tags', '=', False)], 'required': [('is_group_analytic_tags', '=', True)]}"/>
+                        </group>
+                        <group>
+                            <field name="create_date" string="Created On"/>
+                            <field name="create_uid" string="Created By"/>
+                            <field name="schedule_date"/>
+                            <field name="expire_date" invisible="0"/>
+                           <field name="date_done" string="Done Date" attrs="{'visible': [('state', '=', 'validated')]}"/>
+                            <field name="company_id" />
+                            <field name="branch_id"/>
+                            <field name="is_product_usage_approval" groups="base.group_no_one" attrs="{'readonly': [('state', 'in', ('approved','rejected','validated'))]}"/>
+                            <field name="approval_matrix_id" attrs="{'invisible': [('is_product_usage_approval', '=', False)]}"/>
+                            <field name="approval_matrix_line_id" invisible="1"/>
+                            <field name="is_approve_button" invisible="1"/>
+                        </group>
+                        <group attrs="{'invisible': [('state', '!=', 'draft')]}">
+                            <field name="pu_barcode_mobile"  attrs="{'invisible': [('is_mbs_on_product_usage', '=', False)]}"/>
+                            <field name="pu_bm_is_cont_scan" invisible="1" attrs="{'invisible': [('is_mbs_on_product_usage', '=', False)]}"/>
+                        </group>
+                    </group>
+                    <script type="text/javascript" src="/sh_all_in_one_mbs/static/src/js/ZXing.js"></script>
+                    <script type="text/javascript" src="/equip3_inventory_control/static/src/js/pu_barcode_mobile.js"></script>
+
+                    <section class="oe_edit_only" attrs="{'invisible': [('state', '!=', 'draft')]}">
+                        <div>
+                            <a role="button" style="color: #fff; border-radius: 0px; margin-bottom: 5px; margin-right: 5px;" class="btn btn-primary" id="js_id_pu_barcode_mobile_start_btn" attrs="{'invisible': [('is_mbs_on_product_usage', '=', False)]}">
+                                <i class="fa fa-barcode"></i>
+                                Start
+                            </a>
+                            <a role="button" style="display: none; color: #fff; border-radius: 0px; margin-bottom: 5px; margin-right: 5px;" class="btn btn-danger" id="js_id_pu_barcode_mobile_reset_btn">
+                                <i class="fa fa-barcode"></i>
+                                Stop
+                            </a>
+                        </div>
+
+                        <div id="js_id_pu_barcode_mobile_vid_div" style="display: none;">
+                            <group style="margin-bottom: 10px;">
+                                <div class="form-group row" style="margin-bottom: 0px;">
+                                    <strong style="align-self: center;" class="col-3">Camera</strong>
+                                    <select class="col-8 form-control" id="js_id_pu_barcode_mobile_cam_select"> </select>
+                                </div>
+                            </group>
+
+                            <video id="video" class="cls_sh_all_in_one_mbs_video_tag" width="600" height="400" style="border: 1px solid gray;"></video>
+
+                            <span style="display: block;">Result:</span>
+                            <code id="js_id_pu_barcode_mobile_result"></code>
+                        </div>
+                    </section>
+                    <notebook>
+                        <page name="scrap_ids" string="Products">
+                            <field name="scrap_ids">
+                                <tree editable="bottom">
+									<field name="location_id" domain="[('id', 'in', filter_location_ids)]"/>
+                                    <field name="scrap_location_id" domain="[('usage', '=', 'inventory'),('scrap_location','=', True)]" invisible="1"/>
+                                    <field name="product_id" domain="[('id', 'in', filter_product_ids)]"/>
+                                    <field name="lot_id" domain="[('id', 'in', filter_lot_ids)]"/>
+                                    <field name="state" invisible="1"/>
+                                    <field name="available_quantity" force_save="1"/>
+                                    <field name="scrap_qty"/>
+                                    <field name="product_uom_id" domain="[('category_id', '=', product_uom_category_id)]"/>
+                                    <field name="product_uom_category_id" invisible="1"/>
+									<field name="analytic_tag_ids" widget="many2many_tags" readonly="1" groups="analytic.group_analytic_tags"/>
+                                    <field name="package_id" domain="[('id', 'in', filter_package_ids)]" invisible="1"/>
+                                    <field name="owner_id" domain="[('id', 'in', filter_owner_ids)]" invisible="1"/>
+                                    <field name="filter_location_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="filter_lot_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="filter_package_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="filter_owner_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="filter_product_ids" widget="many2many_tags" invisible="1"/>
+                                    <field name="company_id" invisible="1"/>
+                                    <field name="warehouse_id" invisible="1"/>
+                                    <field name="name" string="Scrap Reference"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page name="approved_matrix_ids" string="Approval Matrix Line" attrs="{'invisible': ['|', ('approval_matrix_id', '=', False), ('is_product_usage_approval', '=', False)]}">
+                            <field name="approved_matrix_ids" context="{'approved_matrix_ids': approved_matrix_ids}">
+                                <tree editable="bottom">
+                                    <field name="sequence" />
+                                    <field name="user_ids" widget="many2many_tags"/>
+                                    <field name="minimum_approver" />
+                                    <field name="state_char" />
+                                    <field name="time_stamp" invisible="1"/>
+                                    <field name="feedback" />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="stock_scrap_request_tree_view" model="ir.ui.view">
+        <field name="name">stock.scrap.request.tree.view</field>
+        <field name="model">stock.scrap.request</field>
+        <field name="arch" type="xml">
+            <tree default_order="id desc">
+                <field name="name"/>
+                <field name="scrap_request_name"/>
+                <field name="warehouse_id"/>
+                <field name="company_id"/>
+                <field name="state" optional="show" widget="badge"
+                            decoration-success2="state == 'validated'"
+                            decoration-secondary="state == 'draft'"
+                            decoration-success="state == 'assigned'"
+                            decoration-warning="state == 'waiting'"
+                            decoration-warning3="state =='to_approve'"
+                            decoration-danger3="state == 'cancel'"
+                            decoration-danger="state == 'rejected'"
+                            decoration-success3="state == 'approved'"
+                            decoration-warning2="state == 'confirm'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_form_stock_scrap_request" model="ir.ui.view">
+        <field name="name">stock.scrap.request.form</field>
+        <field name="model">stock.scrap.request</field>
+        <field name="inherit_id" ref="equip3_inventory_control.stock_scrap_request_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='scrap_ids']/tree//field[@name='owner_id']" position="after">
+                <field name="cost_price" attrs="{'required': [('product_usage_state', 'in', ('confirmed', 'approved'))]}" groups="equip3_inventory_accessright_setting.group_allow_validate_product_usage" force_save="1"/>
+                <field name="product_usage_state" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='scrap_type']" position="attributes">
+                <attribute name="required">0</attribute>
+                <attribute name="attrs">{'required':[('accounting', '=', True)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_scrap_request" model="ir.actions.act_window">
+        <field name="name">Scrap Request</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">stock.scrap.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_product_usage', '=', False)]</field>
+        <field name="help" type="html">
+          <p class="oe_views_nocontent_create">
+            Click to add a new Scrap Request.
+          </p>
+        </field>
+   </record>
+
+   <record id="action_stock_product_usage" model="ir.actions.act_window">
+        <field name="name">Product Usage</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">stock.scrap.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'default_is_product_usage': True}</field>
+        <field name="domain">[('is_product_usage', '=', True)]</field>
+        <field name="help" type="html">
+          <p class="oe_views_nocontent_create">
+            Click to add a new Product usage.
+          </p>
+        </field>
+   </record>
+
+   <menuitem name="Product Usage"
+        id="menuitem_stock_product_usage_parent"
+        parent='menu_root_control'
+        sequence="6"/>
+
+    <menuitem name="Product Usage"
+        id="menuitem_stock_product_usage"
+        action="action_stock_product_usage"
+        parent='menuitem_stock_product_usage_parent'
+        sequence="1"/>
+
+    <record id="stock.menu_stock_scrap" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+</odoo>

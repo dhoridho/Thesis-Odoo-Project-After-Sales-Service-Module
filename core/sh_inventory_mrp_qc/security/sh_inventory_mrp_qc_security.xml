@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.module.category" id="module_quality_control_category">
+        <field name="name">Quality Control</field>
+        <field name="description">Quality Control</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="sh_quality_control_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="category_id" ref="module_quality_control_category" />
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]" />
+    </record>
+    <record id="sh_quality_control_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="category_id" ref="module_quality_control_category" />
+        <field name="implied_ids" eval="[(4, ref('sh_quality_control_user'))]" />
+    </record>
+    <record model="ir.rule" id="quality_control_team_comp_rule">
+        <field name="name">Quality Control Team multi-company</field>
+        <field name="model_id" ref="model_sh_qc_team" />
+        <field name="global" eval="True" />
+        <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+    </record>
+    <record model="ir.rule" id="quality_control_point_comp_rule">
+        <field name="name">Quality Control Point multi-company</field>
+        <field name="model_id" ref="model_sh_qc_point" />
+        <field name="global" eval="True" />
+        <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+    </record>
+    <record model="ir.rule" id="quality_control_alert_stage_comp_rule">
+        <field name="name">Quality Control Alert Stage multi-company</field>
+        <field name="model_id" ref="model_sh_qc_alert_stage" />
+        <field name="global" eval="True" />
+        <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record model="ir.rule" id="quality_control_alert_comp_rule">
+        <field name="name">Quality Control Alert multi-company</field>
+        <field name="model_id" ref="model_sh_quality_alert" />
+        <field name="global" eval="True" />
+        <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+    </record>
+    <record model="ir.rule" id="quality_check_comp_rule">
+        <field name="name">Quality Check multi-company</field>
+        <field name="model_id" ref="model_sh_quality_check" />
+        <field name="global" eval="True" />
+        <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <!-- Team wise check record  -->
+    <record model="ir.rule" id="quality_check_team_rule_user">
+        <field name="name">Quality Check Team wise Rule User</field>
+        <field name="model_id" ref="model_sh_quality_check" />
+        <field name="groups" eval="[(4,ref('sh_inventory_mrp_qc.sh_quality_control_user'))]" />
+        <field name="domain_force">[('control_point_id.team.user_ids.id','in',[user.id])]</field>
+    </record>
+    <record model="ir.rule" id="quality_check_team_rule_manager">
+        <field name="name">Quality Check Team wise Rule Manager</field>
+        <field name="model_id" ref="model_sh_quality_check" />
+        <field name="groups" eval="[(4,ref('sh_inventory_mrp_qc.sh_quality_control_manager'))]" />
+        <field name="domain_force">[(1,'=',1)]</field>
+    </record>
+
+    <!-- Team wise alert record  -->
+    <record model="ir.rule" id="quality_alert_team_rule_user">
+        <field name="name">Quality Alert Team wise Rule User</field>
+        <field name="model_id" ref="model_sh_quality_alert" />
+        <field name="groups" eval="[(4,ref('sh_inventory_mrp_qc.sh_quality_control_user'))]" />
+        <field name="domain_force">[('team_id.user_ids.id','in',[user.id])]</field>
+    </record>
+    <record model="ir.rule" id="quality_alert_team_rule_manager">
+        <field name="name">Quality Alert Team wise Rule Manager</field>
+        <field name="model_id" ref="model_sh_quality_alert" />
+        <field name="groups" eval="[(4,ref('sh_inventory_mrp_qc.sh_quality_control_manager'))]" />
+        <field name="domain_force">[(1,'=',1)]</field>
+    </record>
+</odoo>

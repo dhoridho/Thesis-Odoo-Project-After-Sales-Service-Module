@@ -1,0 +1,92 @@
+# -*- coding: utf-8 -*-
+{
+    'name': "Equip3 Sale Operation",
+    'summary': """
+        Manage your quotations and sale orders activities""",
+    'description': """
+        This module manages these features :
+        1. Quotation
+        2. Quotation Revision
+        3. Sale Order
+        4. Sale Order Revision
+        5. Quotation & SO Approval Matrix (Master and Transaction)
+        6. Invoicing
+        7. Shipment Single Delivery Address, Single Warehouse, Single Delivery Date
+        8. Shipment Multi Delivery Address, Multi Warehouse, Multi Delivery Date
+        9. Quotation, Sale Order, Invoice send by whatsapp
+    """,
+    'author': "Hashmicro",
+    'category': 'Sales',
+    'version': '1.6.77',
+    'depends': ['sale_margin', 'web', 'branch', 'web_domain_field',
+                'equip3_sale_accessright_setting',
+                'equip3_discount_with_tax',
+                'web_digital_sign',
+                'base',
+                'mail',
+                'sh_sale_credit_limit',
+                'sale_stock_location_oin',
+                'sale_quotation_number',
+                'bi_inter_company_transfer',
+                'sale_order_terms_knk',
+                'sh_so_po',
+                'app_sale_superbar',
+                'acrux_chat_sale', 
+                'quotation_revision',
+                'ss_whatsapp_connector',
+                'contract_recurring_invoice_analytic',
+                'sr_manual_currency_exchange_rate',
+                'dynamic_product_bundle',
+                'equip3_sale_masterdata',
+                'equip3_general_features',
+                'equip3_hashmicro_ui',
+                'sale_product_configurator',
+                'project',
+                'general_template',
+                'bi_loyalty_generic',
+                'equip3_general_setting',
+                'product_margin',
+                'sh_all_in_one_mbs',
+                'equip3_accounting_operation',
+                'payment_xendit',
+                'equip3_inventory_masterdata',
+                'mass_mailing',
+            ],
+    'data': [
+        'security/ir.model.access.csv',
+        'security/so_multipule_do_security.xml',
+        'data/ir_cron.xml',
+        'data/ir_sequence_data.xml',
+        'data/ir_rule.xml',
+        'data/sale_order_template.xml',
+        'data/data_product.xml',
+        'data/ir_actions_server.xml',
+        'wizards/approval_matrix_sale_reject_views.xml',
+        'wizards/MessageWizard.xml',
+        'wizards/sale_select_product_view.xml',
+        'wizards/send_message_mass_view.xml',
+        'views/product_view.xml',
+        'views/menu_category.xml',
+        'views/sale_order_views.xml',
+        'views/sale_sequence_views.xml',
+        'views/account_move_views.xml',
+        'views/res_setting_config_view.xml',
+        'views/approval_matrix_sale_order_views.xml',
+        'views/res_users_views.xml',
+        'views/sale_terms_and_conditions_views.xml',
+        'views/sale_report.xml',
+        'views/pricelist_view.xml',
+        'views/sales_teams_view.xml',
+        'views/templates.xml',
+        'views/quotation_report.xml',
+        'views/whatsapp_template.xml',
+        'views/email_marketing_views.xml',
+        'wizards/sale_product_configurator.xml',
+        'views/approval_matrix_customer_views.xml',
+        'views/customer_view.xml',
+
+    ],
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+}

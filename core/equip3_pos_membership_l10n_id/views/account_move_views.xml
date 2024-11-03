@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="pos_account_move_view_form_inherit" model="ir.ui.view">
+        <field name="name">pos.account.move.view.form.inherit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="equip3_pos_membership.pos_view_move_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='partner_shipping_id']" position="after">
+                <field name="l10n_id_need_kode_transaksi" invisible="1"/>
+                <field name="l10n_id_attachment_id" invisible="1"/>
+                <field name="l10n_id_kode_transaksi" attrs="{'invisible': ['|', ('country_code', '!=', 'ID'), ('l10n_id_need_kode_transaksi', '=', False)], 'required': [('l10n_id_need_kode_transaksi', '=', True)]}"/>
+                <field name="l10n_id_replace_invoice_id" attrs="{'invisible': [('country_code', '!=', 'ID')], 'readonly': [('state', '!=','draft')]}" options="{'m2o_dialog': False, 'no_create': True}"/>
+            </xpath>
+
+            <xpath expr="//page[@name='other_info']" position="after">
+                <page name="e_faktur_page" string="E-Faktur">
+                    <group name="e_faktur_page_group">
+                        <group>
+                            <field name="discount_type" invisible="1"/>
+                            <field name="fiscal_year"  invisible="1"/>
+                            <field name="code" invisible='1'/>
+                            <field name="check" invisible='1'/>
+                            <field name="check_invisible" invisible='1'/>
+                            <field name="check_invisible_ebupot" invisible='1'/>
+
+                            <!-- <field name="l10n_id_kode_transaksi" /> -->
+                            <field name="l10n_id_kode_transaksi" attrs="{'invisible': [('check', '=', True)], 'required': [('l10n_id_need_kode_transaksi', '=', True)], 'readonly': [('discount_type', '=', False)]}" />
+
+
+                            <field name="keterangan_tambahan" attrs="{'invisible': ['|',('check', '=', True),('l10n_id_kode_transaksi','not in',('07','08'))]}" domain="[('jenis_transaksi','=',l10n_id_kode_transaksi)]" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,'no_create': True}"/>
+                            <field name="nomor_dokumen_pendukung" attrs="{'invisible': ['|',('check', '=', True),('l10n_id_kode_transaksi','not in',('07','08'))]}"/>
+                            <field name="status_code" attrs="{'invisible': [('check', '=', True)]}" />
+                            <field name="nomor_seri" attrs="{'invisible': [('check_invisible', '=', True)]}" />
+                            <field name="l10n_id_tax_number" string='Nomor Seri Faktur Pajak' force_save='1' attrs="{'invisible': [('code', '!=', 'ID')]}"/>
+                        </group>
+
+                        <group>
+                            <field name="tipe_pembayaran" attrs="{'invisible': [('check', '=', True)]}"/>
+                            <field name="uang_muka" attrs="{'invisible': [('check', '=', True)]}"/>
+                            <field name="uang_muka_ppn" attrs="{'invisible': [('check', '=', True)]}" string="Uang Muka PPN"/>
+                            <field name="uang_muka_ppnbm" attrs="{'invisible': [('check', '=', True)]}" string="Uang Muka PPNBM"/>
+                        </group>
+                    </group>
+                </page>
+                <page name="e_bupotunifikasi_page" string="E-Bupotunifikasi">
+                    <group name="e_bupotunifikasi_page_group">
+                        <group>
+                            <field name="tax_number_bupot" attrs="{'invisible': [('code', '!=', 'ID')]}" />
+                            <field name="kode_dokumen" attrs="{'invisible': [('check_invisible_ebupot', '=', True)]}"/>
+                            <field name="kode_seri"  widget="mask" data-inputmask="'mask': '99'" attrs="{'invisible': [('check_invisible_ebupot', '=', True)]}"/>
+                            <field name="nomor_seri_bupot" attrs="{'invisible': [('check_invisible_ebupot', '=', True)]}"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

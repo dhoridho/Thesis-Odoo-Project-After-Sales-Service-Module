@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="template_picking_advance_layout">
+        <!-- Multicompany -->
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id" />
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company" />
+        </t>
+        <t t-call="equip3_asset_fms_report.picking_advanced_header" />
+        <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id">
+            <t t-raw="0" />
+        </div>
+        <t t-call="equip3_asset_fms_report.templates_footer" />
+    </template>
+    <template id="picking_advanced_header">
+        <div class="header"
+            t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <center>
+                                <table border="0" cellpadding="0" cellspacing="0"
+                                    style="padding:0px 20px 20px 20px; margin:0; background:#fff; line-height:20px;"
+                                    width="100%">
+                                    <tr>
+                                        <td align="left" colspan="2" style="color:#4D4D4F; padding:9px 0px 9px 0px;"
+                                            valign="top">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                <tr>
+                                                    <td align="left"
+                                                        style="color:#4D4D4F;padding: 30px 0px 0px 0px; margin:0 "
+                                                        valign="middle">
+                                                        <img style="max-height: 80px;"
+                                                            t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.invoice_logo) or to_text(o.company_id.logo)"
+                                                            t-if="o.company_id.logo" />
+                                                    </td>
+                                                    <td align="right" rowspan="3"
+                                                        style="padding:25px 0px 0px 0px; width:31.5%;" valign="top">
+                                                        <t t-call="equip3_asset_fms_report.templates_company_details" />
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </center>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </template>
+    <!-- Ini adalah template dari general template-->
+    <template id="templates_company_details">
+        <span style="text-transform:capitalize; padding:0px; margin:0; color: #51565b;">
+            <t t-if="o.company_id and o.company_id.is_company_bold">
+                <strong>
+                    <span t-field="o.company_id.partner_id"/>
+                </strong>
+            </t>
+            <t t-if="not o.company_id.is_company_bold">
+                <span t-field="o.company_id.partner_id"/>
+            </t>
+        </span>
+        <div style="width:310px; color: #51565b;">
+            <span t-esc="o._get_street(o.company_id.partner_id)"/>
+            <br/>
+            <span t-esc="o._get_address_details(o.company_id.partner_id)"/>
+            <br/>
+        </div>
+        <div style="color: #51565b;">
+            <t t-if="o.company_id.partner_id.mobile">
+                <strong>Mobile:</strong>
+                <span t-field="o.company_id.partner_id.mobile"/>
+                <br/>
+            </t>
+            <t t-if="o.company_id.partner_id.email">
+                <strong>Email:</strong>
+                <span t-field="o.company_id.partner_id.email"/>
+                <br/>
+            </t>
+            <!--  <t t-if="o.company_id.is_show_bank_details"><strong>Bank: </strong><span t-esc="o.company_id.report_bank_id.acc_number"/></t>-->
+        </div>
+    </template>
+    <template id="templates_customer_details">
+        <span t-attf-style="text-transform:capitalize; padding:0px; margin:0; color: #{customer_color or '#ffffff'};">
+            <t t-if="o.company_id and o.company_id.is_customer_bold">
+                <strong>
+                    <span t-field="o.partner_id"/>
+                </strong>
+            </t>
+            <t t-if="not o.company_id.is_customer_bold">
+                <span t-field="o.partner_id"/>
+            </t>
+        </span>
+        <p t-attf-style="margin:0; padding-top:0; color: #{customer_address_color or '#ffffff'};">
+            <span t-esc="o._get_street(o.partner_id)"/>
+            <br/>
+            <span t-esc="o._get_address_details(o.partner_id)"/>
+            <br/>
+            <t t-if="o.partner_id.mobile">
+                <strong>Mobile:</strong>
+                <span t-field="o.partner_id.mobile"/>
+                <br/>
+            </t>
+            <t t-if="o.partner_id.email">
+                <strong>Email:</strong>
+                <span t-field="o.partner_id.email"/>
+                <br/>
+            </t>
+            <t t-if="o.partner_id.vat">
+                <strong>Vat:</strong>
+                <span t-field="o.partner_id.vat"/>
+            </t>
+        </p>
+    </template>
+    <template id="templates_watermark">
+        <t t-if="o.company_id and o.company_id.is_show_watermark">
+            <div class="watermark text-center" style="position:absolute; opacity:0.25; width:100%; height:auto; z-index:1000; -webkit-transform: rotate(-45deg); -moz-transform:rotate(-45deg); bottom:-600px; left:-100px;">
+                <t t-if="o.company_id.watermark == 'logo'">
+                    <img style="max-height: 800px;" t-att-src="'data:image/png;base64,%s' %  to_text(o.company_id.watermark_logo)" t-if="o.company_id"/>
+                </t>
+                <t t-if="o.company_id.watermark != 'logo'">
+                    <span t-att-style="'font-size:'+str(o.company_id.watermark_text_font_size)+'em; color:'+o.company_id.watermark_text_color">
+                        <span t-field="o.company_id.watermark_text" t-if="o.company_id.watermark == 'text'"/>
+                        <span t-field="o.state" t-if="o.company_id.watermark == 'status'"/>
+                    </span>
+                </t>
+            </div>
+        </t>
+    </template>
+    <template id="template_total_amount_word">
+        <t t-if="o.company_id.add_amount_in_words == True">
+            <span t-attf-style="color: #{text_color or '#000000'};padding-bottom: 5px;">Total in word:- 
+                <t t-esc="o.amount_to_text"/>
+            </span>
+        </t>
+    </template>
+    <template id="report_signature">
+        <t t-if="o.company_id.is_show_signature == True">
+            <img style="max-height: 80px; padding:5px;" t-att-src="'data:image/png;base64,%s' %  to_text(o.company_id.signature)" t-if="o.company_id.signature"/>
+        </t>
+    </template>
+    <template id="report_barcode">
+        <div class="row" t-if="o.company_id.is_show_barcode==True">
+            <div style="position:absolute; width:100%; text-align:center;">
+                <img style="width:190px; height:35px;" t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.name, 600, 100)"/>
+            </div>
+        </div>
+    </template>
+    <template id="templates_footer">
+        <div class="footer" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'" t-if="o.company_id.report_footer_selection == 'standard'">
+            <div class="text-center" style="border-top: 1px solid black;">
+                <ul class="list-inline mb4">
+                    <li t-if="company.phone">Phone: 
+                        <span t-field="company.phone"/></li>
+                    <li t-if="company.email">Email: 
+                        <span t-field="company.email"/></li>
+                    <li t-if="company.website">Web: 
+                        <span t-field="company.website"/></li>
+                    <li t-if="company.vat">
+                        <t t-esc="company.country_id.vat_label or 'TIN'"/>: 
+                        <span t-field="company.vat"/></li>
+                </ul>
+                <div name="financial_infos">
+                    <span t-field="company.report_footer"/>
+                </div>
+                <div class="text-muted">Page: 
+                    <span class="page"/>
+                    / 
+                    <span class="topage"/></div>
+            </div>
+        </div>
+        <div class="footer" t-att-style="'font-family:'+o.company_id.font_id.family+';font-size:'+str(o.company_id.font_size)+'px;'" t-if="o.company_id.report_footer_selection == 'multi_columns'">
+            <div class="col-md-3 text-center" style="width:27%; display:inline-block; vertical-align: top;">
+                <span t-field="o.company_id.name"/>
+                <br/>
+                <span t-esc="o._get_street(o.company_id.partner_id)"/>
+                <br/>
+                <span t-esc="o._get_address_details(o.company_id.partner_id)"/>
+            </div>
+            <div class="col-md-3 text-center" style="width:27%; display:inline-block; vertical-align: top;">
+                <span t-field="o.company_id.phone"/>
+                <br/>
+                <span t-field="o.company_id.website"/>
+                <br/>
+                <span t-field="o.company_id.email"/>
+                <br/>
+                <!-- Put social in one line
+                <icon>Website name + <icon>twitter + <icon>googleplus
+                 -->
+            </div>
+            <div class="col-md-3 text-center" style="width:27%; display:inline-block; vertical-align: top;">
+                <span t-field="o.company_id.report_footer"/>
+            </div>
+            <div class="col-md-3 text-center" style="width:15%; margin-bottom:20px; display: inline-block; vertical-align: top;">
+                <img style="margin-bottom:50px;max-height: 110px;max-width: 100%;"  t-att-src="'data:image/png;base64,%s' % to_text(o.company_id.logo_footer)"/>
+            </div>
+        </div>
+    </template>
+</odoo>

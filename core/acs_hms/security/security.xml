@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="group_hms_receptionist" model="res.groups">
+            <field name="name">Receptionist</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user')),(4, ref('acs_hms_base.group_hms_user'))]"/>
+        </record>
+        <record id="group_hms_nurse" model="res.groups">
+            <field name="name">Nurse</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user')),(4, ref('acs_hms_base.group_hms_user'))]"/>
+        </record>
+        <record id="group_hms_jr_doctor" model="res.groups">
+            <field name="name">Jr Doctor</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms"/>
+            <field name="implied_ids" eval="[(4, ref('acs_hms.group_hms_nurse')),(4, ref('acs_hms.group_hms_receptionist'))]"/>
+        </record>
+        <record id="group_hms_doctor" model="res.groups">
+            <field name="name">Doctor</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms"/>
+            <field name="implied_ids" eval="[(4, ref('acs_hms.group_hms_jr_doctor'))]"/>
+        </record>
+        <record id="group_hms_medical_officer" model="res.groups">
+            <field name="name">Medical Officer</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user')),(4, ref('acs_hms.group_hms_receptionist'))]"/>
+        </record>
+
+        <record id="acs_hms_base.group_hms_manager" model="res.groups">
+            <field name="category_id" ref="acs_hms_base.module_category_hms"/>
+            <field name="implied_ids" eval="[(4, ref('group_hms_doctor')),(4, ref('acs_hms.group_hms_medical_officer'))]"/>
+        </record>
+
+        <!-- HMS14 make it more generic -->
+        <record id="group_acs_hms_appointment_user" model="res.groups">
+            <field name="name">Appointment (Nurse)</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms"/>
+        </record>
+
+        <record id="base.user_admin" model="res.users">
+            <field name="groups_id" eval="[(4, ref('acs_hms_base.group_hms_manager')), (4, ref('acs_hms.group_hms_medical_officer'))]"/>
+        </record>
+
+        <record id ="group_allow_multi_department" model="res.groups">
+            <field name="name">Multi Department</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms_extra"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <record id ="group_allow_consultation_pause" model="res.groups">
+            <field name="name">Allow to Pause Consultation</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms_extra"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <record id ="group_patient_registartion_invoicing" model="res.groups">
+            <field name="name">Patient Registration Invoicing</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms_extra"/>
+            <field name="implied_ids" eval="[(4, ref('account.group_account_invoice'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <record id ="group_treatment_invoicing" model="res.groups">
+            <field name="name">Treatment Invoicing</field>
+            <field name="category_id" ref="acs_hms_base.module_category_hms_extra"/>
+            <field name="implied_ids" eval="[(4, ref('account.group_account_invoice'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+    </data>
+    <data noupdate="1">
+        <!-- Patient Rules -->
+        <!-- See Own Patient only -->
+        <record id="hms_patient_rule" model="ir.rule">
+            <field name="name">Own Patient</field>
+            <field name="model_id" ref="acs_hms_base.model_hms_patient"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[('user_id.id','=',user.id)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms_base.group_hms_user'))]"/>
+        </record>
+        <!-- See Own Department Patients -->
+        <record id="hms_patient_department_rule" model="ir.rule">
+            <field name="name">Departments Patients</field>
+            <field name="model_id" ref="acs_hms_base.model_hms_patient"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', '|',('user_id.id','=',user.id), ('department_ids', 'in', [dep.id for dep in user.department_ids]),('department_ids', '=', False)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms.group_hms_receptionist')),(4, ref('acs_hms.group_hms_nurse'))]"/>
+        </record>
+        <!-- See all Patients -->
+        <record id="acs_all_patient_rule" model="ir.rule">
+            <field name="name">All Patient</field>
+            <field name="model_id" ref="acs_hms_base.model_hms_patient"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms_base.group_hms_manager'))]"/>
+        </record>
+
+        <!-- Appointments Rules-->
+        <!-- See own appointments -->
+        <record id="hms_patient_appointment_rule" model="ir.rule">
+            <field name="name">Patient's Own Appointments</field>
+            <field name="model_id" ref="acs_hms.model_hms_appointment"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[('patient_id.user_id.id','=',user.id)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms_base.group_hms_user'))]"/>
+        </record>
+        <!-- See Only Department Related Appointments -->
+        <record id="hms_appointment_doctor_department_rule" model="ir.rule">
+            <field name="name">Departments Appointments</field>
+            <field name="model_id" ref="model_hms_appointment"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('department_id', '=', False), ('department_id', 'in', [dep.id for dep in user.department_ids])]</field>
+            <field name="groups" eval="[(4, ref('group_hms_receptionist'))]"/>
+        </record>
+
+        <record id="hms_appointment_user_department_rule" model="ir.rule">
+            <field name="name">Appointment User Department Appointments</field>
+            <field name="model_id" ref="model_hms_appointment"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('department_id', '=', False), ('department_id', 'in', [dep.id for dep in user.department_ids])]</field>
+            <field name="groups" eval="[(4, ref('group_acs_hms_appointment_user'))]"/>
+        </record>
+        
+        <!-- Doctors see their own appointments -->
+        <!-- <record id="hms_appointment_doctor_rule" model="ir.rule">
+            <field name="name">My Appointmets</field>
+            <field name="model_id" ref="model_hms_appointment"/>
+            <field name="domain_force">[('physician_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms.group_hms_jr_doctor'))]"/>
+        </record> -->
+        <!-- See all appointments -->
+        <record id="hms_appointment_patient_rule" model="ir.rule">
+            <field name="name">All Appointment Rule</field>
+            <field name="model_id" ref="model_hms_appointment"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms_base.group_hms_manager'))]"/>
+        </record>
+
+        <!-- Treatment Rules-->
+        <!-- See own treatments -->
+        <record id="hms_patient_treatment_rule" model="ir.rule">
+            <field name="name">Patient's Own Treatments</field>
+            <field name="model_id" ref="acs_hms.model_hms_treatment"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[('patient_id.user_id.id','=',user.id)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms_base.group_hms_user'))]"/>
+        </record>
+        <!-- See Only Department Related Treatments -->
+        <record id="hms_treatment_department_rule" model="ir.rule">
+            <field name="name">Departments Treatments</field>
+            <field name="model_id" ref="model_hms_treatment"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|', ('department_id', '=', False), ('department_id', 'in', [dep.id for dep in user.department_ids])]</field>
+            <field name="groups" eval="[(4, ref('group_hms_receptionist'))]"/>
+        </record>
+        <!-- See all treatments -->
+        <record id="hms_all_treatment_rule" model="ir.rule">
+            <field name="name">All Treatment Rule</field>
+            <field name="model_id" ref="model_hms_treatment"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms_base.group_hms_manager'))]"/>
+        </record>
+
+        <!-- See Only own Departments -->
+        <record id="hms_department_rule" model="ir.rule">
+            <field name="name">Own Departments</field>
+            <field name="model_id" ref="model_hr_department"/>
+            <field name="domain_force">[('id', 'child_of', [dep.id for dep in user.department_ids])]</field>
+            <field name="groups" eval="[(4, ref('acs_hms_base.group_hms_user'))]"/>
+        </record>
+        <!-- See all Departments -->
+        <record id="hms_all_department_rule" model="ir.rule">
+            <field name="name">All Departments Rule</field>
+            <field name="model_id" ref="model_hr_department"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('acs_hms_base.group_hms_manager'))]"/>
+        </record>
+
+        <record model="ir.rule" id="patient_comp_rule">
+            <field name="name">Patient multi-company</field>
+            <field name="model_id" ref="model_hms_patient"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+        </record>
+        <record model="ir.rule" id="physician_comp_rule">
+            <field name="name">Physician multi-company</field>
+            <field name="model_id" ref="model_hms_physician"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+        </record>
+        <record model="ir.rule" id="treatment_comp_rule">
+            <field name="name">Treatment multi-company</field>
+            <field name="model_id" ref="model_hms_treatment"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+        </record>
+        <record model="ir.rule" id="appointment_comp_rule">
+            <field name="name">Appointment multi-company</field>
+            <field name="model_id" ref="model_hms_appointment"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+        </record>
+        <record model="ir.rule" id="prescription_comp_rule">
+            <field name="name">Prescription multi-company</field>
+            <field name="model_id" ref="model_prescription_order"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+        </record>
+        <record model="ir.rule" id="resource_cal_comp_rule">
+            <field name="name">Calendar multi-company</field>
+            <field name="model_id" ref="model_resource_calendar"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">['|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- purchase.order inherit form view -->
+    <record id="inherit_subcontracting_purchase_order_view_id" model="ir.ui.view">
+        <field name="name">purchase.order.inherit.view.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_create_invoice'][2]" position="after">
+                <button name="action_custom_crate_bill_view" type="object" string="Create Bill" class="oe_highlight" attrs="{'invisible': ['|', ('state', 'not in', ('purchase', 'done')), ('mining_subcontracting', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button type="object" name="action_custom_open_bills" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{'invisible':['|', ('custom_inv_count', '=', 0), '|', ('mining_subcontracting', '=', False), ('state', 'in', ('draft','sent','to approve'))]}">
+                    <field name="custom_inv_count" widget="statinfo" string="Vendor Bills"/>
+                </button>
+            </xpath>
+            <xpath expr="//sheet/group[1]//field[@name='partner_id']" position="before">
+                <field name="mining_subcontracting" invisible="1"/>
+                <field name="mining_site_id" attrs="{'invisible': [('mining_subcontracting', '=', False)], 'required': [('mining_subcontracting', '!=', False)]}"/>
+                <field name="operation_id" attrs="{'invisible': [('mining_subcontracting', '=', False)], 'required': [('mining_subcontracting', '!=', False)]}"/>
+                <field name="operation_two_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='date_order']" position="after">
+                <field name="start_date" attrs="{'invisible': [('mining_subcontracting', '=', False)], 'required': [('mining_subcontracting', '!=', False)]}"/>
+                <field name="end_date" attrs="{'invisible': [('mining_subcontracting', '=', False)], 'required': [('mining_subcontracting', '!=', False)]}"/>
+                <field name="duration" attrs="{'invisible': [('mining_subcontracting', '=', False)], 'required': [('mining_subcontracting', '!=', False)]}"/>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="is_branch_required" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='branch_id']" position="attributes">
+                <attribute name="attrs">{'required': [('is_branch_required', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_create_invoice'][1]" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ('purchase', 'done')), '|', ('invoice_status', 'in', ('no', 'invoiced')), ('mining_subcontracting', '!=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_create_invoice'][2]" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', '|', '|', ('state', 'not in', ('purchase', 'done')), ('invoice_status', 'not in', ('no', 'invoiced')), ('order_line', '=', []), ('mining_subcontracting', '!=', False)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- purchase.order inherit form view -->
+    <record id="inherit_attrs_button_purchase_down_payment_view_id" model="ir.ui.view">
+        <field name="name">purchase.order.inherit.view.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="equip3_purchase_other_operation.purchase_form_dev_purchase_down_payment_inherited2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_dev_purchase_down_payment']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', '|', '|', '|','|',('total_down_payment_amount','=',0), ('amount_total', '=', 0), ('state', '!=', 'purchase'), ('hide_create_bill', '=', True), ('invoice_status', '=', 'invoiced'), ('mining_subcontracting', '!=', False)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- purchase.order inherit form view -->
+    <record id="inherit_invisible_other_field_custom_view_id" model="ir.ui.view">
+        <field name="name">purchase.order.inherit.view.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="sh_all_in_one_mbs.sh_purchase_barcode_mobile_purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sh_purchase_barcode_mobile']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- purchase.order inherit form view -->
+    <record id="inherit_invisible_other_field_custom_1_view_id" model="ir.ui.view">
+        <field name="name">purchase.order.inherit.view.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="sh_so_po.sh_so_po_inherit_purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sh_sale_order_id']" position="attributes">
+                <attribute name="attrs">{'invisible': [('mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- purchase.order inherit form view -->
+    <record id="inherit_invisible_other_field_custom_2_view_id" model="ir.ui.view">
+        <field name="name">purchase.order.inherit.view.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="equip3_purchase_operation.purchase_order_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page/field[@name='order_line']/tree/field[@name='date_planned']" position="attributes">
+                <attribute name="attrs">{'column_invisible': ['|', ('parent.is_delivery_receipt', '=', True), ('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//tree//field[@name='destination_warehouse_id']" position="attributes">
+                <attribute name="attrs">{'column_invisible': ['|', ('parent.is_single_delivery_destination', '=', True), ('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='reference_purchase_price']" position="attributes">
+                <attribute name="attrs">{'column_invisible': ['|', ('parent.agreement_id', '=', True), ('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='purchase_line_cost_saving']" position="attributes">
+                <attribute name="attrs">{'column_invisible': ['|', ('parent.agreement_id', '=', True), ('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='last_purchased_price']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='last_customer_purchase_price']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='avg_price']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='current_qty']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='incoming_stock']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- purchase.order inherit form view -->
+    <record id="inherit_invisible_other_field_custom_3_view_id" model="ir.ui.view">
+        <field name="name">purchase.order.inherit.view.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="equip3_accounting_budget.purchase_order_equip3_accounting_budget_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='purchase_req_budget']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='realized_amount']" position="attributes">
+                <attribute name="attrs">{'column_invisible': [('parent.mining_subcontracting', '=', True)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <!--Sequence number-->
+        <record id="seq_project_task" model="ir.sequence">
+            <field name="name">project_task_sequencer</field>
+            <field name="code">project.task</field>
+            <field name="prefix">WO</field>
+            <field name="padding">4</field>
+        </record>
+
+        <!-- Job Order form View -->
+        <record id="view_task_form2_inherited" model="ir.ui.view">
+            <field name="name">project.task.form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='user_id']" position = 'after'>
+                    <field name="starting_date"/>
+                </xpath>
+                <xpath expr="//field[@name='date_deadline']" position = 'before'>
+                    <field name="task_ref_name"/>
+                    <field name="purchase_order_exempt" invisible = '1'/>
+                </xpath>
+                <xpath expr="//field[@name='stage_id']" position = 'attributes'>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='stage_id']" position = 'after'>
+                    <button name = "action_inprogress" type = "object" string = "In Progress" class="btn-primary" attrs = "{'invisible':[('state','in',['inprogress','complete'])]}"/>
+                    <button name = "action_pending" type = "object" string = "Pending" class="btn-primary" attrs = "{'invisible':[('state','in',['draft','pending','complete'])]}"/>
+                    <button name = "action_complete" type = "object" string = "Complete" class="btn-primary" attrs = "{'invisible':[('state','in',['draft','pending','complete'])]}"/>
+                    <button name = "%(abs_construction_management.action_view_purchase_order_details_form)d" type = "action" string = "Create Purchase Order" class="btn-primary" attrs = "{'invisible':['|',('purchase_order_exempt','=',True),('state','in',['draft','inprogress'])]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="inprogress,pending,complete"/>
+                </xpath>
+                <xpath expr="//div[@name='button_box']" position = 'inside'>
+                    <button name="action_view_purchase_order"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-pencil-square-o">
+                        <field name="purchase_order_count" widget="statinfo"/>
+                    </button>
+                    <button name="action_view_job_notes"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-list-alt">
+                        <field name="notes_count" widget="statinfo"/>
+                    </button>
+                    <button name="action_view_project_issues"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-align-justify">
+                        <field name="project_issue_count" widget="statinfo"/>
+                    </button>
+                    <button name="action_view_equipment_request"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-list-ul">
+                        <field name="equipment_request_count" widget="statinfo"/>
+                    </button>
+                    <button name="action_view_vehicle_request"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-fw o_button_icon fa-truck">
+                        <field name="vehicle_request_count" widget="statinfo"/>
+                    </button>
+                </xpath>
+            </field>
+        </record>
+
+        <!--ACTION [project.task]-->
+        <record id="action_view_task_inherited" model="ir.actions.act_window">
+            <field name="name">Work Orders</field>
+            <field name="res_model">project.task</field>
+            <field name="view_mode">kanban,tree,form,calendar,pivot,graph</field>
+            <field name="context">{'search_default_project': 1}</field>
+            <field name="search_view_id" ref="project.view_task_search_form"/>
+            <field name="help" type="html">
+                <p>
+                    Odoo's project management allows you to manage the pipeline of your tasks efficiently. You can track progress, discuss on tasks, attach documents, etc.
+                </p>
+            </field>
+        </record>
+
+    <!--MENU [Job Orders]-->
+    <menuitem id="menu_job_order"
+        name = "Work Orders"
+        parent = "construction_management"
+        groups = "abs_construction_management.group_construction_user"
+        sequence="3"/>
+
+    <!--MENU [Job Orders]-->
+    <menuitem id="menu_sub_job_order"
+        name = "Work Orders"
+        parent = "menu_job_order"
+        action = "action_view_task_inherited"
+        sequence="1"/>
+
+</odoo>
