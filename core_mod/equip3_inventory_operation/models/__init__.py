@@ -1,0 +1,39 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+# from . import qiscus_connector
+# from . import stock_picking_type_dashboard
+from . import stock_picking
+from . import stock_production_lot
+from . import internal_transfer
+from . import stock_picking_type
+from . import stock_package_level
+from . import stock_location
+from . import ir_sequence
+# from . import res_config_settings
+from . import dev_rma_rma
+from . import merge_picking
+# from . import material_request
+from . import sale_order
+# from . import return_reason
+from . import stock_quant
+from . import stock_quant_package
+from . import repair_order
+from . import rn_approval_matrix
+from . import do_approval_matrix
+# from . import stock_landed_cost
+from . import product_packaging
+from . import measure_for_packaging
+# from . import batch_shipping
+from . import transfer_log_activity
+from . import account_move
+from . import stock_move
+from . import stock_move_line
+from . import purchase_order
+from . import purchase_request
+# from . import mr_approval_matrix_line
+# from . import itr_approval_matrix_line
+# from . import procurement_group
+from . import stock_warehouse
+from . import product_template
+from . import stock_valuation_layer

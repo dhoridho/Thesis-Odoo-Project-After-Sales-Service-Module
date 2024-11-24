@@ -1,1 +1,0 @@
-from . import aftersales_masterdata

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+    <record model="ir.ui.view" id="stock_picking_batch_form">
+      <field name="name">stock_picking_batch_form</field>
+      <field name="model">stock.picking.batch</field>
+      <field name="inherit_id" ref="equip3_inventory_operations_countd.stock_picking_batch_form" />
+      <field name="arch" type="xml">
+        <xpath expr="//button[@name='action_done']" position="after">
+            <button name="action_serialize" type="object" string="Serialize" class="oe_stat_button">
+            </button>
+        </xpath>
+        <xpath expr="//field[@name='scheduled_date']" position="after">
+          <field name="no_container" attrs="{'invisible':[('doc_type', 'not in', ('po','rn'))], 'readonly':[('state','not in','draft')]}" />
+        </xpath>
+        <xpath expr="//field[@name='warehouse_id']" position="before">
+          <field name="branch_id2" attrs="{'readonly': [('state','not in','draft')]}" />
+          <field name="doc_type" attrs="{'readonly': [('state','not in','draft')]}" />
+          <field name="allowed_warehouse_ids" invisible="1" />
+          <field name="purchase_ids"
+            attrs="{'invisible':[('doc_type', '!=', 'po')], 'readonly': [('state','!=','draft')]}"
+            widget="many2many_tags"
+            domain="[('branch_id', '=', branch_id2),('state','in', ('purchase','done'))]" />
+          <field name="sale_ids" attrs="{'invisible':[('doc_type', '!=', 'so')]}"
+            widget="many2many_tags"
+            domain="[('branch_id', '=', branch_id2),('state','in', ('sale','done'))]" />
+        </xpath>
+        <xpath expr="//field[@name='warehouse_id']" position="attributes">
+          <attribute name="domain">[('id', 'in', allowed_warehouse_ids)]</attribute>
+        </xpath>
+
+        <xpath expr="//page[5]/field[@name='picking_ids']/tree/field[@name='name']" position="after">
+          <field name="partner_id" string="Partner" />
+        </xpath>
+        <xpath expr="//page[3]/field[@name='move_ids']" position="attributes">
+          <attribute name="readonly">0</attribute>
+        </xpath>
+        <xpath expr="//field[@name='branch_id']" position="attributes">
+          <attribute name="invisible">1</attribute>
+        </xpath>
+        <xpath expr="//notebook" position="inside">
+          <page string="Operations" attrs="{'invisible': [('state', '!=', 'draft')]}">
+            <field name="move_ids"
+              context="{'tree_view_ref': 'stock_picking_batch.view_picking_move_tree_inherited'}"
+              readonly="0" />
+          </page>
+        </xpath>
+        <xpath expr="//button[@name='action_force_validate']" position="after">
+          <button name="auto_dpl_quantity" string="Auto DPL Qty" type="object" class="oe_highlight"
+            attrs="{'invisible':[('state', '=', 'done')]}" />
+          <button name="batch_label_report" string="Print Barcodes" type="object"
+            class="oe_highlight"
+            attrs="{'invisible':[('state','!=','done')]}" />
+        </xpath>
+        <xpath expr="//field[@name='branch_id']" position="attributes">
+          <attribute name="attrs">{'readonly': [('state','!=','draft')]}</attribute>
+        </xpath>
+        <xpath expr="//notebook" position="inside">
+          <page string="Operations Import">
+            <field name="dpl_line_ids" readonly="1" store="1" force_save="1">
+              <tree editable="bottom">
+                <field name="picking_batch_id" invisible="1" />
+                <field name="move_id" />
+                <field name="dpl_qty" />
+                <field name="dpl_roll_qty" />
+                <field name="keterangan" />
+                <field name="quantity_done" />
+                <field name="is_generate" invisible="1"/>
+                <field name="company_id" invisible="1"/>
+              </tree>
+            </field>
+          </page>
+        </xpath>
+      </field>
+    </record>
+  </data>
+</odoo> 

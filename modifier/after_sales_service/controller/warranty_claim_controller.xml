@@ -1,0 +1,91 @@
+<odoo>
+    <template id="warranty_claim_form_template" name="Warranty Claim Form">
+        <t t-call="website.layout">
+            <div class="container" style="margin-top: 40px">
+                <h1>Warranty Claim Form</h1>
+                <form action="/warranty/claim/submit" method="post" enctype="multipart/form-data" class="warranty-claim-form">
+                    <!-- Pre-filled Customer Details for Logged-In Users -->
+                    <t t-if="logged_in_customer">
+                        <div class="form-group">
+                            <label>Customer</label>
+                            <input type="text" class="form-control" t-att-value="logged_in_customer.name" readonly="readonly"/>
+                            <input type="hidden" name="customer_id" t-att-value="logged_in_customer.id"/>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="form-group">
+                            <label for="customer_id">Customer</label>
+                            <select name="customer_id" id="customer_id" class="form-control">
+                                <t t-foreach="request.env['res.partner'].sudo().search([('customer_rank', '>', 0)])" t-as="customer">
+                                    <option t-att-value="customer.id"><t t-esc="customer.name"/></option>
+                                </t>
+                            </select>
+                        </div>
+                    </t>
+
+                    <!-- Sale Order Field -->
+                    <div class="form-group">
+                        <label for="sale_order_id">Sale Order</label>
+                        <select name="sale_order_id" id="sale_order_id" class="form-control">
+                            <option value="">Select Sale Order</option>
+                            <t t-foreach="sale_orders" t-as="order">
+                                <option t-att-value="order.id">
+                                    <t t-esc="order.name"/> - <t t-esc="order.date_order"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+
+                    <!-- Product Claims Container -->
+                    <div id="product-claims-container">
+                        <div class="product-claim-item mb-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h5>Product Claim #1</h5>
+                                <button type="button" class="btn btn-danger btn-sm remove-product-claim" style="display: none;">Remove</button>
+                            </div>
+                            <div class="form-group">
+                                <label>Product</label>
+                                <select name="product_claims[0][product_id]" class="form-control product-select">
+                                    <option value="">Select Sale Order First</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Issue Description</label>
+                                <textarea name="product_claims[0][description]" class="form-control" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Attachments</label>
+                                <input type="file" name="product_claims[0][attachments]" class="form-control" multiple="multiple"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="button" id="add-product-claim" class="btn btn-secondary">Add Another Product</button>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit Claims</button>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <template id="warranty_claim_success_template" name="Warranty Claim Success">
+        <t t-call="website.layout">
+            <div class="container">
+                <h1>Warranty Claim Submitted Successfully</h1>
+                <p>Thank you for submitting your warranty claim. We will process it shortly.</p>
+            </div>
+            <a href="/" class="btn btn-primary">Back to Home</a>
+        </t>
+    </template>
+
+    <record id="menu_warranty_claim_form" model="website.menu">
+        <field name="name">Warranty Claim</field>
+        <field name="url">/warranty/claim</field>
+        <field name="sequence" eval="10"/>
+    </record>
+
+
+
+</odoo>

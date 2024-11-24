@@ -1,1 +1,0 @@
-from . import reedem_loyalty

@@ -1,1 +1,0 @@
-from . import generate_bank_statement_journal_wizard

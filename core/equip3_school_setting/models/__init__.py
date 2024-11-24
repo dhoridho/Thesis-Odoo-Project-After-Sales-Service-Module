@@ -1,1 +1,0 @@
-from . import school_config_settings

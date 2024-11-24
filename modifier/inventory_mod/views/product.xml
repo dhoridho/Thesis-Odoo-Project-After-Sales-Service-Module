@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <record id="view_production_lot_form_form" model="ir.ui.view">
+      <field name="name">view_production_lot_form.form</field>
+      <field name="model">stock.production.lot</field>
+      <field name="inherit_id" ref="stock.view_production_lot_form" />
+      <field name="arch" type="xml">
+        <xpath expr="//notebook" position="inside">
+          <page name="deskripsi_printout" string="Deskription Print">
+            <group>
+              <group>
+                <field name="variant_barcode_label" />
+                <field name="warna" />
+              </group>
+              <group>
+                <field name="lebar" />
+                <field name="k_motif" />
+                <field name="jenis_print" />
+              </group>
+            </group>
+          </page>
+
+        </xpath>
+      </field>
+    </record>
+
+
+    <record model="ir.ui.view" id="product_normal_form_view2">
+      <field name="name">product_normal_form_view2</field>
+      <field name="model">product.product</field>
+      <field name="inherit_id" ref="product.product_normal_form_view" />
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='uom_po_id']" position="after">
+          <field name="default_qty_roll" />
+          <field name="variant_barcode_label" readonly="1" />
+        </xpath>
+
+      </field>
+    </record>
+    <record model="ir.ui.view" id="product_template_only_form_view2">
+      <field name="name">product_template_only_form_view2</field>
+      <field name="model">product.template</field>
+      <field name="inherit_id" ref="product.product_template_only_form_view" />
+      <field name="arch" type="xml">
+        <field name="default_code" position="after">
+
+<!--          <field name="auto_generate_product_code" invisible="1" />-->
+
+        </field>
+        <xpath expr="//field[@name='attribute_line_ids']/tree" position="inside">
+          <field name="filter_attribute_variant" widget="many2many_tags" invisible="1" />
+          <!-- <field name="filter_value_variant" widget="many2many_tags" invisible="1"/> -->
+        </xpath>
+        <xpath expr="//field[@name='attribute_line_ids']/tree/field[@name='attribute_id']"
+          position="attributes">
+          <attribute name="domain">[('id', 'in', filter_attribute_variant)]</attribute>
+        </xpath>
+        <!-- <xpath expr="//field[@name='attribute_line_ids']/tree/field[@name='value_ids']"
+        position="attributes">
+          <attribute name="domain">[('id', 'in', filter_value_variant)]</attribute>
+        </xpath> -->
+        <xpath expr="//field[@name='attribute_line_ids']/tree/field[@name='value_ids']"
+          position="after">
+          <field name="barcode_label" />
+        </xpath>
+
+
+      </field>
+    </record>
+
+<!--    <record id="product_templae_form_view_inherit_default_code" model="ir.ui.view">-->
+<!--      <field name="model">product.template</field>-->
+<!--      <field name="inherit_id" ref="equip3_general_features.view_product_template_form_inherited" />-->
+<!--      <field name="arch" type="xml">-->
+<!--        <field name="default_code" position="attributes">-->
+<!--          <attribute name="attrs">{'readonly' : [('auto_generate_product_code', '=', True)]}</attribute>-->
+<!--        </field>-->
+<!--      </field>-->
+<!--    </record>-->
+
+<!--    <record id="product_category_form_view_inherit_mod" model="ir.ui.view">-->
+<!--      <field name="model">product.category</field>-->
+<!--      <field name="inherit_id" ref="equip3_inventory_masterdata.product_category_form_view_inherit" />-->
+<!--      <field name="arch" type="xml">-->
+<!--        <xpath expr="//field[@name='stock_type']" position="after">-->
+<!--          <field name="auto_generate_product_code" />-->
+<!--          <field name="sequence_code_id" class="oe_inline"-->
+<!--            attrs="{'invisible': [('auto_generate_product_code','=', False)], 'required': [('auto_generate_product_code','=', True)]}" />-->
+<!--        </xpath>-->
+<!--      </field>-->
+<!--    </record>-->
+
+    <record model="ir.ui.view" id="product_category_form_view2">
+      <field name="name">product_category_form_view2</field>
+      <field name="model">product.category</field>
+      <field name="inherit_id" ref="product.product_category_form_view" />
+      <field name="arch" type="xml">
+
+        <group name="first" position="after">
+          <group string="Variant">
+            <field name="attribute_ids" widget="many2many_tags" invisible="1" />
+            <field name="attribute_line_ids" widget="one2many" context="{'show_attribute': False}"
+              nolabel="1">
+              <tree editable="bottom" nolabel="1">
+                <field name="attribute_id" attrs="{'readonly': [('id', '!=', False)]}"
+                  domain="[('id', 'not in', parent.attribute_ids)]" />
+                <field name="value_ids" widget="many2many_tags"
+                  options="{'no_create_edit':
+                True}"
+                  context="{'default_attribute_id': attribute_id, 'show_attribute': False}" />
+              </tree>
+            </field>
+          </group>
+        </group>
+
+      </field>
+    </record>
+
+    <record id="view_product_attr_inherit_mod" model="ir.ui.view">
+      <field name="name">jmk.product.attr.inherit</field>
+      <field name="model">product.product</field>
+      <field name="inherit_id" ref="product.product_normal_form_view" />
+      <field name="arch" type="xml">
+        <xpath expr="//page[last()]" position="after">
+          <page string="Attribute Values">
+            <group string="Attribute Values">
+              <group>
+                <field name="jenis_kain"/>
+                <field name="jenis_print"/>
+                <field name="warna"/>
+                <field name="alias_print"/>
+                <field name="panjang"/>
+                <field name="lebar"/>
+              </group>
+              <group>
+                <field name="gr_jual"/>
+                <field name="label"/>
+                <field name="tipe"/>
+                <field name="jenis_proses"/>
+                <field name="tipe_weaving"/>
+              </group>
+            </group>
+          </page>
+        </xpath>
+      </field>
+    </record>
+
+    <record id="action_product_template_archived" model="ir.actions.server">
+      <field name="name">Is Archived</field>
+      <field name="model_id" ref="product.model_product_template"/>
+      <field name="binding_model_id" ref="product.model_product_template"/>
+      <field name="state">code</field>
+      <field name="code">
+        if records :
+            records.active_is_archived()
+      </field>
+    </record>
+
+  </data>
+</odoo>

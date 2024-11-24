@@ -1,1 +1,0 @@
-from . import assembly_cost_details

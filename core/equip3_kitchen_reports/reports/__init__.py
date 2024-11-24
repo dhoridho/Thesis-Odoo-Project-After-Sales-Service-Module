@@ -1,1 +1,0 @@
-from . import kitchen_cost_details
