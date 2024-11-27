@@ -2,6 +2,7 @@ from odoo import http
 from odoo.http import request
 import json
 import base64
+from werkzeug.utils import redirect
 
 
 class WarrantyClaimController(http.Controller):
@@ -74,8 +75,10 @@ class WarrantyClaimController(http.Controller):
                             'type': 'binary',
                             'datas': base64.b64encode(file_data),
                         })
+                # Set a success message in the session
+                request.session['success_message'] = "Your warranty claim has been submitted successfully. We will contact you shortly."
 
-            return request.render('after_sales_service.warranty_claim_success_template', {})
+            return redirect('/warranty/claim/success')
 
         except Exception as e:
             return request.render('after_sales_service.warranty_claim_form_template', {

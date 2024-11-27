@@ -5,7 +5,7 @@
     "author": "Ridho",
     'icon': '/after_sales_service/static/description/icon.png',
     "depends": [
-        'sale'
+        'sale','product',
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -14,6 +14,9 @@
         "views/service_request_views.xml",
         "views/warranty_claim_view.xml",
         "views/repair_history_views.xml",
+        "views/warranty_period_view.xml",
+        "views/product_inherit_view.xml",
+        'views/sale_order_inherit_view.xml',
         # "views/customer_management_view.xml",
         # "views/notification_management.xml",
         # "views/technician_management_view.xml",
