@@ -12,7 +12,7 @@ class WarrantyClaim(models.Model):
     date_order = fields.Datetime(string='Order Date', related='sale_order_id.date_order', store=True)
     product_id = fields.Many2one('product.product', string='Product', required=True)
     valid_product_ids = fields.Many2many('product.product', compute='_compute_valid_product_ids', store=False)
-    claim_date = fields.Datetime(string='Claim Date', default=fields.Date.today)
+    claim_date = fields.Date(string='Claim Date', default=fields.Date.today)
     warranty_expiry_date = fields.Date(string='Warranty Expiry Date', compute='_compute_warranty_expiry_date', store=True, readonly=True)
     description = fields.Text(string='Problem Description')
 

@@ -1,57 +1,46 @@
 from odoo import http
 from odoo.http import request
 import base64
-import json
-from datetime import datetime,date
+from datetime import date
+import logging
+from werkzeug.utils import redirect
+
+
+_logger = logging.getLogger(__name__)
 
 
 class ServiceRequestController(http.Controller):
 
     @http.route('/service/request', type='http', auth="public", website=True)
     def service_request_form(self, **kwargs):
-        """Display the service request form."""
-        user_partner = request.env.user.partner_id if request.env.user.id != http.request.env.ref('base.public_user').id else None
-
-        # Get relevant sale orders for the customer
-        sale_orders = False
-        if user_partner:
-            sale_orders = request.env['sale.order'].sudo().search([
-                ('partner_id', '=', user_partner.id),
-                ('state', 'in', ['sale', 'done'])
-            ])
-
-        return request.render('after_sales_service.service_request_form_template', {
-            'logged_in_customer': user_partner,
-            'sale_orders': sale_orders,
-            'datetime': date.today().strftime('%Y-%m-%d'),
-        })
-
-    @http.route('/service/get_products', type='json', auth="public", website=True)
-    def get_products(self, sale_order_id=None):
-        """Return products based on sale order or all products if no sale order."""
+        """Render the service request form."""
         try:
-            if sale_order_id:
-                # Get products from specific sale order
-                sale_order = request.env['sale.order'].sudo().browse(int(sale_order_id))
-                products = [(line.product_id.id, line.product_id.name)
-                            for line in sale_order.order_line]
-            else:
-                # Get all sellable products
-                products = request.env['product.product'].sudo().search_read(
-                    [('sale_ok', '=', True)],
-                    ['id', 'name']
-                )
-                products = [(p['id'], p['name']) for p in products]
+            user_partner = request.env.user.partner_id if request.env.user.has_group('base.group_user') else None
+            products = request.env['product.product'].sudo().search_read(
+                [('sale_ok', '=', True)], ['id', 'name']
+            )
+            if not products:
+                _logger.warning("No products available with sale_ok=True.")
 
-            return {'products': products}
+            return request.render('after_sales_service.service_request_template', {
+                'logged_in_customer': user_partner,
+                'products': products,
+                'current_date': date.today().strftime('%Y-%m-%d'),
+            })
+
         except Exception as e:
-            return {'error': str(e)}
+            _logger.error(f"Error rendering service request form: {str(e)}")
+            return request.render('after_sales_service.service_request_template', {
+                'error': f"An error occurred: {str(e)}"
+            })
 
-    @http.route('/service/request/submit', type='http', auth="public", methods=['POST'], website=True, csrf=False)
-    def submit_service_request(self, **kwargs):
-        """Process the service request submission."""
+    @http.route('/service/request/submit', type='http', methods=['POST'], auth="public", website=True, csrf=True)
+    def service_request_submit(self, **kwargs):
+        """Process the service request form submission."""
         try:
-            # Create service request
+            _logger.info("Processing Service Request Submission")
+            _logger.info(f"Request Data: {kwargs}")
+
             vals = {
                 'customer_id': int(kwargs.get('customer_id')),
                 'product_id': int(kwargs.get('product_id')),
@@ -59,14 +48,12 @@ class ServiceRequestController(http.Controller):
                 'description': kwargs.get('description'),
                 'state': 'draft'
             }
-
-            # Add sale order if provided
-            if kwargs.get('sale_order_id'):
-                vals['sale_order_id'] = int(kwargs.get('sale_order_id'))
+            _logger.info(f"Creating Service Request with Data: {vals}")
 
             service_request = request.env['service.request'].sudo().create(vals)
+            _logger.info(f"Service Request Created: {service_request.id}")
 
-            # Process attachments
+            # Handle attachments
             attachments = request.httprequest.files.getlist('attachments')
             for attachment in attachments:
                 if attachment:
@@ -78,12 +65,15 @@ class ServiceRequestController(http.Controller):
                         'type': 'binary',
                         'datas': base64.b64encode(file_data),
                     })
+                    _logger.info(f"Attachment Added: {attachment.filename}")
 
             return request.render('after_sales_service.service_request_success_template', {
                 'request_number': service_request.name
             })
 
         except Exception as e:
-            return request.render('after_sales_service.service_request_form_template', {
-                'error': f'Error submitting service request: {str(e)}'
+            request.env.cr.rollback()
+            _logger.error(f"Error processing service request: {str(e)}")
+            return request.render('after_sales_service.service_request_template', {
+                'error': f"An unexpected error occurred: {str(e)}"
             })

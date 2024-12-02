@@ -1,104 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="service_request_form_template" name="Service Request Form">
+    <template id="service_request_template" name="Service Request Form">
         <t t-call="website.layout">
-            <div class="container" style="margin-top: 40px">
-                <h1>Service Request Form</h1>
-                <form action="/service/request/submit" method="post" enctype="multipart/form-data" class="service-request-form">
-                    <!-- Pre-filled Customer Details for Logged-In Users -->
+            <div class="container mt-5">
+                <h1>Service Request</h1>
+                <form id="service-request-form" action="/service/request/submit" method="post" enctype="multipart/form-data">
+                    <!-- CSRF Token -->
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+
+                    <!-- Customer Selection -->
                     <t t-if="logged_in_customer">
                         <div class="form-group">
                             <label>Customer</label>
-                            <input type="text" class="form-control" t-att-value="logged_in_customer.name" readonly="readonly"/>
-                            <input type="hidden" name="customer_id" t-att-value="logged_in_customer.id"/>
+                            <input type="text" class="form-control" t-att-value="logged_in_customer.name" readonly="readonly" />
+                            <input type="hidden" name="customer_id" t-att-value="logged_in_customer.id" />
                         </div>
                     </t>
                     <t t-else="">
                         <div class="form-group">
                             <label for="customer_id">Customer</label>
                             <select name="customer_id" id="customer_id" class="form-control" required="required">
-                                <option value="">Select Customer</option>
-                                <t t-foreach="request.env['res.partner'].sudo().search([('customer_rank', '>', 0)])" t-as="customer">
-                                    <option t-att-value="customer.id"><t t-esc="customer.name"/></option>
+                                <option t-att-value="''" t-att-disabled="True" t-att-selected="True">Select Customer</option>
+                                <t t-if="request.env['res.partner'].sudo().search([('customer_rank', '>', 0)])">
+                                    <t t-foreach="request.env['res.partner'].sudo().search([('customer_rank', '>', 0)])" t-as="customer">
+                                        <option t-att-value="customer.id">
+                                            <t t-esc="customer.name" />
+                                        </option>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <option value=""  t-att-disabled="True">No Customers Available</option>
                                 </t>
                             </select>
                         </div>
                     </t>
 
-                    <!-- Optional Sale Order Field -->
+                    <!-- Product Dropdown -->
                     <div class="form-group">
-                        <label for="sale_order_id">Related Sale Order (Optional)</label>
-                        <select name="sale_order_id" id="sale_order_id" class="form-control">
-                            <option value="">Select Sale Order (Optional)</option>
-                            <t t-if="sale_orders">
-                                <t t-foreach="sale_orders" t-as="order">
-                                    <option t-att-value="order.id">
-                                        <t t-esc="order.name"/> - <t t-esc="order.date_order"/>
+                        <label for="product_id">Product</label>
+                        <select id="product_id" name="product_id" class="form-control" required="required">
+                            <option value=""  t-att-disabled="True" t-att-selected="True">Select Product</option>
+                            <t t-if="products and len(products) > 0">
+                                <t t-foreach="products" t-as="product">
+                                    <option t-att-value="product['id']">
+                                        <t t-esc="product['name']" />
                                     </option>
                                 </t>
                             </t>
-                        </select>
-                    </div>
-
-                    <!-- Product Field - Will be dynamic based on sale order or show all products -->
-                    <div class="form-group">
-                        <label for="product_id">Product</label>
-                        <select name="product_id" id="product_id" class="form-control" required="required">
-                            <option value="">Select Product</option>
+                            <t t-else="">
+                                <option value=""  t-att-disabled="True">No Products Available</option>
+                            </t>
                         </select>
                     </div>
 
                     <!-- Request Date -->
                     <div class="form-group">
                         <label for="request_date">Request Date</label>
-                        <input type="date" name="request_date" id="request_date"
-                               class="form-control" required="required"
-                               t-attf-value="datetime"/>
+                        <input type="date" id="request_date" name="request_date" class="form-control" t-att-value="current_date" required="required" />
                     </div>
 
-                    <!-- Issue Description -->
+                    <!-- Description -->
                     <div class="form-group">
-                        <label for="description">Issue Description</label>
-                        <textarea name="description" id="description" class="form-control"
-                                 rows="4" required="required"></textarea>
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" class="form-control" placeholder="Describe the issue" required="required"></textarea>
                     </div>
 
                     <!-- Attachments -->
                     <div class="form-group">
-                        <label for="attachments">Attachments (Optional)</label>
-                        <input type="file" name="attachments" id="attachments"
-                               class="form-control" multiple="multiple"/>
-                        <small class="text-muted">You can attach pictures or documents related to the issue.</small>
+                        <label for="attachments">Upload Attachments</label>
+                        <input type="file" id="attachments" name="attachments" class="form-control" multiple="multiple" />
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Submit Service Request</button>
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
             </div>
         </t>
     </template>
 
-    <!-- Success Template -->
     <template id="service_request_success_template" name="Service Request Success">
         <t t-call="website.layout">
             <div class="container mt-5">
-                <div class="alert alert-success">
-                    <h3>Service Request Submitted Successfully</h3>
-                    <p>Your service request number is: <strong t-esc="request_number"/></p>
-                    <p>We will process your request and get back to you shortly.</p>
-                </div>
-                <div class="mt-4">
-                    <a href="/my/service-requests" class="btn btn-secondary">View My Service Requests</a>
-                    <a href="/service/request" class="btn btn-primary">Submit Another Request</a>
-                </div>
+                <h1>Success</h1>
+                <p>Your service request has been submitted successfully!</p>
+                <t t-if="request_number">
+                    <p>Request Number: <strong><t t-esc="request_number" /></strong></p>
+                </t>
+                <a href="/" class="btn btn-primary">Back to Home</a>
             </div>
         </t>
     </template>
 
     <record id="menu_service_request_form" model="website.menu">
         <field name="name">Service Request</field>
-        <field name="url">/service-request</field>
-        <field name="sequence" eval="10"/>
+        <field name="url">/service/request</field>
+        <field name="parent_id" ref="website.main_menu" />
+        <field name="sequence" eval="20" />
     </record>
-
-
-
 </odoo>
