@@ -1,19 +1,206 @@
+<?xml version="1.0"?>
 <odoo>
+
+    <record id="view_customer_kanban_mod" model="ir.ui.view">
+        <field name="name">customer.kanban.view</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <kanban class="o_res_partner_kanban" sample="1">
+                <field name="id"/>
+                <field name="color"/>
+                <field name="display_name"/>
+                <field name="title"/>
+                <field name="email"/>
+                <field name="parent_id"/>
+                <field name="is_company"/>
+                <field name="function"/>
+                <field name="phone"/>
+                <field name="street"/>
+                <field name="street2"/>
+                <field name="zip"/>
+                <field name="city"/>
+                <field name="country_id"/>
+                <field name="mobile"/>
+                <field name="state_id"/>
+                <field name="category_id"/>
+                <field name="image_128"/>
+                <field name="type"/>
+                <field name="sale_order_count"/>
+                <field name="warranty_claim_count"/>
+                <field name="service_request_count"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_kanban_record_has_image_fill o_res_partner_kanban">
+                            <t t-if="!record.is_company.raw_value">
+                                <t t-set="placeholder" t-value="'/base/static/img/avatar_grey.png'"/>
+                                <div class="o_kanban_image_fill_left d-none d-md-block" t-attf-style="background-image:url('#{kanban_image('res.partner', 'image_128', record.id.raw_value,  placeholder)}')">
+                                    <img class="o_kanban_image_inner_pic" t-if="record.parent_id.raw_value" t-att-alt="record.parent_id.value" t-att-src="kanban_image('res.partner', 'image_128', record.parent_id.raw_value)"/>
+                                </div>
+                                <div class="o_kanban_image d-md-none" t-attf-style="background-image:url('#{kanban_image('res.partner', 'image_128', record.id.raw_value,  placeholder)}')">
+                                    <img class="o_kanban_image_inner_pic" t-if="record.parent_id.raw_value" t-att-alt="record.parent_id.value" t-att-src="kanban_image('res.partner', 'image_128', record.parent_id.raw_value)"/>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <t t-set="placeholder" t-value="'/base/static/img/company_image.png'"/>
+                                <div class="o_kanban_image_fill_left o_kanban_image_full" t-attf-style="background-image: url(#{kanban_image('res.partner', 'image_128', record.id.raw_value, placeholder)})" role="img"/>
+                            </t>
+                            <div class="oe_kanban_details d-flex flex-column">
+                                <strong class="o_kanban_record_title oe_partner_heading"><field name="display_name"/></strong>
+                                <div class="o_kanban_tags_section oe_kanban_partner_categories"/>
+                                <t t-if="record.email.raw_value" class="o_text_overflow"><field name="email"/></t>
+                                <div class="o_kanban_separator" style="border-top: 1px solid #333333; margin: 10px 0;"/>
+                                <ul class="o_flex_wrap">
+                                    <div class="o_half_width">
+                                        <li><strong>Sale Orders:</strong> <field name="sale_order_count"/></li>
+                                    </div>
+                                    <div class="o_half_width">
+                                        <li><strong>Warranty Claims:</strong> <field name="warranty_claim_count"/></li>
+                                        <li><strong>Service Requests:</strong> <field name="service_request_count"/></li>
+                                    </div>
+                                </ul>
+
+                                <div class="o_row">
+                                    <span class="oe_kanban_partner_links"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_customer_form_mod" model="ir.ui.view">
+        <field name="name">customer.form.view</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <form edit="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="display_name"/>
+                        </h1>
+                    </div>
+                    <field name="parent_id" widget="res_partner_many2one" placeholder="Company" domain="[('is_company', '=', True)]" context="{'default_is_company': True, 'show_vat': True}" invisible="1"/>
+
+                    <group>
+                        <group>
+                            <field name="type" groups="base.group_no_one" invisible="1"/>
+                            <span class="o_form_label o_td_label" name="address_name">
+                                <b attrs="{'invisible': ['|', ('parent_id', '=', False), ('type', '!=', 'invoice')]}">Invoice Address</b>
+                                <b attrs="{'invisible': ['|', ('parent_id', '=', False), ('type', '!=', 'delivery')]}">Delivery Address</b>
+                                <b attrs="{'invisible': ['|', ('parent_id', '=', False), ('type', '!=', 'other')]}">Other Address</b>
+                                <b attrs="{'invisible': ['|', ('parent_id', '=', False), ('type', '!=', 'private')]}">Private Address</b>
+                                <b attrs="{'invisible': ['&amp;', ('parent_id', '!=', False), ('type', '!=', False)]}">Address</b>
+                            </span>
+                            <div class="o_address_format">
+                                <field name="street" placeholder="Street..." class="o_address_street" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+                                <field name="street2" placeholder="Street 2..." class="o_address_street" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+                                <field name="city" placeholder="City" class="o_address_city" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+                                <field name="state_id" class="o_address_state" placeholder="State" options="{'no_open': True, 'no_quick_create': True}" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}" context="{'country_id': country_id, 'default_country_id': country_id, 'zip': zip}"/>
+                                <field name="zip" placeholder="ZIP" class="o_address_zip" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+                                <field name="country_id" placeholder="Country" class="o_address_country" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'readonly': [('type', '=', 'contact'),('parent_id', '!=', False)]}"/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="phone" widget="phone"/>
+                            <field name="mobile" widget="phone"/>
+                            <field name="user_ids" invisible="1"/>
+                            <field name="email" widget="email" context="{'gravatar_image': True}" attrs="{'required': [('user_ids','!=', [])]}"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Sale Orders History">
+                            <field name="sale_order_ids">
+                                <tree>
+                                    <field name="name" string="Number" readonly="1" decoration-bf="1"/>
+                                    <field name="create_date" string="Creation Date" widget="date" optional="show"/>
+                                    <field name="partner_id" readonly="1"/>
+                                    <field name="user_id" widget="many2one_avatar_user" optional="show"/>
+<!--                                    <field name="activity_ids" widget="list_activity" optional="show"/>-->
+                                    <field name="company_id" groups="base.group_multi_company" optional="hide" readonly="1"/>
+                                    <field name="amount_untaxed" sum="Total Tax Excluded" widget="monetary" optional="hide"/>
+                                    <field name="amount_tax" sum="Tax Total" widget="monetary" optional="hide"/>
+                                    <field name="amount_total" sum="Total Tax Included" widget="monetary" decoration-bf="1" optional="show"/>
+                                    <field name="state" decoration-success="state == 'sale' or state == 'done'" decoration-info="state == 'draft' or state == 'sent'" widget="badge" optional="show"/>
+                                    <field name="invoice_status" optional="hide"/>
+                                    <field name="message_needaction" invisible="1"/>
+                                    <field name="currency_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page string="Warranty Claims History">
+                            <field name="warranty_claim_ids" context="{'tree_view_ref': 'after_sales_service.view_warranty_claim_tree'}"/>
+                        </page>
+
+                        <page string="Service Requests History">
+                            <field name="service_request_ids" context="{'tree_view_ref': 'after_sales_service.view_service_request_tree'}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+        <record id="action_customer_res_mod" model="ir.actions.act_window">
+        <field name="name">Customer Management</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="view_customer_kanban_mod"/>
+        <field name="domain">[('is_customer', '=', True)]</field>
+    </record>
+
+    <record model="ir.actions.act_window.view" id="action_customer_kanban_mod">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="view_customer_kanban_mod"/>
+        <field name="act_window_id" ref="action_customer_res_mod"/>
+    </record>
+
+    <record model="ir.actions.act_window.view" id="action_customer_form_mod">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_customer_form_mod"/>
+        <field name="act_window_id" ref="action_customer_res_mod"/>
+    </record>
 
     <menuitem
             id="menu_customer_management"
             name="Customer Management"
             parent="menu_after_sales_root"
-            sequence="6"/>
+            action="action_customer_res_mod"
+            sequence="6"
+            groups="after_sales_service.group_customer_service"/>
 
-    <menuitem
-            id="menu_customer_detail"
-            name="Customer Detail"
-            parent="menu_customer_management"/>
 
-    <menuitem
-            id="menu_customer_feedback"
-            name="Customer Feedback"
-            parent="menu_customer_management"/>
+
+
+<!--    <record id="view_customer_service_tree" model="ir.ui.view">-->
+<!--        <field name="name">customer.service.tree</field>-->
+<!--        <field name="model">service.request</field>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <tree>-->
+<!--                <field name="name"/>-->
+<!--                <field name="product_id"/>-->
+<!--                <field name="state"/>-->
+<!--                <field name="request_date"/>-->
+<!--            </tree>-->
+<!--        </field>-->
+<!--    </record>-->
+
+
+
+
+<!--    <menuitem-->
+<!--            id="menu_customer_detail"-->
+<!--            name="Customer Detail"-->
+<!--            parent="menu_customer_management"/>-->
+
+<!--    <menuitem-->
+<!--            id="menu_customer_feedback"-->
+<!--            name="Customer Feedback"-->
+<!--            parent="menu_customer_management"/>-->
 
 </odoo>

@@ -18,7 +18,7 @@ class RepairHistory(models.Model):
     product_id = fields.Many2one('product.product', string='Product', required=True)
     technician_id = fields.Many2one('hr.employee', string='Assigned Technician', readonly=True)
     repair_date = fields.Date('Repair Date', default=fields.Date.today)
-    completion_date = fields.Date('Completion Date')
+    completion_date = fields.Date('Completion Date', readonly=True)
     state = fields.Selection([
         ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
@@ -55,3 +55,24 @@ class RepairHistory(models.Model):
                 record.origin = record.warranty_claim_id.name
             else:
                 record.origin = False
+
+    def action_confirm(self):
+        for record in self:
+            if record.state == 'pending':
+                if record.is_warranty_repair:
+                    record.warranty_claim_id.resolution_type = record.repair_type
+                else:
+                    record.service_request_id.service_type = record.repair_type
+                record.state = 'in_progress'
+
+    def action_complete(self):
+        for record in self:
+            if record.state == 'in_progress':
+                record.completion_date = fields.Date.today()
+                record.state = 'completed'
+                if record.is_warranty_repair:
+                    record.warranty_claim_id.state = 'completed'
+                    record.warranty_claim_id.resolution_date = fields.Date.today()
+                else:
+                    record.service_request_id.state = 'completed'
+                    record.service_request_id.actual_completion_date = fields.Date.today()

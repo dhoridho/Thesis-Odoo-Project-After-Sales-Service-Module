@@ -17,9 +17,9 @@ class ServiceRequest(models.Model):
     description = fields.Text('Issue Description')
     state = fields.Selection([
         ('draft', 'Draft'),
-        ('ready_assign', 'Ready to Assign'),
+        ('assign_technician', 'Assign Technician'),
         ('in_progress', 'In Progress'),
-        ('done', 'Completed'),
+        ('completed', 'Completed'),
         ('cancel', 'Cancelled')
     ], string='Status', default='draft', tracking=True)
 
@@ -29,7 +29,7 @@ class ServiceRequest(models.Model):
     service_type = fields.Selection([
         ('repair', 'Repair'),
         ('maintenance', 'Maintenance'),
-        ('inspection', 'Inspection'),
+        ('replace', 'Replace'),
     ], string='Service Type', readonly=True)
     estimated_completion_date = fields.Date(string='Estimated Completion Date')
     actual_completion_date = fields.Date(string='Actual Completion Date')
@@ -41,6 +41,21 @@ class ServiceRequest(models.Model):
         ('4', 'Good'),
         ('5', 'Excellent'),
     ], string='Rating')
+
+    request_month = fields.Char(
+        string="Request Month",
+        compute="_compute_request_month",
+        store=True,
+        index=True
+    )
+
+    @api.depends('request_date')
+    def _compute_request_month(self):
+        for record in self:
+            if record.request_date:
+                record.request_month = record.request_date.strftime('%Y-%m')
+            else:
+                record.request_month = False
 
     @api.model
     def create(self, vals):
@@ -57,10 +72,9 @@ class ServiceRequest(models.Model):
         return result
 
     def _check_ready_to_assign(self):
-        """Automatically change the state to 'ready_assign' if technician_id is not set and the state is draft."""
         for record in self:
             if record.state == 'draft' and not record.technician_id:
-                record.state = 'ready_assign'
+                record.state = 'assign_technician'
 
     def action_submit_order(self):
         if not self.technician_id:

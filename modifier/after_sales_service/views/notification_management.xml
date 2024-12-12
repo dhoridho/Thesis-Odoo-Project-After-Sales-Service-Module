@@ -1,8 +1,73 @@
 <odoo>
 
+    <record id="view_warranty_notification_form" model="ir.ui.view">
+        <field name="name">warranty.notification.form</field>
+        <field name="model">warranty.notification</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <header>
+                    <button name="send_warranty_notifications" type="object" string="Send Warranty Notifications" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="customer_id"/>
+                        <field name="product_id"/>
+                        <field name="warranty_end_date"/>
+                        <field name="days_remaining"/>
+                        <field name="notification_status" invisible="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_warranty_notification_tree" model="ir.ui.view">
+        <field name="name">warranty.notification.tree</field>
+        <field name="model">warranty.notification</field>
+        <field name="arch" type="xml">
+             <tree create="false" decoration-muted="notification_status == 'no'" decoration-success="notification_status == 'sent'">
+                <field name="customer_id"/>
+                <field name="product_id"/>
+                <field name="warranty_end_date"/>
+                <field name="days_remaining"/>
+                <field name="notification_status"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="action_warranty_notification" model="ir.actions.act_window">
+        <field name="name">Warranty Notifications</field>
+        <field name="res_model">warranty.notification</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>
+                This list shows products with active warranties. You can see the remaining time for each product's warranty and track notifications.
+            </p>
+        </field>
+    </record>
+
     <menuitem
             id="menu_notification_management"
             name="Notifications &amp; Alerts"
             parent="menu_after_sales_root"
-            sequence="7"/>
+            action="action_warranty_notification"
+            sequence="7"
+            groups="after_sales_service.group_customer_service"/>
+
+    <template id="warranty_notification_email_template" name="Warranty Notification Email">
+        <field name="subject">Your Product Warranty is About to Expire</field>
+        <field name="email_from">${object.env.company.email}</field>
+        <field name="email_to">${object.customer_id.email}</field>
+        <field name="body_html">
+            <![CDATA[
+        <p>Dear ${object.customer_id.name},</p>
+        <p>This is a friendly reminder that the warranty for your product, ${object.product_id.name}, will expire on ${object.warranty_end_date}.</p>
+        <p>Please contact us if you need assistance or wish to extend the warranty.</p>
+        <p>Best regards,</p>
+        <p>Your Company Name</p>
+        ]]>
+        </field>
+    </template>
+
 </odoo>

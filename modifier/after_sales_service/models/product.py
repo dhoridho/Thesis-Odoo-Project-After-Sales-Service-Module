@@ -30,4 +30,4 @@ class Product(models.Model):
     def write(self, vals):
         if 'has_warranty' in vals and not vals.get('has_warranty'):
             vals['warranty_period_id'] = False
-        return super(ProductTemplate, self).write(vals)
+        return super(Product, self).write(vals)

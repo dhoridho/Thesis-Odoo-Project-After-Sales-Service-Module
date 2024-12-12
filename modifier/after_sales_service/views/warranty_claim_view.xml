@@ -4,7 +4,23 @@
         <field name="name">warranty.claim.tree</field>
         <field name="model">warranty.claim</field>
         <field name="arch" type="xml">
-            <tree string="Warranty Claims" default_order="id">
+            <tree string="Warranty Claims" default_order="id desc">
+                <field name="name"/>
+                <field name="customer_id"/>
+                <field name="product_id"/>
+                <field name="claim_date"/>
+                <field name="warranty_expiry_date"/>
+                <field name="state"/>
+                <field name="technician_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_warranty_claim_tree_technician" model="ir.ui.view">
+        <field name="name">warranty.claim.tree.technician</field>
+        <field name="model">warranty.claim</field>
+        <field name="arch" type="xml">
+            <tree string="Warranty Claims" default_order="id desc" create="false">
                 <field name="name"/>
                 <field name="customer_id"/>
                 <field name="product_id"/>
@@ -22,14 +38,18 @@
         <field name="arch" type="xml">
             <form string="Warranty Claim">
                 <header>
-                    <button name="action_submit_order" type="object" string="Submit Order" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_submit_order"
+                            type="object"
+                            string="Submit Order"
+                            class="oe_highlight"
+                            attrs="{'invisible': ['&amp;', ('technician_id', '=', False), ('state', 'not in', ['assign_technician'])]}"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
                     <h1><field name="name"/></h1>
                     <group>
                         <group>
-                            <field name="customer_id"/>
+                            <field name="customer_id" domain="[('is_customer', '=', True)]"/>
                             <field name="sale_order_id" domain="[('partner_id', '=', customer_id)]"/>
                             <field name="product_id" domain="[('id', 'in', valid_product_ids)]"/>
                             <field name="valid_product_ids" invisible="1"/>
@@ -37,7 +57,7 @@
                             <field name="warranty_expiry_date"/>
                         </group>
                         <group>
-                            <field name="technician_id"/>
+                            <field name="technician_id" attrs="{'required': [('state', '=', 'assign_technician')]}" domain="[('job_title', '=', 'Technician')]"/>
                             <field name="is_in_warranty" invisible="1"/>
                             <field name="resolution_type"/>
                             <field name="resolution_date" attrs="{'invisible': [('resolution_type', '=', 'False')]}"/>
@@ -70,5 +90,23 @@
             name="Warranty Management"
             parent="menu_after_sales_root"
             action="action_warranty_claims"
-            sequence="3"/>
+            sequence="3"
+            groups="after_sales_service.group_customer_service"/>
+
+    <record id="action_warranty_claims_technician" model="ir.actions.act_window">
+        <field name="name">Warranty Claims Technician</field>
+        <field name="res_model">warranty.claim</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_warranty_claim_tree_technician"/>
+        <field name="domain">[('technician_id.user_id', '=', uid)]</field>
+    </record>
+
+    <menuitem
+            id="menu_warranty_management_technician"
+            name="Warranty Management"
+            parent="menu_after_sales_root"
+            action="action_warranty_claims_technician"
+            sequence="3"
+            groups="after_sales_service.group_technician"/>
+
 </odoo>
