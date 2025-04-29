@@ -11,11 +11,11 @@ _logger = logging.getLogger(__name__)
 
 class ServiceRequestController(http.Controller):
 
-    @http.route('/service/request', type='http', auth="public", website=True)
+    @http.route('/service-request', type='http', auth="public", website=True)
     def service_request_form(self, **kwargs):
         """Render the service request form."""
         try:
-            user_partner = request.env.user.partner_id if request.env.user.has_group('base.group_user') else None
+            user_partner = request.env.user.partner_id if request.env.user.id != http.request.env.ref('base.public_user').id else None
             products = request.env['product.product'].sudo().search_read(
                 [('sale_ok', '=', True)], ['id', 'name']
             )
@@ -34,7 +34,7 @@ class ServiceRequestController(http.Controller):
                 'error': f"An error occurred: {str(e)}"
             })
 
-    @http.route('/service/request/submit', type='http', methods=['POST'], auth="public", website=True, csrf=True)
+    @http.route('/service-request-submit', type='http', methods=['POST'], auth="public", website=True, csrf=True)
     def service_request_submit(self, **kwargs):
         """Process the service request form submission."""
         try:
@@ -42,7 +42,7 @@ class ServiceRequestController(http.Controller):
             _logger.info(f"Request Data: {kwargs}")
 
             vals = {
-                'customer_id': int(kwargs.get('customer_id')),
+                'partner_id': int(kwargs.get('partner_id')),
                 'product_id': int(kwargs.get('product_id')),
                 'request_date': kwargs.get('request_date'),
                 'description': kwargs.get('description'),

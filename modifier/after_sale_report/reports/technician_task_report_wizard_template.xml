@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_technician_task_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <div class="oe_structure"/>
+
+                    <!-- Report Header -->
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <h2>Technician Task Report</h2>
+                            <h4 t-if="data and data.get('form', {}).get('all_technicians', True) == False"
+                                t-esc="data.get('form', {}).get('technician_name', '')"/>
+                            <h4 t-if="data and data.get('form', {}).get('all_technicians', False)">All Technicians</h4>
+                            <p>
+                                <strong>Period: </strong>
+                                <span t-esc="data.get('form', {}).get('start_date')" t-options='{"widget": "date"}'/>
+                                to
+                                <span t-esc="data.get('form', {}).get('end_date')" t-options='{"widget": "date"}'/>
+                            </p>
+                            <p>
+                                <strong>Report Date: </strong>
+                                <span t-esc="data.get('form', {}).get('report_date', '')" t-options='{"widget": "date"}'/>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- If no technician data found -->
+                    <div t-if="not data.get('form', {}).get('technician_data', {})" class="alert alert-warning">
+                        No repair records found for the selected criteria.
+                    </div>
+
+                    <!-- For each technician -->
+                    <t t-foreach="data.get('form', {}).get('technician_data', {}).values() or []" t-as="technician">
+                        <div class="page-break mt-4">
+                            <!-- Technician Header -->
+                            <div class="row bg-light p-2 mb-3">
+                                <div class="col-12">
+                                    <h3 t-esc="technician.get('name', 'Unnamed Technician')"/>
+                                </div>
+                            </div>
+
+                            <!-- Technician Summary -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Performance Summary</h4>
+                                </div>
+                                <div class="col-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 t-esc="technician.get('summary', {}).get('total', 0)"/>
+                                            <p>Total Tasks</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 t-esc="technician.get('summary', {}).get('completed', 0)"/>
+                                            <p>Completed</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 t-esc="round(technician.get('summary', {}).get('avg_days', 0), 1)"/>
+                                            <p>Avg. Days</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 t-esc="technician.get('summary', {}).get('warranty', 0)"/>
+                                            <p>Warranty Tasks</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Repair Details Table -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <h4>Task Details</h4>
+                                    <table class="table table-sm table-bordered">
+                                        <thead>
+                                            <tr class="table-secondary">
+                                                <th>Reference</th>
+                                                <th>Customer</th>
+                                                <th>Product</th>
+                                                <th>Repair Type</th>
+                                                <th>Source</th>
+                                                <th>Start Date</th>
+                                                <th>End Date</th>
+                                                <th>Days</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="technician.get('repairs', [])" t-as="repair">
+                                                <tr>
+                                                    <td><span t-esc="repair.get('reference', '')"/></td>
+                                                    <td><span t-esc="repair.get('customer', '')"/></td>
+                                                    <td><span t-esc="repair.get('product', '')"/></td>
+                                                    <td><span t-esc="repair.get('repair_type', '')"/></td>
+                                                    <td><span t-esc="repair.get('source', '')"/></td>
+                                                    <td><span t-esc="repair.get('repair_date', '')" t-options='{"widget": "date"}'/></td>
+                                                    <td><span t-esc="repair.get('completion_date', '')" t-options='{"widget": "date"}'/></td>
+                                                    <td><span t-esc="repair.get('days_to_complete', 0)"/></td>
+                                                    <td>
+                                                        <span t-att-class="'badge badge-' + ('success' if repair.get('state') == 'completed' else 'warning' if repair.get('state') == 'in_progress' else 'info')"
+                                                              t-esc="repair.get('state_name', '')"/>
+                                                        <t t-if="repair.get('is_warranty', False)">
+                                                            <span class="badge badge-secondary ml-1">Warranty</span>
+                                                        </t>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Task Type Breakdown -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <h4>Task Type Breakdown</h4>
+                                    <table class="table table-sm table-bordered">
+                                        <thead>
+                                            <tr class="table-secondary">
+                                                <th>Repair Type</th>
+                                                <th>Count</th>
+                                                <th>Avg. Completion Time (days)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-set="repair_types" t-value="{}"/>
+                                            <t t-foreach="technician.get('repairs', [])" t-as="repair">
+                                                <t t-set="repair_type" t-value="repair.get('repair_type', 'Not Specified')"/>
+                                                <t t-if="repair_type not in repair_types">
+                                                    <t t-set="repair_types" t-value="dict(repair_types, **{repair_type: {'count': 0, 'days': 0, 'completed': 0}})"/>
+                                                </t>
+                                                <t t-set="repair_types" t-value="dict(repair_types, **{repair_type: {
+                                                    'count': repair_types[repair_type]['count'] + 1,
+                                                    'days': repair_types[repair_type]['days'] + (repair.get('days_to_complete', 0) if repair.get('state') == 'completed' else 0),
+                                                    'completed': repair_types[repair_type]['completed'] + (1 if repair.get('state') == 'completed' else 0)
+                                                }})"/>
+                                            </t>
+
+                                            <t t-foreach="repair_types.items()" t-as="repair_type">
+                                                <tr>
+                                                    <td><span t-esc="repair_type[0] or 'Not Specified'"/></td>
+                                                    <td><span t-esc="repair_type[1].get('count', 0)"/></td>
+                                                    <td>
+                                                        <span t-esc="round(repair_type[1].get('days', 0) / max(1, repair_type[1].get('completed', 1)), 1)"/>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Customer Breakdown -->
+<!--                            <div class="row mt-4">-->
+<!--                                <div class="col-12">-->
+<!--                                    <h4>Customer Breakdown</h4>-->
+<!--                                    <table class="table table-sm table-bordered">-->
+<!--                                        <thead>-->
+<!--                                            <tr class="table-secondary">-->
+<!--                                                <th>Customer</th>-->
+<!--                                                <th>Tasks</th>-->
+<!--                                                <th>Warranty Tasks</th>-->
+<!--                                            </tr>-->
+<!--                                        </thead>-->
+<!--                                        <tbody>-->
+<!--                                            <t t-set="customers" t-value="{}"/>-->
+<!--                                            <t t-foreach="technician.get('repairs', [])" t-as="repair">-->
+<!--                                                <t t-set="customer" t-value="repair.get('customer', 'Unknown Customer')"/>-->
+<!--                                                <t t-if="customer not in customers">-->
+<!--                                                    <t t-set="customers" t-value="dict(customers, **{customer: {'count': 0, 'warranty': 0}})"/>-->
+<!--                                                </t>-->
+<!--                                                <t t-set="customers" t-value="dict(customers, **{customer: {-->
+<!--                                                    'count': customers[customer]['count'] + 1,-->
+<!--                                                    'warranty': customers[customer]['warranty'] + (1 if repair.get('is_warranty', False) else 0)-->
+<!--                                                }})"/>-->
+<!--                                            </t>-->
+
+<!--                                            <t t-foreach="sorted(customers.items(), key=lambda c: c[1].get('count', 0), reverse=True)" t-as="customer">-->
+<!--                                                <tr>-->
+<!--                                                    <td><span t-esc="customer[0]"/></td>-->
+<!--                                                    <td><span t-esc="customer[1].get('count', 0)"/></td>-->
+<!--                                                    <td><span t-esc="customer[1].get('warranty', 0)"/></td>-->
+<!--                                                </tr>-->
+<!--                                            </t>-->
+<!--                                        </tbody>-->
+<!--                                    </table>-->
+<!--                                </div>-->
+<!--                            </div>-->
+
+                            <div class="page-break"/>
+                        </div>
+                    </t>
+
+                    <div class="oe_structure"/>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

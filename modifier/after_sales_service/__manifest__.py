@@ -5,13 +5,23 @@
     "author": "Ridho",
     'icon': '/after_sales_service/static/description/icon.png',
     "depends": [
-        'sale', 'product', 'website',
+        'base',
+        'sale',
+        'stock',
+        'product',
+        'website',
+        'purchase',
+        'master_mods',
+        'master_mods',
     ],
     "data": [
         "security/ir.model.access.csv",
         "data/sequence.xml",
         "data/cron.xml",
         "data/groups.xml",
+        "data/employee.xml",
+
+        # "wizards/service_request_report_wizard.xml",
 
         "views/service_dashboard_view.xml",
         "views/service_request_views.xml",
@@ -22,16 +32,22 @@
         'views/sale_order_inherit_view.xml',
         "views/customer_management_view.xml",
         "views/notification_management.xml",
+        # "views/after_sales_report_menu.xml",
+        "views/dev_rma_rma.xml",
+
+
         # "views/technician_management_view.xml",
 
         'views/website_layout.xml',
-        'controller/warranty_claim_controller.xml',
         'controller/service_request_controller.xml',
+        'controller/warranty_claim_controller.xml',
+        'controller/my_portal_templates.xml',
+
         'static/src/views/assets.xml',
     ],
     'qweb': [
         'static/src/views/service_dashboard.xml',
-        ],
+    ],
 
     'assets': {
         'web.assets_frontend': [

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="view_service_request_form" model="ir.ui.view">
         <field name="name">service.request.form</field>
@@ -9,22 +10,25 @@
                             type="object"
                             string="Submit Order"
                             class="oe_highlight"
-                            attrs="{'invisible': ['&amp;', ('technician_id', '=', False), ('state', 'not in', ['assign_technician'])]}"/>
-                    <field name="state" widget="statusbar"/>
+                            attrs="{'invisible': ['|', ('state', 'not in', ['draft','assign_technician']), ('technician_id', '=', False)]}"/>
+<!--                            attrs="{'invisible': ['&amp;', ('technician_id', '=', False), ('state', 'not in', ['assign_technician']), ('state', 'in', ['in_progress', 'completed', 'cancel'])]}"/>-->
+                   <field name="state" widget="statusbar" statusbar_visible="draft,assign_technician,in_progress,completed" />
                 </header>
                 <sheet>
                     <h1><field name="name"/></h1>
                     <group width="100%">
                         <group width="30%">
-                            <field name="customer_id" domain="[('is_customer', '=', True)]"/>
-                            <field name="product_id"/>
+                            <field name="partner_id" domain="[('is_customer', '=', True)]" options="{'no_create': True}"/>
+                            <field name="product_id" options="{'no_create': True}"/>
                             <field name="request_date"/>
                             <field name="estimated_completion_date"/>
                         </group>
                         <group width="70%">
-                            <field name="technician_id" attrs="{'required': [('state', '=', 'assign_technician')]}" domain="[('job_title', '=', 'Technician')]"/>
+                            <field name="technician_id" attrs="{'required': [('state', '=', 'assign_technician')]}" domain="[('job_title', 'in', ['Technician', 'Technician Manager'])]" options="{'no_create': True}"/>
                             <field name="service_type"/>
-                            <field name="actual_completion_date"/>
+                            <field name="actual_completion_date" readonly="1"/>
+                            <field name="is_by_portal" invisible="1"/>
+                            <field name="responsible_id" readonly="1" attrs="{'invisible': [('is_by_portal', '=', True)]}"/>
                         </group>
                     </group>
                     <notebook>
@@ -48,7 +52,7 @@
         <field name="arch" type="xml">
             <tree string="Service Request Tree" default_order="id desc" decoration-muted="state == 'completed'">
                 <field name="name"/>
-                <field name="customer_id"/>
+                <field name="partner_id"/>
                 <field name="product_id"/>
                 <field name="service_type"/>
                 <field name="technician_id"/>
@@ -66,7 +70,7 @@
         <field name="arch" type="xml">
             <tree string="Service Request Tree" default_order="id desc" decoration-muted="state == 'completed'" create="false">
                 <field name="name"/>
-                <field name="customer_id"/>
+                <field name="partner_id"/>
                 <field name="product_id"/>
                 <field name="service_type"/>
                 <field name="technician_id"/>
@@ -79,34 +83,45 @@
     </record>
 
 
-    <record id="action_service_request" model="ir.actions.act_window">
-        <field name="name">Service Request</field>
-        <field name="res_model">service.request</field>
-        <field name="view_mode">tree,form</field>
+<!--    <record id="action_service_request" model="ir.actions.act_window">-->
+<!--        <field name="name">Service Request</field>-->
+<!--        <field name="res_model">service.request</field>-->
+<!--        <field name="view_mode">tree,form</field>-->
+<!--    </record>-->
+<!--    -->
+
+    <record model="ir.actions.server" id="action_service_request_server">
+        <field name="name">Warranty Claims</field>
+        <field name="model_id" ref="after_sales_service.model_service_request"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.sudo().by_domain_service_request()
+        </field>
     </record>
+
 
     <menuitem
             id="menu_service_request"
             name="Service Request"
             parent="menu_after_sales_root"
-            action="action_service_request"
+            action="action_service_request_server"
             sequence="2"
-            groups="after_sales_service.group_customer_service"/>
+            />
 
-    <record id="action_service_request_technician" model="ir.actions.act_window">
-        <field name="name">Service Request Technician</field>
-        <field name="res_model">service.request</field>
-        <field name="view_mode">tree</field>
-        <field name="view_id" ref="view_service_request_tree_technician"/>
-        <field name="domain">[('technician_id.user_id', '=', uid)]</field>
-    </record>
+<!--    <record id="action_service_request_technician" model="ir.actions.act_window">-->
+<!--        <field name="name">Service Request Technician</field>-->
+<!--        <field name="res_model">service.request</field>-->
+<!--        <field name="view_mode">tree</field>-->
+<!--        <field name="view_id" ref="view_service_request_tree_technician"/>-->
+<!--        <field name="domain">[('technician_id.user_id', '=', uid)]</field>-->
+<!--    </record>-->
 
-    <menuitem
-            id="menu_service_request_technician"
-            name="Service Request"
-            parent="menu_after_sales_root"
-            action="action_service_request_technician"
-            sequence="2"
-            groups="after_sales_service.group_technician"/>
+<!--    <menuitem-->
+<!--            id="menu_service_request_technician"-->
+<!--            name="Service Request"-->
+<!--            parent="menu_after_sales_root"-->
+<!--            action="action_service_request_technician"-->
+<!--            sequence="2"-->
+<!--            groups="after_sales_service.group_technician"/>-->
 
 </odoo>

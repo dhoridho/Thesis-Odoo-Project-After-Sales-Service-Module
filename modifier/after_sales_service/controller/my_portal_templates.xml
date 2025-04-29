@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Hide Purchase Orders menu entry -->
+<!--    <template id="hide_portal_my_home_purchase" name="Hide Purchase Orders" inherit_id="purchase.portal_my_home_purchase" active="False"/>-->
+<!--    <template id="hide_portal_my_home_purchase" name="Hide Purchase Orders" inherit_id="purchase.portal_my_home_purchase" active="False"/>-->
+
+    <!-- Hide Invoices & Bills menu entry -->
+<!--    <template id="hide_portal_my_home_invoice" name="Hide Invoices &amp; Bills" inherit_id="account.portal_my_home_invoice" active="False"/>-->
+<!--    <template id="hide_portal_my_home_invoice" name="Hide Invoices &amp; Bills" inherit_id="account.portal_my_home_invoice" active="False"/>-->
+
+    <!-- Add Service Requests menu to breadcrumbs -->
+    <template id="portal_my_home_menu_service_request" name="Portal layout : service request menu entries" inherit_id="portal.portal_breadcrumbs" priority="25">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'service_request' or service_request" t-attf-class="breadcrumb-item #{'active ' if not service_request else ''}">
+                <a t-if="service_request" t-attf-href="/my/service-requests?{{ keep_query() }}">Service Requests</a>
+                <t t-else="">Service Requests</t>
+            </li>
+            <li t-if="service_request" class="breadcrumb-item active">
+                <t t-esc="service_request.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <!-- Add Warranty Claims menu to breadcrumbs -->
+    <template id="portal_my_home_menu_warranty_claim" name="Portal layout : warranty claim menu entries" inherit_id="portal.portal_breadcrumbs" priority="25">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'warranty_claim' or warranty_claim" t-attf-class="breadcrumb-item #{'active ' if not warranty_claim else ''}">
+                <a t-if="warranty_claim" t-attf-href="/my/warranty-claims?{{ keep_query() }}">Warranty Claims</a>
+                <t t-else="">Warranty Claims</t>
+            </li>
+            <li t-if="warranty_claim" class="breadcrumb-item active">
+                <t t-esc="warranty_claim.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <!-- Add Service Requests to home portal -->
+    <template id="portal_my_home_service_request" name="Show Service Requests" customize_show="True" inherit_id="portal.portal_my_home" priority="25">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Service Requests</t>
+                <t t-set="url" t-value="'/my/service-requests'"/>
+                <t t-set="placeholder_count" t-value="'service_request_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Add Warranty Claims to home portal -->
+    <template id="portal_my_home_warranty_claim" name="Show Warranty Claims" customize_show="True" inherit_id="portal.portal_my_home" priority="25">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Warranty Claims</t>
+                <t t-set="url" t-value="'/my/warranty-claims'"/>
+                <t t-set="placeholder_count" t-value="'warranty_claim_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Service Requests list -->
+    <template id="portal_my_service_requests" name="My Service Requests">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar"/>
+
+            <t t-if="not service_requests">
+                <p>There are currently no service requests for your account.</p>
+            </t>
+
+            <t t-if="service_requests" t-call="portal.portal_table">
+                <thead>
+                    <tr class="active">
+                        <th>Request Reference</th>
+                        <th>Product</th>
+                        <th>Request Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="service_requests" t-as="request">
+                        <tr>
+                            <td>
+                                <a t-att-href="request.get_portal_url()">
+                                    <t t-esc="request.name"/>
+                                </a>
+                            </td>
+                            <td>
+                                <span t-field="request.product_id.name"/>
+                            </td>
+                            <td>
+                                <span t-field="request.request_date"/>
+                            </td>
+                            <td class="tx_status">
+                                <t t-if="request.state in ['submitted', 'draft', 'assign_technician']">
+                                    <span class="badge badge-pill badge-info">
+                                        <i class="fa fa-fw fa-clock-o" aria-label="Submitted" title="Submitted" role="img"></i>
+                                        <span class="d-none d-md-inline"> Submitted</span>
+                                    </span>
+                                </t>
+
+                                <!-- Draft State -->
+<!--                                <t t-if="request.state == 'draft'">-->
+<!--                                    <span class="badge badge-pill badge-secondary">-->
+<!--                                        <i class="fa fa-fw fa-file-text" aria-label="Draft" title="Draft" role="img"></i>-->
+<!--                                        <span class="d-none d-md-inline"> Draft</span>-->
+<!--                                    </span>-->
+<!--                                </t>-->
+
+                                <!-- Assign Technician State -->
+<!--                                <t t-if="request.state == 'assign_technician'">-->
+<!--                                    <span class="badge badge-pill badge-warning">-->
+<!--                                        <i class="fa fa-fw fa-user-plus" aria-label="Assign Technician" title="Assign Technician" role="img"></i>-->
+<!--                                        <span class="d-none d-md-inline"> Assign Technician</span>-->
+<!--                                    </span>-->
+<!--                                </t>-->
+
+                                <!-- In Progress State -->
+                                <t t-if="request.state == 'in_progress'">
+                                    <span class="badge badge-pill badge-primary">
+                                        <i class="fa fa-fw fa-gears" aria-label="In Progress" title="In Progress" role="img"></i>
+                                        <span class="d-none d-md-inline"> In Progress</span>
+                                    </span>
+                                </t>
+
+                                <!-- Completed State -->
+                                <t t-if="request.state == 'completed'">
+                                    <span class="badge badge-pill badge-success">
+                                        <i class="fa fa-fw fa-check-circle" aria-label="Completed" title="Completed" role="img"></i>
+                                        <span class="d-none d-md-inline"> Completed</span>
+                                    </span>
+                                </t>
+
+                                <!-- Cancelled State -->
+                                <t t-if="request.state == 'cancel'">
+                                    <span class="badge badge-pill badge-danger">
+                                        <i class="fa fa-fw fa-times-circle" aria-label="Cancelled" title="Cancelled" role="img"></i>
+                                        <span class="d-none d-md-inline"> Cancelled</span>
+                                    </span>
+                                </t>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+    <!-- Warranty Claims list -->
+    <template id="portal_my_warranty_claims" name="My Warranty Claims">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar"/>
+            <t t-if="warranty_claims" t-call="portal.portal_table">
+                <thead>
+                    <tr class="active">
+                        <th>Claim Number</th>
+                        <th>Product</th>
+                        <th>Claim Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="warranty_claims" t-as="claim">
+                        <tr>
+                            <td>
+                                <a t-att-href="claim.get_portal_url()">
+                                    <t t-esc="claim.name"/>
+                                </a>
+                            </td>
+                            <td>
+                                <span t-field="claim.product_id.name"/>
+                            </td>
+                            <td>
+                                <span t-field="claim.claim_date"/>
+                            </td>
+                            <td class="tx_status">
+                                <t t-if="claim.state in ['submitted', 'draft', 'assign_technician']">
+                                    <span class="badge badge-pill badge-info">
+                                        <i class="fa fa-fw fa-clock-o" aria-label="Submitted" title="Submitted" role="img"></i>
+                                        <span class="d-none d-md-inline"> Submitted</span>
+                                    </span>
+                                </t>
+
+                                <!-- In Progress State -->
+                                <t t-if="claim.state == 'in_progress'">
+                                    <span class="badge badge-pill badge-primary">
+                                        <i class="fa fa-fw fa-gears" aria-label="In Progress" title="In Progress" role="img"></i>
+                                        <span class="d-none d-md-inline"> In Progress</span>
+                                    </span>
+                                </t>
+
+                                <!-- Completed State -->
+                                <t t-if="claim.state == 'completed'">
+                                    <span class="badge badge-pill badge-success">
+                                        <i class="fa fa-fw fa-check-circle" aria-label="Completed" title="Completed" role="img"></i>
+                                        <span class="d-none d-md-inline"> Completed</span>
+                                    </span>
+                                </t>
+
+                                <!-- Cancelled State -->
+                                <t t-if="claim.state == 'rejected'">
+                                    <span class="badge badge-pill badge-danger">
+                                        <i class="fa fa-fw fa-times-circle" aria-label="Cancelled" title="Cancelled" role="img"></i>
+                                        <span class="d-none d-md-inline"> Cancelled</span>
+                                    </span>
+                                </t>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+    <!-- Service Request Detail Page -->
+    <template id="portal_my_service_request" name="My Service Request">
+        <t t-call="portal.portal_layout">
+            <t t-set="service_request" t-value="service_request"/>
+            <div class="container">
+                <div class="row mt16 o_portal_sidebar">
+                    <!-- Sidebar -->
+                    <t t-call="portal.portal_record_sidebar">
+                        <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+                        <t t-set="entries">
+                            <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                                <li t-if="service_request.technician_id" class="list-group-item flex-grow-1">
+                                    <div class="small mb-1">
+                                        <strong class="text-muted">Assigned Technician</strong>
+                                    </div>
+                                    <div class="row flex-nowrap">
+                                        <div class="col pl-0" style="min-width: 150px">
+                                            <span t-field="service_request.technician_id.name"/>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </t>
+                    </t>
+                    <div class="col-lg col-12 justify-content-end">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <h4>Service Request <span t-field="service_request.name"/></h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <strong>Product:</strong> <span t-field="service_request.product_id.name"/><br/>
+                                    <strong>Request Date:</strong> <span t-field="service_request.request_date"/><br/>
+                                    <strong>Service Type:</strong> <span t-field="service_request.service_type"/><br/>
+                                    <strong>Status:</strong> <span t-field="service_request.state"/>
+                                </div>
+                                <h5>Issue Description</h5>
+                                <div class="mb-4">
+                                    <span t-field="service_request.description"/>
+                                </div>
+                                <div t-if="service_request.repair_history_ids" class="mt-4">
+                                    <h5>Repair History</h5>
+                                    <table class="table table-sm table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Technician</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="service_request.repair_history_ids" t-as="repair">
+                                                <td><span t-field="repair.repair_date"/></td>
+                                                <td><span t-field="repair.technician_id.name"/></td>
+                                                <td><span t-field="repair.state"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="service_request_communication" class="mt-4">
+                            <h2>History</h2>
+                            <t t-call="portal.message_thread">
+                                <t t-set="object" t-value="service_request"/>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Warranty Claim Detail Page -->
+    <template id="portal_my_warranty_claim" name="My Warranty Claim">
+        <t t-call="portal.portal_layout">
+            <t t-set="warranty_claim" t-value="warranty_claim"/>
+            <div class="container">
+                <div class="row mt16 o_portal_sidebar">
+                    <!-- Sidebar -->
+                    <t t-call="portal.portal_record_sidebar">
+                        <t t-set="classes" t-value="'col-lg-auto d-print-none'"/>
+                        <t t-set="entries">
+                            <ul class="list-group list-group-flush flex-wrap flex-row flex-lg-column">
+                                <li class="list-group-item flex-grow-1">
+                                    <div class="small mb-1">
+                                        <strong class="text-muted">Warranty Status</strong>
+                                    </div>
+                                    <div class="row flex-nowrap">
+                                        <div class="col pl-0">
+                                            <span t-if="warranty_claim.is_in_warranty" class="badge badge-success">In Warranty</span>
+                                            <span t-else="" class="badge badge-danger">Expired</span>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li t-if="warranty_claim.technician_id" class="list-group-item flex-grow-1">
+                                    <div class="small mb-1">
+                                        <strong class="text-muted">Assigned Technician</strong>
+                                    </div>
+                                    <div class="row flex-nowrap">
+                                        <div class="col pl-0" style="min-width: 150px">
+                                            <span t-field="warranty_claim.technician_id.name"/>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </t>
+                    </t>
+                    <div class="col-lg col-12 justify-content-end">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <h4>Warranty Claim <span t-field="warranty_claim.name"/></h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <strong>Product:</strong> <span t-field="warranty_claim.product_id.name"/><br/>
+                                    <strong>Claim Date:</strong> <span t-field="warranty_claim.claim_date"/><br/>
+                                    <strong>Warranty Expiry:</strong> <span t-field="warranty_claim.warranty_expiry_date"/><br/>
+                                    <strong>Status:</strong> <span t-field="warranty_claim.state"/>
+                                </div>
+                                <h5>Problem Description</h5>
+                                <div class="mb-4">
+                                    <span t-field="warranty_claim.description"/>
+                                </div>
+                                <div t-if="warranty_claim.repair_ids" class="mt-4">
+                                    <h5>Repair History</h5>
+                                    <table class="table table-sm table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Technician</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="warranty_claim.repair_ids" t-as="repair">
+                                                <td><span t-field="repair.repair_date"/></td>
+                                                <td><span t-field="repair.technician_id.name"/></td>
+                                                <td><span t-field="repair.state"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="warranty_claim_communication" class="mt-4">
+                            <h2>History</h2>
+                            <t t-call="portal.message_thread">
+                                <t t-set="object" t-value="warranty_claim"/>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

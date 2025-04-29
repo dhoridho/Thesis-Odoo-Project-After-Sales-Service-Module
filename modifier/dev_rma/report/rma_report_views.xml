@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+
+    <!-- Custom reports (aka filters) -->
+    <record id="filter_rma_report_rma_funnel" model="ir.filters">
+        <field name="name">RMA Funnel</field>
+        <field name="model_id">rma.report</field>
+        <field name="domain">['&amp;', ('date','&lt;=', time.strftime('%%Y-12-31')), '&amp;', ('date','&gt;=',time.strftime('%%Y-01-01')), ('state','not in',('cancel',))]</field>
+        <field name="user_id" eval="False"/>
+        <field name="context">{'group_by': ['state']}</field>
+    </record>
+    <record id="filter_rma_report_salespersons" model="ir.filters">
+        <field name="name">By Salespersons</field>
+        <field name="model_id">rma.report</field>
+        <field name="user_id" eval="False"/>
+        <field name="context">{'group_by': ['date:month', 'user_id']}</field>
+    </record>
+    <record id="filter_rma_report_salesteam" model="ir.filters">
+        <field name="name">By Salesteam</field>
+        <field name="model_id">rma.report</field>
+        <field name="user_id" eval="False"/>
+        <field name="context">{'group_by': ['date:month', 'team_id']}</field>
+    </record>
+    <record id="filter_rma_report_product" model="ir.filters">
+        <field name="name">By Product</field>
+        <field name="model_id">rma.report</field>
+        <field name="user_id" eval="False"/>
+        <field name="context">{'group_by': ['date:month', 'product_id']}</field>
+    </record>
+    
+
+    <record id="view_rma_product_search" model="ir.ui.view">
+        <field name="name">rma.report.search</field>
+        <field name="model">rma.report</field>
+        <field name="arch" type="xml">
+            <search string="RMA Analysis">
+                <field name="date"/>
+                <filter string="This Year" name="year" invisible="1" domain="[('date','&lt;=', time.strftime('%%Y-12-31')),('date','&gt;=',time.strftime('%%Y-01-01'))]"/>
+                <separator/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="team_id"/>
+                <field name="user_id"/>
+                <group expand="0" string="Extended Filters">
+                    <field name="categ_id" filter_domain="[('categ_id', 'child_of', self)]"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                </group>
+                <group expand="1" string="Group By">
+                    <filter  string="Salesperson" name="User" context="{'group_by':'user_id'}"/>
+                    <filter name="sales_channel" string="Sales Channel" context="{'group_by':'team_id'}"/>
+                    <filter name="country_id" string="Partner's Country"  context="{'group_by':'country_id'}"/>
+                    <filter name="customer" string="Customer"  context="{'group_by':'partner_id'}"/>
+                    <filter name="category" string="Product Category"  context="{'group_by':'categ_id'}"/>
+                    <filter name="status" string="Status" context="{'group_by':'state'}"/>
+                    <filter name = "company" string="Company" groups="base.group_multi_company" context="{'group_by':'company_id'}"/>
+                    <separator/>
+                    <filter name = "order_month" string="Order Month" context="{'group_by':'date:month'}" help="Ordered date of the sales order"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_rma_report_all" model="ir.actions.act_window">
+        <field name="name">RMA Analysis</field>
+        <field name="res_model">rma.report</field>
+        <field name="view_mode">pivot</field>
+        <field name="view_id"></field>  <!-- force empty -->
+        <field name="context">{'group_by':['partner_id','sale_id','picking_id']}</field>
+        <field name="search_view_id" ref="view_rma_product_search"/>
+    </record>
+    
+<!--    <menuitem id="menu_rma_report_all"-->
+<!--            name="RMA Analysis"-->
+<!--            action="action_rma_report_all"-->
+<!--            parent="menu_dev_rma_rma_main"-->
+<!--            sequence="5"/>-->
+</odoo>

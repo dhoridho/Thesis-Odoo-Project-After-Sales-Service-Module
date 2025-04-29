@@ -4,7 +4,7 @@
         <t t-call="website.layout">
             <div class="container mt-5">
                 <h1>Service Request</h1>
-                <form id="service-request-form" action="/service/request/submit" method="post" enctype="multipart/form-data">
+                <form id="service-request-form" action="/service-request-submit" method="post" enctype="multipart/form-data">
                     <!-- CSRF Token -->
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
 
@@ -13,13 +13,13 @@
                         <div class="form-group">
                             <label>Customer</label>
                             <input type="text" class="form-control" t-att-value="logged_in_customer.name" readonly="readonly" />
-                            <input type="hidden" name="customer_id" t-att-value="logged_in_customer.id" />
+                            <input type="hidden" name="partner_id" t-att-value="logged_in_customer.id" />
                         </div>
                     </t>
                     <t t-else="">
                         <div class="form-group">
-                            <label for="customer_id">Customer</label>
-                            <select name="customer_id" id="customer_id" class="form-control" required="required">
+                            <label for="partner_id">Customer</label>
+                            <select name="partner_id" id="partner_id" class="form-control" required="required">
                                 <option t-att-value="''" t-att-disabled="True" t-att-selected="True">Select Customer</option>
                                 <t t-if="request.env['res.partner'].sudo().search([('customer_rank', '>', 0)])">
                                     <t t-foreach="request.env['res.partner'].sudo().search([('customer_rank', '>', 0)])" t-as="customer">
@@ -72,7 +72,7 @@
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="submit" class="btn btn-primary" style="margin-bottom: 20px">Submit</button>
                 </form>
             </div>
         </t>
@@ -91,10 +91,18 @@
         </t>
     </template>
 
+    <record id="menu_customer_services" model="website.menu">
+        <field name="name">Services</field>
+        <field name="website_id" ref="website.default_website"/>
+<!--        <field name="parent_id" ref="website.main_menu"/>-->
+        <field name="parent_id" search="[('parent_id', '=', False), ('website_id', '=', 1)]"/>
+        <field name="sequence" eval="30"/>
+    </record>
+
     <record id="menu_service_request_form" model="website.menu">
         <field name="name">Service Request</field>
-        <field name="url">/service/request</field>
-        <field name="parent_id" ref="website.main_menu" />
-        <field name="sequence" eval="20" />
+        <field name="url">/service-request</field>
+        <field name="parent_id" ref="after_sales_service.menu_customer_services"/>
+        <field name="sequence" eval="30" />
     </record>
 </odoo>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="report_service_request_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <!-- Report Header -->
+                    <div class="text-center mb-4">
+                        <h2 class="text-primary" style="font-size: 24px; font-weight: bold;">Service Request Report</h2>
+                    </div>
+
+                    <!-- Report Filters Section -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Report Filters</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <!-- Date Range -->
+                                        <td width="33%" style="vertical-align: top;">
+                                            <strong>Date Range:</strong><br/>
+                                            <t t-if="data.get('form', {}).get('start_date')">
+                                                <span t-esc="data['form']['start_date']" t-options='{"widget": "date"}'/>
+                                                <span> to </span>
+                                                <span t-esc="data['form']['end_date']" t-options='{"widget": "date"}'/>
+                                            </t>
+                                            <t t-else="">
+                                                <span>All Dates</span>
+                                            </t>
+                                        </td>
+
+                                        <!-- Filter Type -->
+                                        <td width="33%" style="vertical-align: top;">
+                                            <strong>Filter Type:</strong><br/>
+                                            <t t-if="data.get('form', {}).get('user_type')">
+                                                <span t-esc="{
+                                'responsible': 'By Responsible',
+                                'customer': 'By Customer',
+                                'both': 'All Types'
+                            }.get(data['form']['user_type'], 'Not Specified')"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span>All Types</span>
+                                            </t>
+                                        </td>
+
+                                        <!-- Responsible -->
+                                        <td width="33%" style="vertical-align: top;">
+                                            <strong>Responsible:</strong><br/>
+                                            <t t-if="data.get('form', {}).get('responsible_id', False)">
+                                                <span t-esc="env['res.users'].browse(data['form']['responsible_id']).name"/>
+                                            </t>
+                                            <t t-else="">
+                                                <span>All Users</span>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Report Summary -->
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Total Service Requests: </strong>
+                                <span t-esc="len(docs or env['service.request'].browse(data.get('ids', [])))"/>
+                            </div>
+                            <!--                            <div>-->
+                            <!--                                <strong>Period Coverage: </strong>-->
+                            <!--                                &lt;!&ndash;                                <span t-esc="(data.get('form', {}).get('start_date') and format_date(data['form']['start_date']) + ' to ' + format_date(data['form']['end_date']) or 'All Time'"/>&ndash;&gt;-->
+                            <!--                                <t t-set="date_range" t-value="data.get('form', {}).get('start_date') and (format_date(data['form']['start_date']) + ' to ' + format_date(data['form']['end_date'])) or 'All Time'"/>-->
+                            <!--                                <span t-esc="date_range"/>-->
+                            <!--                            </div>-->
+                        </div>
+                    </div>
+
+                    <!-- Report Data Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th>Request No.</th>
+                                    <th>Customer</th>
+                                    <th>Product</th>
+                                    <th>Responsible</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="docs or env['service.request'].browse(data.get('ids', []))" t-as="request">
+                                    <tr>
+                                        <td class="text-center" t-esc="request_index + 1"/>
+                                        <td>
+                                            <span t-field="request.name" style="font-weight: 500;"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="request.partner_id.name"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="request.product_id.name"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="request.responsible_id.name"/>
+                                        </td>
+                                        <td>
+                                            <span t-att-class="'badge badge-' +
+                                                {'draft': 'secondary',
+                                                 'confirmed': 'info',
+                                                 'in_progress': 'primary',
+                                                 'done': 'success',
+                                                 'cancel': 'danger'}.get(request.state, 'light')"
+                                                  t-esc="request.state.upper()"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-field="request.create_date" t-options='{"widget": "date"}'/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Report Footer -->
+                    <!--                    <div class="mt-4 text-right">-->
+                    <!--                        <small class="text-muted">-->
+                    <!--                            Printed by: <span t-esc="env.user.name"/> on <span t-esc="format_date(fields.Date.today())"/>-->
+                    <!--                        </small>-->
+                    <!--                    </div>-->
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

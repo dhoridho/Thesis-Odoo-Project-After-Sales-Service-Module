@@ -14,7 +14,7 @@ class RepairHistory(models.Model):
     origin = fields.Char('Source Document', compute='_compute_origin', store=True)
 
     # Common fields for tracking repairs
-    customer_id = fields.Many2one('res.partner', string='Customer', required=True)
+    partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     product_id = fields.Many2one('product.product', string='Product', required=True)
     technician_id = fields.Many2one('hr.employee', string='Assigned Technician', readonly=True)
     repair_date = fields.Date('Repair Date', default=fields.Date.today)
@@ -61,8 +61,10 @@ class RepairHistory(models.Model):
             if record.state == 'pending':
                 if record.is_warranty_repair:
                     record.warranty_claim_id.resolution_type = record.repair_type
+                    record.warranty_claim_id.state = 'in_progress'
                 else:
                     record.service_request_id.service_type = record.repair_type
+                    record.service_request_id.state = 'in_progress'
                 record.state = 'in_progress'
 
     def action_complete(self):

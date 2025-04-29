@@ -5,7 +5,7 @@ class WarrantyNotification(models.Model):
     _name = 'warranty.notification'
     _description = 'Warranty Notification'
 
-    customer_id = fields.Many2one('res.partner', string='Customer', required=True)
+    partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     product_id = fields.Many2one('product.product', string='Product', required=True)
     warranty_end_date = fields.Date('Warranty End Date', required=True)
     notification_sent = fields.Boolean('Notification Sent', default=False)
@@ -26,18 +26,18 @@ class WarrantyNotification(models.Model):
             else:
                 record.days_remaining = 0
 
-    def send_warranty_notifications(self):
-        """Send email notifications for warranties expiring in 7 days."""
-        today = fields.Date.today()
-        seven_days_later = today + timedelta(days=7)
-        notifications = self.search([
-            ('warranty_end_date', '=', seven_days_later),
-            ('notification_status', '=', 'no')
-        ])
-        for notification in notifications:
-            notification.notification_status = 'sent'
-            template = self.env.ref('after_sales_service.warranty_notification_email_template')
-            template.send_mail(notification.id, force_send=True)
+    # def send_warranty_notifications(self):
+    #     """Send email notifications for warranties expiring in 7 days."""
+    #     today = fields.Date.today()
+    #     seven_days_later = today + timedelta(days=7)
+    #     notifications = self.search([
+    #         ('warranty_end_date', '=', seven_days_later),
+    #         ('notification_status', '=', 'no')
+    #     ])
+    #     for notification in notifications:
+    #         notification.notification_status = 'sent'
+    #         template = self.env.ref('after_sales_service.warranty_notification_email_template')
+    #         template.send_mail(notification.id, force_send=True)
 
     def action_send_warranty_notifications(self):
         self.send_warranty_notifications()

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
 
     <record id="view_warranty_claim_tree" model="ir.ui.view">
@@ -6,7 +7,8 @@
         <field name="arch" type="xml">
             <tree string="Warranty Claims" default_order="id desc">
                 <field name="name"/>
-                <field name="customer_id"/>
+                <field name="sale_order_id"/>
+                <field name="partner_id"/>
                 <field name="product_id"/>
                 <field name="claim_date"/>
                 <field name="warranty_expiry_date"/>
@@ -16,13 +18,14 @@
         </field>
     </record>
 
+
     <record id="view_warranty_claim_tree_technician" model="ir.ui.view">
         <field name="name">warranty.claim.tree.technician</field>
         <field name="model">warranty.claim</field>
         <field name="arch" type="xml">
             <tree string="Warranty Claims" default_order="id desc" create="false">
                 <field name="name"/>
-                <field name="customer_id"/>
+                <field name="partner_id"/>
                 <field name="product_id"/>
                 <field name="claim_date"/>
                 <field name="warranty_expiry_date"/>
@@ -42,26 +45,28 @@
                             type="object"
                             string="Submit Order"
                             class="oe_highlight"
-                            attrs="{'invisible': ['&amp;', ('technician_id', '=', False), ('state', 'not in', ['assign_technician'])]}"/>
-                    <field name="state" widget="statusbar"/>
+                            attrs="{'invisible': ['|', ('state', 'not in', ['draft','assign_technician']), ('technician_id', '=', False)]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,assign_technician,submitted,in_progress,completed" />
                 </header>
                 <sheet>
                     <h1><field name="name"/></h1>
                     <group>
                         <group>
-                            <field name="customer_id" domain="[('is_customer', '=', True)]"/>
-                            <field name="sale_order_id" domain="[('partner_id', '=', customer_id)]"/>
-                            <field name="product_id" domain="[('id', 'in', valid_product_ids)]"/>
+                            <field name="partner_id" domain="[('is_customer', '=', True)]" options="{'no_create': True}"/>
+                            <field name="sale_order_id" domain="[('partner_id', '=', partner_id)]" options="{'no_create': True}"/>
+                            <field name="product_id" domain="[('id', 'in', valid_product_ids)]" options="{'no_create': True}"/>
                             <field name="valid_product_ids" invisible="1"/>
                             <field name="claim_date"/>
                             <field name="warranty_expiry_date"/>
                         </group>
                         <group>
-                            <field name="technician_id" attrs="{'required': [('state', '=', 'assign_technician')]}" domain="[('job_title', '=', 'Technician')]"/>
+                            <field name="technician_id" attrs="{'required': [('state', '=', 'assign_technician')]}" domain="[('job_title', 'in', ['Technician', 'Technician Manager'])]" options="{'no_create': True}"/>
                             <field name="is_in_warranty" invisible="1"/>
                             <field name="resolution_type"/>
                             <field name="resolution_date" attrs="{'invisible': [('resolution_type', '=', 'False')]}"/>
                             <field name="replacement_product_id" attrs="{'invisible': [('resolution_type', '!=', 'replace')]}"/>
+                            <field name="is_by_portal" invisible="1"/>
+                            <field name="responsible_id" readonly="1" attrs="{'invisible': [('is_by_portal', '=', True)]}"/>
                         </group>
                     </group>
                     <notebook>
@@ -79,34 +84,46 @@
     </record>
 
 
-    <record id="action_warranty_claims" model="ir.actions.act_window">
+    <record model="ir.actions.server" id="action_warranty_claim">
         <field name="name">Warranty Claims</field>
-        <field name="res_model">warranty.claim</field>
-        <field name="view_mode">tree,form</field>
+        <field name="model_id" ref="after_sales_service.model_warranty_claim"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.sudo().by_domain_warranty_claim()
+        </field>
     </record>
 
     <menuitem
             id="menu_warranty_management"
             name="Warranty Management"
             parent="menu_after_sales_root"
-            action="action_warranty_claims"
+            action="action_warranty_claim"
             sequence="3"
-            groups="after_sales_service.group_customer_service"/>
+            />
 
-    <record id="action_warranty_claims_technician" model="ir.actions.act_window">
-        <field name="name">Warranty Claims Technician</field>
-        <field name="res_model">warranty.claim</field>
-        <field name="view_mode">tree</field>
-        <field name="view_id" ref="view_warranty_claim_tree_technician"/>
-        <field name="domain">[('technician_id.user_id', '=', uid)]</field>
-    </record>
+<!--    <record id="action_warranty_claims_technician" model="ir.actions.act_window">-->
+<!--        <field name="name">Warranty Claims Technician</field>-->
+<!--        <field name="res_model">warranty.claim</field>-->
+<!--        <field name="view_mode">tree</field>-->
+<!--        <field name="view_id" ref="view_warranty_claim_tree_technician"/>-->
+<!--        <field name="domain">[('technician_id.user_id', '=', uid)]</field>-->
+<!--    </record>-->
 
-    <menuitem
-            id="menu_warranty_management_technician"
-            name="Warranty Management"
-            parent="menu_after_sales_root"
-            action="action_warranty_claims_technician"
-            sequence="3"
-            groups="after_sales_service.group_technician"/>
+<!--    <menuitem-->
+<!--            id="menu_warranty_management_technician"-->
+<!--            name="Warranty Management"-->
+<!--            parent="menu_after_sales_root"-->
+<!--            action="action_warranty_claims_technician"-->
+<!--            sequence="3"-->
+<!--            groups="after_sales_service.group_technician"-->
+<!--    />-->
+
+
+    <!--    <record id="action_warranty_claims" model="ir.actions.act_window">-->
+<!--        <field name="name">Warranty Claims</field>-->
+<!--        <field name="res_model">warranty.claim</field>-->
+<!--        <field name="view_mode">tree,form</field>-->
+<!--        <field name="context">{'default_domain': 'domain_for_warranty_claims'}</field>-->
+<!--    </record>-->
 
 </odoo>

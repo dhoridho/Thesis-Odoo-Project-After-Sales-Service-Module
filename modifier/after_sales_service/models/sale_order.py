@@ -10,12 +10,13 @@ class SaleOrder(models.Model):
         for order in self:
             for line in order.order_line:
                 product = line.product_id.product_tmpl_id
+                product_id = line.product_id
 
                 if product.has_warranty:
                     warranty_end_date = fields.Date.today() + timedelta(days=product.warranty_period_id.duration)
                     self.env['warranty.notification'].sudo().create({
-                        'customer_id': order.partner_id.id,
-                        'product_id': product.id,
+                        'partner_id': order.partner_id.id,
+                        'product_id': product_id.id,
                         'warranty_end_date': warranty_end_date,
                         'notification_status': 'no',
                     })

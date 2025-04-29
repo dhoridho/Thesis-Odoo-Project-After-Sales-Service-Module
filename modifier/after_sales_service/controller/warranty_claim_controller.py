@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 
 class WarrantyClaimController(http.Controller):
 
-    @http.route('/warranty/claim', type='http', auth="public", website=True)
+    @http.route('/warranty-claim', type='http', auth="public", website=True)
     def warranty_claim_form(self, **kwargs):
         """Display the warranty claim form with pre-filled customer details if logged in."""
         user_partner = request.env.user.partner_id if request.env.user.id != http.request.env.ref('base.public_user').id else None
@@ -30,20 +30,21 @@ class WarrantyClaimController(http.Controller):
             sale_order = request.env['sale.order'].sudo().browse(int(sale_order_id))
             products = []
             for line in sale_order.order_line:
-                products.append({
-                    'id': line.product_id.id,
-                    'name': line.product_id.name
-                })
+                if line.product_id.has_warranty:
+                    products.append({
+                        'id': line.product_id.id,
+                        'name': line.product_id.name
+                    })
             return json.dumps({'products': products})
         except Exception as e:
             return json.dumps({'error': str(e)})
 
-    @http.route('/warranty/claim/submit', type='http', auth="public", methods=['POST'], website=True, csrf=True)
+    @http.route('/warranty-claim-submit', type='http', auth="public", methods=['POST'], website=True, csrf=True)
     def submit_warranty_claim(self, **kwargs):
         """Process the warranty claim form submission with multiple products."""
         try:
             sale_order_id = int(kwargs.get('sale_order_id', 0))
-            customer_id = int(kwargs.get('customer_id', 0))
+            partner_id = int(kwargs.get('partner_id', 0))
 
             # Validate sale order
             sale_order = request.env['sale.order'].sudo().browse(sale_order_id)
@@ -53,7 +54,7 @@ class WarrantyClaimController(http.Controller):
                     'error': 'Invalid Sale Order or no products available for this order.'
                 })
 
-            _logger.info(f"Processing claims for Sale Order ID: {sale_order_id}, Customer ID: {customer_id}")
+            _logger.info(f"Processing claims for Sale Order ID: {sale_order_id}, Customer ID: {partner_id}")
 
             # Process each product claim
             product_claim_count = len([k for k in kwargs if k.startswith('product_claims')]) // 3
@@ -74,7 +75,7 @@ class WarrantyClaimController(http.Controller):
 
                 # Create warranty claim
                 claim = request.env['warranty.claim'].sudo().create({
-                    'customer_id': customer_id,
+                    'partner_id': partner_id,
                     'product_id': product_id,
                     'sale_order_id': sale_order_id,
                     'description': description,

@@ -1,5 +1,5 @@
-from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError, ValidationError
 
 class WarrantyClaim(models.Model):
     _name = 'warranty.claim'
@@ -7,7 +7,7 @@ class WarrantyClaim(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string='Claim Number', required=True, copy=False, readonly=True, default='New')
-    customer_id = fields.Many2one('res.partner', string='Customer', required=True, ondelete='cascade')
+    partner_id = fields.Many2one('res.partner', string='Customer', required=True, ondelete='cascade')
     sale_order_id = fields.Many2one('sale.order', string='Related Sale Order', required=True)
     date_order = fields.Datetime(string='Order Date', related='sale_order_id.date_order', store=True)
     product_id = fields.Many2one('product.product', string='Product', required=True)
@@ -15,14 +15,29 @@ class WarrantyClaim(models.Model):
     claim_date = fields.Date(string='Claim Date', default=fields.Date.today)
     warranty_expiry_date = fields.Date(string='Warranty Expiry Date', compute='_compute_warranty_expiry_date', store=True, readonly=True)
     description = fields.Text(string='Problem Description')
+    responsible_id = fields.Many2one(
+        'res.users',
+        string='Responsible',
+        default=lambda self: self._default_responsible_id(),
+        readonly=True,
+        tracking=True
+    )
+
+    def _default_responsible_id(self):
+        """Set default responsible only if current user is internal"""
+        if self.env.user.has_group('base.group_user'):  # Checks if internal user
+            return self.env.user
+        return False
+
+    is_by_portal = fields.Boolean('Is by Portal', default=False)
 
     state = fields.Selection([
         ('draft', 'Draft'),
         ('assign_technician', 'Assign Technician'),
         ('submitted', 'Submitted'),
-        ('rejected', 'Rejected'),
         ('in_progress', 'In Progress'),
-        ('completed', 'Completed')
+        ('completed', 'Completed'),
+        ('rejected', 'Rejected')
     ], string='Status', default='draft', tracking=True)
 
     technician_id = fields.Many2one('hr.employee', string='Assigned Technician')
@@ -42,7 +57,7 @@ class WarrantyClaim(models.Model):
             raise UserError('Please assign a technician before submitting the order.')
         self.state = 'submitted'
         self.env['repair.history'].create({
-            'customer_id': self.customer_id.id,
+            'partner_id': self.partner_id.id,
             'product_id': self.product_id.id,
             'technician_id': self.technician_id.id,
             'warranty_claim_id': self.id,
@@ -54,8 +69,15 @@ class WarrantyClaim(models.Model):
     def create(self, vals):
         if vals.get('name', 'New') == 'New':
             vals['name'] = self.env['ir.sequence'].next_by_code('warranty.claim') or 'New'
-            record = super(WarrantyClaim, self).create(vals)
-            record._check_ready_to_assign()
+
+        if self.env.user.has_group('base.group_portal'):
+            vals.update({
+                'is_by_portal': True,
+                'responsible_id': False
+            })
+
+        record = super(WarrantyClaim, self).create(vals)
+        record._check_ready_to_assign()
         return record
 
     def write(self, vals):
@@ -78,6 +100,17 @@ class WarrantyClaim(models.Model):
             else:
                 record.warranty_expiry_date = False
 
+    @api.onchange('product_id')
+    def _onchange_product_id(self):
+        if self.product_id and not self.product_id.has_warranty:
+            warning = {
+                'title': _('Invalid Product'),
+                'message': _('The selected product does not have a warranty. Please choose another product.')
+            }
+            # Clear the product selection
+            self.product_id = False
+            return {'warning': warning}
+
     @api.depends('sale_order_id')
     def _compute_valid_product_ids(self):
         for record in self:
@@ -87,8 +120,8 @@ class WarrantyClaim(models.Model):
             else:
                 record.valid_product_ids = [(6, 0, [])]
 
-    @api.onchange('customer_id')
-    def _onchange_customer_id(self):
+    @api.onchange('partner_id')
+    def _onchange_partner_id(self):
         self.sale_order_id = False
         self.product_id = False
         self.warranty_expiry_date = False
@@ -103,3 +136,31 @@ class WarrantyClaim(models.Model):
         for record in self:
             if record.state == 'draft' and not record.technician_id:
                 record.state = 'assign_technician'
+
+
+    def by_domain_warranty_claim(self):
+        user = self.env.user
+
+        # Check if the user is an employee and has the job title "Technician"
+        employee = self.env['hr.employee'].sudo().search([('user_id', '=', user.id)], limit=1)
+
+        if employee and employee.job_id and employee.job_id.name == 'Technician':
+            domain = [('technician_id', '=', employee.id)]  # Match technician_id with the employee's ID
+            view_id = self.env.ref("after_sales_service.view_warranty_claim_tree_technician").id
+        else:
+            domain = []
+            view_id = self.env.ref("after_sales_service.view_warranty_claim_tree").id
+
+        return {
+            'name': 'Warranty Claims Technician' if employee.job_id.name == 'Technician' else 'Warranty Claims',
+            "type": "ir.actions.act_window",
+            "res_model": self._name,
+            "view_mode": "tree,form",
+            "views": [(view_id, 'tree'), (False, 'form')],  # Define views with IDs
+            "domain": domain
+        }
+
+    def get_portal_url(self, suffix=None, report_type=None, download=None, **kwargs):
+        """Generate portal access URL for warranty claims"""
+        self.ensure_one()
+        return '/my/warranty-claims/%s' % self.id
