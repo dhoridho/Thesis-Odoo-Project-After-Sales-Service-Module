@@ -13,6 +13,7 @@
         'purchase',
         'master_mods',
         'master_mods',
+        'dev_rma',
     ],
     "data": [
         "security/ir.model.access.csv",
