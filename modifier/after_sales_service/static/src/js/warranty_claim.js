@@ -152,6 +152,7 @@ odoo.define('after_sales_service.warranty_claim', function (require) {
                         <select name="product_claims[${index-1}][product_id]" class="form-control product-select">
                             <option value="">Select Sale Order First</option>
                         </select>
+                        <small style="color: #cc6666;">Note: Only products with active warranties will be listed.</small>
                     </div>
                     <div class="form-group">
                         <label>Issue Description</label>

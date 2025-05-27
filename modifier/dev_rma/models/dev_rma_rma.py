@@ -221,6 +221,12 @@ class dev_rma_rma(models.Model):
     new_sale_id = fields.Many2one('sale.order', string='New Sale Order', copy=False)
     invoice_id = fields.Many2one('account.move', string='Account Invoice', copy=False)
     is_rma_due = fields.Boolean(compute="_check_rma_due", readonly="1")
+    responsible_id = fields.Many2one('res.users', string='Responsible', compute="_compute_responsible_id",copy=False, store=True)
+
+    @api.depends('user_id')
+    def _compute_responsible_id(self):
+        for rma in self:
+            rma.responsible_id = rma.user_id
     
     
     @api.depends('deadline_date','state')

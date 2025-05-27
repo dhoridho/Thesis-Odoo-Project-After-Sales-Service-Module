@@ -9,23 +9,51 @@ class ServiceRequestReportParser(models.AbstractModel):
     def _get_report_values(self, docids, data=None):
         """Prepare data for the report"""
         if not data:
-            data = {'form': {
-                'start_date': False,
-                'end_date': False,
-                'user_type': 'both',
-                'responsible_id': False,
-                'ids': docids
-            }}
+            raise ValueError("Missing report data.")
 
-        # Get the records
-        service_requests = self.env['service.request'].browse(data.get('ids', []))
+        report_data = data['form'].get('report_data', 'service_request')
+        model_map = {
+            'service_request': 'service.request',
+            'warranty_claim': 'warranty.claim',
+            'sale_return': 'dev.rma.rma'
+        }
+        model_name = model_map.get(report_data, 'service.request')
+
+        records = self.env[model_name].browse(data.get('ids', []))
 
         return {
             'doc_ids': docids,
-            'doc_model': 'service.request',
-            'docs': service_requests,
+            'doc_model': model_name,
+            'docs': records,
             'data': data,
         }
+
+    def get_report_filename(self, docids, data):
+        label_map = {
+            'service_request': 'Service Request',
+            'warranty_claim': 'Warranty Claim',
+            'sale_return': 'Sale Return',
+        }
+        type_map = {
+            'responsible': 'By Customer Service',
+            'customer': 'By Customer',
+            'both': 'By All',
+        }
+
+        title = label_map.get(self.report_data, 'After Sales')
+        user_type = type_map.get(self.user_type, 'All Users')
+
+        # Format date period
+        if self.start_date and self.end_date:
+            period = f"{self.start_date.strftime('%d/%m/%Y')} to {self.end_date.strftime('%d/%m/%Y')}"
+        elif self.start_date:
+            period = f"From {self.start_date.strftime('%d/%m/%Y')}"
+        elif self.end_date:
+            period = f"Up to {self.end_date.strftime('%d/%m/%Y')}"
+        else:
+            period = "All Time"
+
+        return f"{title} Report - {user_type} ({period})"
 
 
 class WarrantyClaimReportParser(models.AbstractModel):

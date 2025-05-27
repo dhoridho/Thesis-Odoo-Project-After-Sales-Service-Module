@@ -29,4 +29,8 @@
         'views/after_sales_report_menu.xml',
     ],
 
+    'external_dependencies': {
+        'python': ['xlsxwriter'],
+    },
+
 }

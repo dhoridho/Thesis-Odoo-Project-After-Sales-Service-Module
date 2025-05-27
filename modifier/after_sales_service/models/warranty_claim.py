@@ -42,6 +42,27 @@ class WarrantyClaim(models.Model):
 
     technician_id = fields.Many2one('hr.employee', string='Assigned Technician')
     repair_ids = fields.One2many('repair.history', 'warranty_claim_id', string='Repair History')
+    repair_count = fields.Integer(
+        string='Repair History Count',
+        compute='_compute_repair_count'
+    )
+
+    @api.depends('repair_ids')
+    def _compute_repair_count(self):
+        for record in self:
+            record.repair_count = len(record.repair_ids)
+
+    def action_view_repair_history(self):
+        return {
+            'name': 'Repair History',
+            'type': 'ir.actions.act_window',
+            'res_model': 'repair.history',  # Replace with actual model name
+            'view_mode': 'tree,form',
+            'domain': [('service_request_id', '=', self.id)],  # Adjust field name as needed
+            'context': {'default_warranty_claim_id': self.id},
+        }
+
+
     replacement_product_id = fields.Many2one('product.product', string='Replacement Product')
     resolution_date = fields.Date(string='Resolution Date')
     resolution_type = fields.Selection([
@@ -144,23 +165,47 @@ class WarrantyClaim(models.Model):
         # Check if the user is an employee and has the job title "Technician"
         employee = self.env['hr.employee'].sudo().search([('user_id', '=', user.id)], limit=1)
 
-        if employee and employee.job_id and employee.job_id.name == 'Technician':
-            domain = [('technician_id', '=', employee.id)]  # Match technician_id with the employee's ID
+        is_manager = user.has_group('after_sales_service.group_customer_service_manager') or user.has_group(
+            'after_sales_service.group_technician_manager')
+
+        domain = []
+        context = {}
+        view_id = self.env.ref("after_sales_service.view_warranty_claim_tree").id
+        name = "Warranty Claims"
+
+        if employee and employee.job_id and employee.job_id.name in ['Technician', 'Technician Manager']:
+            if employee.job_id.name != 'Technician Manager':
+                domain = [('technician_id', '=', employee.id)]
             view_id = self.env.ref("after_sales_service.view_warranty_claim_tree_technician").id
-        else:
-            domain = []
-            view_id = self.env.ref("after_sales_service.view_warranty_claim_tree").id
+            name = "Warranty Claims Technician"
+        elif not is_manager:
+            context = {'search_default_own_document': 1}
 
         return {
-            'name': 'Warranty Claims Technician' if employee.job_id.name == 'Technician' else 'Warranty Claims',
+            'name': name,
             "type": "ir.actions.act_window",
             "res_model": self._name,
             "view_mode": "tree,form",
             "views": [(view_id, 'tree'), (False, 'form')],  # Define views with IDs
-            "domain": domain
+            "domain": domain,
+            'context': context,
         }
 
     def get_portal_url(self, suffix=None, report_type=None, download=None, **kwargs):
         """Generate portal access URL for warranty claims"""
         self.ensure_one()
         return '/my/warranty-claims/%s' % self.id
+
+    def open_assign_technician_wizard(self):
+        """Open the technician assignment wizard"""
+        return {
+            'name': 'Assign Technician',
+            'type': 'ir.actions.act_window',
+            'res_model': 'technician.assign.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'active_model': self._name,
+                'active_id': self.id,
+            }
+        }

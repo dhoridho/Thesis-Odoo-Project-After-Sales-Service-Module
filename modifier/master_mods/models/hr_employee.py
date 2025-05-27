@@ -1,10 +1,12 @@
 from odoo import models, fields, api
-
+from odoo.exceptions import UserError
 
 class Employee(models.Model):
     _inherit = 'hr.employee'
 
     # user_id = fields.Many2one('res.users', string="User", ondelete='set null')
+
+    ongoing_tasks = fields.Integer(compute='_compute_ongoing_tasks', string="Ongoing Tasks")
 
     def action_create_user(self):
         """Create a user for this employee."""
@@ -62,3 +64,38 @@ class Employee(models.Model):
                     employee.user_id.groups_id = [(4, after_sales_team.id), (4, customer_service.id)]
                 elif employee.job_id.name.lower() == 'technician':
                     employee.user_id.groups_id = [(4, after_sales_team.id), (4, technician.id)]
+
+    def _compute_ongoing_tasks(self):
+        for rec in self:
+            rec.ongoing_tasks = self.env['repair.history'].search_count([
+                ('technician_id', '=', rec.id),
+                ('state', 'in', ['pending', 'in_progress'])
+            ])
+
+    def action_select_technician(self):
+        technician_id = self.id
+        active_model = self.env.context.get('active_model')
+        active_id = self.env.context.get('active_id')
+
+        if active_model == 'service.request':
+            rec = self.env['service.request'].browse(active_id)
+        elif active_model == 'warranty.claim':
+            rec = self.env['warranty.claim'].browse(active_id)
+        else:
+            raise UserError("Unknown model for assignment.")
+
+        rec.technician_id = technician_id
+
+        return {'type': 'ir.actions.act_window_close'}
+
+    def action_select_technician_server(self):
+        """Method to handle technician selection from the wizard tree"""
+        wizard_id = self.env.context.get('wizard_id')
+        technician_id = self.id  # Current technician record ID
+
+        if wizard_id and technician_id:
+            wizard = self.env['technician.assign.wizard'].browse(wizard_id)
+            wizard.selected_technician_id = technician_id
+
+        return {'type': 'ir.actions.act_window_close'}
+

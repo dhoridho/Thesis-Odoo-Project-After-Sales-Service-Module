@@ -36,6 +36,8 @@
         # "views/after_sales_report_menu.xml",
         "views/dev_rma_rma.xml",
 
+        "wizards/technician_assign_wizard.xml",
+
 
         # "views/technician_management_view.xml",
 

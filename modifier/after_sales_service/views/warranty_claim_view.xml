@@ -12,8 +12,9 @@
                 <field name="product_id"/>
                 <field name="claim_date"/>
                 <field name="warranty_expiry_date"/>
-                <field name="state"/>
                 <field name="technician_id"/>
+                <field name="responsible_id"/>
+                <field name="state"/>
             </tree>
         </field>
     </record>
@@ -25,12 +26,14 @@
         <field name="arch" type="xml">
             <tree string="Warranty Claims" default_order="id desc" create="false">
                 <field name="name"/>
+                <field name="sale_order_id"/>
                 <field name="partner_id"/>
                 <field name="product_id"/>
                 <field name="claim_date"/>
                 <field name="warranty_expiry_date"/>
-                <field name="state"/>
                 <field name="technician_id"/>
+                <field name="responsible_id"/>
+                <field name="state"/>
             </tree>
         </field>
     </record>
@@ -46,9 +49,24 @@
                             string="Submit Order"
                             class="oe_highlight"
                             attrs="{'invisible': ['|', ('state', 'not in', ['draft','assign_technician']), ('technician_id', '=', False)]}"/>
+
+                    <button name="open_assign_technician_wizard"
+                            type="object"
+                            string="Assign Technician"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'assign_technician')]}"/>
+
                     <field name="state" widget="statusbar" statusbar_visible="draft,assign_technician,submitted,in_progress,completed" />
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_repair_history"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-wrench">
+                            <field name="repair_count" widget="statinfo" string="Repair History"/>
+                        </button>
+                    </div>
                     <h1><field name="name"/></h1>
                     <group>
                         <group>
@@ -66,7 +84,7 @@
                             <field name="resolution_date" attrs="{'invisible': [('resolution_type', '=', 'False')]}"/>
                             <field name="replacement_product_id" attrs="{'invisible': [('resolution_type', '!=', 'replace')]}"/>
                             <field name="is_by_portal" invisible="1"/>
-                            <field name="responsible_id" readonly="1" attrs="{'invisible': [('is_by_portal', '=', True)]}"/>
+                            <field name="responsible_id" string="Responsible CS" readonly="1" attrs="{'invisible': [('is_by_portal', '=', True)]}"/>
                         </group>
                     </group>
                     <notebook>
@@ -80,6 +98,23 @@
                      <field name="message_ids"/>
                  </div>
             </form>
+        </field>
+    </record>
+
+    <record id="view_warranty_claim_search" model="ir.ui.view">
+        <field name="name">warranty.claim.search</field>
+        <field name="model">warranty.claim</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="state"/>
+                <field name="responsible_id"/>
+                <separator/>
+                <filter name="own_document"
+                        string="Own Documents"
+                        domain="[('responsible_id', '=', uid)]"/>
+            </search>
         </field>
     </record>
 

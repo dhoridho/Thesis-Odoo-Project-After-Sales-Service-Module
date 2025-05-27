@@ -40,7 +40,26 @@ class ServiceRequest(models.Model):
     ], string='Status', default='draft', tracking=True)
 
     technician_id = fields.Many2one('hr.employee', string='Assigned Technician')
-    repair_history_ids = fields.One2many('repair.history', 'service_request_id', string='Repair History')
+    repair_ids = fields.One2many('repair.history', 'service_request_id', string='Repair History')
+    repair_count = fields.Integer(
+        string='Repair History Count',
+        compute='_compute_repair_count'
+    )
+
+    @api.depends('repair_ids')
+    def _compute_repair_count(self):
+        for record in self:
+            record.repair_count = len(record.repair_ids)
+
+    def action_view_repair_history(self):
+        return {
+            'name': 'Repair History',
+            'type': 'ir.actions.act_window',
+            'res_model': 'repair.history',  # Replace with actual model name
+            'view_mode': 'tree,form',
+            'domain': [('service_request_id', '=', self.id)],  # Adjust field name as needed
+            'context': {'default_service_request_id': self.id},
+        }
 
     service_type = fields.Selection([
         ('repair', 'Repair'),
@@ -103,6 +122,7 @@ class ServiceRequest(models.Model):
         if not self.technician_id:
             raise UserError('Please assign a technician before submitting the order.')
         self.ensure_one()
+        
         self.state = 'submitted'
         self.env['repair.history'].create({
             'partner_id': self.partner_id.id,
@@ -119,20 +139,30 @@ class ServiceRequest(models.Model):
         # Check if the user is an employee and has the job title "Technician"
         employee = self.env['hr.employee'].sudo().search([('user_id', '=', user.id)], limit=1)
 
-        if employee and employee.job_id and employee.job_id.name == 'Technician':
-            domain = [('technician_id', '=', employee.id)]  # Match technician_id with the employee's ID
+        is_manager = user.has_group('after_sales_service.group_customer_service_manager') or user.has_group('after_sales_service.group_technician_manager')
+
+        context = {}
+        domain = []
+        view_id = self.env.ref("after_sales_service.view_service_request_tree").id
+        name = "Service Request"
+
+        if employee and employee.job_id and employee.job_id.name in ['Technician', 'Technician Manager']:
+            if employee.job_id.name != 'Technician Manager':
+                domain = [('technician_id', '=', employee.id)]
             view_id = self.env.ref("after_sales_service.view_service_request_tree_technician").id
-        else:
-            domain = []
-            view_id = self.env.ref("after_sales_service.view_service_request_tree").id
+            name = "Service Request Technician"
+
+        elif not is_manager:
+            context = {'search_default_own_document': 1}
 
         return {
-            'name': 'Service Request Technician' if employee.job_id.name == 'Technician' else 'Service Request',
+            'name': name,
             "type": "ir.actions.act_window",
             "res_model": self._name,
             "view_mode": "tree,form",
             "views": [(view_id, 'tree'), (False, 'form')],  # Define views with IDs
-            "domain": domain
+            "domain": domain,
+            "context": context,
         }
 
     # In service_request.py, add:
@@ -141,3 +171,18 @@ class ServiceRequest(models.Model):
         """Generate portal access URL for service requests"""
         self.ensure_one()
         return '/my/service-requests/%s' % self.id
+
+    def open_assign_technician_wizard(self):
+        """Open the technician assignment wizard"""
+        return {
+            'name': 'Assign Technician',
+            'type': 'ir.actions.act_window',
+            'res_model': 'technician.assign.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'active_model': self._name,
+                'active_id': self.id,
+            }
+        }
+

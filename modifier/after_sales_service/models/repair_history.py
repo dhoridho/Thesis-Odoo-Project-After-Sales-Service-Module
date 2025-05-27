@@ -78,3 +78,23 @@ class RepairHistory(models.Model):
                 else:
                     record.service_request_id.state = 'completed'
                     record.service_request_id.actual_completion_date = fields.Date.today()
+
+    def by_domain_repair_history(self):
+        user = self.env.user
+        employee = self.env['hr.employee'].sudo().search([('user_id', '=', user.id)], limit=1)
+
+        # Manager group check (replace with your actual XML ID)
+        is_manager = user.has_group('after_sales_service.group_technician_manager')
+
+        domain = []
+        if employee and employee.job_id and employee.job_id.name == 'Technician' and not is_manager:
+            domain = [('technician_id.user_id', '=', user.id)]
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Repairs & Maintenance',
+            'res_model': 'repair.history',
+            'view_mode': 'tree,form',
+            'domain': domain,
+            'context': {},
+        }

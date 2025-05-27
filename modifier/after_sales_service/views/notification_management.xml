@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-<!--                    <button name="send_warranty_notifications" type="object" string="Send Warranty Notifications" class="btn-primary"/>-->
+                    <button name="send_warranty_notifications" type="object" string="Send Warranty Notifications" class="btn-primary"/>
                 </header>
                 <sheet>
                     <group>
@@ -15,7 +15,7 @@
                         <field name="product_id"/>
                         <field name="warranty_end_date"/>
                         <field name="days_remaining"/>
-                        <field name="notification_status" invisible="1"/>
+                        <field name="notification_status"/>
                     </group>
                 </sheet>
             </form>
@@ -56,19 +56,19 @@
             sequence="7"
             groups="after_sales_service.group_customer_service_manager"/>
 
-    <template id="warranty_notification_email_template" name="Warranty Notification Email">
+    <record id="warranty_notification_email_template" model="mail.template">
+        <field name="name">Warranty Notification Email</field>
         <field name="subject">Your Product Warranty is About to Expire</field>
-        <field name="email_from">${object.env.company.email}</field>
-        <field name="email_to">${object.partner_id.email}</field>
-        <field name="body_html">
-            <![CDATA[
-        <p>Dear ${object.partner_id.name},</p>
-        <p>This is a friendly reminder that the warranty for your product, ${object.product_id.name}, will expire on ${object.warranty_end_date}.</p>
-        <p>Please contact us if you need assistance or wish to extend the warranty.</p>
-        <p>Best regards,</p>
-        <p>Your Company Name</p>
-        ]]>
+        <field name="model_id" ref="after_sales_service.model_warranty_notification"/>
+        <field name="email_from">${object.company_id.email or ''}</field>
+        <field name="email_to">${object.partner_id.email or ''}</field>
+        <field name="body_html" type="html">
+            <p>Dear ${object.partner_id.name},</p>
+            <p>This is a friendly reminder that the warranty for your product <strong>${object.product_id.name}</strong> will expire on <strong>${object.warranty_end_date}</strong>.</p>
+            <p>Please contact us if you need assistance with your warranty.</p>
+            <p>Best regards,</p>
+            <p>${object.company_id.name}</p>
         </field>
-    </template>
+    </record>
 
 </odoo>

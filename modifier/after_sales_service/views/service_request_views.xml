@@ -12,9 +12,23 @@
                             class="oe_highlight"
                             attrs="{'invisible': ['|', ('state', 'not in', ['draft','assign_technician']), ('technician_id', '=', False)]}"/>
 <!--                            attrs="{'invisible': ['&amp;', ('technician_id', '=', False), ('state', 'not in', ['assign_technician']), ('state', 'in', ['in_progress', 'completed', 'cancel'])]}"/>-->
-                   <field name="state" widget="statusbar" statusbar_visible="draft,assign_technician,in_progress,completed" />
+                    <button name="open_assign_technician_wizard"
+                            type="object"
+                            string="Assign Technician"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'assign_technician')]}"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,assign_technician,submitted,in_progress,completed" />
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_repair_history"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-wrench">
+                            <field name="repair_count" widget="statinfo" string="Repair History"/>
+                        </button>
+                    </div>
                     <h1><field name="name"/></h1>
                     <group width="100%">
                         <group width="30%">
@@ -24,11 +38,11 @@
                             <field name="estimated_completion_date"/>
                         </group>
                         <group width="70%">
-                            <field name="technician_id" attrs="{'required': [('state', '=', 'assign_technician')], 'readonly': [('state', 'not in', ['draft', 'assign_technician'])]}" domain="[('job_title', 'in', ['Technician', 'Technician Manager'])]" options="{'no_create': True}"/>
+                            <field name="technician_id" readonly="1" domain="[('job_title', 'in', ['Technician', 'Technician Manager'])]" options="{'no_create': True}"/>
                             <field name="service_type"/>
                             <field name="actual_completion_date" readonly="1"/>
                             <field name="is_by_portal" invisible="1"/>
-                            <field name="responsible_id" readonly="1" attrs="{'invisible': [('is_by_portal', '=', True)]}"/>
+                            <field name="responsible_id" string="Responsible CS" readonly="1" attrs="{'invisible': [('is_by_portal', '=', True)]}"/>
                         </group>
                     </group>
                     <notebook>
@@ -45,7 +59,6 @@
         </field>
     </record>
 
-
     <record id="view_service_request_tree" model="ir.ui.view">
         <field name="name">service.request.tree</field>
         <field name="model">service.request</field>
@@ -56,6 +69,7 @@
                 <field name="product_id"/>
                 <field name="service_type"/>
                 <field name="technician_id"/>
+                <field name="responsible_id"/>
                 <field name="request_date"/>
                 <field name="estimated_completion_date"/>
                 <field name="actual_completion_date"/>
@@ -74,6 +88,7 @@
                 <field name="product_id"/>
                 <field name="service_type"/>
                 <field name="technician_id"/>
+                <field name="responsible_id"/>
                 <field name="request_date"/>
                 <field name="estimated_completion_date"/>
                 <field name="actual_completion_date"/>
@@ -82,16 +97,29 @@
         </field>
     </record>
 
+    <record id="view_service_request_search" model="ir.ui.view">
+        <field name="name">service.request.search</field>
+        <field name="model">service.request</field>
+        <field name="arch" type="xml">
+            <search string="Search Service Requests">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="state"/>
+                <field name="responsible_id"/>
 
-<!--    <record id="action_service_request" model="ir.actions.act_window">-->
-<!--        <field name="name">Service Request</field>-->
-<!--        <field name="res_model">service.request</field>-->
-<!--        <field name="view_mode">tree,form</field>-->
-<!--    </record>-->
-<!--    -->
+                <separator/>
+
+                <!-- ✅ Custom filter: Own Documents Service Requests -->
+                <filter name="own_document"
+                        string="Own Documents"
+                        domain="[('responsible_id', '=', uid)]"/>
+
+            </search>
+        </field>
+    </record>
 
     <record model="ir.actions.server" id="action_service_request_server">
-        <field name="name">Warranty Claims</field>
+        <field name="name">Service Request</field>
         <field name="model_id" ref="after_sales_service.model_service_request"/>
         <field name="state">code</field>
         <field name="code">

@@ -3,10 +3,20 @@
     <template id="report_service_request_template">
         <t t-call="web.html_container">
             <t t-call="web.external_layout">
+
                 <div class="page">
                     <!-- Report Header -->
                     <div class="text-center mb-4">
-                        <h2 class="text-primary" style="font-size: 24px; font-weight: bold;">Service Request Report</h2>
+                        <t t-set="report_data" t-value="data.get('form', {}).get('report_data')"/>
+                        <t t-set="report_title" t-value="{
+                            'service_request': 'Service Request',
+                            'warranty_claim': 'Warranty Claim',
+                            'sale_return': 'Sale Return'
+                        }.get(report_data, 'Report')"/>
+
+                        <div class="text-center mb-4">
+                            <h2 class="text-primary" style="font-size: 24px; font-weight: bold;"><t t-esc="report_title"/> Report</h2>
+                        </div>
                     </div>
 
                     <!-- Report Filters Section -->
@@ -35,25 +45,50 @@
                                         <td width="33%" style="vertical-align: top;">
                                             <strong>Filter Type:</strong><br/>
                                             <t t-if="data.get('form', {}).get('user_type')">
-                                                <span t-esc="{
-                                'responsible': 'By Responsible',
-                                'customer': 'By Customer',
-                                'both': 'All Types'
-                            }.get(data['form']['user_type'], 'Not Specified')"/>
+                                                <t t-set="user_type" t-value="{
+                                                    'responsible': 'By Customer Service',
+                                                    'customer': 'By Customer',
+                                                    'both': 'All Types'
+                                                }.get(data['form']['user_type'], 'Not Specified')"/>
+                                                <span t-esc="user_type"/>
                                             </t>
                                             <t t-else="">
                                                 <span>All Types</span>
                                             </t>
                                         </td>
 
+<!--                                        <t t-set="records" t-value="docs or env['service.request'].browse(data.get('ids', []))"/>-->
+<!--                                        <t t-set="report_data" t-value="data.get('form', {}).get('report_data')"/>-->
+<!--                                        <t t-set="model_name" t-value="{-->
+<!--                                            'service_request': 'service.request',-->
+<!--                                            'warranty_claim': 'warranty.claim',-->
+<!--                                            'sale_return': 'sale.return'-->
+<!--                                        }.get(report_data, 'warranty.claim')"/>-->
+
+                                        <t t-if="report_title == 'Service Request'">
+                                            <t t-set="records" t-value="docs or env['warranty.claim'].browse(data.get('ids', []))"/>
+                                        </t>
+                                        <t t-if="report_title == 'Warranty Claim'">
+                                            <t t-set="records" t-value="docs or env['warranty.claim'].browse(data.get('ids', []))"/>
+                                        </t>
+                                        <t t-if="report_title == 'Sale Return'">
+                                            <t t-set="records" t-value="docs or env['sale.return'].browse(data.get('ids', []))"/>
+                                        </t>
+
+                                         <t t-if="report_title != 'Sale Return'">
+                                            <t t-set="filtered_records" t-value="records.filtered(lambda r: (user_type == 'All Types') or (user_type == 'By Customer Service' and not r.is_by_portal) or (user_type == 'By Customer' and r.is_by_portal))"/>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-set="filtered_records" t-value="records"/>
+                                        </t>
+
+
+
                                         <!-- Responsible -->
                                         <td width="33%" style="vertical-align: top;">
-                                            <strong>Responsible:</strong><br/>
                                             <t t-if="data.get('form', {}).get('responsible_id', False)">
+                                                <strong>Responsible:</strong><br/>
                                                 <span t-esc="env['res.users'].browse(data['form']['responsible_id']).name"/>
-                                            </t>
-                                            <t t-else="">
-                                                <span>All Users</span>
                                             </t>
                                         </td>
                                     </tr>
@@ -65,8 +100,8 @@
                     <div class="alert alert-info mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>Total Service Requests: </strong>
-                                <span t-esc="len(docs or env['service.request'].browse(data.get('ids', [])))"/>
+                                <strong>Total <span t-esc="report_title"/>s: </strong>
+                                <span t-esc="len(filtered_records)"/>
                             </div>
                             <!--                            <div>-->
                             <!--                                <strong>Period Coverage: </strong>-->
@@ -78,21 +113,22 @@
                     </div>
 
                     <!-- Report Data Table -->
-                    <div class="table-responsive">
-                        <table class="table table-striped table-bordered table-hover">
+                    <div>
+                        <t t-if="report_title != 'Sale Return'">
+                            <table class="table table-striped table-bordered">
                             <thead class="thead-dark">
                                 <tr>
                                     <th class="text-center">#</th>
                                     <th>Request No.</th>
                                     <th>Customer</th>
                                     <th>Product</th>
-                                    <th>Responsible</th>
+                                    <th>Customer Service</th>
                                     <th>Status</th>
                                     <th class="text-center">Date</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="docs or env['service.request'].browse(data.get('ids', []))" t-as="request">
+                                <t t-foreach="filtered_records" t-as="request">
                                     <tr>
                                         <td class="text-center" t-esc="request_index + 1"/>
                                         <td>
@@ -123,6 +159,55 @@
                                 </t>
                             </tbody>
                         </table>
+                        </t>
+                        <t t-else="">
+                            <table class="table table-striped table-bordered">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th>Return No.</th>
+                                    <th>Customer</th>
+                                    <th>Order No.</th>
+                                    <th>Customer Service</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="filtered_records" t-as="request">
+                                    <tr>
+                                        <td class="text-center" t-esc="request_index + 1"/>
+                                        <td>
+                                            <span t-field="request.name" style="font-weight: 500;"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="request.partner_id.name"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="request.sale_id.name"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="request.user_id.name"/>
+                                        </td>
+                                        <td>
+                                            <span t-att-class="'badge badge-' +
+                                                {'draft': 'secondary',
+                                                 'confirmed': 'info',
+                                                 'process': 'primary',
+                                                 'close': 'success',
+                                                 'reject': 'danger'}.get(request.state, 'light')"
+                                                  t-esc="request.state.upper()"/>
+                                        </td>
+                                        <td class="text-center">
+                                            <span t-field="request.create_date" t-options='{"widget": "date"}'/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        </t>
+
+
                     </div>
 
                     <!-- Report Footer -->
