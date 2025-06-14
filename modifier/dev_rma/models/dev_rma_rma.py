@@ -495,31 +495,38 @@ class dev_rma_rma(models.Model):
                                 new_pick_id = picking.id
                 self.delivery_id = new_pick_id 
         return True
-        
-            
+
     def action_create_shipment(self):
+        # Check if there are any lines with delivered_qty > 0 that need shipment
+        lines_with_delivery = self.rma_lines.filtered(lambda l: l.delivered_qty > 0 and l.return_qty > 0)
+
+        if not lines_with_delivery:
+            # No actual delivery to return, skip shipment creation
+            return True
+
         wizard_pool = self.env['stock.return.picking']
         pro_vals = []
-        for line in self.rma_lines:
-            pro_vals.append((0,0,{
-                            'move_id':line.move_id.id,
-                            'product_id':line.product_id.id,
-                            'quantity':line.return_qty or 0.0,
-                            'uom_id':line.move_id.product_uom.id,
-                            'to_refund':True,
-                        }))
-        
-        vals={
-            'picking_id':self.picking_id.id,
-            'parent_location_id':self.picking_id.location_id.location_id.id,
-            'original_location_id':self.picking_id.location_id and self.picking_id.location_id.id or False,
-            'location_id':self.picking_id.location_id and self.picking_id.location_id.id or False,
-            'product_return_moves':pro_vals,
-        }
-        wizard_id = wizard_pool.create(vals)
-        refund = wizard_id.create_returns()
-        self.incoming_id = refund.get('res_id')
-        self.incoming_id.rma_id = self.id
+        for line in lines_with_delivery:
+            pro_vals.append((0, 0, {
+                'move_id': line.move_id.id,
+                'product_id': line.product_id.id,
+                'quantity': line.return_qty or 0.0,
+                'uom_id': line.move_id.product_uom.id,
+                'to_refund': True,
+            }))
+
+        if pro_vals:  # Only create shipment if there are valid lines
+            vals = {
+                'picking_id': self.picking_id.id,
+                'parent_location_id': self.picking_id.location_id.location_id.id,
+                'original_location_id': self.picking_id.location_id and self.picking_id.location_id.id or False,
+                'location_id': self.picking_id.location_id and self.picking_id.location_id.id or False,
+                'product_return_moves': pro_vals,
+            }
+            wizard_id = wizard_pool.create(vals)
+            refund = wizard_id.create_returns()
+            self.incoming_id = refund.get('res_id')
+            self.incoming_id.rma_id = self.id
         return True
         
     def action_create_sale_order(self):
@@ -692,13 +699,21 @@ class dev_rma_line(models.Model):
 
     def check_deliverqty_returnqty(self):
         for line in self:
-            if line.delivered_qty <= 0:
-                raise ValidationError(_("Delivered Quantity must be positive"))
-            if line.return_qty <= 0:
-                raise ValidationError(_("Return Quantity must be positive"))
-            
-            if line.return_qty > line.delivered_qty:
-                raise ValidationError(_("Return Quantity must be less or equal to Delivered Quantity"))
+            # Allow zero delivery quantity - no validation needed for this case
+            if line.delivered_qty == 0:
+                # For zero delivery qty, return qty should also be 0 or we skip validation
+                if line.return_qty > 0:
+                    # This might be a refund case without actual delivery
+                    pass  # Allow this scenario
+                continue
+
+            # For non-zero delivery quantities, apply normal validation
+            if line.delivered_qty > 0:
+                if line.return_qty <= 0:
+                    raise ValidationError(_("Return Quantity must be positive when there is delivered quantity"))
+
+                if line.return_qty > line.delivered_qty:
+                    raise ValidationError(_("Return Quantity must be less or equal to Delivered Quantity"))
     
 
 

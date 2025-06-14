@@ -8,6 +8,7 @@ class ServiceRequest(models.Model):
 
     # General fields
     name = fields.Char('Request Reference', required=True, copy=False, readonly=True, default='New')
+    company_id = fields.Many2one('res.company', string="Company", readonly=True, default=lambda self: self.env.company)
     partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     sale_order_id = fields.Many2one('sale.order', string='Sale Order')
     product_id = fields.Many2one('product.product', string='Product', required=True)
@@ -27,8 +28,17 @@ class ServiceRequest(models.Model):
         return False
 
     is_by_portal = fields.Boolean('Is by Portal', default=False)
+    portal_type = fields.Selection([
+        ('portal', 'Portal Submissions'),
+        ('internal', 'Internal Submissions')
+    ], string='Submission Type', compute='_compute_portal_type', store=True)
 
-    # Status and tracking
+    @api.depends('is_by_portal')
+    def _compute_portal_type(self):
+        for record in self:
+            record.portal_type = 'portal' if record.is_by_portal else 'internal'
+
+            # Status and tracking
     description = fields.Text('Issue Description')
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -36,7 +46,8 @@ class ServiceRequest(models.Model):
         ('submitted', 'Submitted'),
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
-        ('cancel', 'Cancelled')
+        ('cancelled', 'Cancelled'),
+        ('repair_rejected', 'Repair Rejected'),
     ], string='Status', default='draft', tracking=True)
 
     technician_id = fields.Many2one('hr.employee', string='Assigned Technician')
@@ -45,6 +56,24 @@ class ServiceRequest(models.Model):
         string='Repair History Count',
         compute='_compute_repair_count'
     )
+
+    # Cancellation fields
+    cancel_reason = fields.Selection([
+        ('customer_request', 'Customer Request'),
+        ('technical_issue', 'Technical Issue'),
+        ('parts_unavailable', 'Parts Unavailable'),
+        ('cost_concern', 'Cost Concern'),
+        ('duplicate_request', 'Duplicate Request'),
+        ('out_of_warranty', 'Out of Warranty'),
+        ('other', 'Other'),
+    ], string='Cancel Reason', readonly=True)
+
+    cancel_notes = fields.Text(string='Cancel Notes', readonly=True)
+    cancelled_by = fields.Many2one('res.users', string='Cancelled By', readonly=True)
+    cancelled_date = fields.Datetime(string='Cancelled Date', readonly=True)
+
+
+
 
     @api.depends('repair_ids')
     def _compute_repair_count(self):
@@ -124,7 +153,7 @@ class ServiceRequest(models.Model):
         self.ensure_one()
         
         self.state = 'submitted'
-        self.env['repair.history'].create({
+        self.env['repair.history'].sudo().create({
             'partner_id': self.partner_id.id,
             'product_id': self.product_id.id,
             'technician_id': self.technician_id.id,
@@ -132,6 +161,49 @@ class ServiceRequest(models.Model):
             'repair_date': fields.Date.today(),
             'state': 'pending',
         })
+
+    def action_cancel(self):
+        """Open cancel wizard instead of direct cancellation"""
+        self.ensure_one()
+
+        if self.state in ['completed', 'cancelled']:
+            raise UserError('You cannot cancel a request that is already completed or cancelled.')
+
+        return {
+            'name': 'Cancel Service Request',
+            'type': 'ir.actions.act_window',
+            'res_model': 'service.request.cancel.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_service_request_id': self.id,
+            }
+        }
+
+    def action_force_cancel(self):
+        """Direct cancel method (for system use or specific cases)"""
+        for record in self:
+            if record.state in ['completed', 'cancelled']:
+                raise UserError('You cannot cancel a claim that is already completed or cancelled.')
+
+            record.state = 'cancelled'
+
+            # Send email to partner
+            template = self.env.ref('after_sales_service.email_template_service_cancel', raise_if_not_found=False)
+            if template and record.partner_id.email:
+                template.send_mail(record.id, force_send=True)
+
+    def action_reset_to_draft(self):
+        for record in self:
+            if record.state not in ['cancelled']:
+                raise UserError('You can only reset records that are Cancelled.')
+
+            record.state = 'draft'
+
+            # Send reset email
+            template = self.env.ref('after_sales_service.email_template_service_reset', raise_if_not_found=False)
+            if template and record.partner_id.email:
+                template.send_mail(record.id, force_send=True)
 
     def by_domain_service_request(self):
         user = self.env.user

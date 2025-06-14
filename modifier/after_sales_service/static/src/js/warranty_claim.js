@@ -16,6 +16,7 @@ odoo.define('after_sales_service.warranty_claim', function (require) {
          */
         start: function () {
             this.claimCount = 1;
+            this.products = []; // Store products data
             return this._super.apply(this, arguments);
         },
 
@@ -47,6 +48,7 @@ odoo.define('after_sales_service.warranty_claim', function (require) {
                 },
                 success: function (data) {
                     var products = JSON.parse(data).products;
+                    self.products = products; // Store products for later use
                     self._populateProductSelects(products);
                 },
                 error: function () {
@@ -62,6 +64,8 @@ odoo.define('after_sales_service.warranty_claim', function (require) {
             var self = this;
             this.$('.product-select').each(function() {
                 var $select = $(this);
+                var currentValue = $select.val(); // Store current selection
+
                 $select.empty();
 
                 // Add default option
@@ -77,6 +81,32 @@ odoo.define('after_sales_service.warranty_claim', function (require) {
                         text: product.name
                     }));
                 });
+
+                // Restore previous selection if it exists and is still valid
+                if (currentValue && $select.find('option[value="' + currentValue + '"]').length > 0) {
+                    $select.val(currentValue);
+                }
+            });
+        },
+
+        /**
+         * Populate only a specific product select (for new claims)
+         */
+        _populateSpecificProductSelect: function ($select, products) {
+            $select.empty();
+
+            // Add default option
+            $select.append($('<option>', {
+                value: '',
+                text: 'Select a Product'
+            }));
+
+            // Add products
+            products.forEach(function (product) {
+                $select.append($('<option>', {
+                    value: product.id,
+                    text: product.name
+                }));
             });
         },
 
@@ -84,6 +114,7 @@ odoo.define('after_sales_service.warranty_claim', function (require) {
          * Reset all product selects to initial state
          */
         _resetProductSelects: function () {
+            this.products = []; // Clear stored products
             this.$('.product-select').empty().append($('<option>', {
                 value: '',
                 text: 'Select Sale Order First'
@@ -114,10 +145,10 @@ odoo.define('after_sales_service.warranty_claim', function (require) {
                 this.$('.remove-product-claim').show();
             }
 
-            // If sale order is selected, populate the new product select
-            var sale_order_id = this.$('#sale_order_id').val();
-            if (sale_order_id) {
-                this._fetchAndPopulateProducts(sale_order_id);
+            // If products are already loaded, populate only the new product select
+            if (this.products.length > 0) {
+                var $newProductSelect = $newClaim.find('.product-select');
+                this._populateSpecificProductSelect($newProductSelect, this.products);
             }
         },
 
@@ -149,8 +180,8 @@ odoo.define('after_sales_service.warranty_claim', function (require) {
                     </div>
                     <div class="form-group">
                         <label>Product</label>
-                        <select name="product_claims[${index-1}][product_id]" class="form-control product-select">
-                            <option value="">Select Sale Order First</option>
+                        <select name="product_claims[${index-1}][product_id]" class="form-control product-select" required="required">
+                            <option value="">Select a Product</option>
                         </select>
                         <small style="color: #cc6666;">Note: Only products with active warranties will be listed.</small>
                     </div>

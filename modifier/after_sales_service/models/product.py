@@ -6,6 +6,7 @@ class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
     has_warranty = fields.Boolean(string='Has Warranty')
+    is_serviceable = fields.Boolean(string='Is Serviceable')
     warranty_period_id = fields.Many2one('warranty.period', string='Warranty Period')
     website_description = fields.Html('Description for the website', sanitize_attributes=False, translate=html_translate, sanitize_form=False)
 
@@ -37,8 +38,10 @@ class ProductTemplate(models.Model):
 class Product(models.Model):
     _inherit = 'product.product'
 
-    has_warranty = fields.Boolean(string='Has Warranty')
-    warranty_period_id = fields.Many2one('warranty.period', string='Warranty Period')
+    has_warranty = fields.Boolean(string='Has Warranty', related='product_tmpl_id.has_warranty')
+    is_serviceable = fields.Boolean(string='Is Serviceable', related='product_tmpl_id.is_serviceable')
+    website_description = fields.Html('Description for the website', sanitize_attributes=False, translate=html_translate, sanitize_form=False, related='product_tmpl_id.website_description')
+    warranty_period_id = fields.Many2one('warranty.period', string='Warranty Period', related='product_tmpl_id.warranty_period_id')
 
     @api.onchange('has_warranty')
     def _onchange_product_has_warranty(self):

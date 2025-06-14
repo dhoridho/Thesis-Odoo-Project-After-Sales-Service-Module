@@ -6,17 +6,30 @@
         <field name="arch" type="xml">
             <form>
                 <header>
+                    <button name="open_assign_technician_wizard"
+                            type="object"
+                            string="Assign Technician"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', 'not in', ['draft', 'assign_technician'])]}"/>
+
                     <button name="action_submit_order"
                             type="object"
                             string="Submit Order"
                             class="oe_highlight"
                             attrs="{'invisible': ['|', ('state', 'not in', ['draft','assign_technician']), ('technician_id', '=', False)]}"/>
 <!--                            attrs="{'invisible': ['&amp;', ('technician_id', '=', False), ('state', 'not in', ['assign_technician']), ('state', 'in', ['in_progress', 'completed', 'cancel'])]}"/>-->
-                    <button name="open_assign_technician_wizard"
+
+                    <button name="action_cancel"
                             type="object"
-                            string="Assign Technician"
-                            class="oe_highlight"
-                            attrs="{'invisible': [('state', '!=', 'assign_technician')]}"/>
+                            string="Cancel"
+                            class="btn btn-danger"
+                            attrs="{'invisible': [('state', 'not in', ['assign_technician'])]}" />
+
+                    <button name="action_reset_to_draft"
+                            type="object"
+                            string="Reset to Draft"
+                            class="btn btn-secondary"
+                            attrs="{'invisible': [('state', 'not in', ['cancelled'])]}" />
 
                     <field name="state" widget="statusbar" statusbar_visible="draft,assign_technician,submitted,in_progress,completed" />
                 </header>
@@ -73,7 +86,10 @@
                 <field name="request_date"/>
                 <field name="estimated_completion_date"/>
                 <field name="actual_completion_date"/>
-                <field name="state"/>
+                <field name="state" widget="badge"
+                       decoration-danger="state=='cancelled'"
+                       decoration-success="state=='completed'"
+                       decoration-info="state=='in_progress'"/>
             </tree>
         </field>
     </record>
@@ -92,7 +108,10 @@
                 <field name="request_date"/>
                 <field name="estimated_completion_date"/>
                 <field name="actual_completion_date"/>
-                <field name="state"/>
+                <field name="state" widget="badge"
+                       decoration-danger="state=='cancelled'"
+                       decoration-success="state=='completed'"
+                       decoration-info="state=='in_progress'"/>
             </tree>
         </field>
     </record>
@@ -107,12 +126,27 @@
                 <field name="state"/>
                 <field name="responsible_id"/>
 
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Assign Technician" name="pending" domain="[('state', '=', 'assign_technician')]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Completed" name="completed" domain="[('state', '=', 'completed')]"/>
+                <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+
                 <separator/>
 
                 <!-- ✅ Custom filter: Own Documents Service Requests -->
                 <filter name="own_document"
                         string="Own Documents"
                         domain="[('responsible_id', '=', uid)]"/>
+
+                <separator/>
+
+                <group>
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Technician" name="group_technician" context="{'group_by': 'technician_id'}"/>
+                    <filter string="Service Type" name="group_service_type" context="{'group_by': 'service_type'}"/>
+<!--                    <filter string="Portal" name="group_by_portal" context="{'group_by': 'portal_type'}"/>-->
+                </group>
 
             </search>
         </field>
@@ -127,29 +161,103 @@
         </field>
     </record>
 
+     <!-- NEW: Server action for internal requests -->
+    <record model="ir.actions.server" id="action_internal_service_request_server">
+        <field name="name">Internal Service Request</field>
+        <field name="model_id" ref="after_sales_service.model_service_request"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model.sudo().by_domain_service_request()
+action['domain'] = action.get('domain', []) + [('portal_type', '=', 'internal')]
+action['name'] = 'Internal Service Requests'
+        </field>
+    </record>
 
+     <!-- NEW: Server action for portal requests -->
+    <record model="ir.actions.server" id="action_portal_service_request_server">
+        <field name="name">Portal Service Request</field>
+        <field name="model_id" ref="after_sales_service.model_service_request"/>
+        <field name="state">code</field>
+        <field name="code">
+action = model.sudo().by_domain_service_request()
+action['domain'] = action.get('domain', []) + [('portal_type', '=', 'portal')]
+action['name'] = 'Portal Service Requests'
+action['context'] = {}
+        </field>
+    </record>
+
+
+     <!-- UPDATED: Main menu item (now acts as parent for submenus) -->
     <menuitem
             id="menu_service_request"
             name="Service Request"
             parent="menu_after_sales_root"
-            action="action_service_request_server"
             sequence="2"
             />
 
-<!--    <record id="action_service_request_technician" model="ir.actions.act_window">-->
-<!--        <field name="name">Service Request Technician</field>-->
-<!--        <field name="res_model">service.request</field>-->
-<!--        <field name="view_mode">tree</field>-->
-<!--        <field name="view_id" ref="view_service_request_tree_technician"/>-->
-<!--        <field name="domain">[('technician_id.user_id', '=', uid)]</field>-->
-<!--    </record>-->
+    <!-- NEW: Submenu for Internal Requests -->
+    <menuitem
+            id="menu_internal_service_request"
+            name="Internal Request"
+            parent="menu_service_request"
+            action="action_internal_service_request_server"
+            sequence="1"
+            />
 
-<!--    <menuitem-->
-<!--            id="menu_service_request_technician"-->
-<!--            name="Service Request"-->
-<!--            parent="menu_after_sales_root"-->
-<!--            action="action_service_request_technician"-->
-<!--            sequence="2"-->
-<!--            groups="after_sales_service.group_technician"/>-->
+    <!-- NEW: Submenu for Portal Requests -->
+    <menuitem
+            id="menu_portal_service_request"
+            name="Portal Request"
+            parent="menu_service_request"
+            action="action_portal_service_request_server"
+            sequence="2"
+            />
+
+    <record id="email_template_service_cancel" model="mail.template">
+        <field name="name">Service Request Cancelled</field>
+        <field name="email_from">${(object.company_id.email or 'noreply@example.com')|safe}</field>
+        <field name="email_to">${object.partner_id.email or ''}</field>
+        <field name="subject">Service Request ${object.name} Cancelled</field>
+        <field name="model_id" ref="model_service_request"/>
+        <field name="body_html" type="html">
+            <p>Dear ${object.partner_id.name},</p>
+
+            <p>We would like to inform you that your service request
+            <strong>${object.name}</strong> has been <strong>cancelled</strong>.</p>
+
+            <p><strong>Reason:</strong>
+                ${dict(object.fields_get()['cancel_reason']['selection'])[object.cancel_reason]}
+            </p>
+
+            <div>
+                % if object.cancel_notes:
+                <p><strong>Additional Notes:</strong><br/>
+                    ${object.cancel_notes}</p>
+                % endif
+            </div>
+
+
+
+            <p>If this was unexpected, or you have any questions, please feel free to contact us.</p>
+
+            <p>Thank you,<br/>
+            ${object.company_id.name}</p>
+        </field>
+    </record>
+
+
+    <record id="email_template_service_reset" model="mail.template">
+        <field name="name">Service Request Reset</field>
+        <field name="email_from">${(object.company_id.email or 'noreply@example.com')|safe}</field>
+        <field name="email_to">${object.partner_id.email or ''}</field>
+        <field name="subject">Service Request ${object.name} Reset to Draft</field>
+        <field name="model_id" ref="model_service_request"/>
+        <field name="body_html" type="html">
+            <p>Dear ${object.partner_id.name},</p>
+            <p>Your service request <strong>${object.name}</strong> has been reset to draft for further changes or resubmission.</p>
+            <p>We will follow up shortly.</p>
+        </field>
+</record>
+
 
 </odoo>

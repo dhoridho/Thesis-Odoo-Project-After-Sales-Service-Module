@@ -11,6 +11,7 @@ class TechnicianAssignWizard(models.TransientModel):
     selected_technician_id = fields.Many2one('hr.employee', string="Selected Technician")
     technician_line_ids = fields.One2many('technician.assign.wizard.line', 'wizard_id', string="Available Technicians")
 
+
     @api.model
     def default_get(self, fields_list):
         res = super(TechnicianAssignWizard, self).default_get(fields_list)
@@ -30,7 +31,8 @@ class TechnicianAssignWizard(models.TransientModel):
         technician_lines = []
         for tech in technicians:
             technician_lines.append((0, 0, {
-                'technician_id': tech.id,
+                'technician_id': tech,
+                'technician_id_number': str(tech.id),
                 'name': tech.name,
                 'job_title': tech.job_title,
                 'ongoing_tasks': tech.ongoing_tasks,
@@ -67,10 +69,41 @@ class TechnicianAssignWizardLine(models.TransientModel):
     _description = 'Technician Assignment Wizard Line'
 
     wizard_id = fields.Many2one('technician.assign.wizard', string="Wizard", ondelete='cascade')
-    technician_id = fields.Many2one('hr.employee', string="Technician", required=True)
+    technician_id = fields.Many2one('hr.employee', string="Technician", readonly=True)
+    technician_id_number = fields.Char(string="Technician ID", readonly=True)
     name = fields.Char(string="Technician Name", related='technician_id.name', readonly=True)
     job_title = fields.Char(string="Job Title", related='technician_id.job_title', readonly=True)
     ongoing_tasks = fields.Integer(string="Ongoing Tasks", related='technician_id.ongoing_tasks', readonly=True)
+    tick = fields.Boolean(string=" ")
+
+    @api.onchange('tick')
+    def onchange_tick(self):
+        if self.tick:
+            # Create a list to hold the updated line values
+            updated_lines = []
+
+            # Process each line
+            for line in self.wizard_id.technician_line_ids:
+                if line == self:
+                    # Keep current line as ticked
+                    updated_lines.append((1, line.id, {'tick': True}))
+                else:
+                    # Untick all other lines
+                    updated_lines.append((1, line.id, {'tick': False}))
+
+            # Update the wizard with new line values
+            self.wizard_id.technician_line_ids = updated_lines
+
+            # Set the selected technician
+            self.wizard_id.selected_technician_id = self.env['hr.employee'].search([('id', '=', self.technician_id_number)], limit=1)
+        else:
+            # If unticking, clear the selected technician
+            self.wizard_id.selected_technician_id = False
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
 
     def action_select_technician(self):
         """Select this technician and update wizard"""

@@ -1,10 +1,12 @@
 from odoo import models, fields, api
 from datetime import datetime, timedelta
+from odoo.fields import Date
 
 class WarrantyNotification(models.Model):
     _name = 'warranty.notification'
     _description = 'Warranty Notification'
 
+    name = fields.Char(string='Notification Reference', required=True, copy=False, readonly=True, default='New')
     partner_id = fields.Many2one('res.partner', string='Customer', required=True)
     product_id = fields.Many2one('product.product', string='Product', required=True)
     warranty_end_date = fields.Date('Warranty End Date', required=True)
@@ -17,6 +19,21 @@ class WarrantyNotification(models.Model):
     ], string='Notification Sent Status', default='no')
     days_remaining = fields.Integer(string='Days Remaining', compute='_compute_days_remaining', store=True)
     company_id = fields.Many2one('res.company', string="Company", readonly=True, default=lambda self: self.env.company)
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name', 'New') == 'New':
+            partner_id = vals.get('partner_id')
+            product_id = vals.get('product_id')
+            warranty_end_date = vals.get('warranty_end_date')
+
+            if partner_id and product_id and warranty_end_date:
+                partner = self.env['res.partner'].browse(partner_id)
+                product = self.env['product.product'].browse(product_id)
+                formatted_date = Date.to_string(Date.from_string(warranty_end_date))
+                vals['name'] = f"{partner.name}/{product.name}/{formatted_date}"
+
+        return super(WarrantyNotification, self).create(vals)
 
     @api.depends('warranty_end_date')
     def _compute_days_remaining(self):

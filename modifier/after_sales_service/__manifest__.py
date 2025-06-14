@@ -37,6 +37,8 @@
         "views/dev_rma_rma.xml",
 
         "wizards/technician_assign_wizard.xml",
+        "wizards/service_request_cancel_wizard.xml",
+        "wizards/warranty_claim_cancel_wizard.xml",
 
 
         # "views/technician_management_view.xml",

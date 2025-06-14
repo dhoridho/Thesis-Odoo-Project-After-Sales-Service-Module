@@ -5,14 +5,17 @@
         <field name="name">repair.history.tree</field>
         <field name="model">repair.history</field>
         <field name="arch" type="xml">
-            <tree string="Repair History" default_order="id desc">
+            <tree string="Repair History" default_order="id desc" create="false">
                 <field name="name"/>
                 <field name="origin"/>
                 <field name="partner_id"/>
                 <field name="product_id"/>
                 <field name="technician_id"/>
                 <field name="repair_date"/>
-                <field name="state"/>
+                <field name="state" widget="badge"
+                       decoration-danger="state=='rejected'"
+                       decoration-success="state=='completed'"
+                       decoration-info="state=='in_progress'"/>
 <!--                <field name="is_warranty_repair"/>-->
             </tree>
         </field>
@@ -22,20 +25,37 @@
         <field name="name">repair.history.form</field>
         <field name="model">repair.history</field>
         <field name="arch" type="xml">
-            <form string="Repair History">
+            <form string="Repair History" create="false">
                 <header>
-                     <button name="action_confirm"
-                        type="object"
-                        string="Confirm"
-                        class="btn-primary"
-                        attrs="{'invisible': [('state', '!=', 'pending')]}"/>
+                    <field name="has_group" invisible="1"/>
+                    <button name="action_confirm"
+                            type="object"
+                            string="Process Repair"
+                            class="btn-primary"
+                            attrs="{'invisible': [('state', '!=', 'pending')]}"
+                            groups="after_sales_service.group_technician"/>
 
                     <button name="action_complete"
-                        type="object"
-                        string="Complete"
-                        class="btn-primary"
-                        attrs="{'invisible': [('state', '!=', 'in_progress')]}"/>
-                     <field name="state" widget="statusbar"/>
+                            type="object"
+                            string="Complete"
+                            class="btn-primary"
+                            attrs="{'invisible': [('state', '!=', 'in_progress')]}"
+                            groups="after_sales_service.group_technician"/>
+
+                    <button name="action_reject" string="Reject" type="object"
+                            attrs="{'invisible': [('state', 'not in', ['pending', 'in_progress'])]}"
+                            class="btn-danger"
+                            groups="after_sales_service.group_technician"/>
+
+                    <button name="action_confirm_reject" string="Confirm Reject" type="object"
+                            attrs="{'invisible': [('state', '!=', 'waiting_approval')]}"
+                            class="btn-primary"
+                            groups="after_sales_service.group_technician_manager"/>
+
+                    <button name="action_reset_to_pending" string="Reset to Pending" type="object"
+                            attrs="{'invisible': [('state', 'not in', ['waiting_approval', 'rejected'])]}"
+                            groups="after_sales_service.group_technician_manager"/>
+                     <field name="state" widget="statusbar" statusbar_visible="pending,in_progress,completed"/>
                 </header>
                 <sheet>
                     <h1><field name="name"/></h1>
@@ -44,13 +64,12 @@
                             <field name="partner_id" readonly="1"/>
                             <field name="product_id" readonly="1"/>
                             <field name="repair_date" readonly="1"/>
-                            <field name="repair_type" attrs="{'required': [('state', '=', 'pending')], 'readonly': [('state', '!=', 'pending')]}"/>
+                            <field name="repair_type" attrs="{'readonly': [('state', 'in', ['completed', 'rejected'])]}"/>
                         </group>
                         <group>
                             <field name="technician_id" readonly="1"/>
                             <field name="is_warranty_repair" invisible="1"/>
                             <field name="origin"/>
-
                             <field name="completion_date"/>
                         </group>
                     </group>
@@ -60,7 +79,47 @@
                         </page>
                     </notebook>
                 </sheet>
+
+                 <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
+        </field>
+    </record>
+
+     <record id="view_repair_history_search" model="ir.ui.view">
+        <field name="name">repair.history.search</field>
+        <field name="model">repair.history</field>
+        <field name="arch" type="xml">
+            <search string="Search Repair History">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="technician_id"/>
+                <field name="origin"/>
+
+                <filter string="Pending" name="pending" domain="[('state', '=', 'pending')]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Completed" name="completed" domain="[('state', '=', 'completed')]"/>
+                <filter string="Rejected" name="rejected" domain="[('state', '=', 'rejected')]"/>
+
+                <separator/>
+                <filter string="Warranty Repairs" name="warranty_repairs" domain="[('is_warranty_repair', '=', True)]"/>
+                <filter string="Regular Repairs" name="regular_repairs" domain="[('is_warranty_repair', '=', False)]"/>
+
+                <separator/>
+                <filter string="My Repairs" name="my_repairs" domain="[('technician_id.user_id', '=', uid)]"/>
+
+                <group expand="0" string="Group By">
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Technician" name="group_technician" context="{'group_by': 'technician_id'}"/>
+                    <filter string="Customer" name="group_customer" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Repair Type" name="group_repair_type" context="{'group_by': 'repair_type'}"/>
+                    <filter string="Repair Date" name="group_repair_date" context="{'group_by': 'repair_date'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -84,4 +143,61 @@
             action="after_sales_service.action_repair_history_dynamic"
             sequence="4"
             groups="after_sales_service.group_technician"/>
+
+
+     <record id="view_repair_reject_wizard_form" model="ir.ui.view">
+        <field name="name">repair.reject.wizard.form</field>
+        <field name="model">repair.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Repair">
+                <div class="alert alert-warning" role="alert">
+                    <strong>Warning:</strong> This action will reject the repair request.
+                    This action cannot be undone without manual intervention.
+                </div>
+
+                <group>
+                    <group>
+                        <field name="repair_history_id" readonly="1"/>
+                        <field name="reject_date" readonly="1"/>
+                        <field name="rejected_by" readonly="1"/>
+                    </group>
+                </group>
+
+                <group>
+                    <field name="reject_reason" placeholder="Please provide a detailed reason for rejecting this repair request..."
+                           widget="text" options="{'no_open': True}" required="1"/>
+                </group>
+
+                <footer>
+                    <button name="action_reject_repair" string="Reject Repair" type="object"
+                            class="btn-danger" confirm="Are you sure you want to reject this repair request?"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="email_template_repair_complete" model="mail.template">
+        <field name="name">Request Completed Notification</field>
+        <field name="model_id" ref="model_repair_history"/>
+        <field name="email_from">${(object.company_id.email or 'noreply@example.com')|safe}</field>
+        <field name="email_to">${object.partner_id.email}</field>
+        <field name="subject">Your Request ${object.origin} for ${object.product_id.name} is Completed</field>
+        <field name="body_html" type="html">
+            <p>Dear ${object.partner_id.name},</p>
+            <p>We are pleased to inform you that the repair for your product <strong>${object.product_id.name}</strong> has been successfully completed.</p>
+            <p><strong>Request Reference:</strong> ${object.origin}<br/>
+               <strong>Completion Date:</strong> ${object.completion_date}</p>
+            <p>If you have any further questions or need assistance, please feel free to contact us.</p>
+            <p>Thank you,<br/>${object.company_id.name}</p>
+        </field>
+    </record>
+
+    <!-- Action for Repair Reject Wizard -->
+    <record id="action_repair_reject_wizard" model="ir.actions.act_window">
+        <field name="name">Reject Repair</field>
+        <field name="res_model">repair.reject.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
 </odoo>

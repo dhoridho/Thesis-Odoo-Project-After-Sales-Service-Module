@@ -16,9 +16,7 @@ class ServiceRequestController(http.Controller):
         """Render the service request form."""
         try:
             user_partner = request.env.user.partner_id if request.env.user.id != http.request.env.ref('base.public_user').id else None
-            products = request.env['product.product'].sudo().search_read(
-                [('sale_ok', '=', True)], ['id', 'name']
-            )
+            products = request.env['product.product'].sudo().search_read([('sale_ok', '=', True), ('is_serviceable', '=', True)],['id', 'name'])
             if not products:
                 _logger.warning("No products available with sale_ok=True.")
 
