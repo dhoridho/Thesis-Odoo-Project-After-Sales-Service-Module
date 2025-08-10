@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-This project is a comprehensive After-Sales Service Management Module developed for Odoo as part of a thesis project. The module extends Odoo's core functionality to provide robust after-sales service management capabilities, including service requests, warranty tracking, repair management, and customer support workflows.
+This project is a comprehensive After-Sales Service Management Module developed with Odoo as part of a thesis project. The module extends Odoo's core functionality to provide robust after-sales service management capabilities, including service requests, warranty tracking, repair management, and customer support workflows.
 
 1. [🎯 Project Objectives](#-project-objectives)
 2. [✨ Features](#-features)
