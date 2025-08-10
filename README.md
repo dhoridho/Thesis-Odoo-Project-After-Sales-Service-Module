@@ -116,7 +116,7 @@ The module includes several built-in reports:
   <img src="https://github.com/user-attachments/assets/78090df2-e9da-45df-8c39-ace1a46e2611" width="32%" />
 </p>
 
-
-
+</br>
+</br>
 
 **Note**: This module was developed as part of a thesis project for Computer Science at BINUS. It demonstrates practical application of enterprise software development principles using the Odoo framework.
