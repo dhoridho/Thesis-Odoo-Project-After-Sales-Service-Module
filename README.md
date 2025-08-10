@@ -8,7 +8,7 @@ This project is a comprehensive After-Sales Service Management Module developed 
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/0a26d7c4-208b-4495-9771-7e187c790416" width="33%" />
-  <img src="https://github.com/user-attachments/assets/d8db2287-b21e-42e8-8f71-c9a75e4f9521" width="33%" /> 
+  <img src="https://github.com/user-attachments/assets/d8db2287-b21e-42e8-8f71-c9a75e4f9521" width="32%" /> 
   <img src="https://github.com/user-attachments/assets/ee696f7e-660b-404a-9119-0feac81b012b" width="33%" />
 </p>
 
