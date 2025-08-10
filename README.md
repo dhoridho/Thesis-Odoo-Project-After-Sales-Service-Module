@@ -4,13 +4,6 @@
 
 This project is a comprehensive After-Sales Service Management Module developed for Odoo as part of a thesis project. The module extends Odoo's core functionality to provide robust after-sales service management capabilities, including service requests, warranty tracking, repair management, and customer support workflows.
 
-<img width="1921" height="1023" alt="image" src="https://github.com/user-attachments/assets/a8c16b0f-71e8-46e6-a31b-96b700a28a42" />
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/0a26d7c4-208b-4495-9771-7e187c790416" width="33%" />
-  <img src="https://github.com/user-attachments/assets/d8db2287-b21e-42e8-8f71-c9a75e4f9521" width="32%" /> 
-  <img src="https://github.com/user-attachments/assets/ee696f7e-660b-404a-9119-0feac81b012b" width="33%" />
-</p>
 
 ## 🎯 Project Objectives
 
@@ -114,6 +107,11 @@ The module includes several built-in reports:
   <img src="https://github.com/user-attachments/assets/11d957b9-7302-474a-90ba-205df439eb00" width="32%" />
   <img src="https://github.com/user-attachments/assets/ba18c6ca-dc33-49d4-93d4-6f47caaa8f0c" width="32%" /> 
   <img src="https://github.com/user-attachments/assets/78090df2-e9da-45df-8c39-ace1a46e2611" width="32%" />
+</p>
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/0a26d7c4-208b-4495-9771-7e187c790416" width="33%" />
+  <img src="https://github.com/user-attachments/assets/d8db2287-b21e-42e8-8f71-c9a75e4f9521" width="32%" /> 
+  <img src="https://github.com/user-attachments/assets/ee696f7e-660b-404a-9119-0feac81b012b" width="33%" />
 </p>
 
 </br>
