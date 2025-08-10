@@ -54,7 +54,8 @@ This project is a comprehensive After-Sales Service Management Module developed 
 - `base`
 - `sale`
 - `stock`
-- `account`
+- `website`
+- `website_sale`
 - `product`
 - `hr` (for employee management)
 
