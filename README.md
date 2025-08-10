@@ -38,7 +38,7 @@ This project is a comprehensive After-Sales Service Management Module developed 
 ### Advanced Features
 - **Customer Portal Integration**: Allow customers to track service requests
 - **Automated Notifications**: Email/SMS alerts for service milestones
-- **Reporting Dashboard**: Comprehensive analytics and KPI tracking
+- **Reporting Wizard**: Comprehensive operation report
 
 
 ## 🛠️ Technical Requirements
