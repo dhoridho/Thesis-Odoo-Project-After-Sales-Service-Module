@@ -1,24 +1,24 @@
 # Odoo After-Sales Service Module
 
-## 📋 Overview
+## Overview
 
 This project is a comprehensive After-Sales Service Management Module developed with Odoo as part of a thesis project. The module extends Odoo's core functionality to provide robust after-sales service management capabilities, including service requests, warranty tracking, repair management, and customer support workflows.
 
-1. [🎯 Project Objectives](#-project-objectives)
-2. [✨ Features](#-features)
+1. [ Project Objectives](#-project-objectives)
+2. [ Features](#-features)
    - [Core Functionality](#core-functionality)
    - [Advanced Features](#advanced-features)
-3. [🛠️ Technical Requirements](#️-technical-requirements)
+3. [ Technical Requirements](#️-technical-requirements)
    - [Odoo Version](#odoo-version)
    - [Python Requirements](#python-requirements)
    - [Dependencies](#dependencies)
    - [Key Models](#key-models)
-4. [📈 Reports and Analytics](#-reports-and-analytics)
-5. [👨‍🎓 Author](#-author)
-6. [🙏 Acknowledgments](#-acknowledgments)
-7. [🗎 Other Documentation](#-other-documentation)
+4. [ Reports and Analytics](#-reports-and-analytics)
+5. [ Author](#-author)
+6. [ Acknowledgments](#-acknowledgments)
+7. [ Other Documentation](#-other-documentation)
    
-## 🎯 Project Objectives
+##  Project Objectives
 
 - Develop a comprehensive after-sales service management system
 - Integrate seamlessly with existing Odoo modules (Sales, Inventory, Accounting)
@@ -26,7 +26,7 @@ This project is a comprehensive After-Sales Service Management Module developed 
 - Implement warranty management and validation
 - Create detailed reporting and analytics for service operations
 
-## ✨ Features
+##  Features
 
 ### Core Functionality
 - **Service Request Management**: Create, track, and manage customer service requests
@@ -41,7 +41,7 @@ This project is a comprehensive After-Sales Service Management Module developed 
 - **Reporting Wizard**: Comprehensive operation report
 
 
-## 🛠️ Technical Requirements
+## Technical Requirements
 
 ### Odoo Version
 - Compatible with Odoo 14
@@ -80,7 +80,7 @@ This project is a comprehensive After-Sales Service Management Module developed 
 - Quality check
 - Customer approval
 
-## 📈 Reports and Analytics
+##  Reports and Analytics
 
 The module includes several built-in reports:
 - After Sales Operation: Generating ra eport of selected operation types covering submitted requests, products, and statuses
@@ -97,7 +97,7 @@ The module includes several built-in reports:
 
 
 
-## 👨‍🎓 Author
+##  Author
 
 **Ridho Kurnia Putra**
 - Student ID: 2501995332
@@ -111,7 +111,7 @@ The module includes several built-in reports:
 - an ERP Consultant from Hashmicro 
 - Bina Nusantara University - Academic institution
 
-## 🗎 Other Documentation
+##  Other Documentation
 <p align="center">
   <img src="https://github.com/user-attachments/assets/26d9e96a-401c-42f1-b22e-4fcee6191e23" width="32%" />
   <img src="https://github.com/user-attachments/assets/28768ae2-6c1a-47f9-b887-e2f9acd531e1" width="32%" /> 
